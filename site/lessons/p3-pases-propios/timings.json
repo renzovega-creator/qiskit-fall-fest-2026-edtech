@@ -149,13 +149,10 @@
    ]
   ]
  },
- "basicswap": {
-  "dur": 35.712,
+ "apuesta": {
+  "dur": 28.608,
   "marks": {
-   "capas": 5.534,
-   "chk": 12.908,
-   "swap": 20.522,
-   "prueba": 27.669
+   "reto": 15.3
   },
   "cues": [
    [
@@ -164,19 +161,90 @@
    ],
    [
     5.534,
+    "Si los qubits de una puerta no son vecinos, inserta SWAP a lo largo del camino más corto, y el layout se actualiza con cada uno."
+   ],
+   [
+    15.3,
+    "Tenemos una línea de siete qubits, y un circuito con una CX entre los qubits cero y cuatro, y otra entre el seis y el uno."
+   ],
+   [
+    24.909,
+    "Apuesta: ¿cuántos SWAP inserta en total?"
+   ]
+  ]
+ },
+ "basicswap": {
+  "dur": 43.632,
+  "marks": {
+   "capas": 2.335,
+   "chk": 9.709,
+   "swap": 17.323,
+   "prueba": 24.471
+  },
+  "cues": [
+   [
+    0.107,
+    "Aquí está el pase."
+   ],
+   [
+    2.335,
     "Recorre el DAG capa por capa; en cada capa, las operaciones actúan sobre qubits distintos."
    ],
    [
-    12.908,
+    9.709,
     "Para cada puerta de dos qubits mira si sus qubits físicos están a distancia uno en el mapa de acoplamiento."
    ],
    [
-    20.522,
+    17.323,
     "Si no, busca el camino más corto e inserta SWAP a lo largo de él, actualizando el layout."
    ],
    [
-    27.669,
-    "Con una línea de siete qubits y CX entre qubits lejanos, el pase inserta los SWAP necesarios."
+    24.471,
+    "Y el resultado: ocho SWAP."
+   ],
+   [
+    27.556,
+    "La primera CX necesita tres, porque entre el cero y el cuatro hay cuatro saltos; la segunda necesita cinco, porque el primer grupo de SWAP ya movió los estados."
+   ],
+   [
+    40.011,
+    "Si apostaste por ocho, acertaste."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 27.624,
+  "marks": {
+   "n1": 2.137,
+   "n2": 12.582,
+   "n3": 19.46
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, convierte un circuito en DAG, añade puertas al principio y al final, y vuelve al circuito; apuesta antes cuántas H tendrá."
+   ],
+   [
+    12.582,
+    "Después, completa un pase de transformación que sustituye cada SWAP por tres CNOT."
+   ],
+   [
+    19.46,
+    "Y por último, escribe tú un pase de análisis que cuenta las puertas de dos qubits y las guarda en el property set."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },

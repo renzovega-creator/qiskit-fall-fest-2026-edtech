@@ -75,12 +75,141 @@
    ]
   },
   {
+   "id": "anillo",
+   "tag": [
+    "3.4",
+    "Un anillo en un chip"
+   ],
+   "say": "El mapa de acoplamiento es un grafo: dice qué qubits están conectados y pueden hacer puertas de dos qubits entre sí. A veces es dirigido, pero el transpilador siempre puede invertir una puerta añadiendo puertas de un qubit. [[ej]]Tomemos un circuito efficient su2 de doce qubits, con entrelazamiento circular: cada qubit habla con el siguiente, y el último con el primero. Necesita un anillo. Con el nivel cero, el layout trivial pone los qubits uno, dos, tres... en línea sobre el chip. Apuesta: ¿cuántos SWAP hacen falta?",
+   "scene": [
+    {
+     "type": "graph",
+     "nodes": [
+      [
+       2.0,
+       0.0
+      ],
+      [
+       1.73,
+       1.0
+      ],
+      [
+       1.0,
+       1.73
+      ],
+      [
+       0.0,
+       2.0
+      ],
+      [
+       -1.0,
+       1.73
+      ],
+      [
+       -1.73,
+       1.0
+      ],
+      [
+       -2.0,
+       0.0
+      ],
+      [
+       -1.73,
+       -1.0
+      ],
+      [
+       -1.0,
+       -1.73
+      ],
+      [
+       -0.0,
+       -2.0
+      ],
+      [
+       1.0,
+       -1.73
+      ],
+      [
+       1.73,
+       -1.0
+      ]
+     ],
+     "edges": [
+      [
+       0,
+       1
+      ],
+      [
+       1,
+       2
+      ],
+      [
+       2,
+       3
+      ],
+      [
+       3,
+       4
+      ],
+      [
+       4,
+       5
+      ],
+      [
+       5,
+       6
+      ],
+      [
+       6,
+       7
+      ],
+      [
+       7,
+       8
+      ],
+      [
+       8,
+       9
+      ],
+      [
+       9,
+       10
+      ],
+      [
+       10,
+       11
+      ],
+      [
+       11,
+       0
+      ]
+     ],
+     "unit": 60,
+     "r": 16,
+     "id": "g"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Con el nivel 0 y el mapa de `FakeSherbrooke`, ¿cuántos `swap` inserta el routing?",
+    "options": [
+     "0, el chip tiene anillos",
+     "unos 2",
+     "unos 22",
+     "más de 100"
+    ],
+    "after": "Anotado. Ahora lo medimos con y sin optimización."
+   },
+   "align": "top"
+  },
+  {
    "id": "cm",
    "tag": [
     "3.4",
     "El mapa de acoplamiento"
    ],
-   "say": "El mapa de acoplamiento es un grafo: dice qué qubits están conectados y pueden hacer puertas de dos qubits entre sí. A veces es dirigido, pero el transpilador siempre puede invertir una puerta añadiendo puertas de un qubit. [[ej]]Tomemos un circuito efficient su2 de doce qubits, con entrelazamiento circular: necesita un anillo. [[n0]]Con el nivel cero y solo el mapa de acoplamiento de Sherbrooke, el layout trivial pone los qubits en línea y hacen falta veintidós SWAP. [[n1]]Con el nivel uno, VF2 y Sabre encuentran un layout casi en anillo: solo dos SWAP.",
+   "say": "Ejecutemos el ejemplo. [[ej]]El circuito efficient su2 de doce qubits, con entrelazamiento circular, necesita un anillo. [[n0]]Con el nivel cero y solo el mapa de acoplamiento de Sherbrooke, el layout trivial pone los qubits en línea y hacen falta veintidós SWAP; si apostaste por unos veintidós, acertaste. [[n1]]Con el nivel uno, VF2 y Sabre encuentran un layout casi en anillo: solo dos SWAP.",
    "scene": [
     {
      "type": "code",
@@ -545,6 +674,80 @@
      null,
      "`run` envía trabajos; no influye en la transpilación.",
      "`max_circuits` solo limita cuántos circuitos van en un trabajo."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "3.4",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, construye el backend de tres qubits de la lección y mira en qué puertas traduce una CX entre los extremos. [[n2]]Después, en un anillo de cuatro qubits, quita del Target el par averiado para que el transpilador lo esquive. [[n3]]Y por último, escribe una función que construye un Target para una cadena de cualquier tamaño.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p3-target.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Crea `MiBackend` y transpila una CX entre los qubits 0 y 2."
+      },
+      {
+       "level": 2,
+       "text": "Quita del `Target` el par averiado de un anillo de 4 qubits."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `cadena(n)`: un `Target` con `cz` solo entre vecinos."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "3.4",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "El transpilador solo sabe lo que dice el Target.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Un qubit de tu chip se vuelve ruidoso a mitad del día. ¿Qué cambiarías en el `Target` para que el transpilador lo evite, y qué perderías?",
+     "Tu cadena Ising tiene vecinos en línea. ¿Qué tendría que tener un `Target` para que el transpilador no necesite ningún SWAP con ella?"
     ]
    },
    "align": "top"

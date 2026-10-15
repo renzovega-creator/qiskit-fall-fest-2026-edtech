@@ -395,12 +395,125 @@
    "align": "top"
   },
   {
+   "id": "apuesta",
+   "tag": [
+    "3.6",
+    "Antes de ejecutar"
+   ],
+   "say": "Segundo ejemplo: un pase de routing muy simple, BasicSwap. Si los qubits de una puerta no son vecinos, inserta SWAP a lo largo del camino más corto, y el layout se actualiza con cada uno. [[reto]]Tenemos una línea de siete qubits, y un circuito con una CX entre los qubits cero y cuatro, y otra entre el seis y el uno. Apuesta: ¿cuántos SWAP inserta en total?",
+   "scene": [
+    {
+     "type": "graph",
+     "nodes": [
+      [
+       0,
+       0
+      ],
+      [
+       1,
+       0
+      ],
+      [
+       2,
+       0
+      ],
+      [
+       3,
+       0
+      ],
+      [
+       4,
+       0
+      ],
+      [
+       5,
+       0
+      ],
+      [
+       6,
+       0
+      ]
+     ],
+     "edges": [
+      [
+       0,
+       1
+      ],
+      [
+       1,
+       2
+      ],
+      [
+       2,
+       3
+      ],
+      [
+       3,
+       4
+      ],
+      [
+       4,
+       5
+      ],
+      [
+       5,
+       6
+      ]
+     ],
+     "unit": 56,
+     "r": 18,
+     "id": "g"
+    },
+    {
+     "type": "circuit",
+     "qubits": 7,
+     "ops": [
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        4
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        6,
+        1
+       ]
+      }
+     ],
+     "id": "q",
+     "scale": 0.55
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuántos `swap` inserta `BasicSwap` en la línea de 7 qubits?",
+    "options": [
+     "3",
+     "5",
+     "8",
+     "12"
+    ],
+    "after": "Anotado. Veamos el pase y su resultado."
+   },
+   "align": "top"
+  },
+  {
    "id": "basicswap",
    "tag": [
     "3.6",
     "Un mapeador básico"
    ],
-   "say": "Segundo ejemplo: un pase de routing muy simple, BasicSwap. [[capas]]Recorre el DAG capa por capa; en cada capa, las operaciones actúan sobre qubits distintos. [[chk]]Para cada puerta de dos qubits mira si sus qubits físicos están a distancia uno en el mapa de acoplamiento. [[swap]]Si no, busca el camino más corto e inserta SWAP a lo largo de él, actualizando el layout. [[prueba]]Con una línea de siete qubits y CX entre qubits lejanos, el pase inserta los SWAP necesarios.",
+   "say": "Aquí está el pase. [[capas]]Recorre el DAG capa por capa; en cada capa, las operaciones actúan sobre qubits distintos. [[chk]]Para cada puerta de dos qubits mira si sus qubits físicos están a distancia uno en el mapa de acoplamiento. [[swap]]Si no, busca el camino más corto e inserta SWAP a lo largo de él, actualizando el layout. [[prueba]]Y el resultado: ocho SWAP. La primera CX necesita tres, porque entre el cero y el cuatro hay cuatro saltos; la segunda necesita cinco, porque el primer grupo de SWAP ya movió los estados. Si apostaste por ocho, acertaste.",
    "scene": [
     {
      "type": "code",
@@ -442,8 +555,87 @@
      "range": "23-28",
      "id": "c",
      "at": "prueba"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "prueba"
     }
    ]
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "3.6",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, convierte un circuito en DAG, añade puertas al principio y al final, y vuelve al circuito; apuesta antes cuántas H tendrá. [[n2]]Después, completa un pase de transformación que sustituye cada SWAP por tres CNOT. [[n3]]Y por último, escribe tú un pase de análisis que cuenta las puertas de dos qubits y las guarda en el property set.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p3-pases-propios.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Añade puertas con `apply_operation_back` y `apply_operation_front`."
+      },
+      {
+       "level": 2,
+       "text": "Completa un `TransformationPass` que sustituye cada `swap` por 3 `cx`."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `ContarDosQubits`, un `AnalysisPass` que guarda `n2q`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "3.6",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Primero se mide, después se cambia.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Qiskit separa los pases de análisis de los de transformación. ¿Qué problemas te evita esa separación al encadenar muchos pases?",
+     "En tu cadena Ising, cada `rzz` cuesta dos `cz`. ¿Qué pase escribirías, de análisis o de transformación, para ahorrar alguna?"
+    ]
+   },
+   "align": "top"
   },
   {
    "id": "cierre",

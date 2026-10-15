@@ -227,49 +227,103 @@
      "section": "3.1",
      "title": "Por qué hay que transpilar",
      "summary": "Qué es la transpilación, qué exige un circuito ISA, qué son los pases y pass managers, y las dos formas de transpilar.",
-     "minutes": 5
+     "minutes": 8,
+     "missions": [
+      {
+       "notebook": "practica/p3-transpilar.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     },
     {
      "id": "p3-etapas",
      "section": "3.2",
      "title": "Las seis etapas del transpilador",
      "summary": "Init, layout, routing, translation, optimization y scheduling: qué pases usa cada etapa y qué efectos tiene sobre el circuito.",
-     "minutes": 7
+     "minutes": 9,
+     "missions": [
+      {
+       "notebook": "practica/p3-etapas.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     },
     {
      "id": "p3-niveles",
      "section": "3.3",
      "title": "Niveles de optimización y parámetros",
      "summary": "Qué hace cada nivel, aproximación, semilla, layout inicial, métodos de etapa, todos los parámetros por defecto y cómo comparar configuraciones.",
-     "minutes": 8
+     "minutes": 10,
+     "missions": [
+      {
+       "notebook": "practica/p3-niveles.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     },
     {
      "id": "p3-target",
      "section": "3.4",
      "title": "Representar un computador cuántico: Target",
      "summary": "Qué información necesita el transpilador: Backend y Target, mapa de acoplamiento, instrucciones soportadas, errores, y cómo crear un backend propio.",
-     "minutes": 7
+     "minutes": 9,
+     "missions": [
+      {
+       "notebook": "practica/p3-target.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     },
     {
      "id": "p3-pass-managers",
      "section": "3.5",
      "title": "Pass managers y desacoplamiento dinámico",
      "summary": "Crear pass managers propios, pass managers por etapas, modificar uno prediseñado y construir un pass manager de desacoplamiento dinámico.",
-     "minutes": 5
+     "minutes": 7,
+     "missions": [
+      {
+       "notebook": "practica/p3-pass-managers.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     },
     {
      "id": "p3-pases-propios",
      "section": "3.6",
      "title": "Escribir pases propios: el DAG",
      "summary": "La representación DAG de un circuito, sus operaciones básicas y dos pases escritos desde cero: twirling de Pauli y un mapeador básico con SWAP.",
-     "minutes": 5
+     "minutes": 7,
+     "missions": [
+      {
+       "notebook": "practica/p3-pases-propios.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     },
     {
      "id": "p3-plugins",
      "section": "3.7",
      "title": "Plugins y transpilación con IA",
      "summary": "Los tres tipos de plugins del transpilador, cómo listarlos, usarlos y crearlos, y los pases de routing y síntesis con inteligencia artificial.",
-     "minutes": 7
+     "minutes": 10,
+     "missions": [
+      {
+       "notebook": "practica/p3-plugins.py",
+       "title": "Tu turno",
+       "tasks": 3
+      },
+      {
+       "notebook": "practica/proyecto/hito3.py",
+       "title": "Proyecto Ising · Hito III",
+       "tasks": 3
+      }
+     ]
     }
    ]
   },

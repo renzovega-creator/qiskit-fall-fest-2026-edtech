@@ -1,0 +1,10 @@
+[
+ [
+  "    metodo = \"basic\"  # ✏️ prueba otro método de routing",
+  "    metodo = \"sabre\""
+ ],
+ [
+  "            return None  # ✏️ sintetiza con synth_clifford_bm si num_qubits <= 3",
+  "            if high_level_object.num_qubits <= 3:\n                return synth_clifford_bm(high_level_object)\n            return None"
+ ]
+]

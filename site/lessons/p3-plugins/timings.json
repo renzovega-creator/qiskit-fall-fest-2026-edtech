@@ -35,7 +35,7 @@
   ]
  },
  "listar": {
-  "dur": 26.088,
+  "dur": 26.592,
   "marks": {
    "stage": 4.246,
    "unit": 8.506,
@@ -56,7 +56,7 @@
    ],
    [
     17.833,
-    "Y high level synthesis plugin names, con el tipo de objeto: para Clifford, siete métodos distintos."
+    "Y high level synthesis plugin names, con el tipo de objeto: para Clifford, seis nombres, contando default."
    ]
   ]
  },
@@ -143,6 +143,57 @@
    [
     31.788,
     "Los entry points son qiskit punto unitary synthesis y qiskit punto synthesis; en este último, el nombre lleva el tipo de objeto, punto, el nombre del plugin."
+   ]
+  ]
+ },
+ "apuesta": {
+  "dur": 20.664,
+  "marks": {
+   "lista": 3.0,
+   "reto": 13.997
+  },
+  "cues": [
+   [
+    0.107,
+    "Pongamos a prueba ese plugin."
+   ],
+   [
+    3.0,
+    "Lo pasamos a un HLSConfig seguido de greedy, un método que ya trae Qiskit: se prueban en orden, y el primero que devuelve un circuito gana."
+   ],
+   [
+    13.997,
+    "Y le damos un Clifford de cinco qubits."
+   ],
+   [
+    17.536,
+    "Apuesta: ¿quién lo sintetiza?"
+   ]
+  ]
+ },
+ "respaldo": {
+  "dur": 28.584,
+  "marks": {
+   "solo": 6.525,
+   "resp": 16.092,
+   "res": 20.083
+  },
+  "cues": [
+   [
+    0.107,
+    "Probamos con dos Clifford, de tres y de cinco qubits, y dos configuraciones."
+   ],
+   [
+    6.525,
+    "Con mi plugin solo, el de tres qubits se sintetiza, pero el de cinco queda como un Clifford sin tocar: mi plugin devolvió None."
+   ],
+   [
+    16.092,
+    "Con greedy detrás, se sintetizan los dos."
+   ],
+   [
+    20.083,
+    "Si apostaste por greedy, acertaste: devolver None no es un error, es la señal de pasar al siguiente método."
    ]
   ]
  },
@@ -233,6 +284,69 @@
    [
     0.107,
     "Sobre el modo de layout."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 24.84,
+  "marks": {
+   "n1": 2.137,
+   "n2": 8.931,
+   "n3": 14.917
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, lista los métodos que Qiskit ya trae para Clifford, unitarias y routing."
+   ],
+   [
+    8.931,
+    "Después, cambia el método de routing de una cuadrícula para quitar CNOT."
+   ],
+   [
+    14.917,
+    "Y por último, escribe tu propio plugin de síntesis de Clifford, que se rinde con más de tres qubits y deja pasar al siguiente método."
+   ]
+  ]
+ },
+ "proyecto": {
+  "dur": 25.08,
+  "marks": {
+   "circuito": 5.251,
+   "fez": 10.643,
+   "niveles": 12.823,
+   "prof": 15.356
+  },
+  "cues": [
+   [
+    0.107,
+    "Con esto termina la transpilación, y el hito tres de tu proyecto."
+   ],
+   [
+    5.251,
+    "Ya tienes el circuito de varios pasos de Trotter de la cadena de espines."
+   ],
+   [
+    10.643,
+    "Transpílalo para FakeFez, compara los cuatro niveles de optimización y mide cuánta profundidad añade cada paso."
+   ],
+   [
+    19.149,
+    "Esa profundidad decidirá cuántos pasos caben cuando ejecutes en hardware real."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },

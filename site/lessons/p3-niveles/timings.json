@@ -38,12 +38,10 @@
    ]
   ]
  },
- "accion": {
-  "dur": 41.016,
+ "apuesta": {
+  "dur": 29.832,
   "marks": {
-   "n01": 17.96,
-   "n23": 22.291,
-   "nota": 36.501
+   "reto": 17.96
   },
   "cues": [
    [
@@ -56,14 +54,40 @@
    ],
    [
     17.96,
-    "Con los niveles cero y uno salen seis ECR."
+    "Un SWAP cuesta tres CNOT, y una unitaria aleatoria de dos qubits, hasta tres."
    ],
    [
-    22.291,
+    24.768,
+    "Apuesta: con el nivel tres, ¿cuántas ECR quedan?"
+   ]
+  ]
+ },
+ "accion": {
+  "dur": 35.352,
+  "marks": {
+   "n01": 3.977,
+   "n23": 13.007,
+   "nota": 30.84
+  },
+  "cues": [
+   [
+    0.107,
+    "Ejecutemos el código con los cuatro niveles."
+   ],
+   [
+    3.977,
+    "Con los niveles cero y uno salen seis ECR: la unitaria y el SWAP se traducen por separado, a tres cada uno."
+   ],
+   [
+    13.007,
     "Con los niveles dos y tres, solo tres: la unitaria y el SWAP se fusionan en un solo bloque de dos qubits, y cualquier unitaria de dos qubits se puede hacer con tres puertas de entrelazamiento como máximo."
    ],
    [
-    36.501,
+    27.216,
+    "Si apostaste por tres, acertaste."
+   ],
+   [
+    30.84,
     "Subir de nivel no siempre cambia algo, pero aquí sí."
    ]
   ]
@@ -293,6 +317,42 @@
    [
     0.107,
     "Una pregunta sobre aproximación."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 23.448,
+  "marks": {
+   "n1": 2.137,
+   "n2": 7.812,
+   "n3": 13.785
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, cuenta las ECR de la unitaria con SWAP en cada nivel."
+   ],
+   [
+    7.812,
+    "Después, usa el grado de aproximación para quitar una ECR de más."
+   ],
+   [
+    13.785,
+    "Y por último, escribe una función que pruebe los cuatro niveles y te devuelva el más bajo que logre el menor número de puertas de dos qubits."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },

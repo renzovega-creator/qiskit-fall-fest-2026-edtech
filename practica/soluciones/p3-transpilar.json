@@ -1,0 +1,10 @@
+[
+ [
+  "generate_preset_pass_manager(optimization_level=1, seed_transpiler=1)  # ✏️ ¿qué le falta?",
+  "generate_preset_pass_manager(optimization_level=1, backend=backend, seed_transpiler=1)"
+ ],
+ [
+  "        # ✏️ recorre circuito.data y pregunta al target por cada instrucción\n        return False",
+  "        for inst in circuito.data:\n            qargs = tuple(circuito.find_bit(q).index for q in inst.qubits)\n            if not target.instruction_supported(inst.operation.name, qargs):\n                return False\n        return True"
+ ]
+]

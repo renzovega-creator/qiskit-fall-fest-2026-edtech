@@ -1,0 +1,10 @@
+[
+ [
+  "        (1, 2): 1e-4,   # ✏️ este par está averiado\n",
+  ""
+ ],
+ [
+  "        # ✏️ añade `sx`, `x` y `measure` en todos los qubits\n        # ✏️ añade `cz` solo entre vecinos: (0, 1), (1, 2)…",
+  "        for puerta in (XGate(), SXGate(), Measure()):\n            target.add_instruction(puerta, {(q,): None for q in range(n)})\n        target.add_instruction(CZGate(), {(k, k + 1): InstructionProperties(error=5e-3) for k in range(n - 1)})"
+ ]
+]

@@ -53,12 +53,10 @@
    ]
   ]
  },
- "modificar": {
-  "dur": 36.432,
+ "huecos": {
+  "dur": 20.304,
   "marks": {
-   "sub": 6.341,
-   "ej": 16.375,
-   "gen": 28.051
+   "sub": 6.341
   },
   "cues": [
    [
@@ -67,14 +65,40 @@
    ],
    [
     6.341,
-    "Cada etapa tiene además una etapa previa y otra posterior, pre y post, vacías por defecto: hay dieciocho huecos en total."
+    "Cada una de las seis etapas tiene además una etapa previa, pre, y otra posterior, post, vacías por defecto."
    ],
    [
-    16.375,
+    15.625,
+    "Apuesta: ¿cuántas etapas verá el pass manager en total?"
+   ]
+  ]
+ },
+ "modificar": {
+  "dur": 33.192,
+  "marks": {
+   "sub": 2.236,
+   "ej": 13.134,
+   "gen": 24.81
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora el código."
+   ],
+   [
+    2.236,
+    "Seis etapas, cada una con su pre y su post: seis por tres, dieciocho."
+   ],
+   [
+    9.27,
+    "Si apostaste por dieciocho, acertaste."
+   ],
+   [
+    13.134,
     "Aquí añadimos una etapa pre layout con InverseCancellation, que elimina pares de puertas inversas, como T seguida de T daga, antes de elegir el layout."
    ],
    [
-    28.051,
+    24.81,
     "Las funciones generadoras de etapas, como generate embed passmanager, ayudan a construir etapas comunes."
    ]
   ]
@@ -156,6 +180,42 @@
    [
     0.107,
     "Sobre el orden de los pases."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 26.52,
+  "marks": {
+   "n1": 2.137,
+   "n2": 9.157,
+   "n3": 16.205
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, arma un pass manager que traduce a las puertas de un computador de iones atrapados."
+   ],
+   [
+    9.157,
+    "Después, mete un pase de cancelación en la etapa pre layout de uno prediseñado."
+   ],
+   [
+    16.205,
+    "Y por último, construye tú el pass manager de desacoplamiento dinámico sobre un circuito ya programado, y comprueba que no cambia el operador."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },

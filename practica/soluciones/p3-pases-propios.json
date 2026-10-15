@@ -1,0 +1,14 @@
+[
+ [
+  "                mini.apply_operation_back(SwapGate(), [reg[0], reg[1]])   # ✏️ cámbialo por tres CX",
+  "                for a, b in ((0, 1), (1, 0), (0, 1)):\n                    mini.apply_operation_back(CXGate(), [reg[a], reg[b]])"
+ ],
+ [
+  "            pass  # ✏️ cuenta las puertas de dos qubits y guárdalas en self.property_set[\"n2q\"]",
+  "            self.property_set[\"n2q\"] = len(dag.two_qubit_ops())"
+ ],
+ [
+  "def _(DAGCircuit, QuantumRegister, SwapGate, TransformationPass):",
+  "def _(CXGate, DAGCircuit, QuantumRegister, SwapGate, TransformationPass):"
+ ]
+]

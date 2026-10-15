@@ -131,12 +131,54 @@
    ]
   },
   {
+   "id": "huecos",
+   "tag": [
+    "3.5",
+    "Antes de ejecutar"
+   ],
+   "say": "Otra forma muy útil: partir de uno prediseñado y cambiar algunas etapas. [[sub]]Cada una de las seis etapas tiene además una etapa previa, pre, y otra posterior, post, vacías por defecto. Apuesta: ¿cuántas etapas verá el pass manager en total?",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "pre_layout",
+       "s": "vacía por defecto"
+      },
+      {
+       "t": "layout",
+       "s": "la etapa",
+       "color": "teal"
+      },
+      {
+       "t": "post_layout",
+       "s": "vacía por defecto"
+      }
+     ],
+     "id": "f"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Para un pass manager prediseñado, ¿cuánto vale `len(pm.expanded_stages)`?",
+    "options": [
+     "6",
+     "12",
+     "18",
+     "24"
+    ],
+    "after": "Anotado. Lo comprobamos en el código."
+   },
+   "align": "top"
+  },
+  {
    "id": "modificar",
    "tag": [
     "3.5",
     "Modificar un pass manager prediseñado"
    ],
-   "say": "Otra forma muy útil: partir de uno prediseñado y cambiar algunas etapas. [[sub]]Cada etapa tiene además una etapa previa y otra posterior, pre y post, vacías por defecto: hay dieciocho huecos en total. [[ej]]Aquí añadimos una etapa pre layout con InverseCancellation, que elimina pares de puertas inversas, como T seguida de T daga, antes de elegir el layout. [[gen]]Las funciones generadoras de etapas, como generate embed passmanager, ayudan a construir etapas comunes.",
+   "say": "Ahora el código. [[sub]]Seis etapas, cada una con su pre y su post: seis por tres, dieciocho. Si apostaste por dieciocho, acertaste. [[ej]]Aquí añadimos una etapa pre layout con InverseCancellation, que elimina pares de puertas inversas, como T seguida de T daga, antes de elegir el layout. [[gen]]Las funciones generadoras de etapas, como generate embed passmanager, ayudan a construir etapas comunes.",
    "scene": [
     {
      "type": "code",
@@ -362,6 +404,80 @@
      "Sin tiempos no hay esperas que llenar.",
      null,
      "El DD se usa precisamente en hardware real."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "3.5",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, arma un pass manager que traduce a las puertas de un computador de iones atrapados. [[n2]]Después, mete un pase de cancelación en la etapa pre layout de uno prediseñado. [[n3]]Y por último, construye tú el pass manager de desacoplamiento dinámico sobre un circuito ya programado, y comprueba que no cambia el operador.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p3-pass-managers.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Arma un `PassManager` que traduce a `rx`, `ry` y `rxx`."
+      },
+      {
+       "level": 2,
+       "text": "Asigna `pm.pre_layout` con `InverseCancellation` en el nivel 0."
+      },
+      {
+       "level": 3,
+       "text": "Construye `dd_pm` con `ALAPScheduleAnalysis` y `PadDynamicalDecoupling`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "3.5",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Cada etapa es un punto donde puedes meter tu propio pase.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "`PadDynamicalDecoupling` necesita las duraciones de las puertas. ¿Qué información del `Target` le haría falta a un chip inventado para poder usarlo?",
+     "En tu cadena Ising, los qubits de los extremos esperan mientras los del centro trabajan. ¿En qué etapa del pass manager pondrías un pase para aprovechar eso, y por qué ahí?"
     ]
    },
    "align": "top"

@@ -490,12 +490,55 @@
    "align": "top"
   },
   {
+   "id": "predice",
+   "tag": [
+    "3.1",
+    "Antes de ejecutar"
+   ],
+   "say": "Vamos a transpilar el circuito del principio, una Hadamard y una Toffoli, para FakeFez, un simulador con las puertas base de un chip de IBM. [[apuesta]]Antes de verlo, apuesta: ¿qué puertas quedan en el resultado?",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 3,
+     "ops": [
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "ccx",
+       "q": [
+        0,
+        1,
+        2
+       ]
+      }
+     ]
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Tras transpilar para `FakeFez`, ¿qué tipos de puerta aparecen en el circuito?",
+    "options": [
+     "`h` y `ccx`, las mismas",
+     "`cx`, `rz` y `sx`",
+     "`cz`, `rz` y `sx`",
+     "`ecr`, `rz` y `sx`"
+    ],
+    "after": "Anotado. Ahora lo comprobamos ejecutando el código."
+   },
+   "align": "top"
+  },
+  {
    "id": "como",
    "tag": [
     "3.1",
     "Cómo transpilar"
    ],
-   "say": "La forma recomendada es crear un pass manager por etapas con generate preset pass manager, que trae valores razonables, y llamar a su método run con el circuito. [[nivel]]El único argumento obligatorio es el nivel de optimización: cero, uno, dos o tres. Más alto, circuitos mejores, pero más tiempo de transpilación. [[trans]]La alternativa más simple es la función transpile, que por dentro hace exactamente lo mismo. [[custom]]Y si necesitas más, puedes armar tus propios pass managers: un flujo a medida a menudo suprime errores mejor que el de serie.",
+   "say": "La forma recomendada es crear un pass manager por etapas con generate preset pass manager, que trae valores razonables, y llamar a su método run con el circuito. [[nivel]]El único argumento obligatorio es el nivel de optimización: cero, uno, dos o tres. Más alto, circuitos mejores, pero más tiempo de transpilación. [[trans]]La alternativa más simple es la función transpile, que por dentro hace exactamente lo mismo. [[custom]]Y si necesitas más, puedes armar tus propios pass managers: un flujo a medida a menudo suprime errores mejor que el de serie. [[res]]Ahora el resultado de tu apuesta: solo cz, rz y sx, las puertas base de FakeFez. Si apostaste por la tercera opción, acertaste. La Hadamard y la Toffoli desaparecieron: ninguna es instrucción del chip.",
    "scene": [
     {
      "type": "code",
@@ -536,10 +579,17 @@
      "at": "trans"
     },
     {
+     "do": "hl",
+     "lines": [
+      14
+     ],
+     "id": "c",
+     "at": "res"
+    },
+    {
      "do": "show",
      "id": "o",
-     "at": "trans",
-     "t": 1
+     "at": "res"
     }
    ]
   },
@@ -572,6 +622,80 @@
      null,
      "El nivel 3 es el más lento.",
      "No da igual: el tiempo de transpilación crece con el nivel."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "3.1",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, transpila el circuito de la lección con los cuatro niveles y mira cuántas puertas cz sobreviven; apuesta antes de ejecutar. [[n2]]Después, arregla un pass manager al que le falta el backend, y por eso no produce un circuito ISA. [[n3]]Y por último, escribe tú mismo la función que decide si un circuito es ISA, consultando el Target.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p3-transpilar.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Transpila `h` + `ccx` para `FakeFez` con los niveles 0 a 3 y compara las `cz`."
+      },
+      {
+       "level": 2,
+       "text": "Arregla un pass manager sin `backend` para que el circuito salga ISA."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `es_isa(circuito, target)` con `target.instruction_supported`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "3.1",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Un circuito ISA es el contrato entre tú y el chip.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Por qué crees que IBM **exige** circuitos ISA en lugar de transpilarlos por ti en todos los casos?",
+     "Tu proyecto Ising usa `rzz`. `FakeFez` no tiene esa puerta. ¿En qué crees que se convertirá y cómo afectará a la profundidad?"
     ]
    },
    "align": "top"
