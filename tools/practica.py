@@ -14,9 +14,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__file__).resolve().parent.parent
 PR = ROOT / "practica"
-sys.stdout.reconfigure(encoding="utf-8")
 
 
 def veredictos(path):
@@ -29,21 +28,24 @@ def veredictos(path):
     return re.findall(r"(✅|❌)\s+([^<&]{0,60})", text)
 
 
-fallos = 0
-files = [Path(a) for a in sys.argv[1:]] or sorted(p for p in PR.rglob("*.py") if "soluciones" not in p.parts)
-for f in files:
+def comprobar(f):
+    """Devuelve 1 si el cuaderno falla, 0 si pasa o no tiene soluciones."""
     rel = f.resolve().relative_to(PR.resolve()).as_posix()
     try:
         sin = veredictos(f)
     except Exception as e:
-        print(f"✗ {rel}: error sin resolver: {e!r}"); fallos += 1; continue
+        print(f"✗ {rel}: error sin resolver: {e!r}")
+        return 1
     solf = PR / "soluciones" / (rel.replace("/", "__").replace(".py", ".json"))
     if not solf.exists():
-        print(f"? {rel}: sin soluciones ({len(sin)} comprobaciones)"); continue
+        print(f"? {rel}: sin soluciones ({len(sin)} comprobaciones)")
+        return 0
+    fallos = 0
     src = f.read_text(encoding="utf-8")
     for old, new in json.loads(solf.read_text(encoding="utf-8")):
         if old not in src:
-            print(f"✗ {rel}: la solución no encuentra «{old}»"); fallos += 1
+            print(f"✗ {rel}: la solución no encuentra «{old}»")
+            fallos += 1
         src = src.replace(old, new)
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d) / f.name
@@ -51,12 +53,25 @@ for f in files:
         try:
             con = veredictos(tmp)
         except Exception as e:
-            print(f"✗ {rel}: error con soluciones: {e!r}"); fallos += 1; continue
+            print(f"✗ {rel}: error con soluciones: {e!r}")
+            return fallos + 1
     malos = [m for s, m in con if s == "❌"]
     pend = sum(1 for s, _ in sin if s == "❌")
     if malos:
-        print(f"✗ {rel}: con soluciones aún falla: {malos}"); fallos += 1
+        print(f"✗ {rel}: con soluciones aún falla: {malos}")
+        fallos += 1
     else:
         print(f"✓ {rel}: {pend} misiones pendientes sin resolver, todas ✅ con soluciones")
-print("fallos:", fallos)
-sys.exit(1 if fallos else 0)
+    return fallos
+
+
+def main():
+    sys.stdout.reconfigure(encoding="utf-8")
+    files = [Path(a) for a in sys.argv[1:]] or sorted(p for p in PR.rglob("*.py") if "soluciones" not in p.parts)
+    fallos = sum(comprobar(f) for f in files)
+    print("fallos:", fallos)
+    sys.exit(1 if fallos else 0)
+
+
+if __name__ == "__main__":
+    main()

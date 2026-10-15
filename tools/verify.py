@@ -16,14 +16,7 @@ import sys
 import traceback
 from pathlib import Path
 
-import matplotlib
-
-sys.stdout.reconfigure(encoding="utf-8")
-
-matplotlib.use("Agg")
 SITE = Path(__file__).resolve().parent.parent / "site"
-ids = [a for a in sys.argv[1:] if not a.startswith("-")] or [l["id"] for p in json.loads((SITE / "course.json").read_text(encoding="utf-8"))["parts"]
-                       for l in p["lessons"] if not l.get("pending")]
 
 
 def blocks(scene):
@@ -32,11 +25,10 @@ def blocks(scene):
         yield from blocks([x for x in s.get("items", []) + s.get("body", []) if isinstance(x, dict)])
 
 
-fails = 0
-os.chdir(tempfile.mkdtemp(prefix="verify-"))  # los ejemplos que guardan archivos no ensucian el proyecto
-for lid in ids:
+def verify_lesson(lid, show):
+    """Ejecuta los bloques de una lección y devuelve (bloques ejecutados, fallos)."""
     les = json.loads((SITE / "lessons" / lid / "lesson.json").read_text(encoding="utf-8"))
-    ns, n = {"__name__": "__leccion__"}, 0
+    ns, n, fails = {"__name__": "__leccion__"}, 0, 0
     for b in les["beats"]:
         bl = list(blocks(b["scene"]))
         for k, s in enumerate(bl):
@@ -57,8 +49,28 @@ for lid in ids:
                 if out != nxt["src"].rstrip():
                     fails += 1
                     print(f"✗ {lid}/{b['id']}: la salida no coincide\n--- esperado\n{nxt['src']}\n--- obtenido\n{out}")
-            if "-v" in sys.argv or "--show" in sys.argv:
+            if show:
                 print(f"· {lid}/{b['id']}\n{out}")
-    print(f"{lid}: {n} bloques ejecutados")
-print("fallos:", fails)
-sys.exit(1 if fails else 0)
+    return n, fails
+
+
+def main():
+    sys.stdout.reconfigure(encoding="utf-8")
+    import matplotlib
+    matplotlib.use("Agg")
+    ids = [a for a in sys.argv[1:] if not a.startswith("-")] or [
+        l["id"] for p in json.loads((SITE / "course.json").read_text(encoding="utf-8"))["parts"]
+        for l in p["lessons"]]
+    show = "-v" in sys.argv or "--show" in sys.argv
+    fails = 0
+    os.chdir(tempfile.mkdtemp(prefix="verify-"))  # Aísla los archivos temporales que crean los ejemplos.
+    for lid in ids:
+        n, f = verify_lesson(lid, show)
+        fails += f
+        print(f"{lid}: {n} bloques ejecutados")
+    print("fallos:", fails)
+    sys.exit(1 if fails else 0)
+
+
+if __name__ == "__main__":
+    main()
