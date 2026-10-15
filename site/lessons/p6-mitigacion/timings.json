@@ -81,6 +81,74 @@
    ]
   ]
  },
+ "predice_zne": {
+  "dur": 34.536,
+  "marks": {
+   "ghz": 2.307,
+   "tabla": 14.988,
+   "apuesta": 26.296
+  },
+  "cues": [
+   [
+    0.107,
+    "Un caso concreto."
+   ],
+   [
+    2.307,
+    "Un estado GHZ de cuatro qubits, con un dos por ciento de error despolarizante en cada CNOT, y el observable Z cero por Z tres, cuyo valor ideal es uno."
+   ],
+   [
+    14.988,
+    "Medimos con los factores de ruido uno, tres y cinco, y el valor baja: cero coma nueve cuatro, cero coma ocho tres, cero coma siete tres."
+   ],
+   [
+    26.296,
+    "Ajusta una recta por esos tres puntos y llévala al factor cero."
+   ],
+   [
+    31.476,
+    "Apuesta: ¿a qué valor llega?"
+   ]
+  ]
+ },
+ "zne_ajuste": {
+  "dur": 49.248,
+  "marks": {
+   "recta": 2.831,
+   "exp": 17.267,
+   "res": 33.019
+  },
+  "cues": [
+   [
+    0.107,
+    "Dos ajustes con numpy."
+   ],
+   [
+    2.831,
+    "Una recta con polyfit de grado uno; el término independiente es el valor en cero."
+   ],
+   [
+    9.157,
+    "Da cero coma nueve ocho nueve ocho: mejor que el cero coma nueve cuatro sin mitigar, pero se queda corta."
+   ],
+   [
+    17.267,
+    "Con ruido despolarizante cada puerta multiplica el valor por un factor fijo, así que los puntos siguen una exponencial."
+   ],
+   [
+    25.773,
+    "Una exponencial es una recta en el logaritmo: ajustamos log de los valores y deshacemos el logaritmo."
+   ],
+   [
+    33.019,
+    "Sale uno coma cero cero cero cero."
+   ],
+   [
+    36.274,
+    "Es exacto porque este ruido es exactamente despolarizante; en un QPU real la curva es solo una aproximación, y por eso conviene elegir el modelo de extrapolación con cuidado."
+   ]
+  ]
+ },
  "pea": {
   "dur": 38.232,
   "marks": {
@@ -190,6 +258,51 @@
    [
     0.107,
     "Sobre la extrapolación a ruido cero."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 31.632,
+  "marks": {
+   "n1": 6.142,
+   "n2": 12.766,
+   "n3": 17.309,
+   "check": 26.919
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.142,
+    "Primero haces ZNE con una recta sobre el GHZ y ves cuánto se queda corta."
+   ],
+   [
+    12.766,
+    "Después cambias a una exponencial y llegas al valor ideal."
+   ],
+   [
+    17.309,
+    "Y por último escribes los pesos de PEC para un qubit, con un peso negativo, y calculas cuánto crece el número de disparos."
+   ],
+   [
+    26.919,
+    "Cada misión tiene una comprobación: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },

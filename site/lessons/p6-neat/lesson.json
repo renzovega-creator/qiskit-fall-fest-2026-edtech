@@ -170,26 +170,91 @@
    ]
   },
   {
+   "id": "predice_neat",
+   "tag": [
+    "6.7",
+    "Antes de analizar"
+   ],
+   "say": "Un circuito espejo de seis qubits: rotaciones aleatorias y capas de CNOT, seguidas de su inverso. [[ideal]]Sin ruido, cada valor esperado de Z vale exactamente uno. [[capas]]Lo analizaremos con una y con seis capas, en el backend falso Sherbrooke. [[apuesta]]NEAT da una cifra: la diferencia absoluta media entre el resultado ideal y el ruidoso, en porcentaje. Apuesta cuánto vale con seis capas.",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "1 capa",
+       "s": "2 CX por capa de ida"
+      },
+      {
+       "t": "6 capas",
+       "s": "seis veces más puertas",
+       "color": "gold"
+      },
+      {
+       "t": "diferencia media",
+       "s": "ideal ↔ ruidoso",
+       "color": "blue"
+      }
+     ],
+     "id": "f",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "f",
+     "at": "capas"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "f",
+     "at": "capas",
+     "t": 1
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "f",
+     "at": "apuesta"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Con 6 capas, la diferencia media entre el resultado ideal y el ruidoso será de…",
+    "options": [
+     "menos del 1 %",
+     "alrededor del 5 %",
+     "entre el 15 % y el 20 %",
+     "más del 90 %"
+    ],
+    "after": "Anotado. Ejecutemos el análisis."
+   },
+   "align": "top"
+  },
+  {
    "id": "ejemplo",
    "tag": [
     "6.7",
     "Comparar ideal y ruidoso"
    ],
-   "say": "El ejemplo de la guía, ejecutado en local con el backend falso Sherbrooke. [[espejo]]Un circuito espejo de seis qubits: rotaciones RZ aleatorias y capas de CNOT, seguidas de su inverso, así que idealmente cada valor esperado de Z vale uno. Se generan PUBs con una a seis capas. [[neat]]Neat recibe el backend; si no le das un modelo de ruido, usa el del backend. [[cliff]]to clifford convierte los PUBs, [[sim]]e ideal sim y noisy sim los simulan sin ruido y con ruido. [[res]]La figura de mérito es la diferencia absoluta media, en porcentaje: crece con la profundidad: de unos tres o cuatro por ciento con una capa a unos veinte con seis. Los valores cambian un poco en cada ejecución, porque la simulación ruidosa toma muestras.",
+   "say": "El ejemplo de la guía, ejecutado en local con el backend falso Sherbrooke. [[espejo]]Un circuito espejo de seis qubits: rotaciones RZ aleatorias y capas de CNOT, seguidas de su inverso, así que idealmente cada valor esperado de Z vale uno. Se generan PUBs con una a seis capas. [[neat]]Neat recibe el backend; si no le das un modelo de ruido, usa el del backend. [[cliff]]to clifford convierte los PUBs, [[sim]]e ideal sim y noisy sim los simulan sin ruido y con ruido. [[res]]La figura de mérito es la diferencia absoluta media, en porcentaje: crece con la profundidad: de unos tres por ciento con una capa a unos diecisiete con seis. Fijamos la semilla del simulador, así que los números se repiten; sin ella cambiarían un poco en cada ejecución, porque la simulación ruidosa toma muestras.",
    "scene": [
     {
      "type": "code",
-     "src": "import random\nimport numpy as np\nfrom qiskit.circuit import QuantumCircuit\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.debug_tools import Neat\nfrom qiskit_ibm_runtime.fake_provider import FakeSherbrooke\n\nrandom.seed(10)\ndef generate_circuit(n_qubits, n_layers):\n    angles = [[random.random() for q in range(n_qubits)] for s in range(n_layers)]\n    qc = QuantumCircuit(n_qubits)\n    qubits = list(range(n_qubits))\n    for layer in range(n_layers):\n        for q in qubits:\n            qc.rz(angles[layer][q], q)\n        for q in (qubits[::2] if layer % 2 == 0 else qubits[1:n_qubits - 1:2]):\n            qc.cx(q, q + 1)\n    for layer in range(n_layers)[::-1]:          # el inverso: circuito espejo\n        for q in (qubits[::2] if layer % 2 == 0 else qubits[1:n_qubits - 1:2]):\n            qc.cx(q, q + 1)\n        for q in qubits:\n            qc.rz(-angles[layer][q], q)\n    return qc\n\nbackend = FakeSherbrooke()\npm = generate_preset_pass_manager(backend=backend, optimization_level=0)\nisa_qc = pm.run(generate_circuit(6, 3))\nobs = [\"ZIIIII\", \"IZIIII\", \"IIZIII\", \"IIIZII\", \"IIIIZI\", \"IIIIIZ\"]\nisa_obs = [SparsePauliOp(o).apply_layout(isa_qc.layout) for o in obs]\npubs = [(pm.run(generate_circuit(6, n)), isa_obs) for n in range(1, 7)]\n\nanalyzer = Neat(backend)                 # sin modelo propio: el del backend\nclifford_pubs = analyzer.to_clifford(pubs)\nideal = analyzer.ideal_sim(clifford_pubs)\nnoisy = analyzer.noisy_sim(clifford_pubs)\nfor n, (i, r) in enumerate(zip(ideal, noisy), 1):\n    print(n, np.round(np.mean(abs(i - r).vals) * 100, 2))",
+     "src": "import random\nimport numpy as np\nfrom qiskit.circuit import QuantumCircuit\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.debug_tools import Neat\nfrom qiskit_ibm_runtime.fake_provider import FakeSherbrooke\n\nrandom.seed(10)\ndef generate_circuit(n_qubits, n_layers):\n    angles = [[random.random() for q in range(n_qubits)] for s in range(n_layers)]\n    qc = QuantumCircuit(n_qubits)\n    qubits = list(range(n_qubits))\n    for layer in range(n_layers):\n        for q in qubits:\n            qc.rz(angles[layer][q], q)\n        for q in (qubits[::2] if layer % 2 == 0 else qubits[1:n_qubits - 1:2]):\n            qc.cx(q, q + 1)\n    for layer in range(n_layers)[::-1]:          # el inverso: circuito espejo\n        for q in (qubits[::2] if layer % 2 == 0 else qubits[1:n_qubits - 1:2]):\n            qc.cx(q, q + 1)\n        for q in qubits:\n            qc.rz(-angles[layer][q], q)\n    return qc\n\nbackend = FakeSherbrooke()\npm = generate_preset_pass_manager(backend=backend, optimization_level=0)\nisa_qc = pm.run(generate_circuit(6, 3))\nobs = [\"ZIIIII\", \"IZIIII\", \"IIZIII\", \"IIIZII\", \"IIIIZI\", \"IIIIIZ\"]\nisa_obs = [SparsePauliOp(o).apply_layout(isa_qc.layout) for o in obs]\npubs = [(pm.run(generate_circuit(6, n)), isa_obs) for n in range(1, 7)]\n\nanalyzer = Neat(backend)                 # sin modelo propio: el del backend\nclifford_pubs = analyzer.to_clifford(pubs)\nideal = analyzer.ideal_sim(clifford_pubs, seed_simulator=1)\nnoisy = analyzer.noisy_sim(clifford_pubs, seed_simulator=1)\nfor n, (i, r) in enumerate(zip(ideal, noisy), 1):\n    print(n, np.round(np.mean(abs(i - r).vals) * 100, 2))",
      "lang": "python",
      "id": "c",
      "size": 19
     },
     {
      "type": "code",
-     "src": "1 3.61\n2 5.24\n3 9.05\n4 12.3\n5 16.18\n6 20.41",
+     "src": "1 2.83\n2 4.92\n3 10.48\n4 13.83\n5 17.15\n6 17.19",
      "lang": "out",
      "id": "o",
-     "hidden": true
+     "hidden": true,
+     "check": true
     }
    ],
    "actions": [
@@ -247,27 +312,27 @@
      "data": [
       [
        "1 capa",
-       3.61
+       2.83
       ],
       [
        "2",
-       5.24
+       4.92
       ],
       [
        "3",
-       9.05
+       10.48
       ],
       [
        "4",
-       12.3
+       13.83
       ],
       [
        "5",
-       16.18
+       17.15
       ],
       [
        "6",
-       20.41
+       17.19
       ]
      ],
      "id": "g",
@@ -463,6 +528,165 @@
      "El QPU puede tener ruido que el modelo no incluye.",
      "La simulación solo considera los errores modelados.",
      null
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "6.7",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. Usa el backend falso Sherbrooke, sin cuenta ni cola. [[n1]]Primero analizas uno, dos y tres capas y ves cómo crece la diferencia. [[n2]]Después sustituyes el modelo de ruido del backend por uno tuyo, con un dos por ciento de despolarización en cada puerta de dos qubits. [[n3]]Y por último escribes las reglas de la guía como una función: qué técnicas sugiere cada diferencia media. [[check]]Cada misión tiene una comprobación: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p6-neat.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Analiza 1, 2 y 3 capas con el modelo del backend y comprueba que la diferencia crece."
+      },
+      {
+       "level": 2,
+       "text": "Pasa a `Neat` un modelo de Aer con 2 % de despolarización en `ecr` y compáralo con el del backend."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `sugerencia(dif)`: `[]`, `[\"PEA\"]` o `[\"PEA\", \"ZNE\"]` según las reglas de la guía."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "proyecto",
+   "tag": [
+    "6.7",
+    "Tu proyecto: mitigar la cadena de espines"
+   ],
+   "say": "Cierras la parte VI con el hito seis de tu proyecto Ising. [[mide]]Recalculas la magnetización exacta y la de Trotter, y mides cuánto sesga el ruido sin mitigar. [[trex]]Después aplicas TREX a mano, dividiendo por una calibración con el circuito vacío. [[zne]]Y por último extrapolas con ZNE, plegando el circuito, y comparas los tres con el valor exacto. [[sim]]Todo corre por defecto en un simulador con el ruido de un backend falso; un interruptor te deja usar un QPU real si tienes tu cuenta. [[res]]Con el simulador, ZNE queda más cerca del exacto que TREX, y TREX más cerca que no mitigar. La mitigación apunta al valor de Trotter sin ruido: la diferencia restante es error de Trotter, y ninguna técnica de esta parte la toca.",
+   "scene": [
+    {
+     "type": "math",
+     "tex": "M_z=\\tfrac1N\\sum_i\\langle Z_i\\rangle",
+     "size": 46
+    },
+    {
+     "type": "table",
+     "head": [
+      "Método",
+      "Qué corrige"
+     ],
+     "rows": [
+      [
+       "Sin mitigar",
+       "nada: el número a batir"
+      ],
+      [
+       "TREX",
+       "sesgo de lectura"
+      ],
+      [
+       "ZNE",
+       "sesgo total, por extrapolación"
+      ]
+     ],
+     "id": "t",
+     "stagger": true,
+     "size": 24
+    },
+    {
+     "type": "mission",
+     "notebook": "practica/proyecto/hito6.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Recalcula el valor exacto y mide el error sin mitigar."
+      },
+      {
+       "level": 2,
+       "text": "Aplica TREX: divide la magnetización entre la calibración con el circuito vacío."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `extrapolar(factores, valores)` con una exponencial y compara los tres métodos."
+      }
+     ],
+     "title": "Proyecto Ising · Hito VI",
+     "id": "m",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "t",
+     "at": "mide"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "t",
+     "at": "trex"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "t",
+     "at": "zne"
+    },
+    {
+     "do": "show",
+     "id": "m",
+     "at": "sim"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "6.7",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, para cerrar la parte.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Una cifra barata para decidir antes de gastar QPU.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "NEAT trabaja con una versión Clifford de tu circuito. ¿Qué puede esconder esa aproximación sobre el ruido de tu cadena de Ising?",
+     "En el hito seis, ¿qué parte del error que queda atribuyes al ruido y cuál a Trotter? ¿Cómo lo separarías con una medición?"
     ]
    },
    "align": "top"

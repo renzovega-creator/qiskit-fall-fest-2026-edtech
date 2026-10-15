@@ -281,6 +281,155 @@
    "align": "top"
   },
   {
+   "id": "predice",
+   "tag": [
+    "6.1",
+    "Antes de medir el ruido"
+   ],
+   "say": "Pongamos un número al ruido. Preparamos el estado de Bell en un simulador con un modelo de ruido sencillo. [[cx]]Cada CNOT tiene un uno por ciento de error despolarizante. [[lectura]]Y cada lectura se equivoca un dos por ciento de las veces. [[apuesta]]Se miden cuatro mil disparos. Un Bell ideal solo da cero cero y uno uno: apuesta cuántos disparos serán cero uno o uno cero.",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 2,
+     "ops": [
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        1
+       ]
+      },
+      {
+       "g": "barrier",
+       "q": []
+      },
+      {
+       "g": "measure",
+       "q": [
+        0
+       ],
+       "c": 0
+      },
+      {
+       "g": "measure",
+       "q": [
+        1
+       ],
+       "c": 1
+      }
+     ],
+     "clbits": 2,
+     "creg": "meas"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuántos de los 4000 disparos serán `01` o `10`?",
+    "options": [
+     "ninguno: el circuito es correcto",
+     "unos 40 (1 %)",
+     "unos 170 (4 %)",
+     "unos 800 (20 %)"
+    ],
+    "after": "Anotado. Ejecutémoslo y contemos."
+   },
+   "align": "top"
+  },
+  {
+   "id": "ruido_real",
+   "tag": [
+    "6.1",
+    "El Bell sale sucio"
+   ],
+   "say": "Este es el modelo y el resultado. [[modelo]]Un NoiseModel de Aer con error despolarizante en cada cx y un error de lectura simétrico. [[run]]Lo ejecutamos con una semilla fija, para que el número no cambie entre ejecuciones. [[res]]Salen unos ciento setenta disparos erróneos: un cuatro coma tres por ciento. [[suma]]No es el uno por ciento de la CNOT: se suman el error de la puerta y los de lectura de los dos qubits. Si apostaste por ninguno, ahora ves por qué hace falta toda esta parte del curso.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit import QuantumCircuit\nfrom qiskit_aer import AerSimulator\nfrom qiskit_aer.noise import NoiseModel, ReadoutError, depolarizing_error\n\nmodelo = NoiseModel()\nmodelo.add_all_qubit_quantum_error(depolarizing_error(0.01, 2), [\"cx\"])\nmodelo.add_all_qubit_readout_error(ReadoutError([[0.98, 0.02], [0.02, 0.98]]))\n\nbell = QuantumCircuit(2)\nbell.h(0)\nbell.cx(0, 1)\nbell.measure_all()\n\nsim = AerSimulator(noise_model=modelo, seed_simulator=7)\ncuentas = sim.run(bell, shots=4000).result().get_counts()\nprint(dict(sorted(cuentas.items())))\nprint(f\"disparos erróneos: {(cuentas['01'] + cuentas['10']) / 4000:.1%}\")",
+     "lang": "python",
+     "id": "c",
+     "size": 19
+    },
+    {
+     "type": "code",
+     "src": "{'00': 1912, '01': 79, '10': 94, '11': 1915}\ndisparos erróneos: 4.3%",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    },
+    {
+     "type": "hist",
+     "data": [
+      [
+       "00",
+       1912
+      ],
+      [
+       "01",
+       79
+      ],
+      [
+       "10",
+       94
+      ],
+      [
+       "11",
+       1915
+      ]
+     ],
+     "id": "h",
+     "hidden": true,
+     "h": 130,
+     "w": 520,
+     "ymax": 2200,
+     "color": "red"
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "5-7",
+     "id": "c",
+     "at": "modelo"
+    },
+    {
+     "do": "hl",
+     "range": "14-15",
+     "id": "c",
+     "at": "run"
+    },
+    {
+     "do": "hl",
+     "range": "16-17",
+     "id": "c",
+     "at": "res"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "res"
+    },
+    {
+     "do": "show",
+     "id": "h",
+     "at": "res"
+    },
+    {
+     "do": "grow",
+     "id": "h",
+     "at": "res"
+    }
+   ]
+  },
+  {
    "id": "simular",
    "tag": [
     "6.1",
@@ -371,6 +520,80 @@
     "tol": 0,
     "hint": "Cuenta las cuatro etiquetas del mapa.",
     "solution": "4"
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "6.1",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero reproduces el Bell ruidoso y cuentas sus disparos erróneos. [[n2]]Después subes el error de la CNOT hasta que más del doce por ciento de las muestras salga mal. [[n3]]Y por último escribes la distancia entre la distribución medida y la ideal, la cifra con la que compararás todas las técnicas de esta parte. [[check]]Cada misión tiene una comprobación: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p6-panorama.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Ejecuta el Bell con ruido y mide la fracción de `01` y `10`."
+      },
+      {
+       "level": 2,
+       "text": "Sube el error de la CNOT hasta superar el 12 % de disparos erróneos."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `distancia_tv(medida, ideal)`, la distancia de variación total entre dos distribuciones."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "6.1",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con lo que viste en el cuaderno.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Antes de mitigar, mide cuánto ruido hay.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Con un 1 % de error por CNOT y un 2 % de lectura, el Bell salió con un 4 % de disparos erróneos. ¿Qué crees que pasaría con un circuito de 50 CNOT? ¿Qué cifra mirarías para saberlo?",
+     "De las cuatro respuestas (suprimir, mitigar, aprender, postseleccionar), ¿cuál probarías primero en tu cadena de Ising y por qué?"
+    ]
    },
    "align": "top"
   },

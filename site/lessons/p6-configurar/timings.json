@@ -25,12 +25,38 @@
    ]
   ]
  },
+ "predice_nivel": {
+  "dur": 19.32,
+  "marks": {
+   "crear": 4.175,
+   "apuesta": 8.181
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de ver la tabla de niveles, una apuesta."
+   ],
+   [
+    4.175,
+    "Creas un Estimator y no tocas ninguna opción."
+   ],
+   [
+    8.181,
+    "¿Qué valor de resilience level tendrá?"
+   ],
+   [
+    11.563,
+    "Cero significa sin mitigación; uno, TREX; dos, TREX más extrapolación a ruido cero."
+   ]
+  ]
+ },
  "niveles": {
-  "dur": 25.728,
+  "dur": 42.12,
   "marks": {
    "cero": 5.293,
    "uno": 9.61,
-   "costo": 14.917
+   "defecto": 14.917,
+   "costo": 31.307
   },
   "cues": [
    [
@@ -47,10 +73,22 @@
    ],
    [
     14.917,
+    "Y la respuesta a la apuesta: el nivel uno es el valor por defecto."
+   ],
+   [
+    20.196,
+    "Un Estimator sin opciones ya mitiga el error de lectura."
+   ],
+   [
+    24.683,
+    "Las opciones se validan en local, sin cuenta: con un backend falso puedes leerlas."
+   ],
+   [
+    31.307,
     "El nivel dos suele consumir más muestreo que el uno."
    ],
    [
-    19.22,
+    35.609,
     "El nombre ‘resilience’ no significa que el resultado sea inmune al ruido."
    ]
   ]
@@ -152,13 +190,62 @@
    ]
   ]
  },
+ "mision": {
+  "dur": 38.016,
+  "marks": {
+   "n1": 11.209,
+   "n2": 16.248,
+   "n3": 24.825,
+   "check": 33.288
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.142,
+    "Las opciones se validan en local, así que no hace falta cuenta."
+   ],
+   [
+    11.209,
+    "Primero lees lo que trae por defecto un Estimator y un Sampler."
+   ],
+   [
+    16.248,
+    "Después partes del nivel cero y activas TREX y ZNE a mano, y pruebas un nivel inválido para ver el error."
+   ],
+   [
+    24.825,
+    "Y por último escribes una función que prepara cualquiera de las dos primitivas y rechaza TREX o ZNE para el Sampler."
+   ],
+   [
+    33.288,
+    "Cada misión tiene una comprobación: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 3.408,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
+   ]
+  ]
+ },
  "cierre": {
-  "dur": 30.168,
+  "dur": 31.08,
   "marks": {
    "r1": 1.868,
-   "r2": 10.148,
-   "r3": 15.738,
-   "r4": 24.188
+   "r2": 11.068,
+   "r3": 16.658,
+   "r4": 25.108
   },
   "cues": [
    [
@@ -167,18 +254,18 @@
    ],
    [
     1.868,
-    "Estimator ofrece niveles cero, uno y dos; el nivel dos añade ZNE y twirling al nivel uno."
+    "Estimator ofrece niveles cero, uno y dos; el uno es el de por defecto, y el dos añade ZNE y twirling."
    ],
    [
-    10.148,
+    11.068,
     "Puedes fijar técnicas individuales, respetando las compatibilidades."
    ],
    [
-    15.738,
+    16.658,
     "Sampler se centra en desacoplamiento dinámico y twirling; no ofrece la mitigación de expectativas de Estimator."
    ],
    [
-    24.188,
+    25.108,
     "Los niveles están en beta: compara calidad, overhead y circuito real."
    ]
   ]

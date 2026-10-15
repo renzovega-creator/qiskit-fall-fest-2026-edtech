@@ -131,6 +131,75 @@
    ]
   ]
  },
+ "predice": {
+  "dur": 28.584,
+  "marks": {
+   "cx": 8.407,
+   "lectura": 13.261,
+   "apuesta": 17.932
+  },
+  "cues": [
+   [
+    0.107,
+    "Pongamos un número al ruido."
+   ],
+   [
+    2.859,
+    "Preparamos el estado de Bell en un simulador con un modelo de ruido sencillo."
+   ],
+   [
+    8.407,
+    "Cada CNOT tiene un uno por ciento de error despolarizante."
+   ],
+   [
+    13.261,
+    "Y cada lectura se equivoca un dos por ciento de las veces."
+   ],
+   [
+    17.932,
+    "Se miden cuatro mil disparos."
+   ],
+   [
+    20.876,
+    "Un Bell ideal solo da cero cero y uno uno: apuesta cuántos disparos serán cero uno o uno cero."
+   ]
+  ]
+ },
+ "ruido_real": {
+  "dur": 36.744,
+  "marks": {
+   "modelo": 3.269,
+   "run": 10.402,
+   "res": 16.743,
+   "suma": 22.73
+  },
+  "cues": [
+   [
+    0.107,
+    "Este es el modelo y el resultado."
+   ],
+   [
+    3.269,
+    "Un NoiseModel de Aer con error despolarizante en cada cx y un error de lectura simétrico."
+   ],
+   [
+    10.402,
+    "Lo ejecutamos con una semilla fija, para que el número no cambie entre ejecuciones."
+   ],
+   [
+    16.743,
+    "Salen unos ciento setenta disparos erróneos: un cuatro coma tres por ciento."
+   ],
+   [
+    22.73,
+    "No es el uno por ciento de la CNOT: se suman el error de la puerta y los de lectura de los dos qubits."
+   ],
+   [
+    30.273,
+    "Si apostaste por ninguno, ahora ves por qué hace falta toda esta parte del curso."
+   ]
+  ]
+ },
  "simular": {
   "dur": 35.088,
   "marks": {
@@ -168,6 +237,51 @@
    [
     0.107,
     "Una pregunta para ordenar el mapa."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 32.208,
+  "marks": {
+   "n1": 6.142,
+   "n2": 11.294,
+   "n3": 18.003,
+   "check": 27.499
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.142,
+    "Primero reproduces el Bell ruidoso y cuentas sus disparos erróneos."
+   ],
+   [
+    11.294,
+    "Después subes el error de la CNOT hasta que más del doce por ciento de las muestras salga mal."
+   ],
+   [
+    18.003,
+    "Y por último escribes la distancia entre la distribución medida y la ideal, la cifra con la que compararás todas las técnicas de esta parte."
+   ],
+   [
+    27.499,
+    "Cada misión tiene una comprobación: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 6.072,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con lo que viste en el cuaderno."
    ]
   ]
  },

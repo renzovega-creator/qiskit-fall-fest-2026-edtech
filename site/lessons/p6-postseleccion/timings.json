@@ -123,13 +123,13 @@
   ]
  },
  "mascara": {
-  "dur": 39.888,
+  "dur": 33.192,
   "marks": {
    "selector": 3.991,
    "true": 14.351,
    "estrategias": 19.206,
-   "and": 25.546,
-   "resultado": 34.703
+   "and": 24.725,
+   "resultado": 28.023
   },
   "cues": [
    [
@@ -146,19 +146,93 @@
    ],
    [
     19.206,
-    "Hay dos estrategias, node y edge, que suelen descartar disparos distintos."
+    "Hay dos estrategias, node y edge, y la guía calcula las dos."
    ],
    [
-    25.546,
-    "La guía las combina con un Y lógico: solo conserva un disparo si pasa las dos."
+    24.725,
+    "Después las combina con un Y lógico."
    ],
    [
-    31.816,
-    "Es la opción más conservadora."
-   ],
-   [
-    34.703,
+    28.023,
     "En el ejemplo se conserva el ochenta y tres por ciento de los disparos."
+   ]
+  ]
+ },
+ "predice_and": {
+  "dur": 28.272,
+  "marks": {
+   "node": 3.241,
+   "edge": 7.855,
+   "apuesta": 16.29
+  },
+  "cues": [
+   [
+    0.107,
+    "Mira qué exige cada estrategia."
+   ],
+   [
+    3.241,
+    "Node descarta el disparo si algún qubit no invirtió su bit."
+   ],
+   [
+    7.855,
+    "Edge mira cada arista del mapa de acoplamiento y solo descarta si en alguna arista no se invirtió ninguno de los dos bits."
+   ],
+   [
+    16.29,
+    "La guía conserva los disparos que pasan las dos reglas."
+   ],
+   [
+    20.748,
+    "Antes de ejecutar, apuesta: ¿cuántos disparos conserva node Y edge, comparado con node solo?"
+   ]
+  ]
+ },
+ "comparar": {
+  "dur": 55.32,
+  "marks": {
+   "ps": 11.775,
+   "ruido": 16.885,
+   "selector": 22.857,
+   "masks": 28.023,
+   "res": 31.83
+  },
+  "cues": [
+   [
+    0.107,
+    "Un GHZ de cuatro qubits en línea, con los controles de la guía, en Aer con ruido de lectura y de CNOT."
+   ],
+   [
+    8.902,
+    "No hace falta backend real."
+   ],
+   [
+    11.775,
+    "AddPostSelectionMeasures añade el pulso lento y la segunda medida."
+   ],
+   [
+    16.885,
+    "El modelo tiene tres por ciento de error de lectura y dos por ciento por CNOT."
+   ],
+   [
+    22.857,
+    "PostSelector se construye con el circuito y las aristas de la línea."
+   ],
+   [
+    28.023,
+    "Calculamos las dos máscaras y su Y lógico."
+   ],
+   [
+    31.83,
+    "Node conserva el setenta y ocho por ciento; edge, casi el noventa y nueve; y node Y edge, exactamente lo mismo que node."
+   ],
+   [
+    41.185,
+    "Todo disparo que pasa node ya tiene todos sus bits invertidos, así que pasa también edge: el Y lógico no añade ningún filtro."
+   ],
+   [
+    50.725,
+    "La estrategia estricta es node; edge es la permisiva."
    ]
   ]
  },
@@ -205,6 +279,55 @@
    [
     0.107,
     "Sobre las dos estrategias."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 35.28,
+  "marks": {
+   "n1": 11.903,
+   "n2": 17.182,
+   "n3": 23.989,
+   "check": 30.571
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.142,
+    "Usa el mismo GHZ de cuatro qubits con controles, sobre Aer."
+   ],
+   [
+    11.903,
+    "Primero filtras con la máscara node y mides cuánto sube la fidelidad."
+   ],
+   [
+    17.182,
+    "Después subes el error de lectura hasta que sobreviva menos del sesenta por ciento de los disparos."
+   ],
+   [
+    23.989,
+    "Y por último escribes tú las máscaras node y edge y las comparas con las de PostSelector."
+   ],
+   [
+    30.571,
+    "Cada misión tiene una comprobación: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 3.408,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
    ]
   ]
  },

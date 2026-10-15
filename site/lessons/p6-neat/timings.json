@@ -86,8 +86,38 @@
    ]
   ]
  },
+ "predice_neat": {
+  "dur": 30.624,
+  "marks": {
+   "ideal": 8.223,
+   "capas": 13.7,
+   "apuesta": 19.475
+  },
+  "cues": [
+   [
+    0.107,
+    "Un circuito espejo de seis qubits: rotaciones aleatorias y capas de CNOT, seguidas de su inverso."
+   ],
+   [
+    8.223,
+    "Sin ruido, cada valor esperado de Z vale exactamente uno."
+   ],
+   [
+    13.7,
+    "Lo analizaremos con una y con seis capas, en el backend falso Sherbrooke."
+   ],
+   [
+    19.475,
+    "NEAT da una cifra: la diferencia absoluta media entre el resultado ideal y el ruidoso, en porcentaje."
+   ],
+   [
+    27.259,
+    "Apuesta cuánto vale con seis capas."
+   ]
+  ]
+ },
  "ejemplo": {
-  "dur": 53.976,
+  "dur": 58.32,
   "marks": {
    "espejo": 5.916,
    "neat": 22.376,
@@ -118,11 +148,11 @@
    ],
    [
     35.397,
-    "La figura de mérito es la diferencia absoluta media, en porcentaje: crece con la profundidad: de unos tres o cuatro por ciento con una capa a unos veinte con seis."
+    "La figura de mérito es la diferencia absoluta media, en porcentaje: crece con la profundidad: de unos tres por ciento con una capa a unos diecisiete con seis."
    ],
    [
-    47.073,
-    "Los valores cambian un poco en cada ejecución, porque la simulación ruidosa toma muestras."
+    46.946,
+    "Fijamos la semilla del simulador, así que los números se repiten; sin ella cambiarían un poco en cada ejecución, porque la simulación ruidosa toma muestras."
    ]
   ]
  },
@@ -209,6 +239,95 @@
    [
     0.107,
     "Sobre el uso del resultado."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 38.16,
+  "marks": {
+   "n1": 10.586,
+   "n2": 16.347,
+   "n3": 25.886,
+   "check": 33.43
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.142,
+    "Usa el backend falso Sherbrooke, sin cuenta ni cola."
+   ],
+   [
+    10.586,
+    "Primero analizas uno, dos y tres capas y ves cómo crece la diferencia."
+   ],
+   [
+    16.347,
+    "Después sustituyes el modelo de ruido del backend por uno tuyo, con un dos por ciento de despolarización en cada puerta de dos qubits."
+   ],
+   [
+    25.886,
+    "Y por último escribes las reglas de la guía como una función: qué técnicas sugiere cada diferencia media."
+   ],
+   [
+    33.43,
+    "Cada misión tiene una comprobación: busca la marca verde."
+   ]
+  ]
+ },
+ "proyecto": {
+  "dur": 53.856,
+  "marks": {
+   "mide": 4.77,
+   "trex": 11.931,
+   "zne": 18.456,
+   "sim": 26.523,
+   "res": 36.218
+  },
+  "cues": [
+   [
+    0.107,
+    "Cierras la parte VI con el hito seis de tu proyecto Ising."
+   ],
+   [
+    4.77,
+    "Recalculas la magnetización exacta y la de Trotter, y mides cuánto sesga el ruido sin mitigar."
+   ],
+   [
+    11.931,
+    "Después aplicas TREX a mano, dividiendo por una calibración con el circuito vacío."
+   ],
+   [
+    18.456,
+    "Y por último extrapolas con ZNE, plegando el circuito, y comparas los tres con el valor exacto."
+   ],
+   [
+    26.523,
+    "Todo corre por defecto en un simulador con el ruido de un backend falso; un interruptor te deja usar un QPU real si tienes tu cuenta."
+   ],
+   [
+    36.218,
+    "Con el simulador, ZNE queda más cerca del exacto que TREX, y TREX más cerca que no mitigar."
+   ],
+   [
+    44.073,
+    "La mitigación apunta al valor de Trotter sin ruido: la diferencia restante es error de Trotter, y ninguna técnica de esta parte la toca."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 4.968,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, para cerrar la parte."
    ]
   ]
  },
