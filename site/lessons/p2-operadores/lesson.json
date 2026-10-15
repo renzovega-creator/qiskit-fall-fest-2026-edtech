@@ -363,8 +363,7 @@
     {
      "type": "code",
      "src": "A = Operator(Pauli(\"X\"))\nB = Operator(Pauli(\"Z\"))\nA.compose(B)",
-     "lang": "python",
-     "norun": true
+     "lang": "python"
     },
     {
      "type": "math",

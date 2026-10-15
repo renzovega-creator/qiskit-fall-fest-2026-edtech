@@ -157,8 +157,8 @@
      "src": "estimator = Estimator(backend)\nestimator.options.resilience.measure_mitigation = True\nestimator.options.resilience.zne_mitigation = True\nestimator.options.resilience.zne.noise_factors = (1, 3, 5)",
      "lang": "python",
      "id": "c",
-     "norun": true,
-     "size": 22
+     "size": 22,
+     "setup": "from qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2\nbackend = FakeManilaV2()"
     },
     {
      "type": "box",
@@ -201,15 +201,15 @@
     "6.4",
     "Sampler prioriza supresión"
    ],
-   "say": "Sampler devuelve muestras, así que sus opciones de gestión del ruido son distintas. [[tiene]]La documentación presenta desacoplamiento dinámico y twirling de puertas para Sampler. [[no_trex]]TREX y ZNE se aplican a expectativas de Estimator; no elijas un nivel de Estimator para corregir una distribución de Sampler. [[code]]El ejemplo activa una secuencia de desacoplamiento y el twirling. La llamada al servicio requiere backend y credenciales.",
+   "say": "Sampler devuelve muestras, así que sus opciones de gestión del ruido son distintas. [[tiene]]La documentación presenta desacoplamiento dinámico y twirling de puertas para Sampler. [[no_trex]]TREX y ZNE se aplican a expectativas de Estimator; no elijas un nivel de Estimator para corregir una distribución de Sampler. [[code]]El ejemplo activa una secuencia de desacoplamiento y el twirling. Las opciones se escriben igual con un backend real o con uno falso; solo el backend real exige credenciales.",
    "scene": [
     {
      "type": "code",
      "src": "from qiskit_ibm_runtime.executor_sampler import Sampler\n\nsampler = Sampler(backend)\nsampler.options.dynamical_decoupling.enable = True\nsampler.options.dynamical_decoupling.sequence_type = \"XpXm\"\nsampler.options.twirling.enable_gates = True",
      "lang": "python",
      "id": "c",
-     "norun": true,
-     "size": 22
+     "size": 22,
+     "setup": "from qiskit_ibm_runtime.fake_provider import FakeManilaV2\nbackend = FakeManilaV2()"
     },
     {
      "type": "table",

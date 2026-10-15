@@ -64,7 +64,7 @@
   ]
  },
  "salidas": {
-  "dur": 41.784,
+  "dur": 41.736,
   "marks": {
    "data": 7.671,
    "meta": 19.729,
@@ -93,7 +93,7 @@
    ],
    [
     35.609,
-    "Este es el resultado real del programa de la lección anterior, ejecutado en local."
+    "Estas son las claves reales del resultado del trabajo anterior, ejecutado en local."
    ]
   ]
  },
@@ -127,14 +127,15 @@
   ]
  },
  "precision": {
-  "dur": 46.152,
+  "dur": 56.232,
   "marks": {
    "pub": 6.072,
    "run": 9.468,
    "tw": 13.12,
    "shots": 22.05,
    "prec": 24.839,
-   "falla": 32.014
+   "falla": 32.014,
+   "uno": 46.139
   },
   "cues": [
    [
@@ -168,6 +169,10 @@
    [
     41.001,
     "Y recuerda: más precisión, más tiempo de QPU."
+   ],
+   [
+    46.139,
+    "Y un detalle de la cero punto cincuenta: todos los PUBs de un mismo trabajo deben tener la misma precisión; si mezclas, da error."
    ]
   ]
  },

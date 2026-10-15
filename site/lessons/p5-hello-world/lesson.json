@@ -53,8 +53,7 @@
      "src": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeBelemV2\n\n# 1. Mapear\nqc = QuantumCircuit(2)\nqc.h(0)\nqc.cx(0, 1)\nlabels = [\"IZ\", \"IX\", \"ZI\", \"XI\", \"ZZ\", \"XX\"]\nobservables = [SparsePauliOp(label) for label in labels]\n\n# 2. Optimizar\nbackend = FakeBelemV2()   # en hardware: QiskitRuntimeService().least_busy(...)\npm = generate_preset_pass_manager(backend=backend, optimization_level=1)\nisa_circuit = pm.run(qc)\nmapped = [obs.apply_layout(isa_circuit.layout) for obs in observables]\n\n# 3. Ejecutar\nestimator = Estimator(mode=backend)\nestimator.options.resilience_level = 1\nestimator.options.default_shots = 5000\njob = estimator.run([(isa_circuit, mapped)])\n\n# 4. Posprocesar\nvalues = job.result()[0].data.evs\nprint(dict(zip(labels, values.round(2).tolist())))",
      "lang": "python",
      "id": "c",
-     "size": 20,
-     "norun": true
+     "size": 20
     },
     {
      "type": "math",
@@ -90,8 +89,7 @@
      "src": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeBelemV2\n\n# 1. Mapear\nqc = QuantumCircuit(2)\nqc.h(0)\nqc.cx(0, 1)\nlabels = [\"IZ\", \"IX\", \"ZI\", \"XI\", \"ZZ\", \"XX\"]\nobservables = [SparsePauliOp(label) for label in labels]\n\n# 2. Optimizar\nbackend = FakeBelemV2()   # en hardware: QiskitRuntimeService().least_busy(...)\npm = generate_preset_pass_manager(backend=backend, optimization_level=1)\nisa_circuit = pm.run(qc)\nmapped = [obs.apply_layout(isa_circuit.layout) for obs in observables]\n\n# 3. Ejecutar\nestimator = Estimator(mode=backend)\nestimator.options.resilience_level = 1\nestimator.options.default_shots = 5000\njob = estimator.run([(isa_circuit, mapped)])\n\n# 4. Posprocesar\nvalues = job.result()[0].data.evs\nprint(dict(zip(labels, values.round(2).tolist())))",
      "lang": "python",
      "id": "c",
-     "size": 20,
-     "norun": true
+     "size": 20
     }
    ],
    "actions": [
@@ -129,8 +127,7 @@
      "src": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeBelemV2\n\n# 1. Mapear\nqc = QuantumCircuit(2)\nqc.h(0)\nqc.cx(0, 1)\nlabels = [\"IZ\", \"IX\", \"ZI\", \"XI\", \"ZZ\", \"XX\"]\nobservables = [SparsePauliOp(label) for label in labels]\n\n# 2. Optimizar\nbackend = FakeBelemV2()   # en hardware: QiskitRuntimeService().least_busy(...)\npm = generate_preset_pass_manager(backend=backend, optimization_level=1)\nisa_circuit = pm.run(qc)\nmapped = [obs.apply_layout(isa_circuit.layout) for obs in observables]\n\n# 3. Ejecutar\nestimator = Estimator(mode=backend)\nestimator.options.resilience_level = 1\nestimator.options.default_shots = 5000\njob = estimator.run([(isa_circuit, mapped)])\n\n# 4. Posprocesar\nvalues = job.result()[0].data.evs\nprint(dict(zip(labels, values.round(2).tolist())))",
      "lang": "python",
      "id": "c",
-     "size": 20,
-     "norun": true
+     "size": 20
     }
    ],
    "actions": [
@@ -297,7 +294,6 @@
      "src": "n = 100\nqc = QuantumCircuit(n)\nqc.h(0)\nfor i in range(n - 1):\n    qc.cx(i, i + 1)\nops = [SparsePauliOp(\"Z\" + \"I\" * i + \"Z\" + \"I\" * (n - 2 - i)) for i in range(n - 1)]\n\nfrom qiskit_ibm_runtime.options_models import EstimatorOptions\noptions = EstimatorOptions()\noptions.resilience_level = 1\noptions.dynamical_decoupling.enable = True\noptions.dynamical_decoupling.sequence_type = \"XY4\"",
      "lang": "python",
      "id": "c",
-     "norun": true,
      "size": 21
     },
     {
@@ -449,7 +445,7 @@
  ],
  "practice": [
   "Cambia `FakeBelemV2()` por `service.least_busy(simulator=False, operational=True)` y ejecuta el programa en un QPU real (consume segundos del plan Open).",
-  "Repite el GHZ con 10 qubits en `FakeTorino` y grafica $\\langle Z_0Z_i\\rangle$ frente a $i$.",
+  "Repite el GHZ con 5 qubits en `FakeManilaV2` y grafica $\\langle Z_0Z_i\\rangle$ frente a $i$.",
   "Guías originales: [hello-world](https://quantum.cloud.ibm.com/docs/en/guides/hello-world)"
  ],
  "next": "p5-opciones",

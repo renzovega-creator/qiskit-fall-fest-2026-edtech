@@ -36,7 +36,7 @@ primitivas = lesson(
              [[impl]]Sobre ellas se construyen implementaciones, todas con la misma forma de uso. [[ibm]]Las de IBM, en qiskit ibm runtime, ejecutan en hardware real con mitigación de errores.
              [[ref]]Las de referencia, StatevectorEstimator y StatevectorSampler, simulan con vectores de estado ideales en tu computadora. [[back]]BackendEstimatorV2 y BackendSamplerV2 envuelven cualquier backend en una primitiva. [[aer]]Y Qiskit Aer tiene las suyas, con ruido.""",
              [Table(["Implementación", "Dónde corre", "Para qué"], [
-                 ["`qiskit_ibm_runtime` Estimator / Sampler", "hardware de IBM", "mitigación, resiliencia"],
+                 ["`executor_estimator.Estimator` / `executor_sampler.Sampler`", "hardware de IBM", "mitigación, resiliencia"],
                  ["`StatevectorEstimator` / `StatevectorSampler`", "tu computadora", "simulación exacta, prototipos"],
                  ["`BackendEstimatorV2` / `BackendSamplerV2`", "cualquier `BackendV2`", "proveedores sin primitivas propias"],
                  ["`qiskit_aer.primitives`", "tu computadora", "simulación rápida y con ruido"]], id="t", stagger=True, size=22),
@@ -60,14 +60,18 @@ sampler = BackendSamplerV2(backend=backend)''', id="c"),
              """El método run es igual en todas las implementaciones, pero las opciones no: cada una documenta las suyas.
              [[ventaja]]Esa capa extra de abstracción tiene ventajas. Con las primitivas de IBM, por ejemplo, activas técnicas avanzadas de mitigación cambiando una opción, como resilience level, en lugar de implementarlas tú.
              [[prov]]Y para los fabricantes de hardware, implementar primitivas es una forma de ofrecer sus mejores capacidades directamente a los usuarios.""",
-             [Code('''estimator.options.resilience_level = 2   # IBM: mitigación con una línea''', id="c", norun=True),
+             [Code('''from qiskit_ibm_runtime.executor_estimator import Estimator
+from qiskit_ibm_runtime.fake_provider import FakeManilaV2
+
+estimator = Estimator(mode=FakeManilaV2())
+estimator.options.resilience_level = 2   # IBM: mitigación con una línea''', id="c"),
               T("`run()` es común · las opciones dependen de la implementación", "note", id="n", hidden=True)],
-             [A("show", "n", at="opciones"), A("hl", "c", at="ventaja", lines=[1])]),
+             [A("show", "n", at="opciones"), A("hl", "c", at="ventaja", lines=[5])]),
 
         beat("q1", ("", "Comprueba"),
              """Una pregunta sobre implementaciones.""",
              [T("Tienes un backend de otro fabricante que solo ofrece `backend.run()`, y quieres usar código estilo primitivas.", "body")],
-             ask=choice("¿Qué usas?", ["`StatevectorSampler`", "`BackendSamplerV2(backend=...)`", "`qiskit_ibm_runtime.SamplerV2`"], 1,
+             ask=choice("¿Qué usas?", ["`StatevectorSampler`", "`BackendSamplerV2(backend=...)`", "`executor_sampler.Sampler`"], 1,
                         "Correcto: las primitivas de backend envuelven cualquier `BackendV2`.",
                         wrong=["Esa simula localmente; no usa el backend del fabricante.", None, "Esa es para el servicio de IBM."])),
 
@@ -134,7 +138,7 @@ pubs = lesson(
              [[col]]Y una lista de listas de un elemento tiene forma tres por uno: la columna que se combina con los parámetros en producto exterior.""",
              [Code('''a = SparsePauliOp.from_list([("XX", 1), ("XY", 1), ("IZ", 1)])  # forma ()
 b = [SparsePauliOp("XX"), SparsePauliOp("XY"), SparsePauliOp("IZ")]  # forma (3,)
-c = [[SparsePauliOp("XX")], [SparsePauliOp("XY")], [SparsePauliOp("IZ")]]  # forma (3, 1)''', id="c", norun=True, size=22)],
+c = [[SparsePauliOp("XX")], [SparsePauliOp("XY")], [SparsePauliOp("IZ")]]  # forma (3, 1)''', id="c", setup="from qiskit.quantum_info import SparsePauliOp", size=22)],
              [A("hl", "c", at="forma", lines=[1]), A("hl", "c", at="lista", lines=[2]), A("hl", "c", at="col", lines=[3])]),
 
         beat("ejemplo", ("", "Un ejemplo vectorizado"),
@@ -222,7 +226,7 @@ print(BitArray.concatenate_bits([data.alpha, data.beta]).num_bits)''', id="c", s
              """Sobre la salida de Sampler.""",
              [Code('''qc = QuantumCircuit(2, 2)
 qc.h(0)
-qc.measure([0, 1], [0, 1])''', norun=True)],
+qc.measure([0, 1], [0, 1])''', setup="from qiskit import QuantumCircuit")],
              ask=choice("¿Cómo lees los conteos?", ["`result[0].data.meas.get_counts()`", "`result[0].data.c.get_counts()`", "`result[0].data.evs`"], 1,
                         "Correcto: el registro clásico creado por `QuantumCircuit(2, 2)` se llama `c`. `meas` solo existe si usas `measure_all()`.",
                         wrong=["No hay registro `meas`: no se usó `measure_all()`.", None, "`evs` es de Estimator."])),
@@ -237,6 +241,15 @@ qc.measure([0, 1], [0, 1])''', norun=True)],
               "Postselecciona un GHZ de 5 qubits quedándote con los disparos en que el qubit 0 midió 0, usando solo `BitArray`."])
 
 # ------------------------------------------------------------------ 4.3 Simulación exacta
+# Contexto del fragmento de disparos por PUB: dos circuitos con medición y un Sampler local.
+SHOTS_SETUP = '''from qiskit import QuantumCircuit
+from qiskit.primitives import StatevectorSampler
+
+sampler = StatevectorSampler()
+qc1 = QuantumCircuit(1)
+qc1.h(0)
+qc1.measure_all()
+qc2 = qc1.copy()'''
 s_cierre, a_cierre = resumen(["simular sirve hasta ~50 qubits · 4 GB de RAM ≈ 27 qubits",
                               "`StatevectorEstimator`: exacto; `precision=` añade ruido de muestreo",
                               "`StatevectorSampler`: `shots=` global o por PUB `(qc, None, 123)`",
@@ -321,7 +334,7 @@ sampler.run([(circuit, None, 123), (circuit, None, 456)])''', id="c", size=22),
 
         beat("q2", ("", "Comprueba"),
              """Sobre los disparos.""",
-             [Code("sampler.run([(qc1, None, 100), (qc2, None, 300)], shots=50)", norun=True)],
+             [Code("sampler.run([(qc1, None, 100), (qc2, None, 300)], shots=50)", setup=SHOTS_SETUP)],
              ask=choice("¿Cuántos disparos recibe `qc2`?", ["50", "300", "100"], 1,
                         "Correcto: lo que especificas dentro del PUB tiene prioridad sobre el `shots` global.",
                         wrong=["El valor del PUB gana al global.", None, "100 es el del primer PUB."])),
@@ -336,6 +349,13 @@ sampler.run([(circuit, None, 123), (circuit, None, 456)])''', id="c", size=22),
               "Compara el tiempo de `StatevectorSampler` para un GHZ de 10, 15 y 20 qubits."])
 
 # ------------------------------------------------------------------ 4.4 Aer y ruido
+# Contexto del fragmento de relajación térmica: tiempos T1 y T2 en nanosegundos de cuatro qubits y un modelo vacío.
+THERMAL_SETUP = '''import numpy as np
+from qiskit_aer.noise import NoiseModel, thermal_relaxation_error
+
+T1s = np.array([50e3, 80e3, 120e3, 60e3])
+T2s = np.array([40e3, 90e3, 100e3, 70e3])
+noise_thermal = NoiseModel()'''
 s_cierre, a_cierre = resumen(["`qiskit_aer.primitives`: mismas interfaces, `backend_options=dict(noise_model=…)`",
                               "despolarizante: $(1-p)^m$ estima la supervivencia del estado",
                               "`NoiseModel` + `QuantumError` (pauli, depolarizing, thermal…) + `ReadoutError`",
@@ -402,7 +422,8 @@ print(round(float(noisy_estimator.run([pub]).result()[0].data.evs), 4))''', id="
              [Row(Box("def", "NoiseModel", T("el modelo completo", "body"), id="a", hidden=True),
                   Box("def", "QuantumError", T("canal CPTP tras puertas o reset, antes de medir", "body"), id="b", hidden=True),
                   Box("def", "ReadoutError", T("$P(\\text{registrado}\\,|\\,\\text{verdadero})$", "body"), id="c", hidden=True), gap=20),
-              Code('''noise_model = NoiseModel.from_backend(FakeSherbrooke())''', id="k", hidden=True, norun=True)],
+              Code('''noise_model = NoiseModel.from_backend(FakeSherbrooke())''', id="k", hidden=True,
+                   setup="from qiskit_aer.noise import NoiseModel\nfrom qiskit_ibm_runtime.fake_provider import FakeSherbrooke")],
              [A("show", "a", at="nm"), A("show", "b", at="qe"), A("show", "c", at="re"), A("show", "k", at="backend")]),
 
         beat("errores", ("", "Errores estándar"),
@@ -473,7 +494,7 @@ errors_cx = [[thermal_relaxation_error(t1a, t2a, 300).expand(
 for j in range(4):
     noise_thermal.add_quantum_error(errors_measure[j], "measure", [j])
     for k in range(4):
-        noise_thermal.add_quantum_error(errors_cx[j][k], "cx", [j, k])''', id="c", hidden=True, norun=True, size=20)],
+        noise_thermal.add_quantum_error(errors_cx[j][k], "cx", [j, k])''', id="c", hidden=True, setup=THERMAL_SETUP, size=20)],
              [A("show", "c", at="tiempos"), A("hl", "c", at="tiempos", lines=[1]), A("hl", "c", at="cx", range="2-8")]),
 
         beat("q2", ("", "Comprueba"),
@@ -704,7 +725,7 @@ for mitigation in (False, True):
              s_cierre, a_cierre),
     ],
     sources=["local-testing-mode", "local-simulators"],
-    practice=["Repite la prueba de mitigación con `FakeTorino` y un GHZ de 5 qubits midiendo $\\langle Z_0Z_4\\rangle$.",
+    practice=["Repite la prueba de mitigación con `FakeBelemV2` y un GHZ de 5 qubits midiendo $\\langle Z_0Z_4\\rangle$.",
               "Prueba `AerSimulator(method=\"matrix_product_state\")` con un GHZ de 60 qubits."])
 
 LESSONS = [primitivas, pubs, exacta, aer, clifford, local]

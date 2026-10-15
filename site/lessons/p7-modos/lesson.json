@@ -284,29 +284,37 @@
    "scene": [
     {
      "type": "code",
-     "src": "from qiskit_ibm_runtime import Batch\nfrom qiskit_ibm_runtime.executor_sampler import Sampler\n\nwith Batch(backend=backend, max_time=\"25m\"):\n    sampler = Sampler()\n    jobs = [sampler.run(chunk) for chunk in partitioned_circuits]\n\nbatch = Batch(backend=backend)\nestimator = Estimator(mode=batch)\n...\nbatch.close()\nprint(batch.details())",
+     "src": "from qiskit_ibm_runtime import Batch\nfrom qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.executor_sampler import Sampler\n\nwith Batch(backend=backend, max_time=\"25m\"):\n    sampler = Sampler()\n    jobs = [sampler.run(chunk) for chunk in partitioned_circuits]\n\nbatch = Batch(backend=backend)\nestimator = Estimator(mode=batch)\n...\nbatch.close()\nprint(batch.details())",
      "lang": "python",
      "id": "c",
-     "norun": true,
-     "size": 22
+     "size": 22,
+     "setup": "from qiskit import QuantumCircuit\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.fake_provider import FakeBelemV2\n\nbackend = FakeBelemV2()\nqc = QuantumCircuit(2)\nqc.h(0)\nqc.cx(0, 1)\nqc.measure_all()\nisa_circuit = generate_preset_pass_manager(backend=backend, optimization_level=1).run(qc)\npartitioned_circuits = [[isa_circuit], [isa_circuit]]"
+    },
+    {
+     "type": "code",
+     "src": "None",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
     }
    ],
    "actions": [
     {
      "do": "hl",
-     "range": "4-6",
+     "range": "5-7",
      "id": "c"
     },
     {
      "do": "hl",
-     "range": "8-11",
+     "range": "9-12",
      "id": "c",
      "at": "clase"
     },
     {
      "do": "hl",
      "lines": [
-      6
+      7
      ],
      "id": "c",
      "at": "particion"
@@ -314,9 +322,14 @@
     {
      "do": "hl",
      "lines": [
-      12
+      13
      ],
      "id": "c",
+     "at": "local"
+    },
+    {
+     "do": "show",
+     "id": "o",
      "at": "local"
     }
    ]
@@ -331,7 +344,7 @@
    "scene": [
     {
      "type": "code",
-     "src": "from scipy.optimize import minimize\nfrom qiskit_ibm_runtime import Session\n\nwith Session(backend=backend) as session:\n    estimator = Estimator(options={\"default_shots\": int(1e4)})\n    res = minimize(cost_func, x0, args=(ansatz, hamiltonian, estimator),\n                   method=\"cobyla\", options={\"maxiter\": 25})\n    print(session.status())",
+     "src": "from scipy.optimize import minimize\nfrom qiskit_ibm_runtime import Session\nfrom qiskit_ibm_runtime.executor_estimator import Estimator\n\nwith Session(backend=backend) as session:\n    estimator = Estimator(options={\"default_shots\": int(1e4)})\n    res = minimize(cost_func, x0, args=(ansatz, hamiltonian, estimator),\n                   method=\"cobyla\", options={\"maxiter\": 25})\n    print(session.status())",
      "lang": "python",
      "id": "c",
      "norun": true,
@@ -365,7 +378,7 @@
    "actions": [
     {
      "do": "hl",
-     "range": "4-5",
+     "range": "5-6",
      "id": "c"
     },
     {
@@ -376,14 +389,14 @@
     {
      "do": "hl",
      "lines": [
-      8
+      9
      ],
      "id": "c",
      "at": "estado"
     },
     {
      "do": "hl",
-     "range": "6-7",
+     "range": "7-8",
      "id": "c",
      "at": "vqe"
     }

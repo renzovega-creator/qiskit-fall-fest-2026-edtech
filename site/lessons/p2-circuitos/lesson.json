@@ -436,14 +436,15 @@
      "src": "print(qc.depth())",
      "lang": "python",
      "id": "c",
-     "norun": true
+     "setup": "from qiskit import QuantumCircuit\n\nqc = QuantumCircuit(3)\nqc.h(0)\nqc.x(1)\nqc.y(2)\nqc.cx(0, 1)\nqc.z(2)\nqc.h(1)"
     },
     {
      "type": "code",
      "src": "3",
      "lang": "out",
      "id": "o",
-     "hidden": true
+     "hidden": true,
+     "check": true
     }
    ],
    "actions": [
@@ -648,8 +649,7 @@
      "type": "code",
      "src": "a = QuantumCircuit(2)\nb = QuantumCircuit(2)\nb.h(0)\nc = a.compose(b)",
      "lang": "python",
-     "id": "c",
-     "norun": true
+     "id": "c"
     }
    ],
    "actions": [],

@@ -102,7 +102,7 @@
      "src": "from qiskit import qasm2\nfrom qiskit.circuit.library import RZXGate\n\ncustoms = [qasm2.CustomInstruction(\"rzx\", 1, 2, RZXGate)]\nqasm2.loads(program, custom_instructions=customs)\n\nqasm2.loads(old_program,\n            custom_instructions=qasm2.LEGACY_CUSTOM_INSTRUCTIONS)\n\nimport math\nqasm2.loads(program,\n            custom_classical=[qasm2.CustomClassical(\"arctan\", 2, math.atan2)],\n            strict=False)",
      "lang": "python",
      "id": "c",
-     "norun": true,
+     "setup": "program = \"\"\"\nOPENQASM 2.0;\ninclude \"qelib1.inc\";\ngate rzx(angle) a, b { h b; cx a, b; rz(angle) b; cx a, b; h b; }\nqreg q[2];\nrzx(0.5) q[0], q[1];\n\"\"\"\nold_program = \"\"\"\nOPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\nrxx(0.5) q[0], q[1];\n\"\"\"",
      "size": 23
     }
    ],

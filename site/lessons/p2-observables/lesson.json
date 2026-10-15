@@ -464,14 +464,15 @@
      "src": "from qiskit.quantum_info import Operator\n\nU = Operator(circuit)\nbetter = QuantumCircuit(2)\nbetter.unitary(U, range(2))\nprint(circuit.count_ops(), better.decompose().count_ops())",
      "lang": "python",
      "id": "c",
-     "norun": true
+     "setup": "from qiskit import QuantumCircuit\n\ncircuit = QuantumCircuit(2)\ncircuit.h(0)\ncircuit.cx(0, 1)\ncircuit.sx(1)\ncircuit.cz(0, 1)\ncircuit.x(1)\ncircuit.x(0)\ncircuit.cx(0, 1)\ncircuit.h(0)"
     },
     {
      "type": "code",
-     "src": "{'h': 2, 'cx': 2, 'x': 2, 'sx': 1, 'cz': 1}  →  {'u': 4, 'cx': 1}",
+     "src": "OrderedDict({'h': 2, 'cx': 2, 'x': 2, 'sx': 1, 'cz': 1}) OrderedDict({'u': 4, 'cx': 1})",
      "lang": "out",
      "id": "o",
-     "hidden": true
+     "hidden": true,
+     "check": true
     },
     {
      "type": "circuit",

@@ -134,7 +134,7 @@
   ]
  },
  "propio": {
-  "dur": 50.976,
+  "dur": 71.088,
   "marks": {
    "prov": 9.015,
    "backend": 14.79,
@@ -164,7 +164,15 @@
    ],
    [
     36.897,
-    "Una CX entre los qubits cero y dos, que no son vecinos en esta cadena, termina convertida en CZ y puertas de un qubit: el transpilador lo resolvió todo con la información del Target."
+    "Una CX entre los qubits cero y dos, que no son vecinos en esta cadena: el transpilador los coloca en dos qubits contiguos, así que no hacen falta SWAP, y traduce la CX a una CZ y puertas de un qubit."
+   ],
+   [
+    53.173,
+    "La X está en el Target, pero el transpilador solo la usa cuando una secuencia de puertas de un qubit equivale, salvo rotaciones Z, a una X; aquí ninguna lo hace, y por eso no aparece."
+   ],
+   [
+    67.708,
+    "Todo salió de la información del Target."
    ]
   ]
  },

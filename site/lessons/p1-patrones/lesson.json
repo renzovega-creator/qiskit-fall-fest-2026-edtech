@@ -499,11 +499,11 @@
     "1.2",
     "Los cuatro pasos en código"
    ],
-   "say": "Así se ven los cuatro pasos en un programa completo, usando un backend falso que imita al procesador Fez y corre en tu computadora. [[m]]Mapear: un circuito de Bell y un observable, ZZ más XX. [[o]]Optimizar: un pass manager preparado para el backend produce el circuito ISA, [[lay]]y el observable se reacomoda a los qubits físicos con apply layout. [[e]]Ejecutar: Estimator, con el backend como modo. [[p]]Posprocesar: leer el valor esperado.",
+   "say": "Así se ven los cuatro pasos en un programa completo, usando un backend falso de cinco qubits, que imita al procesador Belem y corre en tu computadora. [[m]]Mapear: un circuito de Bell y un observable, ZZ más XX. [[o]]Optimizar: un pass manager preparado para el backend produce el circuito ISA, [[lay]]y el observable se reacomoda a los qubits físicos con apply layout. [[e]]Ejecutar: Estimator, con el backend como modo. [[p]]Posprocesar: leer el valor esperado.",
    "scene": [
     {
      "type": "code",
-     "src": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.fake_provider import FakeFez\nfrom qiskit_ibm_runtime import EstimatorV2 as Estimator\n\n# 1. Mapear: circuito y observable\nqc = QuantumCircuit(2)\nqc.h(0)\nqc.cx(0, 1)\nobs = SparsePauliOp([\"ZZ\", \"XX\"])\n\n# 2. Optimizar para el hardware\nbackend = FakeFez()\npm = generate_preset_pass_manager(optimization_level=1, backend=backend)\nisa = pm.run(qc)\nisa_obs = obs.apply_layout(isa.layout)\n\n# 3. Ejecutar\nestimator = Estimator(mode=backend)\nresult = estimator.run([(isa, isa_obs)]).result()\n\n# 4. Posprocesar\nprint(result[0].data.evs)",
+     "src": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.fake_provider import FakeBelemV2\nfrom qiskit_ibm_runtime.executor_estimator import Estimator\n\n# 1. Mapear: circuito y observable\nqc = QuantumCircuit(2)\nqc.h(0)\nqc.cx(0, 1)\nobs = SparsePauliOp([\"ZZ\", \"XX\"])\n\n# 2. Optimizar para el hardware\nbackend = FakeBelemV2()\npm = generate_preset_pass_manager(optimization_level=1, backend=backend)\nisa = pm.run(qc)\nisa_obs = obs.apply_layout(isa.layout)\n\n# 3. Ejecutar\nestimator = Estimator(mode=backend)\nresult = estimator.run([(isa, isa_obs)]).result()\n\n# 4. Posprocesar\nprint(result[0].data.evs)",
      "lang": "python",
      "id": "c",
      "size": 21
@@ -555,7 +555,7 @@
     "1.2",
     "El resultado"
    ],
-   "say": "Para un estado de Bell ideal, ZZ vale uno y XX también vale uno: la suma debería dar exactamente dos. [[sal]]El backend falso incluye un modelo del ruido del procesador real, así que obtenemos un poco menos, alrededor de uno coma ocho siete. [[mens]]Esa diferencia es el ruido, y buena parte del curso trata de cómo reducirla.",
+   "say": "Para un estado de Bell ideal, ZZ vale uno y XX también vale uno: la suma debería dar exactamente dos. [[sal]]El backend falso incluye un modelo del ruido del procesador real, así que obtenemos un poco menos, alrededor de uno coma nueve. [[mens]]Esa diferencia es el ruido, y buena parte del curso trata de cómo reducirla.",
    "scene": [
     {
      "type": "math",
@@ -564,7 +564,7 @@
     },
     {
      "type": "code",
-     "src": "1.873046875",
+     "src": "1.9267693296232773",
      "lang": "out",
      "id": "o",
      "hidden": true
@@ -583,7 +583,7 @@
      "body": [
       {
        "type": "text",
-       "text": "ideal 2 · con ruido ≈ 1,87 → supresión y mitigación (Parte VI)",
+       "text": "ideal 2 · con ruido ≈ 1,9 → supresión y mitigación (Parte VI)",
        "style": "body"
       }
      ],

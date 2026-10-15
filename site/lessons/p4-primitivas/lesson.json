@@ -142,7 +142,7 @@
      ],
      "rows": [
       [
-       "`qiskit_ibm_runtime` Estimator / Sampler",
+       "`executor_estimator.Estimator` / `executor_sampler.Sampler`",
        "hardware de IBM",
        "mitigación, resiliencia"
       ],
@@ -278,10 +278,9 @@
    "scene": [
     {
      "type": "code",
-     "src": "estimator.options.resilience_level = 2   # IBM: mitigación con una línea",
+     "src": "from qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2\n\nestimator = Estimator(mode=FakeManilaV2())\nestimator.options.resilience_level = 2   # IBM: mitigación con una línea",
      "lang": "python",
-     "id": "c",
-     "norun": true
+     "id": "c"
     },
     {
      "type": "text",
@@ -299,7 +298,7 @@
     {
      "do": "hl",
      "lines": [
-      1
+      5
      ],
      "id": "c",
      "at": "ventaja"
@@ -327,7 +326,7 @@
     "options": [
      "`StatevectorSampler`",
      "`BackendSamplerV2(backend=...)`",
-     "`qiskit_ibm_runtime.SamplerV2`"
+     "`executor_sampler.Sampler`"
     ],
     "right": 1,
     "why": "Correcto: las primitivas de backend envuelven cualquier `BackendV2`.",

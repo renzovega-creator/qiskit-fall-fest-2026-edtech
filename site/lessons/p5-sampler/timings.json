@@ -60,36 +60,32 @@
   ]
  },
  "spans": {
-  "dur": 50.712,
+  "dur": 46.704,
   "marks": {
-   "que": 9.808,
-   "mask": 17.069,
-   "util": 26.99,
-   "ojo": 41.327
+   "que": 7.912,
+   "partes": 19.46,
+   "util": 29.778,
+   "ojo": 37.322
   },
   "cues": [
    [
     0.107,
-    "Los resultados de Sampler en el servicio de IBM incluyen información de tiempos: los intervalos de ejecución, execution spans."
+    "Los resultados de Sampler en un QPU incluyen información de tiempos: los intervalos de ejecución."
    ],
    [
-    9.808,
-    "Los disparos se agrupan en intervalos, cada uno con un inicio, un fin y qué disparos contiene."
+    7.912,
+    "Con el Sampler del lado del cliente de la cero punto cincuenta, están en la metadata del Executor, como chunk timing: una lista de intervalos que envuelve ChunkTiming."
    ],
    [
-    17.069,
-    "El método mask, dado el índice de un PUB, devuelve una máscara booleana con los disparos de ese PUB que se ejecutaron en ese intervalo."
+    19.46,
+    "Cada intervalo tiene un inicio, un fin y sus partes: de cada una, el índice del PUB y cuántos elementos se ejecutaron en ese intervalo."
    ],
    [
-    26.99,
-    "Sirve, por ejemplo, para filtrar datos por momento de ejecución."
+    29.778,
+    "start, stop y duration dan los tiempos globales, y draw dibuja los intervalos en una gráfica."
    ],
    [
-    32.665,
-    "filter by pub selecciona los intervalos de ciertos PUBs, y start, stop y duration dan los tiempos globales."
-   ],
-   [
-    41.327,
+    37.322,
     "Los intervalos pueden solaparse: no porque el QPU haga dos cosas a la vez, sino por procesamiento clásico concurrente."
    ]
   ]

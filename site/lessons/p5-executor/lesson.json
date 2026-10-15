@@ -52,8 +52,7 @@
      "src": "import numpy as np\nfrom qiskit.circuit import QuantumCircuit, Parameter\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime import Executor\nfrom qiskit_ibm_runtime.quantum_program import QuantumProgram\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2\nfrom samplomatic import build\nfrom samplomatic.transpiler import generate_boxing_pass_manager\n\nbackend = FakeManilaV2()\ncircuit = QuantumCircuit(3)\ncircuit.h(0)\ncircuit.cx(0, 1)\ncircuit.cx(1, 2)\ncircuit.rz(Parameter(\"theta\"), 0)\ncircuit.rz(Parameter(\"phi\"), 1)\ncircuit.measure_all()\npm = generate_preset_pass_manager(backend=backend, optimization_level=0)\n\nprogram = QuantumProgram(shots=1024)\nprogram.append_circuit_item(pm.run(circuit), circuit_arguments=np.random.rand(10, 2))\n\npm.post_scheduling = generate_boxing_pass_manager(enable_gates=True, enable_measures=True)\ntemplate, samplex = build(pm.run(circuit))\nprogram.append_samplex_item(template, samplex=samplex,\n                            samplex_arguments={\"parameter_values\": np.random.rand(10, 2)},\n                            shape=(28, 10))\n\nresult = Executor(mode=backend).run(program).result()\nprint(result[0][\"meas\"].shape)\nprint(result[1][\"meas\"].shape, result[1][\"measurement_flips.meas\"].shape)",
      "lang": "python",
      "id": "c",
-     "size": 17,
-     "norun": true
+     "size": 17
     }
    ],
    "actions": [
@@ -93,8 +92,7 @@
      "src": "import numpy as np\nfrom qiskit.circuit import QuantumCircuit, Parameter\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime import Executor\nfrom qiskit_ibm_runtime.quantum_program import QuantumProgram\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2\nfrom samplomatic import build\nfrom samplomatic.transpiler import generate_boxing_pass_manager\n\nbackend = FakeManilaV2()\ncircuit = QuantumCircuit(3)\ncircuit.h(0)\ncircuit.cx(0, 1)\ncircuit.cx(1, 2)\ncircuit.rz(Parameter(\"theta\"), 0)\ncircuit.rz(Parameter(\"phi\"), 1)\ncircuit.measure_all()\npm = generate_preset_pass_manager(backend=backend, optimization_level=0)\n\nprogram = QuantumProgram(shots=1024)\nprogram.append_circuit_item(pm.run(circuit), circuit_arguments=np.random.rand(10, 2))\n\npm.post_scheduling = generate_boxing_pass_manager(enable_gates=True, enable_measures=True)\ntemplate, samplex = build(pm.run(circuit))\nprogram.append_samplex_item(template, samplex=samplex,\n                            samplex_arguments={\"parameter_values\": np.random.rand(10, 2)},\n                            shape=(28, 10))\n\nresult = Executor(mode=backend).run(program).result()\nprint(result[0][\"meas\"].shape)\nprint(result[1][\"meas\"].shape, result[1][\"measurement_flips.meas\"].shape)",
      "lang": "python",
      "id": "c",
-     "size": 17,
-     "norun": true
+     "size": 17
     }
    ],
    "actions": [
@@ -150,8 +148,7 @@
      "src": "unflipped = result[1][\"meas\"] ^ result[1][\"measurement_flips.meas\"]",
      "lang": "python",
      "id": "x",
-     "hidden": true,
-     "norun": true
+     "hidden": true
     }
    ],
    "actions": [
@@ -551,7 +548,6 @@
      "src": "from qiskit_ibm_runtime.options_models import ExecutorOptions\n\noptions = ExecutorOptions(environment={\"log_level\": \"INFO\"}, execution={\"init_qubits\": True})\nexecutor = Executor(mode=backend, options=options)\nprogram = QuantumProgram(shots=1024, meas_level=\"both\")",
      "lang": "python",
      "id": "c",
-     "norun": true,
      "size": 22
     }
    ],

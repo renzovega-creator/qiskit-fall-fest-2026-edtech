@@ -100,8 +100,9 @@ qc_a.decompose()''', id="c"),
              """Contemos. [[cap]]Puertas sobre qubits distintos van en la misma capa. [[seq]]Puertas sobre el mismo qubit, una detrás de otra.
              [[tiempo]]Tres capas: si dijiste seis, contaste puertas, no capas. Como cada puerta tarda, la profundidad se parece al tiempo de ejecución, y es una de las cantidades que deciden si un circuito se puede ejecutar bien en un dispositivo ruidoso.""",
              [Circ(3, [G("h", 0), G("x", 1), G("y", 2), G("cx", 0, 1), G("z", 2), G("h", 1)], id="q"),
-              Code("print(qc.depth())", id="c", norun=True),
-              Out("3", id="o", hidden=True)],
+              Code("print(qc.depth())", id="c",
+                   setup="from qiskit import QuantumCircuit\n\nqc = QuantumCircuit(3)\nqc.h(0)\nqc.x(1)\nqc.y(2)\nqc.cx(0, 1)\nqc.z(2)\nqc.h(1)"),
+              Out("3", id="o", hidden=True, check=True)],
              [A("cursor", "q", at="cap", col=0), A("cursor", "q", at="seq", col=1), A("cursor", "q", at="tiempo", col=2), A("show", "o", at="tiempo")]),
 
         beat("q1", ("", "Comprueba"),
@@ -151,7 +152,7 @@ ParameterView([ParameterVectorElement(hi[0]), ParameterVectorElement(hi[1])])'''
              [Code('''a = QuantumCircuit(2)
 b = QuantumCircuit(2)
 b.h(0)
-c = a.compose(b)''', id="c", norun=True)],
+c = a.compose(b)''', id="c")],
              ask=choice("Después de este código, ¿cuántas instrucciones tiene `a`?",
                         ["0", "1", "2", "depende de `b`"], 0,
                         "Correcto: `compose` devuelve un circuito nuevo (`c`, con una H). `a` queda intacto, salvo que uses `inplace=True`.",
@@ -225,7 +226,7 @@ qc3.append(Measure(), [0], [0])''', id="c", size=23),
              """El primer circuito de la escena anterior pone X en los qubits cero, uno y cuatro, y mide los cinco en sus bits.""",
              [Code('''qc = QuantumCircuit(5, 5)
 qc.x([0, 1, 4])
-qc.measure(range(5), range(5))''', norun=True)],
+qc.measure(range(5), range(5))''')],
              ask=choice("¿Qué cadena de bits devuelve siempre?",
                         ["`'11001'`", "`'10011'`", "`'11100'`", "`'00111'`"], 1,
                         "Correcto: el bit 0 va a la **derecha**. Los bits 0, 1 y 4 valen 1: `'10011'`.",
@@ -267,7 +268,7 @@ qc.measure_active()''', id="c"),
              [Code('''qc = QuantumCircuit(4)
 qc.h(0)
 qc.cx(0, 2)
-qc.measure_active()''', norun=True)],
+qc.measure_active()''')],
              ask=numeric("¿Cuántos bits tiene el registro que crea `measure_active()`?", 2,
                          "Correcto: solo los qubits 0 y 2 tienen operaciones, así que se miden dos.", tol=0.001,
                          hint="Cuenta los qubits que tienen al menos una puerta.")),
@@ -296,7 +297,7 @@ orden = lesson(
              [[lista]]Un circuito guarda sus qubits en una lista, y el índice en esa lista es la etiqueta del qubit. [[diag]]En los diagramas, el qubit cero está arriba y el último, abajo.""",
              [T("El orden de los bits", "title"),
               Code('''qc = QuantumCircuit(2)
-qc.qubits[0]     # el qubit "0"''', id="c", hidden=True, norun=True),
+qc.qubits[0]     # el qubit "0"''', id="c", hidden=True, setup="from qiskit import QuantumCircuit"),
               Circ(2, [G("x", 1)], id="q", hidden=True)],
              [A("show", "c", at="lista"), A("show", "q", at="diag")]),
 
@@ -499,7 +500,7 @@ print(result[0].data.res.get_int_counts())''', id="c", size=19),
 
         beat("q1", ("", "Comprueba"),
              """Una pregunta sobre los circuitos N-local.""",
-             [Code('n_local(4, "ry", "cz", reps=2)', norun=True)],
+             [Code('n_local(4, "ry", "cz", reps=2)')],
              ask=numeric("¿Cuántos parámetros tiene? (una rotación por qubit en cada capa de rotaciones)", 12,
                          "Correcto: con `reps=2` hay 3 capas de rotaciones (una más que repeticiones), de 4 ángulos cada una: 12.", tol=0.001,
                          hint="Con `reps=3` y 3 qubits había 4 capas de 3 ángulos.", solution=["Capas de rotación = reps + 1 = 3; 3 × 4 = 12."])),
@@ -626,7 +627,7 @@ print(U.input_dims(), op.input_dims())''', id="c", size=23),
              """Calcula con matrices de Pauli.""",
              [Code('''A = Operator(Pauli("X"))
 B = Operator(Pauli("Z"))
-A.compose(B)''', norun=True),
+A.compose(B)'''),
               M(r"X=\begin{pmatrix}0&1\\1&0\end{pmatrix},\quad Z=\begin{pmatrix}1&0\\0&-1\end{pmatrix}", size=36)],
              ask=choice("¿Qué matriz devuelve?",
                         ["$\\begin{pmatrix}0&1\\\\-1&0\\end{pmatrix}$", "$\\begin{pmatrix}0&-1\\\\1&0\\end{pmatrix}$",
@@ -777,8 +778,9 @@ circuit.unitary(U, circuit.qubits)''', id="c"),
 U = Operator(circuit)
 better = QuantumCircuit(2)
 better.unitary(U, range(2))
-print(circuit.count_ops(), better.decompose().count_ops())''', id="c", norun=True),
-              Out("{'h': 2, 'cx': 2, 'x': 2, 'sx': 1, 'cz': 1}  →  {'u': 4, 'cx': 1}", id="o", hidden=True),
+print(circuit.count_ops(), better.decompose().count_ops())''', id="c",
+                   setup="from qiskit import QuantumCircuit\n\ncircuit = QuantumCircuit(2)\ncircuit.h(0)\ncircuit.cx(0, 1)\ncircuit.sx(1)\ncircuit.cz(0, 1)\ncircuit.x(1)\ncircuit.x(0)\ncircuit.cx(0, 1)\ncircuit.h(0)"),
+              Out("OrderedDict({'h': 2, 'cx': 2, 'x': 2, 'sx': 1, 'cz': 1}) OrderedDict({'u': 4, 'cx': 1})",id="o", hidden=True, check=True),
               Circ(2, [G("u", 0), G("u", 1), G("cx", 0, 1), G("u", 0), G("u", 1)], id="b", hidden=True)],
              [A("hl", "c", at="op", lines=[3]), A("hl", "c", at="re", lines=[4, 5]), A("show", "o", at="res"), A("show", "b", at="res")]),
 
@@ -814,6 +816,23 @@ with circuit.if_test((c0, 1)):
 circuit.measure(q0, c0)
 
 print(SamplerV2().run([circuit]).result()[0].data.c.get_counts())'''
+# Contexto de los fragmentos que siguen: un circuito de tres qubits y tres bits.
+CONTROL_SETUP = '''from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit.circuit.classical import expr
+
+qubits = QuantumRegister(3, "q")
+clbits = ClassicalRegister(3, "c")
+circuit = QuantumCircuit(qubits, clbits)
+(q0, q1, q2), (c0, c1, c2) = qubits, clbits'''
+# Contexto del fragmento de expresiones clásicas: seis qubits, tres bits de medición y un registro.
+EXPR_SETUP = '''from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit.circuit.classical import expr
+
+qr = QuantumRegister(6, "qr")
+mr = ClassicalRegister(3, "mr")
+creg = ClassicalRegister(3, "creg")
+qc = QuantumCircuit(qr, mr, creg)
+temp = qc.add_var("temp", expr.lift(creg))'''
 s_cierre, a_cierre = resumen(["medir a mitad del circuito y decidir: **feedforward**",
                               "`if_test` (+ `else_`) · `switch` (+ `case.DEFAULT`) · `for_loop` · `while_loop`",
                               "`qiskit.circuit.classical.expr`: XOR, NOT… · `store` guarda resultados",
@@ -854,7 +873,7 @@ with else_:
     circuit.x(q1)
 
 with circuit.if_test((clbits, 0b001)):
-    circuit.x(q2)''', id="c", norun=True),
+    circuit.x(q2)''', id="c", setup=CONTROL_SETUP),
               Circ(2, [G("h", 0), G("measure", 0, c=0), dict(g="if", q=[1], label="c₀ = 1 ? H : X", inner="H", innerColor="red")], clbits=1, id="q")],
              [A("hl", "c", at="ej", range="1-4"), A("hl", "c", at="reg", range="6-7")]),
 
@@ -867,7 +886,7 @@ with circuit.if_test((clbits, 0b001)):
     with case(0b001):
         circuit.y(q2)
     with case(case.DEFAULT):
-        circuit.x(q2)''', id="c", norun=True)],
+        circuit.x(q2)''', id="c", setup=CONTROL_SETUP)],
              [A("hl", "c", at="cases", range="2-3"), A("hl", "c", at="def", range="6-7")]),
 
         beat("loops", ("", "for y while"),
@@ -880,7 +899,7 @@ circuit.h([q0, q1])
 circuit.measure([q0, q1], [c0, c1])
 with circuit.while_loop((clbits, 0b11)):
     circuit.h([q0, q1])
-    circuit.measure([q0, q1], [c0, c1])''', id="c", norun=True),
+    circuit.measure([q0, q1], [c0, c1])''', id="c", setup=CONTROL_SETUP),
               Hist([["00", 340], ["01", 330], ["10", 354], ["11", 0]], id="h", grow=True, hidden=True, h=220)],
              [A("hl", "c", at="for", range="1-2"), A("hl", "c", at="while", range="4-8"), A("show", "h", at="res"), A("grow", "h", at="res")]),
 
@@ -893,7 +912,7 @@ with circuit.switch(c0) as case:
         circuit.x(q0)
     with case(1):
         circuit.z(q0)
-circuit.measure(q0, c0)''', norun=True)],
+circuit.measure(q0, c0)''', setup=CONTROL_SETUP)],
              ask=choice("¿Qué resultado da la medición final?", ["siempre 0", "siempre 1", "0 o 1 al azar"], 1,
                         "Correcto: si midió 0, la X lo lleva a 1; si midió 1, la Z no cambia $|1\\rangle$ (solo le da una fase). Siempre 1.",
                         wrong=["Con 0 se aplica X, que lo convierte en 1.", None, "Las dos ramas terminan en $|1\\rangle$."])),
@@ -910,7 +929,7 @@ for k in [1, 2]:
 with qc.if_test(parity):
     qc.x(qr[5])
 
-qc.store(temp, expr.bit_not(creg))''', id="c", norun=True)],
+qc.store(temp, expr.bit_not(creg))''', id="c", setup=EXPR_SETUP)],
              [A("hl", "c", at="lift", lines=[3]), A("hl", "c", at="xor", range="4-5"), A("hl", "c", at="ghz", range="6-7"), A("hl", "c", at="store", lines=[9])]),
 
         beat("stretch", ("", "stretch: tiempos relativos"),
@@ -923,7 +942,7 @@ circuit.x(q1)
 circuit.delay(expr.mul(s, 2), q1)
 circuit.x(q1)
 circuit.delay(s, q1)
-circuit.barrier()''', id="c", norun=True),
+circuit.barrier()''', id="c", setup=CONTROL_SETUP),
               Flow([dict(t="s"), dict(t="X", color="blue"), dict(t="2s"), dict(t="X", color="blue"), dict(t="s")], id="f", hidden=True)],
              [A("hl", "c", at="dd", range="1-6"), A("show", "f", at="dd", t=2), A("hl", "c", at="bar", lines=[7])]),
 
@@ -956,6 +975,20 @@ circuit.barrier()''', id="c", norun=True),
               "Construye el GHZ de 8 qubits con paridades de la guía original y compara su profundidad con el GHZ en cadena de CNOT."])
 
 # ------------------------------------------------------------------ 2.8 OpenQASM y QPY
+# Contexto del fragmento de puertas propias: un programa con la puerta rzx y otro que usa rxx sin definirla.
+QASM_CUSTOM_SETUP = '''program = """
+OPENQASM 2.0;
+include "qelib1.inc";
+gate rzx(angle) a, b { h b; cx a, b; rz(angle) b; cx a, b; h b; }
+qreg q[2];
+rzx(0.5) q[0], q[1];
+"""
+old_program = """
+OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+rxx(0.5) q[0], q[1];
+"""'''
 s_cierre, a_cierre = resumen(["OpenQASM: lenguaje de intercambio entre herramientas · versiones 2 y 3",
                               "`qasm2.loads/load/dumps/dump` · `CustomInstruction`, `LEGACY_CUSTOM_INSTRUCTIONS`, `strict`",
                               "`qasm3.dumps/dump` · importar requiere `qiskit-qasm3-import`",
@@ -1020,7 +1053,7 @@ qasm2.loads(old_program,
 import math
 qasm2.loads(program,
             custom_classical=[qasm2.CustomClassical("arctan", 2, math.atan2)],
-            strict=False)''', id="c", norun=True, size=23)],
+            strict=False)''', id="c", setup=QASM_CUSTOM_SETUP, size=23)],
              [A("hl", "c", at="custom", range="4-5"), A("hl", "c", at="legacy", range="7-8"), A("hl", "c", at="clas", range="10-13")]),
 
         beat("export", ("", "Exportar"),
@@ -1121,6 +1154,17 @@ print(len(circuits), circuits[0] == qc)''', id="c", size=23),
               "Copia el programa OpenQASM 3 de la guía original (con `input`, `let` y `while`) y cárgalo con `qasm3.loads`."])
 
 # ------------------------------------------------------------------ 2.9 Visualizar
+# Contexto del fragmento de plot_histogram: dos resultados de Sampler con el registro meas.
+HIST_SETUP = '''from qiskit import QuantumCircuit
+from qiskit.primitives import StatevectorSampler
+from qiskit.visualization import plot_histogram
+
+qc = QuantumCircuit(2)
+qc.h(0)
+qc.cx(0, 1)
+qc.measure_all()
+result = StatevectorSampler().run([qc], shots=1024).result()
+second_result = StatevectorSampler().run([qc], shots=1024).result()'''
 s_cierre, a_cierre = resumen(["`draw()`: texto · `mpl` · `latex` · `filename`, `reverse_bits`, `plot_barriers`, `fold`, `style`, `scale`",
                               "estados: city · hinton · paulivec · qsphere · bloch · `latex`",
                               "`plot_histogram(counts, legend, sort, number_to_keep…)` · Estimator con `plt.bar`",
@@ -1166,7 +1210,7 @@ c: 3/═══════╩════════╩══╩═
                  ["`fold=40`", "ancho máximo", "text, mpl"],
                  ["`style={…}`", "colores", "mpl"],
                  ["`scale=0.5`", "tamaño", "mpl, latex"]], id="t", stagger=True, size=24),
-              Code("circuit_drawer(circuit, output=\"mpl\", plot_barriers=False)", id="c", hidden=True, norun=True)],
+              Code("circuit_drawer(circuit, output=\"mpl\", plot_barriers=False)", id="c", hidden=True, setup="from qiskit.visualization import circuit_drawer")],
              [A("item", "t", at="comunes", i=0), A("item", "t", at="comunes", t=1.5, i=1), A("item", "t", at="fold", i=2), A("item", "t", at="style", i=3),
               A("item", "t", at="scale", i=4), A("show", "c", at="func")]),
 
@@ -1235,7 +1279,7 @@ print(SparsePauliOp.from_operator(psi))''', id="c"),
     color=["orange", "black"],
     bar_labels=False,
     figsize=(15, 12),
-)''', id="c", norun=True),
+)''', id="c", setup=HIST_SETUP),
               T("fuera de Jupyter: `fig.show()` o `fig.savefig(\"out.png\")`", "note", id="n", hidden=True)],
              [A("hl", "c", at="opts", range="4-9"), A("show", "n", at="fuera")]),
 
@@ -1271,14 +1315,14 @@ qc = QuantumCircuit(2)
 qc.h(0)
 qc.cx(0, 1)
 backend = GenericBackendV2(5)
-pm = generate_preset_pass_manager(backend=backend, optimization_level=1)
+pm = generate_preset_pass_manager(backend=backend, optimization_level=1, scheduling_method="alap")
 isa_circuit = pm.run(qc)
 draw(isa_circuit, style=IQXDebugging(), target=backend.target)''', id="c", size=22)],
              [A("hl", "c", at="back", range="8-10"), A("hl", "c", at="style", lines=[11])]),
 
         beat("q2", ("", "Comprueba"),
              """Una pregunta sobre draw.""",
-             [Code("circuit.draw(reverse_bits=True)", norun=True)],
+             [Code("circuit.draw(reverse_bits=True)")],
              ask=choice("¿Qué cambia?", ["el circuito: la X pasa al otro qubit", "solo el dibujo: el qubit 0 queda abajo", "el orden de los bits en los conteos"], 1,
                         "Correcto: la opción de `draw` solo cambia el dibujo. El método `circuit.reverse_bits()` sí crea un circuito nuevo.",
                         wrong=["Eso hace el método `reverse_bits()`, no la opción de `draw`.", None, "Los conteos no dependen de cómo dibujes el circuito."])),

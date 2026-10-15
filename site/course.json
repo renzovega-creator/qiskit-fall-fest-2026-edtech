@@ -159,7 +159,7 @@
      "section": "3.4",
      "title": "Representar un computador cuántico: Target",
      "summary": "Qué información necesita el transpilador: Backend y Target, mapa de acoplamiento, instrucciones soportadas, errores, y cómo crear un backend propio.",
-     "minutes": 6
+     "minutes": 7
     },
     {
      "id": "p3-pass-managers",

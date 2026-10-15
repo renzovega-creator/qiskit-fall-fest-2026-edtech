@@ -131,7 +131,6 @@
      "src": "from qiskit.primitives import BaseEstimatorV2, BasePrimitiveJob\n\nclass EstimatorImplementation(BaseEstimatorV2):\n    def __init__(self, *, backend, options):\n        self._backend = backend\n        self._options = options\n        self._default_precision = 0.01\n\n    def run(self, pubs, *, precision=None):\n        # 1. precisión por defecto  2. validar PUBs\n        # 3. crear un BasePrimitiveJob  4. enviarlo al servicio\n        ...",
      "lang": "python",
      "id": "c",
-     "norun": true,
      "size": 22
     },
     {

@@ -498,7 +498,7 @@
   "local-simulators"
  ],
  "practice": [
-  "Repite la prueba de mitigación con `FakeTorino` y un GHZ de 5 qubits midiendo $\\langle Z_0Z_4\\rangle$.",
+  "Repite la prueba de mitigación con `FakeBelemV2` y un GHZ de 5 qubits midiendo $\\langle Z_0Z_4\\rangle$.",
   "Prueba `AerSimulator(method=\"matrix_product_state\")` con un GHZ de 60 qubits.",
   "Guías originales: [local-testing-mode](https://quantum.cloud.ibm.com/docs/en/guides/local-testing-mode) · [local-simulators](https://quantum.cloud.ibm.com/docs/en/guides/local-simulators)"
  ],

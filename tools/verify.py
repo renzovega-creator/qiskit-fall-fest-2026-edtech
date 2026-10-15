@@ -5,7 +5,8 @@
 Así se comprueba que todo el código que se enseña funciona con las versiones instaladas.
 Si un bloque Out(…, check=True) sigue a un bloque de código en la misma escena, su texto debe
 coincidir exactamente con lo que imprime ese código. Bloques con norun=True se omiten
-(por ejemplo, los que necesitan una cuenta de IBM Quantum).
+(por ejemplo, los que necesitan una cuenta de IBM Quantum). Si un bloque trae setup="…", ese
+código se ejecuta antes que el bloque, sin mostrarse: da el contexto a un fragmento.
 """
 import contextlib
 import io
@@ -38,6 +39,10 @@ def verify_lesson(lid, show):
             buf = io.StringIO()
             try:
                 with contextlib.redirect_stdout(buf):
+                    if s.get("setup"):
+                        exec(compile(s["setup"], f"{lid}/{b['id']}:setup", "exec"), ns)
+                        buf.truncate(0)
+                        buf.seek(0)
                     exec(compile(s["src"], f"{lid}/{b['id']}", "exec"), ns)
             except Exception:
                 fails += 1

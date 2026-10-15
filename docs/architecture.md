@@ -37,7 +37,7 @@ carpeta y por dónde pasa una lección.
 | `extract.py`                                         | Convierte esas guías en texto plano en `.cache/qiskit-docs/text`.                                             |
 | `tts.py`                                             | Sintetiza la narración de una lección y escribe `timings.json`.                                               |
 | `pronunciacion.py`                                   | Diccionario que reescribe siglas y nombres en inglés para que la voz los lea bien.                            |
-| `verify.py`                                          | Ejecuta el código Python de las lecciones y compara los `Out(…, check=True)`.                                 |
+| `verify.py`                                          | Ejecuta el Python de las lecciones, salvo `norun`, y compara los `Out(…, check=True)`.                        |
 | `practica.py`                                        | Ejecuta cada cuaderno de `practica/` sin y con sus soluciones.                                                |
 | `playtest.py`, `seektest.py`, `shot.py`, `review.py` | Pruebas y capturas con Playwright sobre `site/` servido en el puerto 8810.                                    |
 
