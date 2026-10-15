@@ -12,6 +12,7 @@ carpeta y por dónde pasa una lección.
 | `lessons_src/` | Las lecciones como código Python y el programa que las convierte en JSON.                 |
 | `tools/`       | Programas auxiliares: guías originales, narración, comprobaciones y pruebas de navegador. |
 | `site/`        | La página estática: portada, reproductor de lecciones y los datos que lee.                |
+| `tests/`       | Pruebas de navegador del tema (`theme_test.py`).                                          |
 | `practica/`    | Los cuadernos marimo de las misiones y sus soluciones.                                    |
 | `content/`     | La caché de la síntesis de voz.                                                           |
 
@@ -47,11 +48,16 @@ comprueba la cobertura. Para actualizar las guías se cambia ese hash, se ejecut
 
 ### `site/`
 
-- `index.html` es la portada. Lee `course.json` y los `lesson.json` de las
-  lecciones completadas para armar el repaso.
-- `lesson.html` carga `engine.js`, el reproductor. `blocks.js` dibuja los
-  bloques propios del curso, `sfx.js` los sonidos y `theme.js` el tema. Las
+- `index.html` es la portada, con los estilos de `index.css`. Lee `course.json`
+  y pide en paralelo los `lesson.json` de las lecciones completadas para armar
+  el repaso.
+- `lesson.html` carga `engine.js`, el reproductor, con los estilos de `app.css`.
+  `blocks.js` dibuja los bloques propios del curso y `sfx.js` los sonidos. Las
   fórmulas las dibuja KaTeX, que se descarga de un CDN.
+- `theme.css` y `theme.js` son el tema de las dos páginas: colores, fuentes, y
+  la paleta y el modo que elige el lector. [design.md](design.md) los describe.
+  `notebooks.js` escribe la línea «cómo ejecutar los cuadernos» que acompaña a
+  cada comando de `marimo`.
 - `lessons/<id>/` contiene `lesson.json`, `timings.json` y `audio/<paso>.mp3`.
 - `course.json` es el índice: partes, lecciones, minutos y misiones.
 

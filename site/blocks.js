@@ -366,6 +366,7 @@
     A.el('code', '', row).textContent = cmd;
     const b = A.el('button', 'abtn', row); b.textContent = 'Copiar';
     b.onclick = e => { e.stopPropagation(); navigator.clipboard?.writeText(cmd).then(() => { b.textContent = 'Copiado ✓'; }); };
+    window.notebookHelp(row);
     return o;
   };
 

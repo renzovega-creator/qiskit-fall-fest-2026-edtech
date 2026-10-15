@@ -7,153 +7,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="index.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
 <script src="theme.js"></script>
-<script>try { document.documentElement.dataset.paleta = localStorage.getItem('qiskit:paleta') || 'fosforo'; } catch (e) { document.documentElement.dataset.paleta = 'fosforo'; }</script>
-<style>
-/* ---------- paletas: oscuro por defecto, claro con data-theme o preferencia del sistema ---------- */
-:root, [data-paleta="fosforo"] { --bg:#0b0e0d; --bg2:#121715; --card:#151b19; --line:#24302b; --ink:#e9f0ec; --muted:#8b9a93;
-  --acc:#b8f34a; --acc-ink:#142004; --acc2:#3dd6b5; --acc3:#f2c14e; --bad:#ff7b7b; --glow:#b8f34a33; }
-[data-paleta="cobre"] { --bg:#121014; --bg2:#19161b; --card:#1e1a20; --line:#322b33; --ink:#f3ece8; --muted:#a3958f;
-  --acc:#ff8a4c; --acc-ink:#2a1205; --acc2:#b69cff; --acc3:#ffd27a; --bad:#ff7b9c; --glow:#ff8a4c33; }
-[data-paleta="medianoche"] { --bg:#0a0f1e; --bg2:#0f1629; --card:#131b31; --line:#232e4a; --ink:#e8edf7; --muted:#8a96b3;
-  --acc:#5eead4; --acc-ink:#04221d; --acc2:#f472b6; --acc3:#fbbf24; --bad:#fb7185; --glow:#5eead433; }
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"])[data-paleta="fosforo"] { --bg:#f4f6f2; --bg2:#eaefe6; --card:#ffffff; --line:#d9e1d4; --ink:#16201a; --muted:#5d6b63; --acc:#4d8a0c; --acc-ink:#ffffff; --acc2:#0f8a72; --acc3:#a8690c; --bad:#c4314b; --glow:#4d8a0c22; }
-  :root:not([data-theme="dark"])[data-paleta="cobre"] { --bg:#faf7f4; --bg2:#f2ece6; --card:#ffffff; --line:#e6ddd4; --ink:#211a17; --muted:#6e625c; --acc:#c2410c; --acc-ink:#ffffff; --acc2:#6a48cf; --acc3:#a8690c; --bad:#be123c; --glow:#c2410c22; }
-  :root:not([data-theme="dark"])[data-paleta="medianoche"] { --bg:#f5f7fc; --bg2:#e9eef8; --card:#ffffff; --line:#d8dfee; --ink:#121a2e; --muted:#5b6782; --acc:#0e7490; --acc-ink:#ffffff; --acc2:#be185d; --acc3:#a16207; --bad:#be123c; --glow:#0e749022; }
-}
-[data-theme="light"][data-paleta="fosforo"] { --bg:#f4f6f2; --bg2:#eaefe6; --card:#ffffff; --line:#d9e1d4; --ink:#16201a; --muted:#5d6b63; --acc:#4d8a0c; --acc-ink:#ffffff; --acc2:#0f8a72; --acc3:#a8690c; --bad:#c4314b; --glow:#4d8a0c22; }
-[data-theme="light"][data-paleta="cobre"] { --bg:#faf7f4; --bg2:#f2ece6; --card:#ffffff; --line:#e6ddd4; --ink:#211a17; --muted:#6e625c; --acc:#c2410c; --acc-ink:#ffffff; --acc2:#6a48cf; --acc3:#a8690c; --bad:#be123c; --glow:#c2410c22; }
-[data-theme="light"][data-paleta="medianoche"] { --bg:#f5f7fc; --bg2:#e9eef8; --card:#ffffff; --line:#d8dfee; --ink:#121a2e; --muted:#5b6782; --acc:#0e7490; --acc-ink:#ffffff; --acc2:#be185d; --acc3:#a16207; --bad:#be123c; --glow:#0e749022; }
-
-* { box-sizing:border-box; }
-html { background:var(--bg); }
-body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 Inter, system-ui, sans-serif; }
-a { color:inherit; text-decoration:none; }
-button { font:inherit; color:inherit; cursor:pointer; }
-code, .mono { font-family:'JetBrains Mono', monospace; font-size:.88em; }
-code { background:var(--bg2); border:1px solid var(--line); border-radius:6px; padding:0 .3em; }
-.wrap { max-width:1160px; margin:0 auto; padding:0 24px; }
-h1, h2, h3, .brand { font-family:'Bricolage Grotesque', Inter, sans-serif; }
-
-/* barra */
-.bar { display:flex; align-items:center; gap:14px; padding:18px 0; }
-.brand { font-weight:800; font-size:20px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
-.brand .dot { width:12px; height:12px; border-radius:50%; background:var(--acc); box-shadow:0 0 14px var(--acc); }
-.bar .sp { flex:1; }
-.pill { border:1px solid var(--line); background:var(--card); border-radius:999px; padding:6px 12px; font-size:13px; color:var(--muted); }
-.theme-btn { border:1px solid var(--line); background:var(--card); border-radius:999px; width:36px; height:36px; }
-
-/* portada */
-.hero { display:grid; grid-template-columns:1.25fr .9fr; gap:36px; align-items:center; padding:28px 0 40px; }
-.hero h1 { font-size:clamp(38px, 5.6vw, 68px); line-height:1.02; margin:0 0 16px; letter-spacing:-.025em; font-weight:800; }
-.hero h1 span { color:var(--acc); }
-.hero .lead { color:var(--muted); font-size:17.5px; max-width:560px; margin:0 0 26px; }
-.next { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:20px 22px; display:grid; gap:6px; max-width:560px;
-        box-shadow:0 0 0 1px var(--glow), 0 18px 40px -24px var(--glow); }
-.next .k { font:600 12px 'JetBrains Mono', monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--acc); }
-.next .t { font:700 22px 'Bricolage Grotesque', sans-serif; }
-.next .s { color:var(--muted); font-size:14.5px; }
-.next .go { justify-self:start; margin-top:8px; background:var(--acc); color:var(--acc-ink); border:0; border-radius:12px; padding:11px 18px; font-weight:600; }
-.next .go:hover { filter:brightness(1.08); }
-.stats { display:flex; gap:26px; margin-top:22px; flex-wrap:wrap; }
-.stats div { font-size:13px; color:var(--muted); }
-.stats b { display:block; font:700 26px 'Bricolage Grotesque', sans-serif; color:var(--ink); }
-svg.bloch { width:100%; max-width:420px; justify-self:center; overflow:visible; }
-.bloch .ax { stroke:var(--line); stroke-width:1.5; fill:none; }
-.bloch .eq { stroke:var(--muted); stroke-width:1.2; fill:none; stroke-dasharray:4 5; opacity:.6; }
-.bloch .sph { fill:url(#gl); stroke:var(--muted); stroke-width:1.5; }
-.bloch .vec { stroke:var(--acc); stroke-width:4; stroke-linecap:round; filter:drop-shadow(0 0 8px var(--acc)); }
-.bloch .tip { fill:var(--acc); }
-.bloch .trail { fill:none; stroke:var(--acc2); stroke-width:2; opacity:.55; }
-.bloch text { font:600 15px 'JetBrains Mono', monospace; fill:var(--muted); }
-
-/* secciones */
-section.blk { margin:34px 0 10px; }
-.sh { display:flex; align-items:baseline; gap:12px; margin-bottom:14px; }
-.sh h2 { margin:0; font-size:26px; letter-spacing:-.01em; }
-.sh .note { color:var(--muted); font-size:14px; }
-.two { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-.panel { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:20px 22px; }
-
-/* repaso */
-.rq { border-top:1px solid var(--line); padding:14px 0 6px; }
-.rq:first-of-type { border-top:0; padding-top:4px; }
-.rq .from { font:12px 'JetBrains Mono', monospace; color:var(--muted); margin-bottom:4px; }
-.rq .p { font-weight:500; margin-bottom:10px; }
-.rq .opts { display:grid; gap:6px; }
-.rq .opts button { text-align:left; background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-size:14.5px; }
-.rq .opts button:hover { border-color:var(--acc); }
-.rq .opts button.ok { border-color:var(--acc2); background:color-mix(in srgb, var(--acc2) 14%, var(--bg2)); }
-.rq .opts button.no { border-color:var(--bad); background:color-mix(in srgb, var(--bad) 12%, var(--bg2)); }
-.rq .num { display:flex; gap:8px; } .rq .num input { flex:1; background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:8px 12px; color:var(--ink); font:inherit; }
-.rq .num button { background:var(--acc); color:var(--acc-ink); border:0; border-radius:10px; padding:8px 14px; font-weight:600; }
-.rq .fb { font-size:14px; color:var(--muted); margin-top:8px; }
-.empty { color:var(--muted); font-size:15px; }
-
-/* proyecto */
-.track { display:grid; grid-template-columns:repeat(10, 1fr); gap:6px; margin:6px 0 16px; }
-.hito { position:relative; height:42px; border-radius:10px; background:var(--bg2); border:1px solid var(--line); display:grid; place-items:center;
-        font:600 13px 'JetBrains Mono', monospace; color:var(--muted); }
-.hito.open { border-color:var(--acc); color:var(--ink); }
-.hito.done { background:var(--acc); color:var(--acc-ink); border-color:var(--acc); }
-.hcur .k { font:600 12px 'JetBrains Mono', monospace; letter-spacing:.1em; text-transform:uppercase; color:var(--acc2); }
-.hcur h3 { margin:4px 0 6px; font-size:20px; }
-.hcur p { margin:0 0 10px; color:var(--muted); font-size:14.5px; }
-.cmd { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0; }
-.cmd code { padding:6px 10px; font-size:13px; }
-.cmd button, .chk { background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:6px 12px; font-size:13.5px; }
-.chk.on { border-color:var(--acc2); color:var(--acc2); }
-
-/* partes */
-.parts { display:grid; grid-template-columns:repeat(auto-fill, minmax(330px, 1fr)); gap:16px; }
-.part { background:var(--card); border:1px solid var(--line); border-radius:18px; display:flex; flex-direction:column; overflow:hidden; }
-.part .h { display:flex; gap:14px; padding:18px 20px 12px; }
-.ring { flex:none; width:54px; height:54px; }
-.ring circle { fill:none; stroke-width:5; }
-.ring text { font:600 13px 'JetBrains Mono', monospace; text-anchor:middle; dominant-baseline:central; fill:var(--ink); }
-.part .no { font:12px 'JetBrains Mono', monospace; color:var(--muted); }
-.part h3 { margin:2px 0 4px; font-size:19px; line-height:1.2; }
-.part .d { font-size:14px; color:var(--muted); margin:0; }
-details { border-top:1px solid var(--line); margin-top:auto; }
-summary { list-style:none; cursor:pointer; padding:12px 20px; font-size:14px; color:var(--acc); display:flex; justify-content:space-between; }
-summary::-webkit-details-marker { display:none; }
-summary::after { content:"＋"; } details[open] summary::after { content:"－"; }
-details a { display:flex; gap:12px; padding:9px 20px; border-top:1px solid var(--line); font-size:14px; align-items:baseline; }
-details a:hover { background:var(--bg2); }
-details a .s { font:12px 'JetBrains Mono', monospace; color:var(--muted); width:48px; flex:none; white-space:nowrap; }
-details a .m { margin-left:auto; font:12px 'JetBrains Mono', monospace; color:var(--muted); white-space:nowrap; }
-details a .tag { font-size:11px; border:1px solid var(--acc2); color:var(--acc2); border-radius:999px; padding:0 6px; margin-left:6px; }
-details a.done .s { color:var(--acc); } details a.done .s::before { content:"✓ "; }
-
-footer { margin:48px 0 36px; color:var(--muted); font-size:13px; display:flex; gap:16px; flex-wrap:wrap; justify-content:space-between; }
-footer a { color:var(--acc); }
-.pal { display:flex; gap:6px; align-items:center; }
-.pal button { border:1px solid var(--line); background:var(--card); border-radius:999px; padding:4px 10px; font-size:12.5px; }
-.pal button.on { border-color:var(--acc); color:var(--acc); }
-
-@media (max-width: 900px) {
-  .hero { grid-template-columns:1fr; } svg.bloch { max-width:260px; order:-1; }
-  .two { grid-template-columns:1fr; }
-  .track { grid-template-columns:repeat(5, 1fr); }
-}
-@media (max-width: 600px) {
-  .wrap { padding:0 16px; } .parts { grid-template-columns:1fr; }
-  .bar .pill:not(#prog) { display:none; } .brand { white-space:nowrap; }
-  .sh { flex-direction:column; gap:2px; }
-  .stats { gap:18px; } .stats div:last-child { display:none; }
-}
-</style>
+<script src="notebooks.js"></script>
 </head>
 <body>
 <div class="wrap">
   <header class="bar">
-    <div class="brand"><span class="dot"></span>Qubit a qubit</div>
+    <a class="brand" href="index.html"><span class="dot"></span>Qubit a qubit</a>
     <span class="pill">Qiskit · en español</span>
     <span class="sp"></span>
     <span class="pill" id="prog"></span>
-    <button class="theme-btn" aria-label="Cambiar tema"></button>
+    <div data-theme-ctl></div>
   </header>
 
   <section class="hero">
@@ -186,8 +53,7 @@ footer a { color:var(--acc); }
   </section>
 
   <footer>
-    <span>Contenido basado en las <a href="https://quantum.cloud.ibm.com/docs/en/guides">guías de IBM Quantum</a> (CC BY-SA 4.0). Todo el código se ejecutó con Qiskit 2.5.</span>
-    <span class="pal">Paleta: <button data-p="fosforo">Fósforo</button><button data-p="cobre">Cobre</button><button data-p="medianoche">Medianoche</button></span>
+    Contenido basado en las <a href="https://quantum.cloud.ibm.com/docs/en/guides">guías de IBM Quantum</a> (CC BY-SA 4.0). Todo el código se ejecutó con Qiskit 2.5.
   </footer>
 </div>
 
@@ -205,13 +71,6 @@ function rich(s) {
   s = esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
   return s.replace(/\u0000(\d+)\u0000/g, (_, k) => { try { return katex.renderToString(math[+k], { throwOnError: false }); } catch (e) { return esc(math[+k]); } });
 }
-
-// ---------- paleta (prototipo: elegir una y quitar el selector) ----------
-document.querySelectorAll('.pal button').forEach(b => {
-  b.classList.toggle('on', b.dataset.p === document.documentElement.dataset.paleta);
-  b.onclick = () => { document.documentElement.dataset.paleta = b.dataset.p; try { localStorage.setItem('qiskit:paleta', b.dataset.p); } catch (e) {}
-    document.querySelectorAll('.pal button').forEach(x => x.classList.toggle('on', x === b)); };
-});
 
 // ---------- esfera de Bloch: el estado precesa alrededor de Z ----------
 (() => {
@@ -274,6 +133,7 @@ function renderProyecto(course) {
     row.querySelector('code').textContent = cmd;
     row.children[1].onclick = e => navigator.clipboard?.writeText(cmd).then(() => { e.target.textContent = 'Copiado ✓'; });
     row.children[2].onclick = () => { LS.set('qiskit:hitos', [...new Set([...done, cur.n])]); renderProyecto(course); };
+    window.notebookHelp(row);
     box.appendChild(row);
   } else {
     const p = document.createElement('p'); p.textContent = `Se abre cuando llegues a la Parte ${cur.part} (${partTitle}).`; box.appendChild(p);
@@ -287,8 +147,9 @@ async function renderRepaso(course, doneSet) {
   const lessons = course.parts.flatMap(p => p.lessons).filter(l => doneSet.has(l.id));
   if (!lessons.length) { box.innerHTML = '<p class="empty">Cuando completes tu primera lección, aquí aparecerán preguntas para repasar en el momento justo, antes de que se olviden.</p>'; $('#rnote').textContent = ''; return; }
   const state = LS.get('qiskit:repaso', {}), now = Date.now(), items = [];
-  for (const l of lessons) {
-    let L; try { L = await (await fetch(`lessons/${l.id}/lesson.json`)).json(); } catch (e) { continue; }
+  const loaded = await Promise.all(lessons.map(l =>
+    fetch(`lessons/${l.id}/lesson.json`).then(r => r.json()).then(L => ({ l, L }), () => null)));
+  for (const { l, L } of loaded.filter(Boolean)) {
     for (const b of L.beats) {
       if (!b.ask || !['choice', 'numeric'].includes(b.ask.kind)) continue;
       const id = `${l.id}:${b.id}`, st = state[id];
@@ -357,6 +218,7 @@ async function renderRepaso(course, doneSet) {
     const [cp, ok] = nx.querySelectorAll('.cmd button');
     cp.onclick = () => navigator.clipboard?.writeText(cmd).then(() => { cp.textContent = 'Copiado ✓'; });
     ok.onclick = () => { LS.set('qiskit:misiones', [...misDone, pendMis.m.notebook]); location.reload(); };
+    window.notebookHelp(nx.querySelector('.cmd'));
   } else {
     nx.innerHTML = `<div class="k">${doneSet.size ? 'Continúa' : 'Empieza aquí'} · ${esc(nextL.section)}</div><div class="t"></div><div class="s"></div><a class="go" href="lesson.html?l=${encodeURIComponent(nextL.id)}">${doneSet.size ? 'Continuar' : 'Empezar'} · ${nextL.minutes} min →</a>`;
     nx.querySelector('.t').textContent = nextL.title; nx.querySelector('.s').textContent = nextL.summary;
