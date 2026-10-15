@@ -142,7 +142,8 @@ def Mission(notebook, tasks, **k):
 
 
 def lesson(id, title, summary, goals, beats, sources=(), practice=()):
-    """sources: nombres de las guías originales (docs/guides/<nombre>) que cubre la lección.
+    """sources: nombres de las guías originales de Qiskit/documentation
+    (docs/guides/<nombre>) que cubre la lección.
     practice: ejercicios para hacer en tu propio entorno al terminar."""
     return dict(id=id, part="", section="", title=title, summary=summary, goals=list(goals),
                 beats=beats, sources=list(sources), practice=list(practice), next=None,

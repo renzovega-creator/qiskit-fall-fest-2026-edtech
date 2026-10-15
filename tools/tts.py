@@ -1,7 +1,7 @@
 """Genera la narración de una lección con Edge TTS y los tiempos por palabra.
 
 Uso (desde la raíz del proyecto):
-    uv run --with edge-tts tools/tts.py site/lessons/fracciones-01
+    uv run --group tools python tools/tts.py site/lessons/p1-quickstart
 
 Lee <lección>/lesson.json y escribe en la misma carpeta:
     audio/<beat>.mp3          un clip por beat (y por cada texto de "extras")

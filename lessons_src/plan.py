@@ -1,7 +1,7 @@
 """Mapa completo del curso: partes, lecciones y las guías originales que cubre cada una.
 
-Cada guía de docs/_toc.json debe aparecer en exactamente una lección (build.py lo comprueba).
-Las lecciones que todavía no tienen contenido aparecen en el índice como «en preparación».
+Cada guía de .cache/qiskit-docs/docs/guides/_toc.json debe aparecer en exactamente una lección
+(build.py lo comprueba), y cada lección de este plan debe tener su módulo parte*.py.
 """
 
 PARTS = [

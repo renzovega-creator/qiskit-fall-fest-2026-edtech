@@ -171,7 +171,7 @@ export LD_LIBRARY_PATH=dist/c/lib:$LD_LIBRARY_PATH
              [Code('''import os
 import qiskit.capi
 
-print(os.listdir(qiskit.capi.get_include()))
+print(sorted(os.listdir(qiskit.capi.get_include())))
 # setup.py:
 # Extension(name="spectator_measures._core",
 #           sources=["src/spectator_measures/_coremodule.c"],

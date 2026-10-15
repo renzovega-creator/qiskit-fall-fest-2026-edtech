@@ -13,6 +13,7 @@ dependencies = [
   "pylatexenc",
   "ipython",
   "samplomatic",
+  "marimo>=0.25.1",
 ]
 
 [dependency-groups]
@@ -20,7 +21,6 @@ tools = [
     "edge-tts",
     "playwright",
     "pillow",
-    "marimo>=0.25.1",
 ]
 
 [tool.uv]
