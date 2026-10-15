@@ -1,0 +1,10 @@
+[
+ [
+  "grado = 1.0   # ✏️ 1.0 es exacto; un valor menor permite aproximar",
+  "grado = 0.99"
+ ],
+ [
+  "            pass  # ✏️ transpila con este nivel y la semilla; si mejora el mínimo, apunta el nivel",
+  "            pm = generate_preset_pass_manager(nivel, backend=backend, seed_transpiler=semilla)\n            puertas = pm.run(qc).num_nonlocal_gates()\n            if menor is None or puertas < menor:\n                mejor, menor = nivel, puertas"
+ ]
+]

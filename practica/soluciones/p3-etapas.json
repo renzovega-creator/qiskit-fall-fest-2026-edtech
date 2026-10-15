@@ -1,0 +1,10 @@
+[
+ [
+  "[0, 1, 2, 3]   # ✏️ ¿en qué qubit físico va el virtual 0?",
+  "[1, 0, 2, 3]"
+ ],
+ [
+  "            pass  # ✏️ transpila con esta semilla (puedes usar `transpilar`) y quédate con el de menos CNOT",
+  "            candidato = transpilar(qc, semilla)\n            if mejor is None or candidato.count_ops().get(\"cx\", 0) < mejor.count_ops().get(\"cx\", 0):\n                mejor = candidato"
+ ]
+]
