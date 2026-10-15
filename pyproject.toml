@@ -14,6 +14,7 @@ dependencies = [
   "ipython",
   "samplomatic",
   "marimo>=0.25.1",
+  "nbformat>=5.11.1",
 ]
 
 [dependency-groups]
