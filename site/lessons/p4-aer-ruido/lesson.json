@@ -63,12 +63,73 @@
    ]
   },
   {
+   "id": "ruido_pred",
+   "tag": [
+    "4.4",
+    "Antes de añadir ruido"
+   ],
+   "say": "Ahora un modelo de ruido simple: un error despolarizante del dos por ciento en cada CX. En la práctica, las puertas de dos qubits son la fuente de error dominante. [[cx]]Este circuito tiene veintiuna CX. [[apuesta]]El valor exacto era cero coma ochenta y ocho siete. Apuesta: ¿qué valor devolverá la Estimator con ruido?",
+   "scene": [
+    {
+     "type": "row",
+     "items": [
+      {
+       "type": "box",
+       "kind": "def",
+       "title": "Sin ruido",
+       "body": [
+        {
+         "type": "text",
+         "text": "$\\langle Z\\cdots Z\\rangle = 0.887$",
+         "style": "body"
+        }
+       ]
+      },
+      {
+       "type": "box",
+       "kind": "warn",
+       "title": "Con ruido",
+       "body": [
+        {
+         "type": "text",
+         "text": "2 % despolarizante en cada una de las 21 CX",
+         "style": "body"
+        }
+       ],
+       "id": "b",
+       "hidden": true
+      }
+     ],
+     "gap": 26
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "b",
+     "at": "cx"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué valor esperas con ruido?",
+    "options": [
+     "0.887: un 2 % por puerta no se nota",
+     "entre 0.70 y 0.75",
+     "entre 0.50 y 0.60",
+     "cerca de 0"
+    ],
+    "after": "Anotado. Veámoslo."
+   },
+   "align": "top"
+  },
+  {
    "id": "ruido",
    "tag": [
     "4.4",
     "Con ruido"
    ],
-   "say": "Ahora un modelo de ruido simple: un error despolarizante del dos por ciento en cada CX. En la práctica, las puertas de dos qubits son la fuente de error dominante. [[est]]Se pasa a la Estimator de Aer en backend options. [[res]]Resultado: cero coma setenta y dos, lejos del valor exacto.",
+   "say": "[[est]]El modelo se pasa a la Estimator de Aer en backend options. [[res]]Resultado: cero coma setenta y dos, lejos del valor exacto. Si apostaste por la opción b, acertaste. Un dos por ciento por puerta parece poco, pero se acumula en veintiuna puertas.",
    "scene": [
     {
      "type": "code",
@@ -541,6 +602,80 @@
     "why": "Correcto: `[0, 1]` y `[1, 0]` son entradas distintas. Para cubrir todos los casos usa `add_all_qubit_quantum_error` o añade ambas.",
     "wrong": [
      "El error está registrado solo para el par ordenado (0, 1)."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "4.4",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero comparas un GHZ ideal con el mismo circuito bajo ruido despolarizante. [[n2]]Después buscas qué probabilidad de error deja la mitad de los disparos correctos, y la comparas con la estimación uno menos p a la m. [[n3]]Y por último construyes tú mismo un error de lectura asimétrico.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p4-aer-ruido.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Compara un GHZ de 6 qubits ideal y con un 2 % despolarizante por CX."
+      },
+      {
+       "level": 2,
+       "text": "Ajusta `p` hasta que la fracción correcta caiga entre 0.55 y 0.65."
+      },
+      {
+       "level": 3,
+       "text": "Construye un `ReadoutError` y comprueba que lees `0` el 10 % de las veces."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "4.4",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar, conectadas con tu proyecto. Escribe con tus palabras; se guardan en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "El ruido se acumula con cada puerta de dos qubits.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "En el cuaderno, la estimación `(1 - p) ** m` salió más pesimista que la simulación. ¿Por qué crees que subestima la fracción de disparos correctos?",
+     "En tu proyecto Ising, cada paso de Trotter añade CX. ¿Cómo esperas que cambie la curva de magnetización ruidosa a medida que avanza el tiempo simulado?"
     ]
    },
    "align": "top"

@@ -143,12 +143,65 @@
    ]
   },
   {
+   "id": "q500_pred",
+   "tag": [
+    "4.5",
+    "Antes de simular"
+   ],
+   "say": "Un efficient su2 de quinientos qubits es imposible de simular en general. Pero tiene parámetros: si todos los ángulos son múltiplos de pi medios, el circuito es de Clifford. [[datos]]Lo muestrearemos mil veinticuatro veces. [[apuesta]]Apuesta: entre esas mil veinticuatro cadenas de quinientos bits, ¿cuántas serán distintas?",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "Dato",
+      "Valor"
+     ],
+     "rows": [
+      [
+       "qubits",
+       "500"
+      ],
+      [
+       "ángulos",
+       "múltiplos de $\\pi/2$"
+      ],
+      [
+       "disparos",
+       "1024"
+      ]
+     ],
+     "id": "t",
+     "hidden": true,
+     "size": 28
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "t",
+     "at": "datos"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuántas cadenas distintas habrá entre los 1024 disparos?",
+    "options": [
+     "2: solo `0…0` y `1…1`",
+     "unas pocas docenas",
+     "1024: todas distintas",
+     "ninguna: el simulador falla"
+    ],
+    "after": "Anotado. Veamos."
+   },
+   "align": "top"
+  },
+  {
    "id": "q500",
    "tag": [
     "4.5",
     "Quinientos qubits"
    ],
-   "say": "Un efficient su2 de quinientos qubits es imposible de simular en general. Pero tiene parámetros: si todos los ángulos son múltiplos de pi medios, el circuito es de Clifford. [[sampler]]Creamos un Sampler de Aer con el método stabilizer [[tr]]y transpilamos para el simulador en ese modo. [[res]]Resultado: mil veinticuatro muestras de quinientos bits, en unos segundos.",
+   "say": "[[sampler]]Creamos un Sampler de Aer con el método stabilizer [[tr]]y transpilamos para el simulador en ese modo. [[res]]Resultado: mil veinticuatro cadenas de quinientos bits, en unos segundos. Si apostaste por la opción c, acertaste: las mil veinticuatro son distintas. Un estado de Clifford puede tener una distribución enorme, no solo dos cadenas como un GHZ.",
    "scene": [
     {
      "type": "code",
@@ -348,6 +401,80 @@
     "why": "Correcto: $\\pi/4$ no es múltiplo de $\\pi/2$. Para pocos T existe el método `extended_stabilizer`, aproximado.",
     "wrong": [
      "La rotación de π/4 rompe la estructura de Clifford."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "4.5",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero simulas un GHZ de cien qubits, algo imposible con un vector de estado. [[n2]]Después arreglas un circuito que el simulador rechaza, cambiando solo el ángulo de una rotación. [[n3]]Y por último escribes la función que redondea los ángulos de un circuito a múltiplos de pi medios, para obtener su versión de Clifford.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p4-estabilizadores.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Simula un GHZ de 100 qubits con `method=\"stabilizer\"`."
+      },
+      {
+       "level": 2,
+       "text": "Corrige el ángulo de una $R_z$ para que el circuito sea de Clifford."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `a_clifford(params)`: redondea cada ángulo al múltiplo de $\\pi/2$ más cercano."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "4.5",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar. Escribe con tus palabras; se guardan en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Simular una versión no es simular el original.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Por qué una rotación de π/2 se puede simular con quinientos qubits y una de π/4 ya no, con el mismo método?",
+     "Tu QPU reproduce bien la versión de Clifford de un circuito de 100 qubits. ¿Qué sabes con eso del circuito original, y qué no?"
     ]
    },
    "align": "top"

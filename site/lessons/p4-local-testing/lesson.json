@@ -248,12 +248,60 @@
    ]
   },
   {
+   "id": "mitigar_pred",
+   "tag": [
+    "4.6",
+    "Antes de mitigar"
+   ],
+   "say": "Una novedad importante: con las primitivas del lado del cliente, la supresión y mitigación de errores ocurren en tu computadora. Antes, con las primitivas del servidor, esas opciones no tenían efecto en modo local. [[ej]]Probemos la mitigación de errores de lectura con Estimator sobre FakeManila. El estado de Bell ideal daría Z Z igual a uno. [[apuesta]]Apuesta: ¿qué valor saldrá sin mitigación, y cuál con measure mitigation activada?",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 2,
+     "ops": [
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        1
+       ]
+      }
+     ],
+     "id": "q"
+    },
+    {
+     "type": "math",
+     "tex": "\\langle ZZ\\rangle_{\\text{ideal}} = 1",
+     "size": 40
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué valores de ⟨ZZ⟩ esperas en FakeManila?",
+    "options": [
+     "1.0 en ambos casos: el simulador es exacto",
+     "sin mitigar cerca de 0.87, y mitigado más cerca de 1",
+     "sin mitigar cerca de 0.99, y mitigado cerca de 0.87",
+     "ambos cerca de 0.5"
+    ],
+    "after": "Anotado. Veamos el código y los números."
+   },
+   "align": "top"
+  },
+  {
    "id": "mitigar",
    "tag": [
     "4.6",
     "Probar la mitigación en local"
    ],
-   "say": "Una novedad importante: con las primitivas del lado del cliente, la supresión y mitigación de errores ocurren en tu computadora. Antes, con las primitivas del servidor, esas opciones no tenían efecto en modo local. [[ej]]Probemos la mitigación de errores de lectura con Estimator sobre FakeManila. El estado de Bell debería dar ZZ igual a uno. [[sin]]Sin mitigación sale alrededor de cero coma ochenta y siete. [[con]]Con measure mitigation activada, cerca de cero coma noventa y nueve. Los valores exactos cambian un poco en cada ejecución. [[costo]]Ojo: la mitigación añade memoria y tiempo. Para que las pruebas locales sigan siendo manejables, usa backends pequeños, simuladores sin ruido o simulación de Clifford.",
+   "say": "[[ej]]Este es el código. Para cada valor de measure mitigation, un Estimator sobre FakeManila. [[sin]]Sin mitigación sale alrededor de cero coma ochenta y siete. [[con]]Con measure mitigation activada, cerca de cero coma noventa y nueve. Si apostaste por la opción b, acertaste. Los valores exactos cambian un poco en cada ejecución. [[costo]]Ojo: la mitigación añade memoria y tiempo. Para que las pruebas locales sigan siendo manejables, usa backends pequeños, simuladores sin ruido o simulación de Clifford.",
    "scene": [
     {
      "type": "code",
@@ -441,6 +489,123 @@
     "why": "Correcto: desde la 0.50, Sampler y Estimator son del lado del cliente, así que puedes probar mitigación antes de usar un QPU.",
     "wrong": [
      "Eso era así con las primitivas del servidor, anteriores a la 0.50."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "4.6",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero ejecutas un estado de Bell en un backend falso y miras cuánto ruido trae su instantánea. [[n2]]Después cambias el backend por un AerSimulator ideal, sin tocar el resto del programa. [[n3]]Y por último completas una función que estima Z Z con y sin mitigación, y compruebas que la mitigada se acerca más al valor ideal.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p4-local-testing.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Ejecuta un Bell en `FakeManilaV2` y cuenta los `01` y `10`."
+      },
+      {
+       "level": 2,
+       "text": "Cambia `backend` por `AerSimulator()` y comprueba que el ruido desaparece."
+      },
+      {
+       "level": 3,
+       "text": "Completa `ev_zz(mitigar)` y comprueba que la mitigación acerca el valor a 1."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "proyecto",
+   "tag": [
+    "4.6",
+    "Tu proyecto: la magnetización en el tiempo"
+   ],
+   "say": "Cierre de la parte con tu proyecto. [[hito]]El hito cuatro responde la pregunta de la cadena de espines con simuladores: cómo evoluciona la magnetización tras encender el campo, exacta frente a una simulación de Aer con ruido. Primero recalculas lo que ya tienes, el Hamiltoniano, el circuito de Trotter y el observable, y comparas la curva exacta con la del circuito. Después añades ruido despolarizante a las CX y simulas con Aer. Y por último escribes una función que dice hasta qué instante te puedes fiar de la simulación ruidosa. Ese instante te dirá cuántos pasos pedirle al QPU en la parte cinco.",
+   "scene": [
+    {
+     "type": "math",
+     "tex": "M(t)=\\frac1N\\sum_i\\langle Z_i\\rangle",
+     "size": 46
+    },
+    {
+     "type": "mission",
+     "notebook": "practica/proyecto/hito4.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Recalcula la magnetización exacta y la del circuito de Trotter, sin ruido."
+      },
+      {
+       "level": 2,
+       "text": "Añade un error despolarizante a cada CX y simula con `AerEstimator`."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `tiempo_de_validez`: el primer instante en que el ruido supera una tolerancia."
+      }
+     ],
+     "title": "Proyecto Ising · Hito IV",
+     "id": "m",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "m",
+     "at": "hito"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "4.6",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para cerrar la parte. Escribe con tus palabras; se guardan en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Simula en local, ejecuta en hardware.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Con tus palabras: ¿por qué IBM recomienda simular en local y ejecutar en hardware, si un simulador con ruido ya se parece al QPU?",
+     "En el hito IV usaste un ruido despolarizante simple. ¿Qué crees que le falta frente al backend falso de un QPU real, y cómo lo comprobarías?"
     ]
    },
    "align": "top"

@@ -59,6 +59,69 @@
    ]
   ]
  },
+ "predice": {
+  "dur": 18.48,
+  "marks": {
+   "obs": 5.406,
+   "apuesta": 14.337
+  },
+  "cues": [
+   [
+    0.107,
+    "Probemos las dos primitivas sobre el mismo estado: un estado de Bell."
+   ],
+   [
+    5.406,
+    "A Estimator le damos el circuito sin mediciones y tres observables: Z Z, Z sobre el qubit uno, y X X."
+   ],
+   [
+    14.337,
+    "Apuesta: ¿qué tres valores esperados devolverá?"
+   ]
+  ]
+ },
+ "mismo_estado": {
+  "dur": 40.752,
+  "marks": {
+   "est": 2.406,
+   "sam": 23.791,
+   "idea": 33.543
+  },
+  "cues": [
+   [
+    0.107,
+    "Este es el código."
+   ],
+   [
+    2.406,
+    "Estimator devuelve uno, cero y uno."
+   ],
+   [
+    6.242,
+    "Z Z vale uno porque los dos qubits siempre coinciden."
+   ],
+   [
+    11.068,
+    "Z sobre el qubit uno vale cero, porque por sí solo es una moneda perfecta."
+   ],
+   [
+    17.111,
+    "Y X X vale uno."
+   ],
+   [
+    19.843,
+    "Si apostaste por la opción b, acertaste."
+   ],
+   [
+    23.791,
+    "Sampler, en cambio, no devuelve números esperados: devuelve cadenas medidas, cero cero y uno uno, mitad y mitad."
+   ],
+   [
+    33.543,
+    "Es el mismo estado visto de dos maneras: la primitiva que elijas decide qué pregunta le haces."
+   ]
+  ]
+ },
  "impl": {
   "dur": 51.6,
   "marks": {
@@ -167,6 +230,55 @@
    [
     0.107,
     "Otra pregunta."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 36.6,
+  "marks": {
+   "n1": 7.374,
+   "n2": 13.502,
+   "n3": 20.989,
+   "check": 30.656
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica de esta lección con el comando de abajo."
+   ],
+   [
+    7.374,
+    "Primero ejecutas Estimator y Sampler sobre el estado de Bell y comparas con tu apuesta."
+   ],
+   [
+    13.502,
+    "Después cambias la implementación de Sampler por BackendSamplerV2, sin tocar el resto del código."
+   ],
+   [
+    20.989,
+    "Y por último calculas un valor esperado de dos maneras, con Estimator y a partir de los conteos de Sampler, y compruebas que coinciden."
+   ],
+   [
+    30.656,
+    "Cada misión tiene una comprobación que se actualiza sola: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 9.552,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda y lo verás cuando vuelvas a esta lección."
    ]
   ]
  },

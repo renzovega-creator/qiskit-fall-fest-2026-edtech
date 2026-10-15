@@ -54,12 +54,11 @@
    ]
   ]
  },
- "q500": {
-  "dur": 26.496,
+ "q500_pred": {
+  "dur": 23.76,
   "marks": {
-   "sampler": 13.162,
-   "tr": 16.602,
-   "res": 20.352
+   "datos": 13.162,
+   "apuesta": 16.701
   },
   "cues": [
    [
@@ -72,11 +71,37 @@
    ],
    [
     13.162,
+    "Lo muestrearemos mil veinticuatro veces."
+   ],
+   [
+    16.701,
+    "Apuesta: entre esas mil veinticuatro cadenas de quinientos bits, ¿cuántas serán distintas?"
+   ]
+  ]
+ },
+ "q500": {
+  "dur": 27.36,
+  "marks": {
+   "sampler": 0.107,
+   "tr": 3.546,
+   "res": 7.303
+  },
+  "cues": [
+   [
+    0.107,
     "Creamos un Sampler de Aer con el método stabilizer y transpilamos para el simulador en ese modo."
    ],
    [
-    20.352,
-    "Resultado: mil veinticuatro muestras de quinientos bits, en unos segundos."
+    7.303,
+    "Resultado: mil veinticuatro cadenas de quinientos bits, en unos segundos."
+   ],
+   [
+    13.389,
+    "Si apostaste por la opción c, acertaste: las mil veinticuatro son distintas."
+   ],
+   [
+    19.913,
+    "Un estado de Clifford puede tener una distribución enorme, no solo dos cadenas como un GHZ."
    ]
   ]
  },
@@ -132,6 +157,50 @@
    [
     0.107,
     "¿Es de Clifford?"
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 29.304,
+  "marks": {
+   "n1": 6.454,
+   "n2": 13.106,
+   "n3": 20.324
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.454,
+    "Primero simulas un GHZ de cien qubits, algo imposible con un vector de estado."
+   ],
+   [
+    13.106,
+    "Después arreglas un circuito que el simulador rechaza, cambiando solo el ángulo de una rotación."
+   ],
+   [
+    20.324,
+    "Y por último escribes la función que redondea los ángulos de un circuito a múltiplos de pi medios, para obtener su versión de Clifford."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 7.296,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; se guardan en tu navegador."
    ]
   ]
  },

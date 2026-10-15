@@ -104,32 +104,61 @@
    ]
   ]
  },
- "ejemplo": {
-  "dur": 34.392,
+ "ejemplo_pred": {
+  "dur": 19.728,
   "marks": {
-   "zip": 6.765,
-   "outer": 15.71,
-   "una": 27.91
+   "par": 12.058,
+   "apuesta": 17.238
   },
   "cues": [
    [
     0.107,
-    "Probemos."
+    "Una apuesta con broadcasting."
    ],
    [
-    1.882,
-    "Un circuito con un parámetro, a, y tres observables."
+    2.774,
+    "Tenemos un circuito de tres qubits con un parámetro, y cuatro observables escritos como una columna, con forma cuatro por uno."
    ],
    [
-    6.765,
+    12.058,
+    "Los valores del parámetro son seis, con forma uno por seis."
+   ],
+   [
+    17.238,
+    "¿Qué forma tendrá evs?"
+   ]
+  ]
+ },
+ "ejemplo": {
+  "dur": 38.952,
+  "marks": {
+   "zip": 7.43,
+   "outer": 16.375,
+   "una": 32.453
+  },
+  "cues": [
+   [
+    0.107,
+    "Veamos el ejemplo completo."
+   ],
+   [
+    2.887,
+    "Un circuito con un parámetro, a, y observables."
+   ],
+   [
+    7.43,
     "Con cinco valores del parámetro y cinco observables, en forma cinco, se emparejan uno a uno: cinco resultados."
    ],
    [
-    15.71,
+    16.375,
     "Con valores en forma uno por seis y observables en forma cuatro por uno, se combina cada valor con cada observable: veinticuatro resultados, en forma cuatro por seis."
    ],
    [
-    27.91,
+    28.575,
+    "Si apostaste por la opción a, acertaste."
+   ],
+   [
+    32.453,
     "Todo en una sola llamada a run: así se ejecutan barridos enormes de forma eficiente."
    ]
   ]
@@ -238,6 +267,50 @@
    [
     0.107,
     "Sobre la salida de Sampler."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 29.064,
+  "marks": {
+   "n1": 6.454,
+   "n2": 11.86,
+   "n3": 18.371
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.454,
+    "Primero reproduces los dos barridos de la lección y compruebas sus formas."
+   ],
+   [
+    11.86,
+    "Después cambias solo la forma de los observables para que evs salga con forma tres por diez."
+   ],
+   [
+    18.371,
+    "Y por último, con un solo PUB de Sampler, calculas la probabilidad de medir uno para cinco ángulos, posprocesando el BitArray sin diccionarios."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 7.896,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
+   ],
+   [
+    3.397,
+    "Escribe con tus palabras; se guardan en tu navegador."
    ]
   ]
  },

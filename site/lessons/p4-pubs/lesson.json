@@ -243,12 +243,58 @@
    ]
   },
   {
+   "id": "ejemplo_pred",
+   "tag": [
+    "4.2",
+    "Antes de ejecutar"
+   ],
+   "say": "Una apuesta con broadcasting. Tenemos un circuito de tres qubits con un parámetro, y cuatro observables escritos como una columna, con forma cuatro por uno. [[par]]Los valores del parámetro son seis, con forma uno por seis. [[apuesta]]¿Qué forma tendrá evs?",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "Entrada",
+      "Forma"
+     ],
+     "rows": [
+      [
+       "observables",
+       "(4, 1)"
+      ],
+      [
+       "valores del parámetro",
+       "(1, 6)"
+      ],
+      [
+       "`evs`",
+       "¿?"
+      ]
+     ],
+     "id": "t",
+     "size": 28
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué forma tiene `evs`?",
+    "options": [
+     "(4, 6)",
+     "(6, 4)",
+     "(24,)",
+     "error: son incompatibles"
+    ],
+    "after": "Anotado. Ejecutémoslo y veamos."
+   },
+   "align": "top"
+  },
+  {
    "id": "ejemplo",
    "tag": [
     "4.2",
     "Un ejemplo vectorizado"
    ],
-   "say": "Probemos. Un circuito con un parámetro, a, y tres observables. [[zip]]Con cinco valores del parámetro y cinco observables, en forma cinco, se emparejan uno a uno: cinco resultados. [[outer]]Con valores en forma uno por seis y observables en forma cuatro por uno, se combina cada valor con cada observable: veinticuatro resultados, en forma cuatro por seis. [[una]]Todo en una sola llamada a run: así se ejecutan barridos enormes de forma eficiente.",
+   "say": "Veamos el ejemplo completo. Un circuito con un parámetro, a, y observables. [[zip]]Con cinco valores del parámetro y cinco observables, en forma cinco, se emparejan uno a uno: cinco resultados. [[outer]]Con valores en forma uno por seis y observables en forma cuatro por uno, se combina cada valor con cada observable: veinticuatro resultados, en forma cuatro por seis. Si apostaste por la opción a, acertaste. [[una]]Todo en una sola llamada a run: así se ejecutan barridos enormes de forma eficiente.",
    "scene": [
     {
      "type": "code",
@@ -517,6 +563,80 @@
      "No hay registro `meas`: no se usó `measure_all()`.",
      null,
      "`evs` es de Estimator."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "4.2",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero reproduces los dos barridos de la lección y compruebas sus formas. [[n2]]Después cambias solo la forma de los observables para que evs salga con forma tres por diez. [[n3]]Y por último, con un solo PUB de Sampler, calculas la probabilidad de medir uno para cinco ángulos, posprocesando el BitArray sin diccionarios.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p4-pubs.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Reproduce los barridos `(5,)` y `(4, 6)` y comprueba sus formas."
+      },
+      {
+       "level": 2,
+       "text": "Rearma los observables para que `evs` tenga forma `(3, 10)`."
+      },
+      {
+       "level": 3,
+       "text": "Calcula $P(1)$ de cinco ángulos con `expectation_values` sobre un `BitArray`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "4.2",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma. Escribe con tus palabras; se guardan en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Una forma bien pensada ahorra cientos de ejecuciones.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Explica con tus palabras por qué observables de forma `(3, 1)` y parámetros de forma `(10,)` dan `(3, 10)` y no `(10, 3)`.",
+     "Quieres estimar `ZZ` y `ZI` del mismo circuito. ¿Los pondrías en el mismo PUB o en PUBs distintos? ¿Por qué?"
     ]
    },
    "align": "top"

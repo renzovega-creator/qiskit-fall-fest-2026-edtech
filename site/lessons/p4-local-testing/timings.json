@@ -129,13 +129,11 @@
    ]
   ]
  },
- "mitigar": {
-  "dur": 53.904,
+ "mitigar_pred": {
+  "dur": 32.808,
   "marks": {
    "ej": 15.979,
-   "sin": 26.084,
-   "con": 30.939,
-   "costo": 40.761
+   "apuesta": 26.127
   },
   "cues": [
    [
@@ -152,26 +150,53 @@
    ],
    [
     21.753,
-    "El estado de Bell debería dar ZZ igual a uno."
+    "El estado de Bell ideal daría Z Z igual a uno."
    ],
    [
-    26.084,
+    26.127,
+    "Apuesta: ¿qué valor saldrá sin mitigación, y cuál con measure mitigation activada?"
+   ]
+  ]
+ },
+ "mitigar": {
+  "dur": 39.984,
+  "marks": {
+   "ej": 0.107,
+   "sin": 8.223,
+   "con": 13.077,
+   "costo": 26.848
+  },
+  "cues": [
+   [
+    0.107,
+    "Este es el código."
+   ],
+   [
+    2.406,
+    "Para cada valor de measure mitigation, un Estimator sobre FakeManila."
+   ],
+   [
+    8.223,
     "Sin mitigación sale alrededor de cero coma ochenta y siete."
    ],
    [
-    30.939,
+    13.077,
     "Con measure mitigation activada, cerca de cero coma noventa y nueve."
    ],
    [
-    36.303,
+    18.441,
+    "Si apostaste por la opción b, acertaste."
+   ],
+   [
+    22.39,
     "Los valores exactos cambian un poco en cada ejecución."
    ],
    [
-    40.761,
+    26.848,
     "Ojo: la mitigación añade memoria y tiempo."
    ],
    [
-    44.936,
+    31.024,
     "Para que las pruebas locales sigan siendo manejables, usa backends pequeños, simuladores sin ruido o simulación de Clifford."
    ]
   ]
@@ -223,6 +248,82 @@
    [
     0.107,
     "Sobre la mitigación local."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 29.808,
+  "marks": {
+   "n1": 6.454,
+   "n2": 13.191,
+   "n3": 20.041
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.454,
+    "Primero ejecutas un estado de Bell en un backend falso y miras cuánto ruido trae su instantánea."
+   ],
+   [
+    13.191,
+    "Después cambias el backend por un AerSimulator ideal, sin tocar el resto del programa."
+   ],
+   [
+    20.041,
+    "Y por último completas una función que estima Z Z con y sin mitigación, y compruebas que la mitigada se acerca más al valor ideal."
+   ]
+  ]
+ },
+ "proyecto": {
+  "dur": 45.072,
+  "marks": {
+   "hito": 3.255
+  },
+  "cues": [
+   [
+    0.107,
+    "Cierre de la parte con tu proyecto."
+   ],
+   [
+    3.255,
+    "El hito cuatro responde la pregunta de la cadena de espines con simuladores: cómo evoluciona la magnetización tras encender el campo, exacta frente a una simulación de Aer con ruido."
+   ],
+   [
+    15.979,
+    "Primero recalculas lo que ya tienes, el Hamiltoniano, el circuito de Trotter y el observable, y comparas la curva exacta con la del circuito."
+   ],
+   [
+    26.594,
+    "Después añades ruido despolarizante a las CX y simulas con Aer."
+   ],
+   [
+    32.269,
+    "Y por último escribes una función que dice hasta qué instante te puedes fiar de la simulación ruidosa."
+   ],
+   [
+    39.232,
+    "Ese instante te dirá cuántos pasos pedirle al QPU en la parte cinco."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 7.776,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para cerrar la parte."
+   ],
+   [
+    3.284,
+    "Escribe con tus palabras; se guardan en tu navegador."
    ]
   ]
  },

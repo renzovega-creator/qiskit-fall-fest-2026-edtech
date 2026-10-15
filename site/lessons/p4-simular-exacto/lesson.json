@@ -163,12 +163,63 @@
    "align": "top"
   },
   {
+   "id": "precision_pred",
+   "tag": [
+    "4.3",
+    "Antes de ejecutar"
+   ],
+   "say": "Por defecto, la Estimator de referencia hace un cálculo exacto. Pero un experimento real usa un número finito de disparos, y eso deja un error estadístico. [[exacto]]Los valores exactos eran cuatro, tres coma siete tres y dos. [[apuesta]]Apuesta: si pedimos una precisión de cero coma cero cinco, ¿cómo serán los tres valores?",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "θ",
+      "exacto"
+     ],
+     "rows": [
+      [
+       "0",
+       "4"
+      ],
+      [
+       "π/6",
+       "3.73"
+      ],
+      [
+       "π/2",
+       "2"
+      ]
+     ],
+     "id": "t",
+     "size": 28
+    },
+    {
+     "type": "text",
+     "text": "`precision=0.05`",
+     "style": "note"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Con `precision=0.05`, ¿cómo serán los tres valores?",
+    "options": [
+     "idénticos a los exactos: 4, 3.73 y 2",
+     "cerca de los exactos, pero distintos: el error será del orden de 0.05",
+     "mucho más lejos cuanto mayor sea θ",
+     "todos cero"
+    ],
+    "after": "Anotado. Veamos qué devuelve."
+   },
+   "align": "top"
+  },
+  {
    "id": "precision",
    "tag": [
     "4.3",
     "Simular el ruido de disparo"
    ],
-   "say": "Por defecto, la Estimator de referencia hace un cálculo exacto. [[prec]]Con el argumento precision introduces el ruido de muestreo que tendría un experimento real: el error estadístico por usar un número finito de disparos. [[pub]]La precisión se fija en run, para todos los PUBs o PUB por PUB. [[res]]Con cero coma cero cinco, los valores ya no son exactos: cuatro coma cero dos, tres coma setenta y siete, dos coma cero dos.",
+   "say": "[[prec]]Con el argumento precision introduces el ruido de muestreo que tendría un experimento real: el error estadístico por usar un número finito de disparos. [[pub]]La precisión se fija en run, para todos los PUBs o PUB por PUB. [[res]]Con cero coma cero cinco, los valores ya no son exactos: cuatro coma cero dos, tres coma setenta y siete, dos coma cero dos. Si apostaste por la opción b, acertaste: se parecen a los exactos, con errores de unas pocas centésimas.",
    "scene": [
     {
      "type": "code",
@@ -294,6 +345,80 @@
      "El valor del PUB gana al global.",
      null,
      "100 es el del primer PUB."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "4.3",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero reproduces los valores esperados exactos de la lección. [[n2]]Después ajustas la precisión para que el error de muestreo sea pequeño, pero no cero. [[n3]]Y por último estimas una probabilidad con cuatro cantidades de disparos, un PUB por cada una, en una sola llamada a run.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p4-simular-exacto.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Ejecuta `StatevectorEstimator` y comprueba los tres valores exactos."
+      },
+      {
+       "level": 2,
+       "text": "Elige `precision` para que el error máximo quede entre 0 y 0.02."
+      },
+      {
+       "level": 3,
+       "text": "Envía cuatro PUBs de Sampler con 100 a 100 000 disparos y mide su error."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "4.3",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Un resultado exacto no es lo que verás en un experimento.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Si la simulación exacta da el valor perfecto, ¿para qué te serviría simular con ruido de muestreo antes de ir a un QPU?",
+     "Si multiplicas por cuatro los disparos, ¿qué crees que le pasa al error? Apuesta primero y compruébalo en el cuaderno."
     ]
    },
    "align": "top"

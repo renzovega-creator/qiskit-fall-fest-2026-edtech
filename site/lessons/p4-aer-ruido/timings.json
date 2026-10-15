@@ -34,11 +34,11 @@
    ]
   ]
  },
- "ruido": {
-  "dur": 23.352,
+ "ruido_pred": {
+  "dur": 26.184,
   "marks": {
-   "est": 13.247,
-   "res": 17.875
+   "cx": 13.247,
+   "apuesta": 17.182
   },
   "cues": [
    [
@@ -51,11 +51,40 @@
    ],
    [
     13.247,
-    "Se pasa a la Estimator de Aer en backend options."
+    "Este circuito tiene veintiuna CX."
    ],
    [
-    17.875,
+    17.182,
+    "El valor exacto era cero coma ochenta y ocho siete."
+   ],
+   [
+    21.456,
+    "Apuesta: ¿qué valor devolverá la Estimator con ruido?"
+   ]
+  ]
+ },
+ "ruido": {
+  "dur": 20.784,
+  "marks": {
+   "est": 0.107,
+   "res": 5.279
+  },
+  "cues": [
+   [
+    0.107,
+    "El modelo se pasa a la Estimator de Aer en backend options."
+   ],
+   [
+    5.279,
     "Resultado: cero coma setenta y dos, lejos del valor exacto."
+   ],
+   [
+    10.742,
+    "Si apostaste por la opción b, acertaste."
+   ],
+   [
+    14.691,
+    "Un dos por ciento por puerta parece poco, pero se acumula en veintiuna puertas."
    ]
   ]
  },
@@ -245,6 +274,50 @@
    [
     0.107,
     "Sobre los modelos de ruido."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 27.216,
+  "marks": {
+   "n1": 6.454,
+   "n2": 13.077,
+   "n3": 22.319
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.454,
+    "Primero comparas un GHZ ideal con el mismo circuito bajo ruido despolarizante."
+   ],
+   [
+    13.077,
+    "Después buscas qué probabilidad de error deja la mitad de los disparos correctos, y la comparas con la estimación uno menos p a la m."
+   ],
+   [
+    22.319,
+    "Y por último construyes tú mismo un error de lectura asimétrico."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 9.12,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar, conectadas con tu proyecto."
+   ],
+   [
+    4.628,
+    "Escribe con tus palabras; se guardan en tu navegador."
    ]
   ]
  },
