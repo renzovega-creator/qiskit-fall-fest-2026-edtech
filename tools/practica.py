@@ -18,12 +18,17 @@ ROOT = Path(__file__).resolve().parent.parent
 PR = ROOT / "practica"
 
 
-def veredictos(path):
-    spec = importlib.util.spec_from_file_location("nb_" + path.stem, path)
-    nb = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(nb)
-    with contextlib.redirect_stdout(io.StringIO()):
-        outputs, _ = nb.app.run()
+def veredictos(path, carpeta):
+    """Ejecuta el cuaderno con sus módulos vecinos disponibles para importar."""
+    sys.path.insert(0, str(carpeta))
+    try:
+        spec = importlib.util.spec_from_file_location("nb_" + path.stem, path)
+        nb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(nb)
+        with contextlib.redirect_stdout(io.StringIO()):
+            outputs, _ = nb.app.run()
+    finally:
+        sys.path.remove(str(carpeta))
     text = " ".join(str(getattr(o, "text", o)) for o in outputs)
     return re.findall(r"(✅|❌)\s+([^<&]{0,60})", text)
 
@@ -32,7 +37,7 @@ def comprobar(f):
     """Devuelve 1 si el cuaderno falla, 0 si pasa o no tiene soluciones."""
     rel = f.resolve().relative_to(PR.resolve()).as_posix()
     try:
-        sin = veredictos(f)
+        sin = veredictos(f, f.resolve().parent)
     except Exception as e:
         print(f"✗ {rel}: error sin resolver: {e!r}")
         return 1
@@ -51,7 +56,7 @@ def comprobar(f):
         tmp = Path(d) / f.name
         tmp.write_text(src, encoding="utf-8")
         try:
-            con = veredictos(tmp)
+            con = veredictos(tmp, f.resolve().parent)
         except Exception as e:
             print(f"✗ {rel}: error con soluciones: {e!r}")
             return fallos + 1
@@ -67,6 +72,8 @@ def comprobar(f):
 
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
+    import matplotlib
+    matplotlib.use("Agg")  # Evita que Tk libere figuras desde otro hilo y aborte el proceso.
     files = [Path(a) for a in sys.argv[1:]] or sorted(p for p in PR.rglob("*.py") if "soluciones" not in p.parts)
     fallos = sum(comprobar(f) for f in files)
     print("fallos:", fallos)
