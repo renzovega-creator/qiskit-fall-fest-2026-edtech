@@ -203,7 +203,7 @@ fake_backend.refresh(service=service, use_fractional_gates=True)''', id="c", nor
 
 # ------------------------------------------------------------------ 7.3 Temporización
 s_cierre, a_cierre = resumen(["para circuitos dinámicos, el dibujo de tiempos de Qiskit no es exacto",
-                              "Sampler: `options.experimental = {\"execution\": {\"scheduler_timing\": True}}`",
+                              "Sampler: `options.execution.scheduler_timing = True`",
                               "metadata `[\"compilation\"][\"scheduler_timing\"][\"timing\"]`: rama, instrucción, canal, inicio, duración, pulso",
                               "`draw_circuit_schedule_timing` · ese tiempo total **no** es el que se factura"])
 temporizacion = lesson(
@@ -222,13 +222,15 @@ temporizacion = lesson(
              [A("show", "b", at="servicio"), A("show", "n", at="factura")]),
 
         beat("activar", ("", "Pedir los datos"),
-             """Se activa con una opción experimental del Sampler: en options punto experimental, execution, scheduler timing igual a True.
+             """Se activa con una opción experimental del Sampler: en options punto execution, scheduler timing igual a True.
              [[leer]]Después, en la metadata de cada PUB, bajo compilation, scheduler timing, timing, están los datos en bruto.""",
-             [Code('''sampler = SamplerV2(backend)
-sampler.options.experimental = {"execution": {"scheduler_timing": True}}
+             [Code('''from qiskit_ibm_runtime.executor_sampler import Sampler
+
+sampler = Sampler(backend)
+sampler.options.execution.scheduler_timing = True
 result = sampler.run([isa_circuit]).result()
 timing = result[0].metadata["compilation"]["scheduler_timing"]["timing"]''', id="c", norun=True)],
-             [A("hl", "c", at="activar", lines=[2]), A("hl", "c", at="leer", lines=[4])]),
+             [A("hl", "c", at="activar", lines=[4]), A("hl", "c", at="leer", lines=[6])]),
 
         beat("datos", ("", "Los datos en bruto"),
              """Cada línea describe una instrucción en un canal, con seis campos separados por comas. [[rama]]La rama: main, o la rama then o else de un if. [[instr]]La instrucción y su qubit. [[canal]]El canal: Qubit x, el canal de control del qubit x, o AWGR, el generador de formas de onda de lectura.
@@ -266,7 +268,7 @@ fig.write_html("scheduler_timing.html")''', id="c", norun=True, size=22),
                          tol=0.0001, hint="Inicio + duración.")),
 
         beat("cierre", ("", "Resumen"),
-             """Resumen. [[r1]]Para circuitos dinámicos, pide los tiempos al servicio. [[r2]]Se activan con scheduler timing en las opciones experimentales del Sampler. [[r3]]Cada línea tiene rama, instrucción, canal, inicio, duración y pulso.
+             """Resumen. [[r1]]Para circuitos dinámicos, pide los tiempos al servicio. [[r2]]Se activan con scheduler timing en las opciones de ejecución del Sampler. [[r3]]Cada línea tiene rama, instrucción, canal, inicio, duración y pulso.
              [[r4]]Y draw circuit schedule timing los dibuja; ese tiempo no es el facturado.""",
              s_cierre, a_cierre),
     ],
@@ -364,7 +366,8 @@ InstructionProperties(duration=1.56e-06, error=0.011474609375)
              [Code('''backend.default_rep_delay          # 0.00025 s
 backend.rep_delay_range            # [0.0, 0.0005]
 sampler.options.execution.rep_delay = 0.0005
-sampler.options.execution.init_qubits = True''', id="c", norun=True),
+sampler.options.execution.init_qubits = True''', id="c",
+                   setup="from qiskit_ibm_runtime.executor_sampler import Sampler\nfrom qiskit_ibm_runtime.fake_provider import FakeFez\nbackend = FakeFez()\nsampler = Sampler(backend)"),
               Row(Box("def", "rep_delay ↓", T("menos tiempo de QPU", "body")), Box("warn", "rep_delay ↓", T("más error de preparación", "body")), id="r", hidden=True, gap=24)],
              [A("hl", "c", at="defecto", range="1-2"), A("show", "r", at="tradeoff"), A("hl", "c", at="merge", range="3-4")]),
 
@@ -586,6 +589,17 @@ print(type(loaded).__name__, loaded[0].data.meas.get_counts())''', id="c", size=
               "Guarda el resultado de un trabajo real con `RuntimeEncoder` y cárgalo en otro cuaderno."])
 
 # ------------------------------------------------------------------ 7.7 Modos de ejecución
+BATCH_SETUP = '''from qiskit import QuantumCircuit
+from qiskit.transpiler import generate_preset_pass_manager
+from qiskit_ibm_runtime.fake_provider import FakeBelemV2
+
+backend = FakeBelemV2()
+qc = QuantumCircuit(2)
+qc.h(0)
+qc.cx(0, 1)
+qc.measure_all()
+isa_circuit = generate_preset_pass_manager(backend=backend, optimization_level=1).run(qc)
+partitioned_circuits = [[isa_circuit], [isa_circuit]]'''
 s_cierre, a_cierre = resumen(["job: una petición · batch: trabajos independientes, todos a la vez · session: acceso exclusivo",
                               "recomendación: batch por defecto · session solo para cargas iterativas · job para una sola petición",
                               "TTL máximo (8 h en planes de pago; lote Open 10 min) e interactivo (1 min lote · 60 s sesión)",
@@ -641,6 +655,7 @@ modos = lesson(
              [[cerrar]]Al cerrar, el lote deja de aceptar trabajos, pero los enviados terminan. Si lo dejas abierto y envías más tarde, puede alcanzarse el TTL antes de que corran.
              [[particion]]Un patrón útil: partir una lista larga de circuitos en varios trabajos dentro de un lote, para aprovechar el preprocesamiento en paralelo. [[local]]En el modo de prueba local la sintaxis funciona, pero los modos se ignoran.""",
              [Code('''from qiskit_ibm_runtime import Batch
+from qiskit_ibm_runtime.executor_estimator import Estimator
 from qiskit_ibm_runtime.executor_sampler import Sampler
 
 with Batch(backend=backend, max_time="25m"):
@@ -651,8 +666,10 @@ batch = Batch(backend=backend)
 estimator = Estimator(mode=batch)
 ...
 batch.close()
-print(batch.details())''', id="c", norun=True, size=22)],
-             [A("hl", "c", at="batch", range="4-6"), A("hl", "c", at="clase", range="8-11"), A("hl", "c", at="particion", lines=[6]), A("hl", "c", at="local", lines=[12])]),
+print(batch.details())''', id="c", size=22, setup=BATCH_SETUP),
+              Out("None", id="o", hidden=True, check=True)],
+             [A("hl", "c", at="batch", range="5-7"), A("hl", "c", at="clase", range="9-12"), A("hl", "c", at="particion", lines=[7]), A("hl", "c", at="local", lines=[13]),
+              A("show", "o", at="local")]),
 
         beat("session", ("", "Usar una sesión"),
              """Con sesiones es igual: with Session, o un objeto Session que se cierra a mano. Si abres una y no envías trabajos en treinta minutos, se cierra sola.
@@ -661,6 +678,7 @@ print(batch.details())''', id="c", norun=True, size=22)],
              [[vqe]]El uso típico: un optimizador de SciPy que llama a Estimator en cada iteración. Y dentro de una misma sesión puedes ejecutar dos optimizaciones a la vez, con hilos y etiquetas distintas.""",
              [Code('''from scipy.optimize import minimize
 from qiskit_ibm_runtime import Session
+from qiskit_ibm_runtime.executor_estimator import Estimator
 
 with Session(backend=backend) as session:
     estimator = Estimator(options={"default_shots": int(1e4)})
@@ -669,7 +687,7 @@ with Session(backend=backend) as session:
     print(session.status())''', id="c", norun=True, size=22),
               Table(["Fin de la sesión", "Trabajos en cola"], [["TTL máximo", "se cancelan"], ["`session.cancel()`", "se cancelan"], ["`session.close()`", "se ejecutan con prioridad"]],
                     id="t", hidden=True, size=23)],
-             [A("hl", "c", at="session", range="4-5"), A("show", "t", at="fin"), A("hl", "c", at="estado", lines=[8]), A("hl", "c", at="vqe", range="6-7")]),
+             [A("hl", "c", at="session", range="5-6"), A("show", "t", at="fin"), A("hl", "c", at="estado", lines=[9]), A("hl", "c", at="vqe", range="7-8")]),
 
         beat("faq", ("", "Preguntas frecuentes"),
              """Algunas preguntas frecuentes. [[paralelo]]¿Cuántos trabajos corren en paralelo en un lote? Tantos como carriles de ejecución tenga el backend, normalmente cinco, menos los ocupados por otros usuarios.

@@ -121,8 +121,8 @@ PATRON = Code('''
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import SparsePauliOp
 from qiskit.transpiler import generate_preset_pass_manager
-from qiskit_ibm_runtime.fake_provider import FakeFez
-from qiskit_ibm_runtime import EstimatorV2 as Estimator
+from qiskit_ibm_runtime.fake_provider import FakeBelemV2
+from qiskit_ibm_runtime.executor_estimator import Estimator
 
 # 1. Mapear: circuito y observable
 qc = QuantumCircuit(2)
@@ -131,7 +131,7 @@ qc.cx(0, 1)
 obs = SparsePauliOp(["ZZ", "XX"])
 
 # 2. Optimizar para el hardware
-backend = FakeFez()
+backend = FakeBelemV2()
 pm = generate_preset_pass_manager(optimization_level=1, backend=backend)
 isa = pm.run(qc)
 isa_obs = obs.apply_layout(isa.layout)
@@ -207,7 +207,7 @@ patrones = lesson(
              [A("item", "l", at="vis", i=0), A("item", "l", at="mit", i=1), A("item", "l", at="marg", i=2), A("item", "l", at="ps", i=3)]),
 
         beat("ejemplo", ("", "Los cuatro pasos en código"),
-             """Así se ven los cuatro pasos en un programa completo, usando un backend falso que imita al procesador Fez y corre en tu computadora.
+             """Así se ven los cuatro pasos en un programa completo, usando un backend falso de cinco qubits, que imita al procesador Belem y corre en tu computadora.
              [[m]]Mapear: un circuito de Bell y un observable, ZZ más XX. [[o]]Optimizar: un pass manager preparado para el backend produce el circuito ISA, [[lay]]y el observable se reacomoda a los qubits físicos con apply layout.
              [[e]]Ejecutar: Estimator, con el backend como modo. [[p]]Posprocesar: leer el valor esperado.""",
              [PATRON],
@@ -216,12 +216,12 @@ patrones = lesson(
 
         beat("resultado", ("", "El resultado"),
              """Para un estado de Bell ideal, ZZ vale uno y XX también vale uno: la suma debería dar exactamente dos.
-             [[sal]]El backend falso incluye un modelo del ruido del procesador real, así que obtenemos un poco menos, alrededor de uno coma ocho siete.
+             [[sal]]El backend falso incluye un modelo del ruido del procesador real, así que obtenemos un poco menos, alrededor de uno coma nueve.
              [[mens]]Esa diferencia es el ruido, y buena parte del curso trata de cómo reducirla.""",
              [M(r"\langle ZZ\rangle+\langle XX\rangle = 1+1 = 2 \quad\text{(ideal)}", size=40),
-              Out("1.873046875", id="o", hidden=True),
+              Out("1.9267693296232773", id="o", hidden=True),
               T("los valores cambian en cada ejecución", "note", id="n", hidden=True),
-              Box("idea", "La brecha", T("ideal 2 · con ruido ≈ 1,87 → supresión y mitigación (Parte VI)", "body"), id="b", hidden=True)],
+              Box("idea", "La brecha", T("ideal 2 · con ruido ≈ 1,9 → supresión y mitigación (Parte VI)", "body"), id="b", hidden=True)],
              [A("show", "o", at="sal"), A("show", "n", at="sal", t=1), A("show", "b", at="mens")]),
 
         beat("q1", ("", "Comprueba"),
@@ -427,7 +427,7 @@ quickstart = lesson(
         beat("construir", ("", "Construir el circuito"),
              """Importamos QuantumCircuit [[nuevo]]y creamos un circuito con dos qubits. Ambos empiezan en el estado cero.
              [[h]]Aplicamos una Hadamard al qubit cero, [[cx]]luego una CNOT con el qubit cero como control y el uno como objetivo, [[m]]y medimos todos los qubits con measure all, que además añade una barrera y un registro clásico llamado meas.""",
-             [Row(Code(BELL, id="c", reveal=True, norun=True, size=22, maxw=620),
+             [Row(Code(BELL, id="c", reveal=True, size=22, maxw=620),
                   Circ(2, [G("h", 0, hidden=True), G("cx", 0, 1, hidden=True), G("barrier", hidden=True), G("measure", 0, c=0, hidden=True),
                            G("measure", 1, c=1, hidden=True)], clbits=2, creg="meas", id="q", hidden=True, maxw=480), gap=30)],
              [A("lines", "c", at="nuevo", to=4), A("show", "q", at="nuevo"), A("lines", "c", at="h", to=5), A("gate", "q", at="h", i=0),

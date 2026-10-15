@@ -171,7 +171,7 @@ service = QiskitRuntimeService()''', id="c", hidden=True, norun=True)],
              """Paso uno: el circuito de Bell, y seis observables de dos qubits: I Z, I X, Z I, X I, Z Z y X X.
              [[zz]]Z Z es una abreviatura del producto tensorial Z por Z: mide Z en los dos qubits a la vez y da información de la correlación entre ellos.
              [[ent]]Si el estado está entrelazado, el valor esperado de Z Z no es el producto de los valores de cada qubit por separado. Para este estado, Z Z vale uno, mientras que I Z y Z I valen cero.""",
-             [Code(HELLO, id="c", size=20, norun=True),
+             [Code(HELLO, id="c", size=20),
               M(r"\langle Z_1Z_0\rangle=1\ \neq\ \langle Z_1\rangle\langle Z_0\rangle=0", id="m", hidden=True, size=36)],
              [A("hl", "c", at="mapear", range="7-12"), A("show", "m", at="ent")]),
 
@@ -179,13 +179,13 @@ service = QiskitRuntimeService()''', id="c", hidden=True, norun=True)],
              """Paso dos: elegimos el procesador. En hardware, service punto least busy, con simulator igual a False y operational igual a True, devuelve el procesador real menos ocupado.
              [[fake]]Para no esperar en la cola, aquí usamos un backend falso, FakeBelem, con el modo de prueba local; cuando funcione, solo cambias esa línea.
              [[isa]]Transpilamos a un circuito ISA [[layout]]y adaptamos los observables a los qubits físicos que eligió el layout.""",
-             [Code(HELLO, id="c", size=20, norun=True)],
+             [Code(HELLO, id="c", size=20)],
              [A("hl", "c", at="optimizar", range="14-15"), A("hl", "c", at="isa", range="16-17"), A("hl", "c", at="layout", lines=[18])]),
 
         beat("ejecutar", ("", "3 · Ejecutar"),
              """Paso tres: creamos un Estimator con el backend como modo, [[res]]pedimos nivel de resiliencia uno, que activa mitigación de errores de lectura, [[shots]]y cinco mil disparos.
              [[run]]run devuelve un trabajo. En hardware, job id te da su identificador, para recuperar los resultados más tarde aunque cierres Python: el trabajo espera en una cola.""",
-             [Code(HELLO, id="c", size=20, norun=True)],
+             [Code(HELLO, id="c", size=20)],
              [A("hl", "c", at="ejecutar", range="20-21"), A("hl", "c", at="res", lines=[22]), A("hl", "c", at="shots", lines=[23]), A("hl", "c", at="run", lines=[24])]),
 
         beat("resultado", ("", "4 · Posprocesar"),
@@ -219,7 +219,7 @@ from qiskit_ibm_runtime.options_models import EstimatorOptions
 options = EstimatorOptions()
 options.resilience_level = 1
 options.dynamical_decoupling.enable = True
-options.dynamical_decoupling.sequence_type = "XY4"''', id="c", norun=True, size=21),
+options.dynamical_decoupling.sequence_type = "XY4"''', id="c", size=21),
               Hist([["d=1", .993], ["d=2", .965], ["d=3", .96], ["d=4", .938]], id="h", hidden=True, h=120, ymax=1.1, digits=2, color="teal"),
               T("en local, con 5 qubits en FakeManila: $\\langle Z_0Z_i\\rangle$ = 0,99 → 0,94", "note", id="n", hidden=True)],
              [A("hl", "c", at="ops", lines=[6]), A("hl", "c", at="opc", range="8-12"), A("show", "h", at="dec"), A("show", "n", at="dec", t=1)]),
@@ -238,12 +238,12 @@ options.dynamical_decoupling.sequence_type = "XY4"''', id="c", norun=True, size=
     ],
     sources=["hello-world"],
     practice=["Cambia `FakeBelemV2()` por `service.least_busy(simulator=False, operational=True)` y ejecuta el programa en un QPU real (consume segundos del plan Open).",
-              "Repite el GHZ con 10 qubits en `FakeTorino` y grafica $\\langle Z_0Z_i\\rangle$ frente a $i$."])
+              "Repite el GHZ con 5 qubits en `FakeManilaV2` y grafica $\\langle Z_0Z_i\\rangle$ frente a $i$."])
 
 # ------------------------------------------------------------------ 5.3 Primitivas de IBM y opciones
 s_cierre, a_cierre = resumen(["Estimator · Sampler · Executor (beta, bajo nivel)",
                               "desde 0.50: Sampler y Estimator del lado del cliente (`executor_sampler`, `executor_estimator`)",
-                              "opciones: clase, diccionario, atributos o `update()` · `Unset` = valor por defecto del servidor",
+                              "opciones: clase, diccionario, atributos o `update()` · `None` = valor por defecto",
                               "modelo de ejecución dirigida: cajas anotadas + samplex + Executor + NoiseLearnerV3"])
 opciones = lesson(
     "p5-opciones", "Primitivas de IBM y sus opciones",
@@ -277,18 +277,18 @@ from qiskit_ibm_runtime.options_models import EstimatorOptions, SamplerOptions''
 
         beat("estructura", ("", "Estructura de las opciones"),
              """Las opciones tienen estructura de árbol. Las más usadas, como resilience level, están en el primer nivel; las demás se agrupan en categorías, como execution o dynamical decoupling.
-             [[formato]]Se escriben así: options punto opción punto subopción igual a valor. [[unset]]Si no fijas una opción, recibe un valor especial, Unset, y se usa el valor por defecto del servidor: así el comportamiento no depende de tu versión del código.""",
+             [[formato]]Se escriben así: options punto opción punto subopción igual a valor. [[unset]]Si no fijas una opción, queda en None, y se usa su valor por defecto, que a veces depende del nivel de resiliencia.""",
              [Code('''estimator.options.resilience_level = 2
 estimator.options.dynamical_decoupling.enable = True
-estimator.options.resilience.zne.noise_factors = [1, 3, 5]''', id="c", norun=True),
-              T("sin fijar → `Unset` → valor por defecto del servidor", "note", id="n", hidden=True)],
+estimator.options.resilience.zne.noise_factors = [1, 3, 5]''', id="c",
+                   setup="from qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2\n\nestimator = Estimator(mode=FakeManilaV2())"),
+              T("sin fijar → `None` → valor por defecto (a veces según el nivel de resiliencia)", "note", id="n", hidden=True)],
              [A("hl", "c", at="formato", range="2-3"), A("show", "n", at="unset")]),
 
         beat("formas", ("", "Cuatro formas de fijarlas"),
              """Hay cuatro formas. [[clase]]Con una instancia de la clase de opciones, al crear la primitiva. [[dict]]Con un diccionario, también al crearla. En ambos casos la primitiva copia las opciones: cambiar después el original no le afecta.
-             [[attr]]Asignando atributos después de crearla, con autocompletado. [[update]]O con update, para cambiar varias de golpe. [[asdict]]Y como options es una dataclass, asdict la convierte en diccionario.""",
-             [Code('''from dataclasses import asdict
-from qiskit_ibm_runtime.fake_provider import FakeManilaV2
+             [[attr]]Asignando atributos después de crearla, con autocompletado. [[update]]O con update, para cambiar varias de golpe. [[dump]]Y como options es un modelo de pydantic, model dump lo convierte en diccionario.""",
+             [Code('''from qiskit_ibm_runtime.fake_provider import FakeManilaV2
 
 backend = FakeManilaV2()
 options = EstimatorOptions()
@@ -299,16 +299,16 @@ estimator = Estimator(mode=backend, options={"resilience_level": 2}) # diccionar
 estimator.options.default_precision = 0.01                           # atributo
 estimator.options.update(default_precision=0.02,
                          resilience={"zne_mitigation": True})       # update
-print(estimator.options.default_precision, list(asdict(estimator.options))[:4])''', id="c", size=20),
+print(estimator.options.default_precision, list(estimator.options.model_dump())[:4])''', id="c", size=20),
               Out("0.02 ['default_precision', 'default_shots', 'execution', 'twirling']", id="o", hidden=True, check=True)],
-             [A("hl", "c", at="clase", range="5-8"), A("hl", "c", at="dict", lines=[9]), A("hl", "c", at="attr", lines=[10]), A("hl", "c", at="update", range="11-12"),
-              A("hl", "c", at="asdict", lines=[13]), A("show", "o", at="asdict")]),
+             [A("hl", "c", at="clase", range="4-7"), A("hl", "c", at="dict", lines=[8]), A("hl", "c", at="attr", lines=[9]), A("hl", "c", at="update", range="10-11"),
+              A("hl", "c", at="dump", lines=[12]), A("show", "o", at="dump")]),
 
         beat("q1", ("", "Comprueba"),
              """Sobre la copia de opciones.""",
              [Code('''opts = {"resilience_level": 1}
 estimator = Estimator(mode=backend, options=opts)
-opts["resilience_level"] = 2''', norun=True)],
+opts["resilience_level"] = 2''')],
              ask=choice("¿Qué nivel de resiliencia usa el estimator?", ["1", "2"], 0,
                         "Correcto: la primitiva copia las opciones al crearse. Para cambiarlas, usa `estimator.options`.",
                         wrong=["Cambiar el diccionario original no afecta a la copia que guardó la primitiva."])),
@@ -336,10 +336,33 @@ opts["resilience_level"] = 2''', norun=True)],
              s_cierre, a_cierre),
     ],
     sources=["qiskit-runtime-primitives", "runtime-options-overview", "directed-execution-model"],
-    practice=["Crea un `Estimator` local con `FakeManilaV2`, imprime `asdict(estimator.options)` y busca qué opciones siguen en `Unset`.",
+    practice=["Crea un `Estimator` local con `FakeManilaV2`, imprime `estimator.options.model_dump()` y busca qué opciones siguen en `None`.",
               "Lee la guía de [Samplomatic](https://quantum.cloud.ibm.com/docs/en/addons/samplomatic) para conocer los tipos de anotaciones."])
 
 # ------------------------------------------------------------------ 5.4 Estimator
+# Contexto de los fragmentos: un backend local de dos qubits, un circuito con dos parámetros ya transpilado y su Estimator.
+EST_SETUP = '''import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.circuit import Parameter
+from qiskit.providers.fake_provider import GenericBackendV2
+from qiskit.quantum_info import SparsePauliOp
+from qiskit.transpiler import generate_preset_pass_manager
+from qiskit_ibm_runtime.executor_estimator import Estimator
+
+backend = GenericBackendV2(2, basis_gates=["cz", "rz", "sx", "x"], seed=1)
+pm = generate_preset_pass_manager(backend=backend, optimization_level=1)
+a, b = Parameter("a"), Parameter("b")
+circuit = QuantumCircuit(2)
+circuit.rx(a, 0)
+circuit.ry(b, 1)
+circuit.cx(0, 1)
+transpiled_circuit = pm.run(circuit)
+estimator = Estimator(mode=backend)
+bell = QuantumCircuit(2)
+bell.h(0)
+bell.cx(0, 1)
+qc1 = qc2 = pm.run(bell)
+obs1 = obs2 = SparsePauliOp("ZZ")'''
 s_cierre, a_cierre = resumen(["`Estimator(mode=backend | batch | session)` · PUB (circuito, observables, parámetros, precisión)",
                               "`data`: `evs`, `stds`, `ensemble_standard_error` · `metadata` con opciones usadas",
                               "precisión: PUB > `run()` > twirling > `default_shots` > `default_precision`",
@@ -374,16 +397,16 @@ print(job.job_id(), job.status())''', id="c", norun=True, size=22)],
 observables = [[SparsePauliOp(["XX", "IY"], [0.5, 0.5])],
                [SparsePauliOp("XX")],
                [SparsePauliOp("IY")]]                                 # (3, 1)
-job = estimator.run([(transpiled_circuit, observables, params)])     # evs: (3, 100)''', id="c", norun=True, size=22)],
+job = estimator.run([(transpiled_circuit, observables, params)])     # evs: (3, 100)''', id="c", setup=EST_SETUP, size=22)],
              [A("hl", "c", at="agrupar", range="3-5"), A("hl", "c", at="ej", lines=[6])]),
 
         beat("salidas", ("", "Salidas"),
              """La salida es la misma estructura que ya conoces: un PubResult por PUB, con data y metadata. [[data]]En data están evs, los valores esperados; stds, sus desviaciones; y ensemble standard error. Según la mitigación, puede haber más.
              [[meta]]La metadata del PrimitiveResult recoge las opciones usadas: desacoplamiento dinámico, twirling, resiliencia. La de cada PUB, los disparos, la precisión objetivo y el número de aleatorizaciones.
-             [[local]]Este es el resultado real del programa de la lección anterior, ejecutado en local.""",
+             [[local]]Estas son las claves reales del resultado del trabajo anterior, ejecutado en local.""",
              [Code('''res = job.result()[0]
-print(list(res.data.keys()))''', id="c", norun=True),
-              Out("['evs', 'stds', 'ensemble_standard_error']", id="o", hidden=True),
+print(list(res.data.keys()))''', id="c"),
+              Out("['evs', 'stds', 'ensemble_standard_error']", id="o", hidden=True, check=True),
               Code('''metadata: {'shots': 4096, 'target_precision': 0.015625, 'resilience': {}, 'num_randomizations': 32}''', "out", id="m", hidden=True)],
              [A("show", "o", at="data"), A("show", "m", at="meta")]),
 
@@ -399,22 +422,25 @@ print(list(res.data.keys()))''', id="c", norun=True),
         beat("precision", ("", "¿Cuántos disparos?"),
              """La precisión se puede indicar en varios sitios, y gana el primero de esta lista. [[pub]]Uno: la precisión dentro del PUB. [[run]]Dos: el argumento precision de run.
              [[tw]]Tres: si el twirling está activo, que lo está por defecto, el número de aleatorizaciones por los disparos de cada una. [[shots]]Cuatro: default shots. [[prec]]Cinco: default precision, que por defecto es uno sobre la raíz de cuatro mil noventa y seis.
-             [[falla]]Cuidado: si pides una precisión que necesita más disparos de los que permite la configuración de twirling, el trabajo falla. Y recuerda: más precisión, más tiempo de QPU.""",
+             [[falla]]Cuidado: si pides una precisión que necesita más disparos de los que permite la configuración de twirling, el trabajo falla. Y recuerda: más precisión, más tiempo de QPU.
+             [[uno]]Y un detalle de la cero punto cincuenta: todos los PUBs de un mismo trabajo deben tener la misma precisión; si mezclas, da error.""",
              [Table(["Prioridad", "Dónde"], [
                  ["1", "precisión dentro del PUB"],
                  ["2", "`run(..., precision=)`"],
                  ["3", "twirling: `num_randomizations × shots_per_randomization`"],
                  ["4", "`options.default_shots`"],
-                 ["5", "`options.default_precision` (0.015625 = $1/\\sqrt{4096}$)"]], id="t", stagger=True, size=24)],
-             [A("item", "t", at="pub", i=0), A("item", "t", at="run", i=1), A("item", "t", at="tw", i=2), A("item", "t", at="shots", i=3), A("item", "t", at="prec", i=4)]),
+                 ["5", "`options.default_precision` (0.015625 = $1/\\sqrt{4096}$)"]], id="t", stagger=True, size=24),
+              Box("warn", "qiskit-ibm-runtime 0.50", T("«All pubs must have the same precision»: una única precisión por trabajo", "body"), id="b", hidden=True)],
+             [A("item", "t", at="pub", i=0), A("item", "t", at="run", i=1), A("item", "t", at="tw", i=2), A("item", "t", at="shots", i=3), A("item", "t", at="prec", i=4),
+              A("show", "b", at="uno")]),
 
         beat("q1", ("", "Comprueba"),
              """Aplica la precedencia.""",
              [Code('''estimator.options.default_precision = 0.05
-estimator.run([(qc1, obs1, None, 0.01), (qc2, obs2)], precision=0.02)''', norun=True)],
-             ask=choice("¿Qué precisión objetivo tiene el segundo PUB?", ["0.05", "0.02", "0.01"], 1,
-                        "Correcto: el segundo PUB no especifica precisión, así que manda el argumento de `run`, 0.02. El primero usa su propio 0.01.",
-                        wrong=["`run` tiene prioridad sobre `default_precision`.", None, "0.01 es la del primer PUB."])),
+estimator.run([(qc1, obs1), (qc2, obs2)], precision=0.02)''', setup=EST_SETUP)],
+             ask=choice("¿Qué precisión objetivo tienen los PUBs?", ["0.05", "0.02", "0.015625"], 1,
+                        "Correcto: ningún PUB especifica precisión, así que manda el argumento de `run`, 0.02, que gana a `default_precision`.",
+                        wrong=["`run` tiene prioridad sobre `default_precision`.", None, "Ese es el valor por defecto de `default_precision`, y aquí `run` lo anula."])),
 
         beat("opciones", ("", "Opciones de Estimator"),
              """Las opciones principales de Estimator. [[res]]resilience level: cero, uno o dos; uno es el valor por defecto, y cero desactiva toda mitigación y supresión, útil si investigas tus propias técnicas.
@@ -453,8 +479,10 @@ chsh.ry(theta, 0)
 phases = [[ph] for ph in np.linspace(0, 2 * np.pi, 21)]              # (21, 1)
 ops = np.fromiter([SparsePauliOp(p) for p in ["ZZ", "ZX", "XZ", "XX"]],
                   dtype=object).reshape((4, 1))                      # (4, 1)
+chsh_isa = pm.run(chsh)
+isa_ops = [[op.apply_layout(chsh_isa.layout)] for op in ops.flat]
 estimator = Estimator(backend, options={"default_shots": int(1e4)})
-job = estimator.run([(chsh_isa, isa_ops, phases)])                   # evs: (4, 21)''', id="c", norun=True, size=21),
+job = estimator.run([(chsh_isa, isa_ops, phases)])                   # evs: (4, 21)''', id="c", setup=EST_SETUP, size=21),
               T("evs: forma (4, 21) · cuatro curvas desfasadas entre −1 y 1", "note", id="n", hidden=True)],
              [A("hl", "c", at="forma", range="6-8"), A("show", "n", at="res")]),
 
@@ -475,8 +503,32 @@ job = estimator.run([(chsh_isa, isa_ops, phases)])                   # evs: (4, 
               "Calcula $S=\\langle ZZ\\rangle-\\langle ZX\\rangle+\\langle XZ\\rangle+\\langle XX\\rangle$ y busca el ángulo donde $|S|>2$."])
 
 # ------------------------------------------------------------------ 5.5 Sampler
+# Contexto del fragmento de ejemplos: un backend local, circuitos ya transpilados y un ansatz con tres juegos de parámetros.
+SAMPLER_SETUP = '''import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.circuit.library import real_amplitudes
+from qiskit.transpiler import generate_preset_pass_manager
+from qiskit_ibm_runtime import Batch
+from qiskit_ibm_runtime.executor_sampler import Sampler
+from qiskit_ibm_runtime.fake_provider import FakeBelemV2
+
+backend = FakeBelemV2()
+pm = generate_preset_pass_manager(backend=backend, optimization_level=1)
+ghz = QuantumCircuit(3)
+ghz.h(0)
+ghz.cx(0, 1)
+ghz.cx(1, 2)
+ghz.measure_all()
+isa_circuit = pm.run(ghz)
+another_isa_circuit = isa_circuit.copy()
+isa_circuits = [isa_circuit, another_isa_circuit]
+ansatz = real_amplitudes(3, reps=1)
+ansatz.measure_all()
+isa_ansatz = pm.run(ansatz)
+parameter_values = np.random.rand(3, ansatz.num_parameters)
+sampler = Sampler(mode=backend)'''
 s_cierre, a_cierre = resumen(["`Sampler(mode=…)` · PUB (circuito con mediciones, parámetros, disparos)",
-                              "un `BitArray` por registro · `execution_spans` con los tiempos de cada disparo",
+                              "un `BitArray` por registro · `chunk_timing` en la metadata con los intervalos de ejecución",
                               "disparos: PUB > `run()` > twirling > `default_shots` · en 0.50, todos los PUBs igual",
                               "opciones: DD, twirling, `meas_type`, `max_execution_time` (sin `resilience_level`)"])
 sampler = lesson(
@@ -510,17 +562,20 @@ print(job.result()[0].data.meas.get_bitstrings()[:10])''', id="c", norun=True, s
              [A("grow", "h", at="ruido")]),
 
         beat("spans", ("", "Intervalos de ejecución"),
-             """Los resultados de Sampler en el servicio de IBM incluyen información de tiempos: los intervalos de ejecución, execution spans.
-             [[que]]Los disparos se agrupan en intervalos, cada uno con un inicio, un fin y qué disparos contiene. [[mask]]El método mask, dado el índice de un PUB, devuelve una máscara booleana con los disparos de ese PUB que se ejecutaron en ese intervalo.
-             [[util]]Sirve, por ejemplo, para filtrar datos por momento de ejecución. filter by pub selecciona los intervalos de ciertos PUBs, y start, stop y duration dan los tiempos globales.
+             """Los resultados de Sampler en un QPU incluyen información de tiempos: los intervalos de ejecución.
+             [[que]]Con el Sampler del lado del cliente de la cero punto cincuenta, están en la metadata del Executor, como chunk timing: una lista de intervalos que envuelve ChunkTiming.
+             [[partes]]Cada intervalo tiene un inicio, un fin y sus partes: de cada una, el índice del PUB y cuántos elementos se ejecutaron en ese intervalo.
+             [[util]]start, stop y duration dan los tiempos globales, y draw dibuja los intervalos en una gráfica.
              [[ojo]]Los intervalos pueden solaparse: no porque el QPU haga dos cosas a la vez, sino por procesamiento clásico concurrente.""",
-             [Code('''spans = job.result().metadata["execution"]["execution_spans"]
-print(len(spans), spans.start, spans.stop, spans.duration)
-mask = spans[0].mask(0)                      # disparos del PUB 0 en este intervalo
-bits = result[0].data.meas
-filtered = BitArray(bits.array[mask], bits.num_bits)
-spans.filter_by_pub([0, 2])''', id="c", norun=True, size=22)],
-             [A("hl", "c", at="que", range="1-2"), A("hl", "c", at="mask", lines=[3]), A("hl", "c", at="util", range="4-6")]),
+             [Code('''from qiskit_ibm_runtime.results import ChunkTiming
+
+chunks = job.result().metadata["executor"].chunk_timing
+timing = ChunkTiming(chunks)
+print(len(timing), timing.start, timing.stop, timing.duration)
+for part in timing[0].parts:                 # PUBs de este intervalo
+    print(part.idx_item, part.size)
+timing.draw()''', id="c", norun=True, size=22)],
+             [A("hl", "c", at="que", range="3-4"), A("hl", "c", at="partes", range="6-7"), A("hl", "c", at="util", lines=[5, 8])]),
 
         beat("shots", ("", "Los disparos"),
              """Para los disparos la precedencia es como la de la precisión en Estimator. [[pub]]Primero, los del PUB; [[run]]luego, el argumento shots de run; [[tw]]luego, si hay twirling, aleatorizaciones por disparos de cada una; [[def]]y al final default shots.
@@ -566,7 +621,7 @@ print([pub.data.meas.num_shots for pub in result])''', id="c", size=21),
              """Una pregunta sobre Sampler.""",
              [Code('sampler.options.resilience_level = 1', norun=True)],
              ask=choice("¿Qué pasa?", ["activa la mitigación de lectura", "no tiene sentido: Sampler no tiene `resilience_level`", "desactiva el twirling"], 1,
-                        "Correcto: Sampler no admite niveles de resiliencia; activas cada técnica de supresión por separado.",
+                        "Correcto: Sampler no admite niveles de resiliencia; activas cada técnica de supresión por separado. En la 0.50 la asignación lanza un `ValidationError`.",
                         wrong=["Eso es de Estimator.", None, "No existe esa opción en Sampler."])),
 
         beat("ejemplos", ("", "Ejemplos"),
@@ -574,11 +629,11 @@ print([pub.data.meas.num_shots for pub in result])''', id="c", size=21),
              [[batch]]y dos trabajos dentro de un lote, con with Batch, que se cierra solo al salir del bloque.""",
              [Code('''job = sampler.run([isa_circuit])                          # uno
 job = sampler.run(isa_circuits)                            # varios
-job = sampler.run([(isa_circuit, parameter_values)])       # 3 juegos de parámetros
+job = sampler.run([(isa_ansatz, parameter_values)])        # 3 juegos de parámetros
 with Batch(backend=backend) as batch:                      # lote
     sampler = Sampler(mode=batch)
     job = sampler.run([isa_circuit])
-    another_job = sampler.run([another_isa_circuit])''', id="c", norun=True, size=22)],
+    another_job = sampler.run([another_isa_circuit])''', id="c", setup=SAMPLER_SETUP, size=22)],
              [A("hl", "c", at="ejemplos", lines=[1]), A("hl", "c", at="multi", lines=[2]), A("hl", "c", at="par", lines=[3]), A("hl", "c", at="batch", range="4-7")]),
 
         beat("cierre", ("", "Resumen"),
@@ -587,7 +642,7 @@ with Batch(backend=backend) as batch:                      # lote
              s_cierre, a_cierre),
     ],
     sources=["get-started-with-sampler", "sampler-input-output", "sampler-options", "sampler-examples"],
-    practice=["Ejecuta el GHZ de 10 qubits con `Sampler(mode=FakeTorino())` y cuenta qué fracción de disparos no es `0…0` ni `1…1`.",
+    practice=["Ejecuta un GHZ de 5 qubits con `Sampler(mode=FakeBelemV2())` y cuenta qué fracción de disparos no es `0…0` ni `1…1`.",
               "Activa `sampler.options.twirling.enable_measure = True` y compara esa fracción."])
 
 # ------------------------------------------------------------------ 5.6 Executor
@@ -644,14 +699,14 @@ executor = lesson(
              """La entrada de Executor no es una lista de PUBs, sino un QuantumProgram: una lista de tareas, con un único número de disparos para todo el programa. Si necesitas otro número de disparos, es otro programa, otro trabajo.
              [[circ]]Un CircuitItem es un circuito con sus valores de parámetros, que se ejecuta tal cual, sin aleatorizar. Aquí, diez juegos de dos parámetros.
              [[samp]]Un SamplexItem lleva un circuito plantilla, un samplex que genera parámetros aleatorios en el servidor, por ejemplo para twirling, y los argumentos del samplex.""",
-             [Code(EXEC, id="c", size=17, norun=True)],
+             [Code(EXEC, id="c", size=17)],
              [A("hl", "c", at="programa", lines=[20]), A("hl", "c", at="circ", lines=[21]), A("hl", "c", at="samp", range="23-27")]),
 
         beat("cajas", ("", "Cajas, plantilla y samplex"),
              """El samplex se construye en dos pasos. [[box]]Primero, generate boxing pass manager agrupa las puertas de dos qubits y las mediciones en cajas, y les añade una anotación de twirling. Aquí lo enganchamos como etapa post scheduling del transpilador.
              [[build]]Luego, build devuelve dos cosas: la plantilla, un circuito equivalente con las puertas de un qubit convertidas en puertas parametrizadas, y el samplex, que sabe generar los parámetros aleatorios.
              [[shape]]Al añadirlo, shape veintiocho por diez pide veintiocho aleatorizaciones para cada uno de los diez juegos de parámetros.""",
-             [Code(EXEC, id="c", size=17, norun=True)],
+             [Code(EXEC, id="c", size=17)],
              [A("hl", "c", at="box", lines=[23]), A("hl", "c", at="build", lines=[24]), A("hl", "c", at="shape", range="25-27")]),
 
         beat("resultado", ("", "Los resultados"),
@@ -660,7 +715,7 @@ executor = lesson(
              [[flips]]Y measurement flips meas guarda las inversiones de bit que introdujo el twirling de mediciones: una por aleatorización. Se deshacen con un XOR clásico. Executor no corrige nada por ti.""",
              [Code(EXEC, id="c", size=17),
               Out("(10, 1024, 3)\n(28, 10, 1024, 3) (28, 10, 1, 3)", id="o", hidden=True, check=True),
-              Code("unflipped = result[1][\"meas\"] ^ result[1][\"measurement_flips.meas\"]", id="x", hidden=True, norun=True)],
+              Code("unflipped = result[1][\"meas\"] ^ result[1][\"measurement_flips.meas\"]", id="x", hidden=True)],
              [A("hl", "c", at="resultado", range="29-31"), A("show", "o", at="c0"), A("show", "x", at="flips")]),
 
         beat("ejes", ("", "Ejes intrínsecos y extrínsecos"),
@@ -723,7 +778,7 @@ executor = lesson(
 
 options = ExecutorOptions(environment={"log_level": "INFO"}, execution={"init_qubits": True})
 executor = Executor(mode=backend, options=options)
-program = QuantumProgram(shots=1024, meas_level="both")''', id="c", norun=True, size=22)],
+program = QuantumProgram(shots=1024, meas_level="both")''', id="c", size=22)],
              [A("hl", "c", at="grupos", range="3-4"), A("hl", "c", at="prog", lines=[5])]),
 
         beat("q2", ("", "Comprueba"),
@@ -744,6 +799,15 @@ program = QuantumProgram(shots=1024, meas_level="both")''', id="c", norun=True, 
               "Usa `samplex.sample(...)` para generar 3 aleatorizaciones y comprobar con `Operator` que son equivalentes al circuito original."])
 
 # ------------------------------------------------------------------ 5.7 REST
+# Contexto del fragmento de circuitos con parámetros: el nombre del backend y un transpilador para su ISA.
+REST_SETUP = '''import qiskit.qasm3
+from qiskit import QuantumCircuit
+from qiskit.circuit import Parameter
+from qiskit.transpiler import generate_preset_pass_manager
+from qiskit_ibm_runtime.fake_provider import FakeFez
+
+backend = "ibm_fez"
+pm = generate_preset_pass_manager(backend=FakeFez(), optimization_level=1)'''
 s_cierre, a_cierre = resumen(["clave API → token portador IAM (dura ≤ 1 hora)",
                               "cabeceras: `Authorization: Bearer …` y `Service-CRN`",
                               "`POST /v1/jobs` con `program_id` (`estimator`/`sampler`), `backend`, `params.pubs` en OpenQASM 3",
@@ -827,7 +891,7 @@ qc.cx(0, 1)
 qc.measure_all()
 qasm_str = qiskit.qasm3.dumps(pm.run(qc))
 job_input = {"program_id": "sampler", "backend": backend,
-             "params": {"pubs": [[qasm_str, {"theta": 1.57, "phi": 3.14}, 500]]}}''', id="c", norun=True, size=22)],
+             "params": {"pubs": [[qasm_str, {"theta": 1.57, "phi": 3.14}, 500]]}}''', id="c", setup=REST_SETUP, size=22)],
              [A("hl", "c", at="qasm", lines=[7]), A("hl", "c", at="vals", range="8-9")]),
 
         beat("sesiones", ("", "Sesiones y lotes por REST"),

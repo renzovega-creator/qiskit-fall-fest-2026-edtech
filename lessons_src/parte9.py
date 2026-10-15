@@ -80,7 +80,7 @@ class EstimatorImplementation(BaseEstimatorV2):
     def run(self, pubs, *, precision=None):
         # 1. precisión por defecto  2. validar PUBs
         # 3. crear un BasePrimitiveJob  4. enviarlo al servicio
-        ...''', id="c", norun=True, size=22),
+        ...''', id="c", size=22),
               T("resultados: `DataBin` · `PubResult` · `PrimitiveResult` · referencia: `BackendSamplerV2`, `BackendEstimatorV2`", "note", id="n", hidden=True)],
              [A("hl", "c", at="primitivas", range="3-7"), A("hl", "c", at="pasos", range="9-12"), A("show", "n", at="datos")]),
 
@@ -423,7 +423,8 @@ with qc.if_test((cr, 3)):
 print(dict(qc.count_ops()))''', id="c", size=22),
               Out("{'h': 2, 'measure': 2, 'if_else': 1}", id="o", hidden=True, check=True),
               Code('''# antes: instruction.duration
-duration = getattr(target["cx"][2, 4], "duration", None)''', id="d", hidden=True, norun=True, size=21)],
+duration = getattr(target["cx"][2, 4], "duration", None)''', id="d", hidden=True, size=21,
+                   setup="from qiskit.providers.fake_provider import GenericBackendV2\ntarget = GenericBackendV2(5, seed=1).target")],
              [A("hl", "c", at="cif", range="7-9"), A("show", "o", at="cif", t=3), A("show", "d", at="dur")]),
 
         beat("v2_transp", ("", "El transpilador en 2.0"),
@@ -445,11 +446,12 @@ print(pm.run(QuantumCircuit(2)).num_qubits)''', id="c", size=20),
         beat("cliente", ("", "Primitivas del lado del cliente"),
              """El cambio más reciente: desde qiskit ibm runtime cero punto cincuenta, Sampler y Estimator se reimplementan del lado del cliente, sobre Executor. Antes eran una caja negra en el servidor; ahora puedes inspeccionar lo que hacen.
              [[imports]]La migración es casi solo cambiar las importaciones; pronto, las de siempre apuntarán a las nuevas. [[igual]]Se mantienen el modo, las opciones, la firma de run, los PUBs y los resultados.""",
-             [Code('''from qiskit_ibm_runtime.executor_sampler import Sampler
+             [Code('''
+from qiskit_ibm_runtime.executor_sampler import Sampler
 from qiskit_ibm_runtime.executor_estimator import Estimator
-from qiskit_ibm_runtime.options_models import SamplerOptions, EstimatorOptions''', id="c", norun=True, size=21),
+from qiskit_ibm_runtime.options_models import SamplerOptions, EstimatorOptions''', id="c", size=21),
               T("igual: `mode`, opciones, `run()`, PUBs y resultados", "note", id="n", hidden=True)],
-             [A("hl", "c", at="imports", range="1-3"), A("show", "n", at="igual")]),
+             [A("hl", "c", at="imports", range="4-6"), A("show", "n", at="igual")]),
 
         beat("diferencias", ("", "Qué cambia"),
              """Algunas diferencias. [[pydantic]]Las opciones son ahora modelos de Pydantic: en lugar de asdict, usa model dump; y las opciones eliminadas, como seed estimator, dan error de validación.

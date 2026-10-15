@@ -337,20 +337,22 @@ result = job.result()''', id="c", norun=True, size=21)],
 estimator.options.resilience.measure_mitigation = True
 estimator.options.resilience.zne_mitigation = True
 estimator.options.resilience.zne.noise_factors = (1, 3, 5)''',
-                   id="c", norun=True, size=22),
+                   id="c", size=22,
+                   setup="from qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2\nbackend = FakeManilaV2()"),
               Box("idea", "Revisa compatibilidad", T("las técnicas disponibles dependen de las puertas y mediciones del circuito", "body"), id="b", hidden=True)],
              [A("hl", "c", at="medir", range="2-2"), A("hl", "c", at="medir", range="3-4"),
               A("show", "b", at="compat")]),
 
         beat("sampler", ("", "Sampler prioriza supresión"),
              """Sampler devuelve muestras, así que sus opciones de gestión del ruido son distintas. [[tiene]]La documentación presenta desacoplamiento dinámico y twirling de puertas para Sampler. [[no_trex]]TREX y ZNE se aplican a expectativas de Estimator; no elijas un nivel de Estimator para corregir una distribución de Sampler.
-             [[code]]El ejemplo activa una secuencia de desacoplamiento y el twirling. La llamada al servicio requiere backend y credenciales.""",
+             [[code]]El ejemplo activa una secuencia de desacoplamiento y el twirling. Las opciones se escriben igual con un backend real o con uno falso; solo el backend real exige credenciales.""",
              [Code('''from qiskit_ibm_runtime.executor_sampler import Sampler
 
 sampler = Sampler(backend)
 sampler.options.dynamical_decoupling.enable = True
 sampler.options.dynamical_decoupling.sequence_type = "XpXm"
-sampler.options.twirling.enable_gates = True''', id="c", norun=True, size=22),
+sampler.options.twirling.enable_gates = True''', id="c", size=22,
+                   setup="from qiskit_ibm_runtime.fake_provider import FakeManilaV2\nbackend = FakeManilaV2()"),
               Table(["Sampler", "Estimator"], [
                   ["DD + twirling de puertas", "DD + twirling + mitigación de expectativas"],
               ], id="t", hidden=True, size=22)],

@@ -336,16 +336,16 @@ print(list_stage_plugins("scheduling"))''', id="c"),
     unitary_synthesis_plugin_config=None,
     hls_config=None,
     init_method=None, optimization_method=None,
-)''', id="c", norun=True, size=22)],
+)''', id="c", size=22)],
              [A("hl", "c", at="target", range="3-4"), A("hl", "c", at="como", range="5-15"), A("unhl", "c", at="regla")]),
 
         beat("q1", ("", "Comprueba"),
              """Una pregunta sobre parámetros.""",
              [Code('''generate_preset_pass_manager(1, backend=backend,
-                             coupling_map=[[0, 1], [1, 2]])''', norun=True)],
+                             coupling_map=[[0, 1], [1, 2]])''')],
              ask=choice("¿Qué mapa de acoplamiento usa el transpilador?",
                         ["el del backend", "la línea 0–1–2 que diste", "ninguno: da error"], 1,
-                        "Correcto: un argumento explícito como `coupling_map` sobrescribe lo que trae el backend.",
+                        "Correcto: un argumento explícito como `coupling_map` sobrescribe lo que trae el backend. Qiskit lo avisa con un `UserWarning`: se pierden las duraciones y los errores del backend.",
                         wrong=["Lo que pasas a mano tiene prioridad sobre el backend.", None, "Es válido combinarlos; el explícito gana."])),
 
         beat("comparar", ("", "Comparar configuraciones"),
@@ -465,10 +465,10 @@ for level in (0, 1):
               Code('''from qiskit.transpiler import Target
 err_targ = Target.from_configuration(
     basis_gates=basis_gates, coupling_map=coupling_map,
-    num_qubits=target.num_qubits, custom_name_mapping={...})
+    num_qubits=target.num_qubits)
 for i, (op, qargs) in enumerate(target.instructions):
     if op.name in basis_gates:
-        err_targ[op.name][qargs] = target.instruction_properties(i)''', id="c2", hidden=True, norun=True, size=22)],
+        err_targ[op.name][qargs] = target.instruction_properties(i)''', id="c2", hidden=True, setup='basis_gates = ["rz", "sx", "x", "ecr"]', size=22)],
              [A("show", "o", at="ecr"), A("show", "c2", at="from")]),
 
         beat("q1", ("", "Comprueba"),
@@ -483,7 +483,8 @@ for i, (op, qargs) in enumerate(target.instructions):
              """Qiskit no depende del fabricante: cualquiera puede describir su propio dispositivo. Las piezas son tres. [[prov]]Un Provider, que entrega objetos backend y se ocupa de credenciales.
              [[backend]]Un BackendV2, con cuatro partes: un Target, max circuits, el máximo de circuitos por trabajo, un método run, y unas opciones por defecto.
              [[target]]Y el Target, que se llena con add instruction: para cada puerta, un diccionario de los qubits donde está disponible, con su error y su duración.
-             [[res]]Una CX entre los qubits cero y dos, que no son vecinos en esta cadena, termina convertida en CZ y puertas de un qubit: el transpilador lo resolvió todo con la información del Target.""",
+             [[res]]Una CX entre los qubits cero y dos, que no son vecinos en esta cadena: el transpilador los coloca en dos qubits contiguos, así que no hacen falta SWAP, y traduce la CX a una CZ y puertas de un qubit.
+             La X está en el Target, pero el transpilador solo la usa cuando una secuencia de puertas de un qubit equivale, salvo rotaciones Z, a una X; aquí ninguna lo hace, y por eso no aparece. Todo salió de la información del Target.""",
              [Code('''from qiskit.providers import BackendV2, Options
 from qiskit.transpiler import Target, InstructionProperties
 from qiskit.circuit.library import XGate, SXGate, RZGate, CZGate
@@ -726,7 +727,7 @@ OrderedDict({'h': 2, 'ccx': 1, 'cx': 1, 'measure': 1, 'if_else': 1})''', id="o",
              [[run]]En ambos casos, lo que implementas es el método run, que recibe el DAG.""",
              [Row(Box("def", "AnalysisPass", L(["lee el DAG", "**escribe** en `property_set`", "no modifica el DAG"], size=26), id="a", hidden=True),
                   Box("idea", "TransformationPass", L(["**modifica** el DAG", "lee `property_set`", "devuelve el DAG nuevo"], size=26), id="b", hidden=True), gap=26),
-              Code("def run(self, dag): ...", id="c", hidden=True, norun=True)],
+              Code("def run(self, dag): ...", id="c", hidden=True)],
              [A("show", "a", at="an"), A("show", "b", at="tr"), A("show", "c", at="run")]),
 
         beat("twirl", ("", "Un pase de twirling de Pauli"),
