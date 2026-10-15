@@ -4,4 +4,4 @@ uv = "0.13"
 
 [tasks.test]
 description = "Run the practice notebooks with and without their solutions"
-run = "uv run python tools/practica.py"
+run = "uv run --group tools python tools/practica.py"
