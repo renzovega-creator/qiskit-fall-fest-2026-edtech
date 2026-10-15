@@ -181,6 +181,132 @@
    ]
   },
   {
+   "id": "predice_zne",
+   "tag": [
+    "6.3",
+    "Antes de extrapolar"
+   ],
+   "say": "Un caso concreto. [[ghz]]Un estado GHZ de cuatro qubits, con un dos por ciento de error despolarizante en cada CNOT, y el observable Z cero por Z tres, cuyo valor ideal es uno. [[tabla]]Medimos con los factores de ruido uno, tres y cinco, y el valor baja: cero coma nueve cuatro, cero coma ocho tres, cero coma siete tres. [[apuesta]]Ajusta una recta por esos tres puntos y llévala al factor cero. Apuesta: ¿a qué valor llega?",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "Factor de ruido",
+      "⟨Z₀Z₃⟩ medido"
+     ],
+     "rows": [
+      [
+       "1",
+       "0.9412"
+      ],
+      [
+       "3",
+       "0.8337"
+      ],
+      [
+       "5",
+       "0.7386"
+      ],
+      [
+       "0",
+       "?"
+      ]
+     ],
+     "id": "t",
+     "stagger": true,
+     "size": 24
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "t",
+     "at": "tabla"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "t",
+     "at": "tabla",
+     "t": 0.8
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "t",
+     "at": "tabla",
+     "t": 1.6
+    },
+    {
+     "do": "item",
+     "i": 3,
+     "id": "t",
+     "at": "apuesta"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "La recta que pasa por esos puntos, ¿qué valor da en el factor 0?",
+    "options": [
+     "exactamente 1.0000",
+     "cerca de 0.99, se queda corta",
+     "más de 1.05, se pasa",
+     "0.94, igual que sin extrapolar"
+    ],
+    "after": "Anotado. Hagamos el ajuste."
+   },
+   "align": "top"
+  },
+  {
+   "id": "zne_ajuste",
+   "tag": [
+    "6.3",
+    "Recta frente a exponencial"
+   ],
+   "say": "Dos ajustes con numpy. [[recta]]Una recta con polyfit de grado uno; el término independiente es el valor en cero. Da cero coma nueve ocho nueve ocho: mejor que el cero coma nueve cuatro sin mitigar, pero se queda corta. [[exp]]Con ruido despolarizante cada puerta multiplica el valor por un factor fijo, así que los puntos siguen una exponencial. Una exponencial es una recta en el logaritmo: ajustamos log de los valores y deshacemos el logaritmo. [[res]]Sale uno coma cero cero cero cero. Es exacto porque este ruido es exactamente despolarizante; en un QPU real la curva es solo una aproximación, y por eso conviene elegir el modelo de extrapolación con cuidado.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "import numpy as np\n\nfactores = [1, 3, 5]\nvalores = [0.9412, 0.8337, 0.7386]\n\nrecta = np.polyfit(factores, valores, 1)[1]\nexponencial = np.exp(np.polyfit(factores, np.log(valores), 1)[1])\nprint(f\"recta: {recta:.4f}\")\nprint(f\"exponencial: {exponencial:.4f}\")",
+     "lang": "python",
+     "id": "c",
+     "size": 23
+    },
+    {
+     "type": "code",
+     "src": "recta: 0.9898\nexponencial: 1.0000",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      6
+     ],
+     "id": "c",
+     "at": "recta"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      7
+     ],
+     "id": "c",
+     "at": "exp"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "res"
+    }
+   ]
+  },
+  {
    "id": "pea",
    "tag": [
     "6.3",
@@ -400,6 +526,80 @@
     "wrong": [
      "No existe una ejecución física sin ruido.",
      null
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "6.3",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero haces ZNE con una recta sobre el GHZ y ves cuánto se queda corta. [[n2]]Después cambias a una exponencial y llegas al valor ideal. [[n3]]Y por último escribes los pesos de PEC para un qubit, con un peso negativo, y calculas cuánto crece el número de disparos. [[check]]Cada misión tiene una comprobación: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p6-mitigacion.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Mide a factores 1, 3 y 5 y extrapola con una recta."
+      },
+      {
+       "level": 2,
+       "text": "Ajusta una exponencial: el error debe bajar de $10^{-3}$."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `pesos_pec(lam)` y mira cómo crece el sobrecoste $\\gamma^{2n}$ con la profundidad."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "6.3",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Una extrapolación es un modelo, no una medida.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "La exponencial dio exactamente 1 en el cuaderno. ¿Por qué eso no te garantiza nada en un QPU real?",
+     "PEC no tiene sesgo pero su costo crece muy rápido con la profundidad; ZNE es barato pero sesgado. Para tu cadena de Ising con muchos pasos de Trotter, ¿cuál probarías primero?"
     ]
    },
    "align": "top"

@@ -53,12 +53,51 @@
    ]
   },
   {
+   "id": "predice_nivel",
+   "tag": [
+    "6.4",
+    "¿Y si no pides ningún nivel?"
+   ],
+   "say": "Antes de ver la tabla de niveles, una apuesta. [[crear]]Creas un Estimator y no tocas ninguna opción. [[apuesta]]¿Qué valor de resilience level tendrá? Cero significa sin mitigación; uno, TREX; dos, TREX más extrapolación a ruido cero.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "estimator = Estimator(backend)   # sin opciones",
+     "lang": "python",
+     "id": "c",
+     "norun": true,
+     "size": 26
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      1
+     ],
+     "id": "c",
+     "at": "crear"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué `resilience_level` tendrá ese Estimator?",
+    "options": [
+     "0, sin mitigación",
+     "1, TREX",
+     "2, TREX + ZNE + twirling"
+    ],
+    "after": "Anotado. Lo leemos del propio objeto de opciones."
+   },
+   "align": "top"
+  },
+  {
    "id": "niveles",
    "tag": [
     "6.4",
     "Los niveles de Estimator"
    ],
-   "say": "En la tabla documentada, nivel cero desactiva la mitigación. [[cero]]Nivel uno aplica TREX para reducir errores de lectura. [[uno]]Nivel dos añade extrapolación a ruido cero y twirling de puertas. [[costo]]El nivel dos suele consumir más muestreo que el uno. El nombre ‘resilience’ no significa que el resultado sea inmune al ruido.",
+   "say": "En la tabla documentada, nivel cero desactiva la mitigación. [[cero]]Nivel uno aplica TREX para reducir errores de lectura. [[uno]]Nivel dos añade extrapolación a ruido cero y twirling de puertas. [[defecto]]Y la respuesta a la apuesta: el nivel uno es el valor por defecto. Un Estimator sin opciones ya mitiga el error de lectura. Las opciones se validan en local, sin cuenta: con un backend falso puedes leerlas. [[costo]]El nivel dos suele consumir más muestreo que el uno. El nombre ‘resilience’ no significa que el resultado sea inmune al ruido.",
    "scene": [
     {
      "type": "table",
@@ -73,7 +112,7 @@
       ],
       [
        "1",
-       "TREX · mitigación de lectura"
+       "TREX · mitigación de lectura (por defecto)"
       ],
       [
        "2",
@@ -83,6 +122,23 @@
      "id": "t",
      "stagger": true,
      "size": 24
+    },
+    {
+     "type": "code",
+     "src": "print(Estimator(backend).options.resilience_level)",
+     "lang": "python",
+     "id": "d",
+     "hidden": true,
+     "size": 24,
+     "setup": "from qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2\nbackend = FakeManilaV2()"
+    },
+    {
+     "type": "code",
+     "src": "1",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
     }
    ],
    "actions": [
@@ -97,6 +153,16 @@
      "i": 1,
      "id": "t",
      "at": "uno"
+    },
+    {
+     "do": "show",
+     "id": "d",
+     "at": "defecto"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "defecto"
     },
     {
      "do": "item",
@@ -309,17 +375,91 @@
    "align": "top"
   },
   {
+   "id": "mision",
+   "tag": [
+    "6.4",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. Las opciones se validan en local, así que no hace falta cuenta. [[n1]]Primero lees lo que trae por defecto un Estimator y un Sampler. [[n2]]Después partes del nivel cero y activas TREX y ZNE a mano, y pruebas un nivel inválido para ver el error. [[n3]]Y por último escribes una función que prepara cualquiera de las dos primitivas y rechaza TREX o ZNE para el Sampler. [[check]]Cada misión tiene una comprobación: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p6-configurar.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Crea un Estimator y un Sampler sin opciones y lee sus valores por defecto."
+      },
+      {
+       "level": 2,
+       "text": "Nivel 0 más TREX y ZNE con factores 1, 3 y 5; prueba `resilience_level = 7`."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `preparar(primitiva, tecnicas)`: un Sampler con `\"trex\"` o `\"zne\"` lanza `ValueError`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "6.4",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Un nivel resume una estrategia; no la garantiza.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "El nivel por defecto ya aplica TREX sin que lo pidas. ¿Qué ventaja y qué riesgo tiene que una mitigación esté activada por defecto?",
+     "Para tu cadena de Ising, ¿empezarías con el nivel 1, con el 2 o con opciones individuales? ¿Qué medirías para decidir?"
+    ]
+   },
+   "align": "top"
+  },
+  {
    "id": "cierre",
    "tag": [
     "6.4",
     "Resumen"
    ],
-   "say": "Resumen. [[r1]]Estimator ofrece niveles cero, uno y dos; el nivel dos añade ZNE y twirling al nivel uno. [[r2]]Puedes fijar técnicas individuales, respetando las compatibilidades. [[r3]]Sampler se centra en desacoplamiento dinámico y twirling; no ofrece la mitigación de expectativas de Estimator. [[r4]]Los niveles están en beta: compara calidad, overhead y circuito real.",
+   "say": "Resumen. [[r1]]Estimator ofrece niveles cero, uno y dos; el uno es el de por defecto, y el dos añade ZNE y twirling. [[r2]]Puedes fijar técnicas individuales, respetando las compatibilidades. [[r3]]Sampler se centra en desacoplamiento dinámico y twirling; no ofrece la mitigación de expectativas de Estimator. [[r4]]Los niveles están en beta: compara calidad, overhead y circuito real.",
    "scene": [
     {
      "type": "list",
      "items": [
-      "resilience_level 0: sin mitigación; 1: TREX; 2: TREX + ZNE y twirling",
+      "resilience_level 0: sin mitigación; 1 (por defecto): TREX; 2: TREX + ZNE y twirling",
       "Sampler ofrece supresión; Estimator también ofrece mitigación de expectativas",
       "las opciones explícitas se combinan con el nivel y pueden prevalecer sobre su valor base",
       "la disponibilidad y el costo dependen del tipo de circuito"

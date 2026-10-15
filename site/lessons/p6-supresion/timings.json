@@ -49,6 +49,65 @@
    ]
   ]
  },
+ "predice_dd": {
+  "dur": 33.888,
+  "marks": {
+   "circ": 7.289,
+   "apuesta": 22.914
+  },
+  "cues": [
+   [
+    0.107,
+    "Probémoslo en un circuito de tres qubits, transpilado para un backend falso de cinco qubits."
+   ],
+   [
+    7.289,
+    "Hay una H, tres CNOT entre los qubits cero y uno, una CNOT entre uno y dos, y una H final."
+   ],
+   [
+    15.922,
+    "Mientras los qubits cero y uno trabajan, el dos espera; y al final, espera el cero."
+   ],
+   [
+    22.914,
+    "Rellenaremos los huecos con la secuencia XX."
+   ],
+   [
+    27.202,
+    "Apuesta: ¿cuántos pulsos X se añaden en total, y cambia la operación del circuito?"
+   ]
+  ]
+ },
+ "dd_codigo": {
+  "dur": 37.608,
+  "marks": {
+   "isa": 1.953,
+   "pm": 10.233,
+   "res": 20.437
+  },
+  "cues": [
+   [
+    0.107,
+    "El código."
+   ],
+   [
+    1.953,
+    "Transpilamos el circuito con el layout fijo, sin optimizar, para que las esperas sean las del circuito original."
+   ],
+   [
+    10.233,
+    "El gestor de pases programa el circuito con ALAPScheduleAnalysis y PadDynamicalDecoupling rellena los huecos con la secuencia de dos puertas X."
+   ],
+   [
+    20.437,
+    "Se añaden dos pulsos X, y la operación es la misma: Operator equiv da verdadero."
+   ],
+   [
+    27.443,
+    "El desacoplamiento solo rellena esperas con una identidad; que sirva en un dispositivo real depende de lo bien calibrados que estén esos pulsos."
+   ]
+  ]
+ },
  "secuencias": {
   "dur": 31.224,
   "marks": {
@@ -130,6 +189,65 @@
    ]
   ]
  },
+ "predice_tw": {
+  "dur": 25.056,
+  "marks": {
+   "idea": 4.529,
+   "apuesta": 15.581
+  },
+  "cues": [
+   [
+    0.107,
+    "Comprobemos que el twirling conserva la operación ideal."
+   ],
+   [
+    4.529,
+    "Para cada variante elegimos una Pauli al azar, la ponemos antes de la CNOT, y ponemos después la Pauli que resulta de empujarla a través de la CNOT."
+   ],
+   [
+    15.581,
+    "Generamos cuarenta variantes."
+   ],
+   [
+    18.555,
+    "Apuesta: ¿cuántas implementan exactamente la misma operación que una CNOT sola?"
+   ]
+  ]
+ },
+ "tw_codigo": {
+  "dur": 34.704,
+  "marks": {
+   "antes": 3.892,
+   "despues": 9.129,
+   "res": 14.875
+  },
+  "cues": [
+   [
+    0.107,
+    "Cada variante es un circuito de dos qubits."
+   ],
+   [
+    3.892,
+    "Elegimos la Pauli de antes con un generador aleatorio con semilla."
+   ],
+   [
+    9.129,
+    "Pauli punto evolve con la CNOT calcula la Pauli que hay que poner después."
+   ],
+   [
+    14.875,
+    "Las cuarenta variantes equivalen a la CNOT, y usan quince Paulis distintas antes de ella."
+   ],
+   [
+    22.15,
+    "Si dijiste «ninguna», acabas de ver la clave: los circuitos son distintos, pero la operación es la misma."
+   ],
+   [
+    30.599,
+    "Lo que cambia es cómo se reparte el ruido de la puerta."
+   ]
+  ]
+ },
  "activar": {
   "dur": 24.624,
   "marks": {
@@ -173,6 +291,55 @@
    [
     0.107,
     "Una pregunta sobre twirling."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 30.888,
+  "marks": {
+   "n1": 6.142,
+   "n2": 13.615,
+   "n3": 18.328,
+   "check": 26.155
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.142,
+    "Primero rellenas los huecos de un circuito con la secuencia XX y compruebas que la operación no cambia."
+   ],
+   [
+    13.615,
+    "Después la alargas a cuatro pulsos X y cuentas el doble."
+   ],
+   [
+    18.328,
+    "Y por último escribes tú una variante de twirling de la CNOT: la Pauli de después que mantiene la operación."
+   ],
+   [
+    26.155,
+    "Cada misión tiene una comprobación: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 6.648,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
+   ],
+   [
+    3.397,
+    "Ninguna tiene respuesta automática."
    ]
   ]
  },

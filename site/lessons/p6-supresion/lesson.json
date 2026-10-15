@@ -113,6 +113,127 @@
    ]
   },
   {
+   "id": "predice_dd",
+   "tag": [
+    "6.2",
+    "Antes de rellenar los huecos"
+   ],
+   "say": "Probémoslo en un circuito de tres qubits, transpilado para un backend falso de cinco qubits. [[circ]]Hay una H, tres CNOT entre los qubits cero y uno, una CNOT entre uno y dos, y una H final. Mientras los qubits cero y uno trabajan, el dos espera; y al final, espera el cero. [[apuesta]]Rellenaremos los huecos con la secuencia XX. Apuesta: ¿cuántos pulsos X se añaden en total, y cambia la operación del circuito?",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 3,
+     "ops": [
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        1
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        1
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        1
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        1,
+        2
+       ]
+      },
+      {
+       "g": "h",
+       "q": [
+        2
+       ]
+      }
+     ]
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Al rellenar con XX, ¿qué esperas?",
+    "options": [
+     "ningún pulso: no hay huecos",
+     "2 pulsos X y la misma operación",
+     "4 pulsos X y la misma operación",
+     "2 pulsos X y una operación distinta"
+    ],
+    "after": "Anotado. Programamos el circuito y contamos."
+   },
+   "align": "top"
+  },
+  {
+   "id": "dd_codigo",
+   "tag": [
+    "6.2",
+    "Programar y rellenar"
+   ],
+   "say": "El código. [[isa]]Transpilamos el circuito con el layout fijo, sin optimizar, para que las esperas sean las del circuito original. [[pm]]El gestor de pases programa el circuito con ALAPScheduleAnalysis y PadDynamicalDecoupling rellena los huecos con la secuencia de dos puertas X. [[res]]Se añaden dos pulsos X, y la operación es la misma: Operator equiv da verdadero. El desacoplamiento solo rellena esperas con una identidad; que sirva en un dispositivo real depende de lo bien calibrados que estén esos pulsos.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit import QuantumCircuit, transpile\nfrom qiskit.circuit.library import XGate\nfrom qiskit.quantum_info import Operator\nfrom qiskit.transpiler import PassManager\nfrom qiskit.transpiler.passes import ALAPScheduleAnalysis, PadDynamicalDecoupling\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2\n\nfake = FakeManilaV2()\nlogico = QuantumCircuit(3)\nlogico.h(0)\nfor _ in range(3):\n    logico.cx(0, 1)\nlogico.cx(1, 2)\nlogico.h(2)\nisa = transpile(logico, fake, optimization_level=0, initial_layout=[0, 1, 2], seed_transpiler=1)\n\npm = PassManager([ALAPScheduleAnalysis(target=fake.target),\n                  PadDynamicalDecoupling(target=fake.target, dd_sequence=[XGate(), XGate()])])\ncon_dd = pm.run(isa)\n\ndef pulsos_x(qc):\n    return sum(1 for inst in qc.data if inst.operation.name == \"x\")\n\nprint(\"pulsos X añadidos:\", pulsos_x(con_dd) - pulsos_x(isa))\nprint(\"misma operación:\", Operator(isa).equiv(Operator(con_dd)))",
+     "lang": "python",
+     "id": "c",
+     "size": 17
+    },
+    {
+     "type": "code",
+     "src": "pulsos X añadidos: 2\nmisma operación: True",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      15
+     ],
+     "id": "c",
+     "at": "isa"
+    },
+    {
+     "do": "hl",
+     "range": "17-19",
+     "id": "c",
+     "at": "pm"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "res"
+    },
+    {
+     "do": "hl",
+     "range": "24-25",
+     "id": "c",
+     "at": "res"
+    }
+   ]
+  },
+  {
    "id": "secuencias",
    "tag": [
     "6.2",
@@ -271,6 +392,112 @@
    ]
   },
   {
+   "id": "predice_tw",
+   "tag": [
+    "6.2",
+    "Antes de aleatorizar"
+   ],
+   "say": "Comprobemos que el twirling conserva la operación ideal. [[idea]]Para cada variante elegimos una Pauli al azar, la ponemos antes de la CNOT, y ponemos después la Pauli que resulta de empujarla a través de la CNOT. [[apuesta]]Generamos cuarenta variantes. Apuesta: ¿cuántas implementan exactamente la misma operación que una CNOT sola?",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 2,
+     "ops": [
+      {
+       "g": "box",
+       "q": [
+        0,
+        1
+       ],
+       "label": "P_L"
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        1
+       ]
+      },
+      {
+       "g": "box",
+       "q": [
+        0,
+        1
+       ],
+       "label": "P_R"
+      }
+     ]
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "De 40 variantes aleatorias, ¿cuántas equivalen a una CX?",
+    "options": [
+     "las 40",
+     "unas 20, la mitad",
+     "solo las que eligen la identidad antes",
+     "ninguna: son circuitos distintos"
+    ],
+    "after": "Anotado. Construyámoslas y comparemos matrices."
+   },
+   "align": "top"
+  },
+  {
+   "id": "tw_codigo",
+   "tag": [
+    "6.2",
+    "Cuarenta variantes, una sola operación"
+   ],
+   "say": "Cada variante es un circuito de dos qubits. [[antes]]Elegimos la Pauli de antes con un generador aleatorio con semilla. [[despues]]Pauli punto evolve con la CNOT calcula la Pauli que hay que poner después. [[res]]Las cuarenta variantes equivalen a la CNOT, y usan quince Paulis distintas antes de ella. Si dijiste «ninguna», acabas de ver la clave: los circuitos son distintos, pero la operación es la misma. Lo que cambia es cómo se reparte el ruido de la puerta.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "import numpy as np\nfrom qiskit import QuantumCircuit\nfrom qiskit.circuit.library import CXGate\nfrom qiskit.quantum_info import Operator, Pauli\n\nrng = np.random.default_rng(3)\n\ndef variante():\n    antes = Pauli(\"\".join(rng.choice(list(\"IXYZ\"), 2)))\n    despues = antes.evolve(CXGate())\n    qc = QuantumCircuit(2)\n    qc.append(antes.to_instruction(), [0, 1])\n    qc.cx(0, 1)\n    qc.append(despues.to_instruction(), [0, 1])\n    return antes.to_label(), qc\n\nvariantes = [variante() for _ in range(40)]\niguales = sum(Operator(qc).equiv(Operator(CXGate())) for _, qc in variantes)\nprint(\"equivalentes a una CX:\", iguales, \"de 40\")\nprint(\"Paulis distintas antes:\", len({etiqueta for etiqueta, _ in variantes}))",
+     "lang": "python",
+     "id": "c",
+     "size": 19
+    },
+    {
+     "type": "code",
+     "src": "equivalentes a una CX: 40 de 40\nPaulis distintas antes: 15",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      9
+     ],
+     "id": "c",
+     "at": "antes"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      10
+     ],
+     "id": "c",
+     "at": "despues"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "res"
+    },
+    {
+     "do": "hl",
+     "range": "18-20",
+     "id": "c",
+     "at": "res"
+    }
+   ]
+  },
+  {
    "id": "activar",
    "tag": [
     "6.2",
@@ -364,6 +591,80 @@
      "El par de Paulis se elige para mantener el efecto ideal.",
      "Twirling no cambia el ancho del circuito.",
      null
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "6.2",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero rellenas los huecos de un circuito con la secuencia XX y compruebas que la operación no cambia. [[n2]]Después la alargas a cuatro pulsos X y cuentas el doble. [[n3]]Y por último escribes tú una variante de twirling de la CNOT: la Pauli de después que mantiene la operación. [[check]]Cada misión tiene una comprobación: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p6-supresion.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Rellena los huecos con XX y verifica que la operación es la misma."
+      },
+      {
+       "level": 2,
+       "text": "Cambia la secuencia a cuatro pulsos X: debe añadir el doble."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `variante(rng)`: elige `antes` al azar y calcula `despues` con `evolve`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "6.2",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma. Ninguna tiene respuesta automática.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Lo que no cambia el resultado ideal puede cambiar el medido.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Las dos técnicas añaden operaciones que, en el caso ideal, no hacen nada. ¿Por qué entonces pueden cambiar el resultado que mides en un QPU?",
+     "¿En qué circuito de tu proyecto Ising crees que el desacoplamiento dinámico empeoraría las cosas? ¿Cómo lo comprobarías?"
     ]
    },
    "align": "top"

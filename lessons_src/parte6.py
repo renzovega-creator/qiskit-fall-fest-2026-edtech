@@ -1,6 +1,6 @@
 """Parte VI · Ruido: supresión y mitigación."""
-from lib import (T, M, L, Row, Box, A, beat, choice, numeric, lesson,
-                 Code, Out, Sh, Table, Flow, Hist, Graph)
+from lib import (T, M, L, Row, Box, A, beat, choice, numeric, predict, reflect, Mission, lesson,
+                 Code, Out, Sh, Table, Flow, Hist, Graph, Circ, G)
 from parte2 import resumen
 
 
@@ -65,6 +65,41 @@ panorama = lesson(
                         "Correcto: el twirling aleatoriza las puertas y adapta la estructura del ruido; no elimina todas las fuentes de error.",
                         wrong=["El desacoplamiento actúa sobre qubits inactivos.", "ZNE extrapola resultados medidos a ruido cero.", None])),
 
+        beat("predice", ("", "Antes de medir el ruido"),
+             """Pongamos un número al ruido. Preparamos el estado de Bell en un simulador con un modelo de ruido sencillo. [[cx]]Cada CNOT tiene un uno por ciento de error despolarizante. [[lectura]]Y cada lectura se equivoca un dos por ciento de las veces.
+             [[apuesta]]Se miden cuatro mil disparos. Un Bell ideal solo da cero cero y uno uno: apuesta cuántos disparos serán cero uno o uno cero.""",
+             [Circ(2, [G("h", 0), G("cx", 0, 1), G("barrier"), G("measure", 0, c=0), G("measure", 1, c=1)], clbits=2, creg="meas")],
+             [],
+             ask=predict("¿Cuántos de los 4000 disparos serán `01` o `10`?",
+                         ["ninguno: el circuito es correcto", "unos 40 (1 %)", "unos 170 (4 %)", "unos 800 (20 %)"],
+                         "Anotado. Ejecutémoslo y contemos.")),
+
+        beat("ruido_real", ("", "El Bell sale sucio"),
+             """Este es el modelo y el resultado. [[modelo]]Un NoiseModel de Aer con error despolarizante en cada cx y un error de lectura simétrico.
+             [[run]]Lo ejecutamos con una semilla fija, para que el número no cambie entre ejecuciones. [[res]]Salen unos ciento setenta disparos erróneos: un cuatro coma tres por ciento.
+             [[suma]]No es el uno por ciento de la CNOT: se suman el error de la puerta y los de lectura de los dos qubits. Si apostaste por ninguno, ahora ves por qué hace falta toda esta parte del curso.""",
+             [Code('''from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit_aer.noise import NoiseModel, ReadoutError, depolarizing_error
+
+modelo = NoiseModel()
+modelo.add_all_qubit_quantum_error(depolarizing_error(0.01, 2), ["cx"])
+modelo.add_all_qubit_readout_error(ReadoutError([[0.98, 0.02], [0.02, 0.98]]))
+
+bell = QuantumCircuit(2)
+bell.h(0)
+bell.cx(0, 1)
+bell.measure_all()
+
+sim = AerSimulator(noise_model=modelo, seed_simulator=7)
+cuentas = sim.run(bell, shots=4000).result().get_counts()
+print(dict(sorted(cuentas.items())))
+print(f"disparos erróneos: {(cuentas['01'] + cuentas['10']) / 4000:.1%}")''', id="c", size=19),
+              Out("{'00': 1912, '01': 79, '10': 94, '11': 1915}\ndisparos erróneos: 4.3%", id="o", hidden=True, check=True),
+              Hist([["00", 1912], ["01", 79], ["10", 94], ["11", 1915]], id="h", hidden=True, h=130, w=520, ymax=2200, color="red")],
+             [A("hl", "c", at="modelo", range="5-7"), A("hl", "c", at="run", range="14-15"), A("hl", "c", at="res", range="16-17"),
+              A("show", "o", at="res"), A("show", "h", at="res"), A("grow", "h", at="res")]),
+
         beat("simular", ("", "Simular no es medir el QPU"),
              """Una simulación con ruido es útil para experimentar, pero responde una pregunta distinta. [[aer]]En Aer eliges un modelo y ves cómo ese modelo afecta al circuito. [[real]]En un QPU intervienen ruido, calibraciones, deriva y efectos que quizá no incluya tu simulador.
              [[puente]]Por eso la simulación sirve para depurar y comparar hipótesis, no para prometer que una mitigación dará la misma mejora en hardware. Las lecciones siguientes muestran las herramientas del servicio y cuándo usarlas.""",
@@ -78,6 +113,21 @@ panorama = lesson(
              ask=numeric("¿Cuántas familias de respuesta acabamos de distinguir?", 4,
                          "Son cuatro: suprimir, mitigar, aprender el ruido y postseleccionar.",
                          tol=0, hint="Cuenta las cuatro etiquetas del mapa.", solution="4")),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero reproduces el Bell ruidoso y cuentas sus disparos erróneos. [[n2]]Después subes el error de la CNOT hasta que más del doce por ciento de las muestras salga mal. [[n3]]Y por último escribes la distancia entre la distribución medida y la ideal, la cifra con la que compararás todas las técnicas de esta parte.
+             [[check]]Cada misión tiene una comprobación: busca la marca verde.""",
+             [Mission("practica/p6-panorama.py", [
+                 (1, "Ejecuta el Bell con ruido y mide la fracción de `01` y `10`."),
+                 (2, "Sube el error de la CNOT hasta superar el 12 % de disparos erróneos."),
+                 (3, "Escribe `distancia_tv(medida, ideal)`, la distancia de variación total entre dos distribuciones.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con lo que viste en el cuaderno.""",
+             [T("Antes de mitigar, mide cuánto ruido hay.", "subtitle")],
+             ask=reflect("Con un 1 % de error por CNOT y un 2 % de lectura, el Bell salió con un 4 % de disparos erróneos. ¿Qué crees que pasaría con un circuito de 50 CNOT? ¿Qué cifra mirarías para saberlo?",
+                         "De las cuatro respuestas (suprimir, mitigar, aprender, postseleccionar), ¿cuál probarías primero en tu cadena de Ising y por qué?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]El ruido nace en las puertas, la lectura, las esperas y la interacción entre qubits; además, deriva con el tiempo.
@@ -119,6 +169,46 @@ supresion = lesson(
                     dict(t="siguiente puerta")], id="f", stagger=True)],
              [A("item", "f", at="idle", i=1), A("item", "f", at="pulsos", i=2)]),
 
+        beat("predice_dd", ("", "Antes de rellenar los huecos"),
+             """Probémoslo en un circuito de tres qubits, transpilado para un backend falso de cinco qubits. [[circ]]Hay una H, tres CNOT entre los qubits cero y uno, una CNOT entre uno y dos, y una H final. Mientras los qubits cero y uno trabajan, el dos espera; y al final, espera el cero.
+             [[apuesta]]Rellenaremos los huecos con la secuencia XX. Apuesta: ¿cuántos pulsos X se añaden en total, y cambia la operación del circuito?""",
+             [Circ(3, [G("h", 0), G("cx", 0, 1), G("cx", 0, 1), G("cx", 0, 1), G("cx", 1, 2), G("h", 2)])],
+             [],
+             ask=predict("Al rellenar con XX, ¿qué esperas?",
+                         ["ningún pulso: no hay huecos", "2 pulsos X y la misma operación", "4 pulsos X y la misma operación", "2 pulsos X y una operación distinta"],
+                         "Anotado. Programamos el circuito y contamos.")),
+
+        beat("dd_codigo", ("", "Programar y rellenar"),
+             """El código. [[isa]]Transpilamos el circuito con el layout fijo, sin optimizar, para que las esperas sean las del circuito original. [[pm]]El gestor de pases programa el circuito con ALAPScheduleAnalysis y PadDynamicalDecoupling rellena los huecos con la secuencia de dos puertas X.
+             [[res]]Se añaden dos pulsos X, y la operación es la misma: Operator equiv da verdadero. El desacoplamiento solo rellena esperas con una identidad; que sirva en un dispositivo real depende de lo bien calibrados que estén esos pulsos.""",
+             [Code('''from qiskit import QuantumCircuit, transpile
+from qiskit.circuit.library import XGate
+from qiskit.quantum_info import Operator
+from qiskit.transpiler import PassManager
+from qiskit.transpiler.passes import ALAPScheduleAnalysis, PadDynamicalDecoupling
+from qiskit_ibm_runtime.fake_provider import FakeManilaV2
+
+fake = FakeManilaV2()
+logico = QuantumCircuit(3)
+logico.h(0)
+for _ in range(3):
+    logico.cx(0, 1)
+logico.cx(1, 2)
+logico.h(2)
+isa = transpile(logico, fake, optimization_level=0, initial_layout=[0, 1, 2], seed_transpiler=1)
+
+pm = PassManager([ALAPScheduleAnalysis(target=fake.target),
+                  PadDynamicalDecoupling(target=fake.target, dd_sequence=[XGate(), XGate()])])
+con_dd = pm.run(isa)
+
+def pulsos_x(qc):
+    return sum(1 for inst in qc.data if inst.operation.name == "x")
+
+print("pulsos X añadidos:", pulsos_x(con_dd) - pulsos_x(isa))
+print("misma operación:", Operator(isa).equiv(Operator(con_dd)))''', id="c", size=17),
+              Out("pulsos X añadidos: 2\nmisma operación: True", id="o", hidden=True, check=True)],
+             [A("hl", "c", at="isa", lines=[15]), A("hl", "c", at="pm", range="17-19"), A("show", "o", at="res"), A("hl", "c", at="res", range="24-25")]),
+
         beat("secuencias", ("", "La secuencia depende del dispositivo"),
              """No hay una única secuencia mejor para todos los circuitos. [[xx]]La secuencia XX inserta dos pulsos X durante la espera. [[xp]]La secuencia XpXm usa dos rotaciones X de signos opuestos.
              [[opciones]]En la opción `sequence_type` puedes elegir la secuencia que admita el servicio. La duración y la calibración de los pulsos importan: la identidad matemática no convierte pulsos imperfectos en pulsos perfectos.""",
@@ -145,6 +235,41 @@ supresion = lesson(
                   ["el objetivo del circuito", "qué variante aporta cada disparo"],
               ], id="t", hidden=True, stagger=True, size=24)],
              [A("show", "eq", at="igual"), A("show", "t", at="canal")]),
+
+        beat("predice_tw", ("", "Antes de aleatorizar"),
+             """Comprobemos que el twirling conserva la operación ideal. [[idea]]Para cada variante elegimos una Pauli al azar, la ponemos antes de la CNOT, y ponemos después la Pauli que resulta de empujarla a través de la CNOT.
+             [[apuesta]]Generamos cuarenta variantes. Apuesta: ¿cuántas implementan exactamente la misma operación que una CNOT sola?""",
+             [Circ(2, [G("box", 0, 1, label="P_L"), G("cx", 0, 1), G("box", 0, 1, label="P_R")])],
+             [],
+             ask=predict("De 40 variantes aleatorias, ¿cuántas equivalen a una CX?",
+                         ["las 40", "unas 20, la mitad", "solo las que eligen la identidad antes", "ninguna: son circuitos distintos"],
+                         "Anotado. Construyámoslas y comparemos matrices.")),
+
+        beat("tw_codigo", ("", "Cuarenta variantes, una sola operación"),
+             """Cada variante es un circuito de dos qubits. [[antes]]Elegimos la Pauli de antes con un generador aleatorio con semilla. [[despues]]Pauli punto evolve con la CNOT calcula la Pauli que hay que poner después.
+             [[res]]Las cuarenta variantes equivalen a la CNOT, y usan quince Paulis distintas antes de ella. Si dijiste «ninguna», acabas de ver la clave: los circuitos son distintos, pero la operación es la misma. Lo que cambia es cómo se reparte el ruido de la puerta.""",
+             [Code('''import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.circuit.library import CXGate
+from qiskit.quantum_info import Operator, Pauli
+
+rng = np.random.default_rng(3)
+
+def variante():
+    antes = Pauli("".join(rng.choice(list("IXYZ"), 2)))
+    despues = antes.evolve(CXGate())
+    qc = QuantumCircuit(2)
+    qc.append(antes.to_instruction(), [0, 1])
+    qc.cx(0, 1)
+    qc.append(despues.to_instruction(), [0, 1])
+    return antes.to_label(), qc
+
+variantes = [variante() for _ in range(40)]
+iguales = sum(Operator(qc).equiv(Operator(CXGate())) for _, qc in variantes)
+print("equivalentes a una CX:", iguales, "de 40")
+print("Paulis distintas antes:", len({etiqueta for etiqueta, _ in variantes}))''', id="c", size=19),
+              Out("equivalentes a una CX: 40 de 40\nPaulis distintas antes: 15", id="o", hidden=True, check=True)],
+             [A("hl", "c", at="antes", lines=[9]), A("hl", "c", at="despues", lines=[10]), A("show", "o", at="res"), A("hl", "c", at="res", range="18-20")]),
 
         beat("activar", ("", "Activar las opciones"),
              """Las primitivas del lado del cliente exponen las dos opciones. [[dd]]En Sampler o Estimator puedes activar el desacoplamiento y elegir su secuencia.
@@ -177,6 +302,21 @@ estimator.options.twirling.enable_gates = True''', id="c", norun=True, size=20)]
                         ["el objetivo ideal", "el número de qubits", "la estructura del canal de ruido"], 2,
                         "Correcto: las variantes conservan la operación ideal y adaptan la estructura del ruido.",
                         wrong=["El par de Paulis se elige para mantener el efecto ideal.", "Twirling no cambia el ancho del circuito.", None])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero rellenas los huecos de un circuito con la secuencia XX y compruebas que la operación no cambia. [[n2]]Después la alargas a cuatro pulsos X y cuentas el doble. [[n3]]Y por último escribes tú una variante de twirling de la CNOT: la Pauli de después que mantiene la operación.
+             [[check]]Cada misión tiene una comprobación: busca la marca verde.""",
+             [Mission("practica/p6-supresion.py", [
+                 (1, "Rellena los huecos con XX y verifica que la operación es la misma."),
+                 (2, "Cambia la secuencia a cuatro pulsos X: debe añadir el doble."),
+                 (3, "Escribe `variante(rng)`: elige `antes` al azar y calcula `despues` con `evolve`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma. Ninguna tiene respuesta automática.""",
+             [T("Lo que no cambia el resultado ideal puede cambiar el medido.", "subtitle")],
+             ask=reflect("Las dos técnicas añaden operaciones que, en el caso ideal, no hacen nada. ¿Por qué entonces pueden cambiar el resultado que mides en un QPU?",
+                         "¿En qué circuito de tu proyecto Ising crees que el desacoplamiento dinámico empeoraría las cosas? ¿Cómo lo comprobarías?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]El desacoplamiento dinámico inserta secuencias de pulsos en intervalos inactivos.
@@ -229,6 +369,32 @@ mitigacion = lesson(
              [A("item", "f", at="amplificar", i=0), A("item", "f", at="factores", i=1),
               A("item", "f", at="factores", t=1.5, i=2), A("item", "f", at="extrapolar", i=3), A("show", "b", at="noexacta")]),
 
+        beat("predice_zne", ("", "Antes de extrapolar"),
+             """Un caso concreto. [[ghz]]Un estado GHZ de cuatro qubits, con un dos por ciento de error despolarizante en cada CNOT, y el observable Z cero por Z tres, cuyo valor ideal es uno. [[tabla]]Medimos con los factores de ruido uno, tres y cinco, y el valor baja: cero coma nueve cuatro, cero coma ocho tres, cero coma siete tres.
+             [[apuesta]]Ajusta una recta por esos tres puntos y llévala al factor cero. Apuesta: ¿a qué valor llega?""",
+             [Table(["Factor de ruido", "⟨Z₀Z₃⟩ medido"], [["1", "0.9412"], ["3", "0.8337"], ["5", "0.7386"], ["0", "?"]], id="t", stagger=True, size=24)],
+             [A("item", "t", at="tabla", i=0), A("item", "t", at="tabla", t=.8, i=1), A("item", "t", at="tabla", t=1.6, i=2),
+              A("item", "t", at="apuesta", i=3)],
+             ask=predict("La recta que pasa por esos puntos, ¿qué valor da en el factor 0?",
+                         ["exactamente 1.0000", "cerca de 0.99, se queda corta", "más de 1.05, se pasa", "0.94, igual que sin extrapolar"],
+                         "Anotado. Hagamos el ajuste.")),
+
+        beat("zne_ajuste", ("", "Recta frente a exponencial"),
+             """Dos ajustes con numpy. [[recta]]Una recta con polyfit de grado uno; el término independiente es el valor en cero. Da cero coma nueve ocho nueve ocho: mejor que el cero coma nueve cuatro sin mitigar, pero se queda corta.
+             [[exp]]Con ruido despolarizante cada puerta multiplica el valor por un factor fijo, así que los puntos siguen una exponencial. Una exponencial es una recta en el logaritmo: ajustamos log de los valores y deshacemos el logaritmo.
+             [[res]]Sale uno coma cero cero cero cero. Es exacto porque este ruido es exactamente despolarizante; en un QPU real la curva es solo una aproximación, y por eso conviene elegir el modelo de extrapolación con cuidado.""",
+             [Code('''import numpy as np
+
+factores = [1, 3, 5]
+valores = [0.9412, 0.8337, 0.7386]
+
+recta = np.polyfit(factores, valores, 1)[1]
+exponencial = np.exp(np.polyfit(factores, np.log(valores), 1)[1])
+print(f"recta: {recta:.4f}")
+print(f"exponencial: {exponencial:.4f}")''', id="c", size=23),
+              Out("recta: 0.9898\nexponencial: 1.0000", id="o", hidden=True, check=True)],
+             [A("hl", "c", at="recta", lines=[6]), A("hl", "c", at="exp", lines=[7]), A("show", "o", at="res")]),
+
         beat("pea", ("", "PEA aprende antes de amplificar"),
              """PEA mejora la etapa de amplificación de ZNE. [[aprender]]Primero aprende un modelo de ruido twirleado para las capas de puertas de dos qubits del circuito.
              [[inyectar]]Después aumenta el ruido de forma probabilística, usando ese modelo, en vez de confiar solo en plegar puertas. [[extrapolar]]Por último, extrapola las expectativas a ruido cero como ZNE.
@@ -272,6 +438,21 @@ mitigacion = lesson(
                         "Correcto: el hardware siempre tiene ruido; ZNE extrapola desde resultados medidos a varios factores.",
                         wrong=["No existe una ejecución física sin ruido.", None])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero haces ZNE con una recta sobre el GHZ y ves cuánto se queda corta. [[n2]]Después cambias a una exponencial y llegas al valor ideal. [[n3]]Y por último escribes los pesos de PEC para un qubit, con un peso negativo, y calculas cuánto crece el número de disparos.
+             [[check]]Cada misión tiene una comprobación: busca la marca verde.""",
+             [Mission("practica/p6-mitigacion.py", [
+                 (1, "Mide a factores 1, 3 y 5 y extrapola con una recta."),
+                 (2, "Ajusta una exponencial: el error debe bajar de $10^{-3}$."),
+                 (3, "Escribe `pesos_pec(lam)` y mira cómo crece el sobrecoste $\\gamma^{2n}$ con la profundidad.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Una extrapolación es un modelo, no una medida.", "subtitle")],
+             ask=reflect("La exponencial dio exactamente 1 en el cuaderno. ¿Por qué eso no te garantiza nada en un QPU real?",
+                         "PEC no tiene sesgo pero su costo crece muy rápido con la profundidad; ZNE es barato pero sesgado. Para tu cadena de Ising con muchos pasos de Trotter, ¿cuál probarías primero?")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]TREX reduce sesgo de lectura; ZNE extrapola expectativas al factor cero.
              [[r2]]PEA aprende el ruido para amplificarlo mejor; PEC puede ser no sesgada, pero cuesta muchos disparos.
@@ -285,7 +466,7 @@ mitigacion = lesson(
 
 # ------------------------------------------------------------------ 6.4 Configurar el ruido
 s_configurar, a_configurar = resumen([
-    "resilience_level 0: sin mitigación; 1: TREX; 2: TREX + ZNE y twirling",
+    "resilience_level 0: sin mitigación; 1 (por defecto): TREX; 2: TREX + ZNE y twirling",
     "Sampler ofrece supresión; Estimator también ofrece mitigación de expectativas",
     "las opciones explícitas se combinan con el nivel y pueden prevalecer sobre su valor base",
     "la disponibilidad y el costo dependen del tipo de circuito",
@@ -304,16 +485,28 @@ configurar = lesson(
               T("Primero define la salida que te importa: una expectativa o una distribución de muestras.", "note", id="n", hidden=True)],
              [A("show", "b", at="beta"), A("show", "n", at="detalle")]),
 
+        beat("predice_nivel", ("", "¿Y si no pides ningún nivel?"),
+             """Antes de ver la tabla de niveles, una apuesta. [[crear]]Creas un Estimator y no tocas ninguna opción. [[apuesta]]¿Qué valor de resilience level tendrá? Cero significa sin mitigación; uno, TREX; dos, TREX más extrapolación a ruido cero.""",
+             [Code("estimator = Estimator(backend)   # sin opciones", id="c", norun=True, size=26)],
+             [A("hl", "c", at="crear", lines=[1])],
+             ask=predict("¿Qué `resilience_level` tendrá ese Estimator?",
+                         ["0, sin mitigación", "1, TREX", "2, TREX + ZNE + twirling"],
+                         "Anotado. Lo leemos del propio objeto de opciones.")),
+
         beat("niveles", ("", "Los niveles de Estimator"),
              """En la tabla documentada, nivel cero desactiva la mitigación. [[cero]]Nivel uno aplica TREX para reducir errores de lectura. [[uno]]Nivel dos añade extrapolación a ruido cero y twirling de puertas.
+             [[defecto]]Y la respuesta a la apuesta: el nivel uno es el valor por defecto. Un Estimator sin opciones ya mitiga el error de lectura. Las opciones se validan en local, sin cuenta: con un backend falso puedes leerlas.
              [[costo]]El nivel dos suele consumir más muestreo que el uno. El nombre ‘resilience’ no significa que el resultado sea inmune al ruido.""",
              [Table(["Nivel", "Método"], [
                  ["0", "sin mitigación"],
-                 ["1", "TREX · mitigación de lectura"],
+                 ["1", "TREX · mitigación de lectura (por defecto)"],
                  ["2", "TREX + ZNE + twirling de puertas"],
-             ], id="t", stagger=True, size=24)],
+             ], id="t", stagger=True, size=24),
+              Code("print(Estimator(backend).options.resilience_level)", id="d", hidden=True, size=24,
+                   setup="from qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2\nbackend = FakeManilaV2()"),
+              Out("1", id="o", hidden=True, check=True)],
              [A("item", "t", at="cero", i=0), A("item", "t", at="uno", i=1),
-              A("item", "t", at="costo", i=2)]),
+              A("show", "d", at="defecto"), A("show", "o", at="defecto"), A("item", "t", at="costo", i=2)]),
 
         beat("estimator", ("", "Elegir un nivel"),
              """El código usa el Estimator nuevo del lado del cliente, incluido en `qiskit-ibm-runtime` cero punto cincuenta o posterior. [[importar]]Se importa desde `executor_estimator`, se conecta al backend y recibe `resilience_level` en sus opciones.
@@ -375,8 +568,23 @@ sampler.options.twirling.enable_gates = True''', id="c", size=22,
                         "Correcto: las opciones explícitas se aplican además de la configuración base del nivel.",
                         wrong=["No se ignoran.", None, "Pueden combinarse con cualquier nivel compatible."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. Las opciones se validan en local, así que no hace falta cuenta. [[n1]]Primero lees lo que trae por defecto un Estimator y un Sampler. [[n2]]Después partes del nivel cero y activas TREX y ZNE a mano, y pruebas un nivel inválido para ver el error. [[n3]]Y por último escribes una función que prepara cualquiera de las dos primitivas y rechaza TREX o ZNE para el Sampler.
+             [[check]]Cada misión tiene una comprobación: busca la marca verde.""",
+             [Mission("practica/p6-configurar.py", [
+                 (1, "Crea un Estimator y un Sampler sin opciones y lee sus valores por defecto."),
+                 (2, "Nivel 0 más TREX y ZNE con factores 1, 3 y 5; prueba `resilience_level = 7`."),
+                 (3, "Escribe `preparar(primitiva, tecnicas)`: un Sampler con `\"trex\"` o `\"zne\"` lanza `ValueError`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma.""",
+             [T("Un nivel resume una estrategia; no la garantiza.", "subtitle")],
+             ask=reflect("El nivel por defecto ya aplica TREX sin que lo pidas. ¿Qué ventaja y qué riesgo tiene que una mitigación esté activada por defecto?",
+                         "Para tu cadena de Ising, ¿empezarías con el nivel 1, con el 2 o con opciones individuales? ¿Qué medirías para decidir?")),
+
         beat("cierre", ("", "Resumen"),
-             """Resumen. [[r1]]Estimator ofrece niveles cero, uno y dos; el nivel dos añade ZNE y twirling al nivel uno.
+             """Resumen. [[r1]]Estimator ofrece niveles cero, uno y dos; el uno es el de por defecto, y el dos añade ZNE y twirling.
              [[r2]]Puedes fijar técnicas individuales, respetando las compatibilidades.
              [[r3]]Sampler se centra en desacoplamiento dinámico y twirling; no ofrece la mitigación de expectativas de Estimator.
              [[r4]]Los niveles están en beta: compara calidad, overhead y circuito real.""",
@@ -417,6 +625,41 @@ aprender_ruido = lesson(
                   ["`Λ`", "canal aproximado para la capa"],
               ], id="t", hidden=True, stagger=True, size=23)],
              [A("show", "eq", at="capas"), A("show", "t", at="tasas")]),
+
+        beat("predice_decae", ("", "Antes de medir la capa"),
+             """¿Cómo se aprende una tasa? Repitiendo la capa y mirando cómo decae un valor esperado. [[capa]]Aquí la capa son dos CNOT seguidas, que sin ruido serían la identidad, con un tres por ciento de error despolarizante en cada una. [[medida]]Partimos de cero cero y medimos Z por Z tras una, dos, cuatro y ocho capas.
+             [[apuesta]]Apuesta: ¿cómo baja el valor al repetir la capa?""",
+             [Flow([dict(t="|00⟩"), dict(t="capa × d", s="2 CX con ruido", color="gold"), dict(t="⟨ZZ⟩", s="d = 1, 2, 4, 8", color="blue")], id="f", stagger=True)],
+             [A("item", "f", at="capa", i=1), A("item", "f", at="medida", i=2)],
+             ask=predict("Al duplicar el número de capas, ⟨ZZ⟩…",
+                         ["baja la misma cantidad cada capa (una recta)", "se multiplica por el mismo factor cada capa (una exponencial)",
+                          "casi no cambia", "oscila hacia arriba y abajo"],
+                         "Anotado. Calculémoslo con una simulación exacta.")),
+
+        beat("decae", ("", "Cada capa multiplica por lo mismo"),
+             """El cálculo. [[canal]]Un canal despolarizante de dos qubits, convertido a canal cuántico, y una CNOT. [[bucle]]Cada capa aplica dos veces la CNOT y el canal sobre una matriz de densidad que parte de cero cero. [[obs]]Y al final se lee el valor esperado de Z por Z.
+             [[res]]Los valores bajan de cero coma nueve cuatro a cero coma seis uno en ocho capas. El cociente entre capas consecutivas es constante: cero coma nueve cuatro cero nueve, que es uno menos cero coma cero tres, al cuadrado. Es una exponencial, y ese factor es la fidelidad de Pauli de la capa.
+             [[ajuste]]Por eso se ajusta una recta al logaritmo: la pendiente da la fidelidad, y de la fidelidad sale la tasa del modelo Pauli–Lindblad.""",
+             [Code('''from qiskit import QuantumCircuit
+from qiskit.quantum_info import DensityMatrix, SparsePauliOp
+from qiskit_aer.noise import depolarizing_error
+
+canal = depolarizing_error(0.03, 2).to_quantumchannel()
+cx = QuantumCircuit(2)
+cx.cx(0, 1)
+
+def zz_tras(d):
+    rho = DensityMatrix.from_label("00")
+    for _ in range(2 * d):
+        rho = rho.evolve(cx).evolve(canal)
+    return float(rho.expectation_value(SparsePauliOp("ZZ")).real)
+
+for d in (1, 2, 4, 8):
+    print(d, round(zz_tras(d), 4))
+print("cociente 2 capas / 1 capa:", round(zz_tras(2) / zz_tras(1), 4))''', id="c", size=18),
+              Out("1 0.9409\n2 0.8853\n4 0.7837\n8 0.6143\ncociente 2 capas / 1 capa: 0.9409", id="o", hidden=True, check=True)],
+             [A("hl", "c", at="canal", range="5-7"), A("hl", "c", at="bucle", range="10-12"), A("hl", "c", at="obs", lines=[13]),
+              A("show", "o", at="res"), A("hl", "c", at="ajuste", range="15-17")]),
 
         beat("versiones", ("", "De NoiseLearner a NoiseLearnerV3"),
              """La versión anterior, NoiseLearner, recibe circuitos o PUBs y aplica su propia forma de encontrar capas. [[nuevo]]NoiseLearnerV3 recibe cajas anotadas que ya representan instrucciones ISA y permite que tú decidas qué capas caracterizar.
@@ -472,6 +715,21 @@ result = estimator.run(pubs).result()''', id="c", norun=True, size=20)],
                         "Correcto: el aprendizaje caracteriza el ruido; PEA o PEC usan el modelo para mitigar.",
                         wrong=["No modifica el circuito objetivo.", None, "Ese es otro flujo de postselección."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. No necesita cuenta: el modelo de ruido es una lista de Paulis con tasas. [[n1]]Primero construyes un modelo Pauli–Lindblad y calculas cuánto cuesta invertirlo. [[n2]]Después lo amplificas multiplicando sus tasas por tres, como hace PEA. [[n3]]Y por último aprendes tú una fidelidad: mides cómo decae un valor esperado con la profundidad y ajustas la tasa.
+             [[check]]Cada misión tiene una comprobación: busca la marca verde.""",
+             [Mission("practica/p6-aprender-ruido.py", [
+                 (1, "Construye un `PauliLindbladMap` y calcula $\\gamma$ para invertir una capa."),
+                 (2, "Obtén el modelo amplificado con `scale_rates(3)` y comprueba que $\\gamma$ pasa a $\\gamma^3$."),
+                 (3, "Ajusta $f$ con $\\langle ZZ\\rangle(d)=f^d$ y calcula la tasa $r=-\\tfrac12\\ln f$.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma.""",
+             [T("Un modelo aprendido describe una calibración, no el dispositivo para siempre.", "subtitle")],
+             ask=reflect("En el cuaderno un solo término reprodujo la fidelidad de $ZZ$. ¿Qué otras medidas necesitarías para distinguir los muchos términos del ruido real de una capa?",
+                         "¿Cada cuánto crees que habría que volver a aprender el modelo si ejecutas tu cadena de Ising durante varios días? ¿Qué lo cambiaría?")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]NoiseLearner ajusta un modelo Pauli–Lindblad por capas de puertas.
              [[r2]]NoiseLearnerV3 recibe cajas anotadas y se integra con Executor y el Estimator nuevo.
@@ -487,7 +745,7 @@ result = estimator.run(pubs).result()''', id="c", norun=True, size=20)],
 s_post, a_post = resumen([
     "medir · X lento (RX) · medir otra vez: el bit debe invertirse",
     "`AddSpectatorMeasures` + `AddPostSelectionMeasures` · también en qubits espectadores",
-    "`PostSelector.compute_mask`: `True` conserva · estrategias `node` y `edge`",
+    "`PostSelector.compute_mask`: `True` conserva · `node` es estricta, `edge` permisiva",
     "cuesta disparos y no siempre mejora: compara con y sin filtrar",
 ])
 postseleccion = lesson(
@@ -553,7 +811,7 @@ print(list(executor_result.keys()))   # ['meas', 'spec', 'meas_ps', 'spec_ps']''
 
         beat("mascara", ("", "La máscara decide qué queda"),
              """PostSelector interpreta esos registros. [[selector]]Se crea a partir del circuito con los controles y del mapa de acoplamiento, y compute mask devuelve una máscara booleana con un valor por disparo.
-             [[true]]Verdadero significa conservar; falso, descartar. [[estrategias]]Hay dos estrategias, node y edge, que suelen descartar disparos distintos. [[and]]La guía las combina con un Y lógico: solo conserva un disparo si pasa las dos. Es la opción más conservadora.
+             [[true]]Verdadero significa conservar; falso, descartar. [[estrategias]]Hay dos estrategias, node y edge, y la guía calcula las dos. [[and]]Después las combina con un Y lógico.
              [[resultado]]En el ejemplo se conserva el ochenta y tres por ciento de los disparos.""",
              [Code('''from qiskit_addon_utils.noise_management.post_selection import PostSelector
 
@@ -566,6 +824,53 @@ print(f"conservados: {100 * mask.sum() / 4000}%")''', id="c", norun=True, size=2
               Out("conservados: 83.3%", id="o", hidden=True)],
              [A("hl", "c", at="selector", range="3-4"), A("hl", "c", at="estrategias", range="5-6"), A("hl", "c", at="and", lines=[7]),
               A("show", "o", at="resultado")]),
+
+        beat("predice_and", ("", "Dos reglas, un Y lógico"),
+             """Mira qué exige cada estrategia. [[node]]Node descarta el disparo si algún qubit no invirtió su bit. [[edge]]Edge mira cada arista del mapa de acoplamiento y solo descarta si en alguna arista no se invirtió ninguno de los dos bits.
+             [[apuesta]]La guía conserva los disparos que pasan las dos reglas. Antes de ejecutar, apuesta: ¿cuántos disparos conserva node Y edge, comparado con node solo?""",
+             [Table(["Estrategia", "Descarta el disparo si…"], [
+                 ["node", "algún bit no se invirtió"],
+                 ["edge", "en alguna arista no se invirtió ninguno de los dos bits"],
+             ], id="t", stagger=True, size=23)],
+             [A("item", "t", at="node", i=0), A("item", "t", at="edge", i=1)],
+             ask=predict("`mask_node & mask_edge`, ¿cuántos disparos conserva?",
+                         ["menos que node", "los mismos que node", "los mismos que edge", "más que node y que edge"],
+                         "Anotado. Probémoslo con un simulador con ruido de lectura.")),
+
+        beat("comparar", ("", "Las tres máscaras"),
+             """Un GHZ de cuatro qubits en línea, con los controles de la guía, en Aer con ruido de lectura y de CNOT. No hace falta backend real. [[ps]]AddPostSelectionMeasures añade el pulso lento y la segunda medida. [[ruido]]El modelo tiene tres por ciento de error de lectura y dos por ciento por CNOT.
+             [[selector]]PostSelector se construye con el circuito y las aristas de la línea. [[masks]]Calculamos las dos máscaras y su Y lógico.
+             [[res]]Node conserva el setenta y ocho por ciento; edge, casi el noventa y nueve; y node Y edge, exactamente lo mismo que node. Todo disparo que pasa node ya tiene todos sus bits invertidos, así que pasa también edge: el Y lógico no añade ningún filtro. La estrategia estricta es node; edge es la permisiva.""",
+             [Code('''import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.transpiler import PassManager
+from qiskit_aer import AerSimulator
+from qiskit_aer.noise import NoiseModel, ReadoutError, depolarizing_error
+from qiskit_addon_utils.noise_management.post_selection import PostSelector
+from qiskit_addon_utils.noise_management.post_selection.transpiler.passes import AddPostSelectionMeasures
+
+ghz = QuantumCircuit(4)
+ghz.h(0)
+for q in range(3):
+    ghz.cx(q, q + 1)
+ghz.measure_all()
+ghz_ps = PassManager([AddPostSelectionMeasures(x_pulse_type="rx")]).run(ghz)
+
+modelo = NoiseModel()
+modelo.add_all_qubit_readout_error(ReadoutError([[0.97, 0.03], [0.03, 0.97]]))
+modelo.add_all_qubit_quantum_error(depolarizing_error(0.02, 2), ["cx"])
+sim = AerSimulator(noise_model=modelo, seed_simulator=11)
+memoria = sim.run(ghz_ps, shots=4000, memory=True).result().get_memory()
+bits = lambda i: np.array([[b == "1" for b in reversed(m.split()[i])] for m in memoria])
+datos = {"meas": bits(1), "meas_ps": bits(0)}
+
+selector = PostSelector.from_circuit(ghz_ps, [(0, 1), (1, 2), (2, 3)])
+mask_node = selector.compute_mask(datos, strategy="node")
+mask_edge = selector.compute_mask(datos, strategy="edge")
+print(f"node: {mask_node.mean():.1%} · edge: {mask_edge.mean():.1%} · node & edge: {(mask_node & mask_edge).mean():.1%}")''', id="c", size=14),
+              Out("node: 78.5% · edge: 98.6% · node & edge: 78.5%", id="o", hidden=True, check=True)],
+             [A("hl", "c", at="ps", lines=[14]), A("hl", "c", at="ruido", range="16-18"), A("hl", "c", at="selector", lines=[24]),
+              A("hl", "c", at="masks", range="25-27"), A("show", "o", at="res")]),
 
         beat("honesto", ("", "¿Mejoró el resultado?"),
              """La guía compara la distribución con el ideal: mitad cero cero cero cero, mitad uno uno uno uno. [[antes]]Sin postselección, la fidelidad con la distribución ideal es cero coma nueve tres ocho. [[despues]]Con postselección, cero coma nueve tres dos: en este caso, un poco peor.
@@ -585,13 +890,28 @@ print(f"conservados: {100 * mask.sum() / 4000}%")''', id="c", norun=True, size=2
         beat("q2", ("", "Comprueba"),
              """Sobre las dos estrategias.""",
              [Table(["Estrategia", "Regla"], [
-                 ["node", "descarta si falla cualquier control"],
-                 ["edge", "descarta por fallos en vecinos"],
+                 ["node", "descarta si algún bit no se invirtió"],
+                 ["edge", "descarta si en alguna arista no se invirtió ninguno de los dos bits"],
              ], id="t")],
-             ask=choice("¿Cuál suele conservar más muestras?",
+             ask=choice("¿Cuál conserva más muestras?",
                         ["node", "edge"], 1,
-                        "Correcto: edge es más permisiva; node descarta por cualquier qubit que falle.",
+                        "Correcto: edge es más permisiva; node descarta por cualquier qubit que falle, y todo disparo que pasa node también pasa edge.",
                         wrong=["Node exige que todos los controles pasen.", None])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. Usa el mismo GHZ de cuatro qubits con controles, sobre Aer. [[n1]]Primero filtras con la máscara node y mides cuánto sube la fidelidad. [[n2]]Después subes el error de lectura hasta que sobreviva menos del sesenta por ciento de los disparos. [[n3]]Y por último escribes tú las máscaras node y edge y las comparas con las de PostSelector.
+             [[check]]Cada misión tiene una comprobación: busca la marca verde.""",
+             [Mission("practica/p6-postseleccion.py", [
+                 (1, "Calcula la máscara `node` y compara la fidelidad con el GHZ antes y después de filtrar."),
+                 (2, "Sube el error de lectura hasta que `node` conserve menos del 60 % de los disparos."),
+                 (3, "Escribe `mascara(res, estrategia)` para `node` y `edge`; debe coincidir con `compute_mask`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma.""",
+             [T("Filtrar es gratis en código y caro en disparos.", "subtitle")],
+             ask=reflect("Con el error de lectura al diez por ciento sobrevive menos de la mitad de los disparos. ¿Qué información pierdes al descartarlos, y cómo se lo contarías a quien lea tu resultado?",
+                         "La guía mostró un caso en que filtrar empeoró un poco la fidelidad. ¿Qué comprobaciones harías antes de usar postselección en tu cadena de Ising?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Los controles de inversión de bit detectan algunas fluctuaciones lentas y errores correlacionados.
@@ -642,10 +962,20 @@ neat = lesson(
              [A("item", "f", at="isa", i=1), A("item", "f", at="par", i=2),
               A("item", "f", at="ideal", i=3)]),
 
+        beat("predice_neat", ("", "Antes de analizar"),
+             """Un circuito espejo de seis qubits: rotaciones aleatorias y capas de CNOT, seguidas de su inverso. [[ideal]]Sin ruido, cada valor esperado de Z vale exactamente uno. [[capas]]Lo analizaremos con una y con seis capas, en el backend falso Sherbrooke.
+             [[apuesta]]NEAT da una cifra: la diferencia absoluta media entre el resultado ideal y el ruidoso, en porcentaje. Apuesta cuánto vale con seis capas.""",
+             [Flow([dict(t="1 capa", s="2 CX por capa de ida"), dict(t="6 capas", s="seis veces más puertas", color="gold"),
+                    dict(t="diferencia media", s="ideal ↔ ruidoso", color="blue")], id="f", stagger=True)],
+             [A("item", "f", at="capas", i=0), A("item", "f", at="capas", t=1, i=1), A("item", "f", at="apuesta", i=2)],
+             ask=predict("Con 6 capas, la diferencia media entre el resultado ideal y el ruidoso será de…",
+                         ["menos del 1 %", "alrededor del 5 %", "entre el 15 % y el 20 %", "más del 90 %"],
+                         "Anotado. Ejecutemos el análisis.")),
+
         beat("ejemplo", ("", "Comparar ideal y ruidoso"),
              """El ejemplo de la guía, ejecutado en local con el backend falso Sherbrooke. [[espejo]]Un circuito espejo de seis qubits: rotaciones RZ aleatorias y capas de CNOT, seguidas de su inverso, así que idealmente cada valor esperado de Z vale uno. Se generan PUBs con una a seis capas.
              [[neat]]Neat recibe el backend; si no le das un modelo de ruido, usa el del backend. [[cliff]]to clifford convierte los PUBs, [[sim]]e ideal sim y noisy sim los simulan sin ruido y con ruido.
-             [[res]]La figura de mérito es la diferencia absoluta media, en porcentaje: crece con la profundidad: de unos tres o cuatro por ciento con una capa a unos veinte con seis. Los valores cambian un poco en cada ejecución, porque la simulación ruidosa toma muestras.""",
+             [[res]]La figura de mérito es la diferencia absoluta media, en porcentaje: crece con la profundidad: de unos tres por ciento con una capa a unos diecisiete con seis. Fijamos la semilla del simulador, así que los números se repiten; sin ella cambiarían un poco en cada ejecución, porque la simulación ruidosa toma muestras.""",
              [Code('''import random
 import numpy as np
 from qiskit.circuit import QuantumCircuit
@@ -680,11 +1010,11 @@ pubs = [(pm.run(generate_circuit(6, n)), isa_obs) for n in range(1, 7)]
 
 analyzer = Neat(backend)                 # sin modelo propio: el del backend
 clifford_pubs = analyzer.to_clifford(pubs)
-ideal = analyzer.ideal_sim(clifford_pubs)
-noisy = analyzer.noisy_sim(clifford_pubs)
+ideal = analyzer.ideal_sim(clifford_pubs, seed_simulator=1)
+noisy = analyzer.noisy_sim(clifford_pubs, seed_simulator=1)
 for n, (i, r) in enumerate(zip(ideal, noisy), 1):
     print(n, np.round(np.mean(abs(i - r).vals) * 100, 2))''', id="c", size=19),
-              Out("1 3.61\n2 5.24\n3 9.05\n4 12.3\n5 16.18\n6 20.41", id="o", hidden=True)],
+              Out("1 2.83\n2 4.92\n3 10.48\n4 13.83\n5 17.15\n6 17.19", id="o", hidden=True, check=True)],
              [A("hl", "c", at="espejo", range="10-24"), A("hl", "c", at="neat", lines=[33]), A("hl", "c", at="cliff", lines=[34]),
               A("hl", "c", at="sim", range="35-36"), A("hl", "c", at="res", range="37-38"), A("show", "o", at="res")]),
 
@@ -692,7 +1022,7 @@ for n, (i, r) in enumerate(zip(ideal, noisy), 1):
              """Compara el valor ideal con el ruidoso y repite el análisis con distintas profundidades. [[tendencia]]Si la diferencia crece con las capas, el circuito es más sensible al modelo de ruido. También puedes cambiar el modelo: analyzer punto noise model acepta uno propio de Aer, por ejemplo, un dos por ciento de despolarización en cada puerta de dos qubits.
              [[decidir]]Puedes usar ese indicador para comparar circuitos, modificar niveles de resiliencia o escoger factores de ruido. [[modelo]]La simulación Aer no representa todos los fenómenos físicos del QPU y puede subestimar el ruido real.
              [[trabajo]]NEAT evita gastar tiempo de QPU en algunas pruebas exploratorias; el resultado final todavía requiere ejecutar y medir tu circuito real.""",
-             [Hist([["1 capa", 3.61], ["2", 5.24], ["3", 9.05], ["4", 12.3], ["5", 16.18], ["6", 20.41]], id="g", hidden=True, h=150, w=760,
+             [Hist([["1 capa", 2.83], ["2", 4.92], ["3", 10.48], ["4", 13.83], ["5", 17.15], ["6", 17.19]], id="g", hidden=True, h=150, w=760,
                    digits=2, ylabel="diferencia media (%)", color="red"),
               Box("warn", "Proxy, no predicción", T("el modelo de ruido no incluye todos los errores de un QPU", "body"), id="b", hidden=True)],
              [A("show", "g", at="tendencia"), A("grow", "g", at="tendencia"), A("show", "b", at="modelo")]),
@@ -724,6 +1054,37 @@ for n, (i, r) in enumerate(zip(ideal, noisy), 1):
                         ["el QPU dará exactamente esa diferencia", "el circuito es inmune al ruido", "el modelo sugiere poca desviación y sirve para comparar opciones"], 2,
                         "Correcto: NEAT orienta comparaciones bajo un modelo; no garantiza el resultado del hardware.",
                         wrong=["El QPU puede tener ruido que el modelo no incluye.", "La simulación solo considera los errores modelados.", None])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. Usa el backend falso Sherbrooke, sin cuenta ni cola. [[n1]]Primero analizas uno, dos y tres capas y ves cómo crece la diferencia. [[n2]]Después sustituyes el modelo de ruido del backend por uno tuyo, con un dos por ciento de despolarización en cada puerta de dos qubits. [[n3]]Y por último escribes las reglas de la guía como una función: qué técnicas sugiere cada diferencia media.
+             [[check]]Cada misión tiene una comprobación: busca la marca verde.""",
+             [Mission("practica/p6-neat.py", [
+                 (1, "Analiza 1, 2 y 3 capas con el modelo del backend y comprueba que la diferencia crece."),
+                 (2, "Pasa a `Neat` un modelo de Aer con 2 % de despolarización en `ecr` y compáralo con el del backend."),
+                 (3, "Escribe `sugerencia(dif)`: `[]`, `[\"PEA\"]` o `[\"PEA\", \"ZNE\"]` según las reglas de la guía.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("proyecto", ("", "Tu proyecto: mitigar la cadena de espines"),
+             """Cierras la parte VI con el hito seis de tu proyecto Ising. [[mide]]Recalculas la magnetización exacta y la de Trotter, y mides cuánto sesga el ruido sin mitigar. [[trex]]Después aplicas TREX a mano, dividiendo por una calibración con el circuito vacío. [[zne]]Y por último extrapolas con ZNE, plegando el circuito, y comparas los tres con el valor exacto.
+             [[sim]]Todo corre por defecto en un simulador con el ruido de un backend falso; un interruptor te deja usar un QPU real si tienes tu cuenta. [[res]]Con el simulador, ZNE queda más cerca del exacto que TREX, y TREX más cerca que no mitigar. La mitigación apunta al valor de Trotter sin ruido: la diferencia restante es error de Trotter, y ninguna técnica de esta parte la toca.""",
+             [M(r"M_z=\tfrac1N\sum_i\langle Z_i\rangle", size=46),
+              Table(["Método", "Qué corrige"], [
+                  ["Sin mitigar", "nada: el número a batir"],
+                  ["TREX", "sesgo de lectura"],
+                  ["ZNE", "sesgo total, por extrapolación"],
+              ], id="t", stagger=True, size=24),
+              Mission("practica/proyecto/hito6.py", [
+                  (1, "Recalcula el valor exacto y mide el error sin mitigar."),
+                  (2, "Aplica TREX: divide la magnetización entre la calibración con el circuito vacío."),
+                  (3, "Escribe `extrapolar(factores, valores)` con una exponencial y compara los tres métodos.")],
+                  title="Proyecto Ising · Hito VI", id="m", hidden=True)],
+             [A("item", "t", at="mide", i=0), A("item", "t", at="trex", i=1), A("item", "t", at="zne", i=2), A("show", "m", at="sim")]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, para cerrar la parte.""",
+             [T("Una cifra barata para decidir antes de gastar QPU.", "subtitle")],
+             ask=reflect("NEAT trabaja con una versión Clifford de tu circuito. ¿Qué puede esconder esa aproximación sobre el ruido de tu cadena de Ising?",
+                         "En el hito seis, ¿qué parte del error que queda atribuyes al ruido y cuál a Trotter? ¿Cómo lo separarías con una medición?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]NEAT analiza PUBs de Estimator con simulaciones ideales y ruidosas.

@@ -119,6 +119,120 @@
    ]
   },
   {
+   "id": "predice_decae",
+   "tag": [
+    "6.5",
+    "Antes de medir la capa"
+   ],
+   "say": "¿Cómo se aprende una tasa? Repitiendo la capa y mirando cómo decae un valor esperado. [[capa]]Aquí la capa son dos CNOT seguidas, que sin ruido serían la identidad, con un tres por ciento de error despolarizante en cada una. [[medida]]Partimos de cero cero y medimos Z por Z tras una, dos, cuatro y ocho capas. [[apuesta]]Apuesta: ¿cómo baja el valor al repetir la capa?",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "|00⟩"
+      },
+      {
+       "t": "capa × d",
+       "s": "2 CX con ruido",
+       "color": "gold"
+      },
+      {
+       "t": "⟨ZZ⟩",
+       "s": "d = 1, 2, 4, 8",
+       "color": "blue"
+      }
+     ],
+     "id": "f",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 1,
+     "id": "f",
+     "at": "capa"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "f",
+     "at": "medida"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Al duplicar el número de capas, ⟨ZZ⟩…",
+    "options": [
+     "baja la misma cantidad cada capa (una recta)",
+     "se multiplica por el mismo factor cada capa (una exponencial)",
+     "casi no cambia",
+     "oscila hacia arriba y abajo"
+    ],
+    "after": "Anotado. Calculémoslo con una simulación exacta."
+   },
+   "align": "top"
+  },
+  {
+   "id": "decae",
+   "tag": [
+    "6.5",
+    "Cada capa multiplica por lo mismo"
+   ],
+   "say": "El cálculo. [[canal]]Un canal despolarizante de dos qubits, convertido a canal cuántico, y una CNOT. [[bucle]]Cada capa aplica dos veces la CNOT y el canal sobre una matriz de densidad que parte de cero cero. [[obs]]Y al final se lee el valor esperado de Z por Z. [[res]]Los valores bajan de cero coma nueve cuatro a cero coma seis uno en ocho capas. El cociente entre capas consecutivas es constante: cero coma nueve cuatro cero nueve, que es uno menos cero coma cero tres, al cuadrado. Es una exponencial, y ese factor es la fidelidad de Pauli de la capa. [[ajuste]]Por eso se ajusta una recta al logaritmo: la pendiente da la fidelidad, y de la fidelidad sale la tasa del modelo Pauli–Lindblad.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import DensityMatrix, SparsePauliOp\nfrom qiskit_aer.noise import depolarizing_error\n\ncanal = depolarizing_error(0.03, 2).to_quantumchannel()\ncx = QuantumCircuit(2)\ncx.cx(0, 1)\n\ndef zz_tras(d):\n    rho = DensityMatrix.from_label(\"00\")\n    for _ in range(2 * d):\n        rho = rho.evolve(cx).evolve(canal)\n    return float(rho.expectation_value(SparsePauliOp(\"ZZ\")).real)\n\nfor d in (1, 2, 4, 8):\n    print(d, round(zz_tras(d), 4))\nprint(\"cociente 2 capas / 1 capa:\", round(zz_tras(2) / zz_tras(1), 4))",
+     "lang": "python",
+     "id": "c",
+     "size": 18
+    },
+    {
+     "type": "code",
+     "src": "1 0.9409\n2 0.8853\n4 0.7837\n8 0.6143\ncociente 2 capas / 1 capa: 0.9409",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "5-7",
+     "id": "c",
+     "at": "canal"
+    },
+    {
+     "do": "hl",
+     "range": "10-12",
+     "id": "c",
+     "at": "bucle"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      13
+     ],
+     "id": "c",
+     "at": "obs"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "res"
+    },
+    {
+     "do": "hl",
+     "range": "15-17",
+     "id": "c",
+     "at": "ajuste"
+    }
+   ]
+  },
+  {
    "id": "versiones",
    "tag": [
     "6.5",
@@ -353,6 +467,80 @@
      "No modifica el circuito objetivo.",
      null,
      "Ese es otro flujo de postselección."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "6.5",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. Abre el cuaderno de práctica con el comando de abajo. No necesita cuenta: el modelo de ruido es una lista de Paulis con tasas. [[n1]]Primero construyes un modelo Pauli–Lindblad y calculas cuánto cuesta invertirlo. [[n2]]Después lo amplificas multiplicando sus tasas por tres, como hace PEA. [[n3]]Y por último aprendes tú una fidelidad: mides cómo decae un valor esperado con la profundidad y ajustas la tasa. [[check]]Cada misión tiene una comprobación: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p6-aprender-ruido.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Construye un `PauliLindbladMap` y calcula $\\gamma$ para invertir una capa."
+      },
+      {
+       "level": 2,
+       "text": "Obtén el modelo amplificado con `scale_rates(3)` y comprueba que $\\gamma$ pasa a $\\gamma^3$."
+      },
+      {
+       "level": 3,
+       "text": "Ajusta $f$ con $\\langle ZZ\\rangle(d)=f^d$ y calcula la tasa $r=-\\tfrac12\\ln f$."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "6.5",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Un modelo aprendido describe una calibración, no el dispositivo para siempre.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "En el cuaderno un solo término reprodujo la fidelidad de $ZZ$. ¿Qué otras medidas necesitarías para distinguir los muchos términos del ruido real de una capa?",
+     "¿Cada cuánto crees que habría que volver a aprender el modelo si ejecutas tu cadena de Ising durante varios días? ¿Qué lo cambiaría?"
     ]
    },
    "align": "top"

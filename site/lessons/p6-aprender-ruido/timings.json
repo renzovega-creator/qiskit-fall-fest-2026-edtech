@@ -49,6 +49,80 @@
    ]
   ]
  },
+ "predice_decae": {
+  "dur": 28.368,
+  "marks": {
+   "capa": 7.36,
+   "medida": 17.295,
+   "apuesta": 24.159
+  },
+  "cues": [
+   [
+    0.107,
+    "¿Cómo se aprende una tasa?"
+   ],
+   [
+    2.647,
+    "Repitiendo la capa y mirando cómo decae un valor esperado."
+   ],
+   [
+    7.36,
+    "Aquí la capa son dos CNOT seguidas, que sin ruido serían la identidad, con un tres por ciento de error despolarizante en cada una."
+   ],
+   [
+    17.295,
+    "Partimos de cero cero y medimos Z por Z tras una, dos, cuatro y ocho capas."
+   ],
+   [
+    24.159,
+    "Apuesta: ¿cómo baja el valor al repetir la capa?"
+   ]
+  ]
+ },
+ "decae": {
+  "dur": 52.032,
+  "marks": {
+   "canal": 1.953,
+   "bucle": 8.817,
+   "obs": 16.304,
+   "res": 20.763,
+   "ajuste": 42.473
+  },
+  "cues": [
+   [
+    0.107,
+    "El cálculo."
+   ],
+   [
+    1.953,
+    "Un canal despolarizante de dos qubits, convertido a canal cuántico, y una CNOT."
+   ],
+   [
+    8.817,
+    "Cada capa aplica dos veces la CNOT y el canal sobre una matriz de densidad que parte de cero cero."
+   ],
+   [
+    16.304,
+    "Y al final se lee el valor esperado de Z por Z."
+   ],
+   [
+    20.763,
+    "Los valores bajan de cero coma nueve cuatro a cero coma seis uno en ocho capas."
+   ],
+   [
+    26.806,
+    "El cociente entre capas consecutivas es constante: cero coma nueve cuatro cero nueve, que es uno menos cero coma cero tres, al cuadrado."
+   ],
+   [
+    37.024,
+    "Es una exponencial, y ese factor es la fidelidad de Pauli de la capa."
+   ],
+   [
+    42.473,
+    "Por eso se ajusta una recta al logaritmo: la pendiente da la fidelidad, y de la fidelidad sale la tasa del modelo Pauli–Lindblad."
+   ]
+  ]
+ },
  "versiones": {
   "dur": 41.952,
   "marks": {
@@ -154,6 +228,55 @@
    [
     0.107,
     "¿Qué hace el trabajo de NoiseLearner?"
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 37.08,
+  "marks": {
+   "n1": 12.129,
+   "n2": 18.314,
+   "n3": 24.386,
+   "check": 32.354
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.142,
+    "No necesita cuenta: el modelo de ruido es una lista de Paulis con tasas."
+   ],
+   [
+    12.129,
+    "Primero construyes un modelo Pauli–Lindblad y calculas cuánto cuesta invertirlo."
+   ],
+   [
+    18.314,
+    "Después lo amplificas multiplicando sus tasas por tres, como hace PEA."
+   ],
+   [
+    24.386,
+    "Y por último aprendes tú una fidelidad: mides cómo decae un valor esperado con la profundidad y ajustas la tasa."
+   ],
+   [
+    32.354,
+    "Cada misión tiene una comprobación: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 3.408,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
    ]
   ]
  },
