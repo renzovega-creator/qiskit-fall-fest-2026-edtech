@@ -1,6 +1,6 @@
 """Parte IV · Primitivas y simulación."""
 from lib import (T, M, L, Row, Box, A, shows, beat, choice, numeric, reveal, lesson,
-                 Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph)
+                 Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph, predict, reflect, Mission)
 from parte2 import resumen
 
 # ------------------------------------------------------------------ 4.1 Primitivas
@@ -30,6 +30,34 @@ primitivas = lesson(
              [Row(Box("def", "Estimator", M(r"\langle\psi(\theta)|\,O\,|\psi(\theta)\rangle", size=34), T("circuitos **sin** mediciones + observables", "note")),
                   Box("idea", "Sampler", Code("0110\n1001\n0110\n…", "out"), T("circuitos **con** mediciones", "note")), id="r", hidden=True, gap=30)],
              [A("show", "r", at="est")]),
+
+        beat("predice", ("", "Antes de ejecutar"),
+             """Probemos las dos primitivas sobre el mismo estado: un estado de Bell. [[obs]]A Estimator le damos el circuito sin mediciones y tres observables: Z Z, Z sobre el qubit uno, y X X.
+             [[apuesta]]Apuesta: ¿qué tres valores esperados devolverá?""",
+             [Row(Circ(2, [G("h", 0), G("cx", 0, 1)], id="q"),
+                  Table(["Observable", "Significa"], [["`ZZ`", "los dos qubits a la vez"], ["`ZI`", "solo el qubit 1"], ["`XX`", "medir ambos en la base X"]],
+                        id="t", hidden=True, size=24), gap=30)],
+             [A("show", "t", at="obs")],
+             ask=predict("¿Qué devuelve Estimator para `ZZ`, `ZI` y `XX`?",
+                         ["[1, 1, 1]", "[1, 0, 1]", "[0, 0, 0]", "[1, 0, 0]"],
+                         "Anotado. Veámoslo, y comparémoslo con lo que da Sampler.")),
+
+        beat("mismo_estado", ("", "El mismo estado, dos preguntas"),
+             """Este es el código. [[est]]Estimator devuelve uno, cero y uno. Z Z vale uno porque los dos qubits siempre coinciden. Z sobre el qubit uno vale cero, porque por sí solo es una moneda perfecta. Y X X vale uno. Si apostaste por la opción b, acertaste.
+             [[sam]]Sampler, en cambio, no devuelve números esperados: devuelve cadenas medidas, cero cero y uno uno, mitad y mitad.
+             [[idea]]Es el mismo estado visto de dos maneras: la primitiva que elijas decide qué pregunta le haces.""",
+             [Code('''bell = QuantumCircuit(2)
+bell.h(0)
+bell.cx(0, 1)
+obs = [SparsePauliOp(p) for p in ["ZZ", "ZI", "XX"]]
+print(StatevectorEstimator().run([(bell, obs)]).result()[0].data.evs)
+
+bell.measure_all()
+print(StatevectorSampler(seed=3).run([bell], shots=1024).result()[0].data.meas.get_counts())''', id="c", size=22,
+                   setup="from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.primitives import StatevectorEstimator, StatevectorSampler"),
+              Out("[1. 0. 1.]\n{'00': 515, '11': 509}", id="o", hidden=True, check=True),
+              T("Estimator: números · Sampler: cadenas de bits", "note", id="n", hidden=True)],
+             [A("hl", "c", at="est", range="4-5"), A("show", "o", at="est"), A("hl", "c", at="sam", range="7-8"), A("show", "n", at="idea")]),
 
         beat("impl", ("", "Clases base e implementaciones"),
              """Hay dos niveles. [[base]]Las clases base, en qiskit punto primitives, definen la interfaz común: BaseEstimatorV2 y BaseSamplerV2. Las V1 aún existen, pero el curso usa las V2.
@@ -81,6 +109,22 @@ estimator.options.resilience_level = 2   # IBM: mitigación con una línea''', i
              ask=choice("¿Qué primitiva?", ["Estimator", "Sampler"], 1,
                         "Correcto: Sampler devuelve las muestras de bits; con ellas construyes la distribución.",
                         wrong=["Estimator devuelve valores esperados, no muestras."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero ejecutas Estimator y Sampler sobre el estado de Bell y comparas con tu apuesta.
+             [[n2]]Después cambias la implementación de Sampler por BackendSamplerV2, sin tocar el resto del código. [[n3]]Y por último calculas un valor esperado de dos maneras, con Estimator y a partir de los conteos de Sampler, y compruebas que coinciden.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola: busca la marca verde.""",
+             [Mission("practica/p4-primitivas.py", [
+                 (1, "Ejecuta Estimator y Sampler sobre el estado de Bell."),
+                 (2, "Cambia `StatevectorSampler` por `BackendSamplerV2` sin tocar el resto."),
+                 (3, r"Escribe `z_desde_conteos` y compruébala contra el $\langle Z_0\rangle$ de Estimator.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda y lo verás cuando vuelvas a esta lección.""",
+             [T("La primitiva que eliges decide la pregunta que haces.", "subtitle")],
+             ask=reflect("En el estado de Bell, ¿por qué Estimator da `0` para `ZI` mientras que `ZZ` da `1`? Explícalo con lo que verías en los conteos de Sampler.",
+                         "El método `run` es igual en todas las implementaciones, pero las opciones no. ¿Qué ventaja y qué riesgo ves en eso al cambiar de un simulador a un QPU?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Una primitiva es el bloque básico de un nivel de abstracción. [[r2]]Estimator da valores esperados y Sampler, muestras. [[r3]]Hay clases base y varias implementaciones.
@@ -141,9 +185,20 @@ b = [SparsePauliOp("XX"), SparsePauliOp("XY"), SparsePauliOp("IZ")]  # forma (3,
 c = [[SparsePauliOp("XX")], [SparsePauliOp("XY")], [SparsePauliOp("IZ")]]  # forma (3, 1)''', id="c", setup="from qiskit.quantum_info import SparsePauliOp", size=22)],
              [A("hl", "c", at="forma", lines=[1]), A("hl", "c", at="lista", lines=[2]), A("hl", "c", at="col", lines=[3])]),
 
+        beat("ejemplo_pred", ("", "Antes de ejecutar"),
+             """Una apuesta con broadcasting. Tenemos un circuito de tres qubits con un parámetro, y cuatro observables escritos como una columna, con forma cuatro por uno.
+             [[par]]Los valores del parámetro son seis, con forma uno por seis. [[apuesta]]¿Qué forma tendrá evs?""",
+             [Table(["Entrada", "Forma"], [
+                 ["observables", "(4, 1)"],
+                 ["valores del parámetro", "(1, 6)"],
+                 ["`evs`", "¿?"]], id="t", size=28)],
+             [],
+             ask=predict("¿Qué forma tiene `evs`?", ["(4, 6)", "(6, 4)", "(24,)", "error: son incompatibles"],
+                         "Anotado. Ejecutémoslo y veamos.")),
+
         beat("ejemplo", ("", "Un ejemplo vectorizado"),
-             """Probemos. Un circuito con un parámetro, a, y tres observables. [[zip]]Con cinco valores del parámetro y cinco observables, en forma cinco, se emparejan uno a uno: cinco resultados.
-             [[outer]]Con valores en forma uno por seis y observables en forma cuatro por uno, se combina cada valor con cada observable: veinticuatro resultados, en forma cuatro por seis.
+             """Veamos el ejemplo completo. Un circuito con un parámetro, a, y observables. [[zip]]Con cinco valores del parámetro y cinco observables, en forma cinco, se emparejan uno a uno: cinco resultados.
+             [[outer]]Con valores en forma uno por seis y observables en forma cuatro por uno, se combina cada valor con cada observable: veinticuatro resultados, en forma cuatro por seis. Si apostaste por la opción a, acertaste.
              [[una]]Todo en una sola llamada a run: así se ejecutan barridos enormes de forma eficiente.""",
              [Code('''import numpy as np
 from qiskit import QuantumCircuit
@@ -231,6 +286,21 @@ qc.measure([0, 1], [0, 1])''', setup="from qiskit import QuantumCircuit")],
                         "Correcto: el registro clásico creado por `QuantumCircuit(2, 2)` se llama `c`. `meas` solo existe si usas `measure_all()`.",
                         wrong=["No hay registro `meas`: no se usó `measure_all()`.", None, "`evs` es de Estimator."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero reproduces los dos barridos de la lección y compruebas sus formas.
+             [[n2]]Después cambias solo la forma de los observables para que evs salga con forma tres por diez. [[n3]]Y por último, con un solo PUB de Sampler, calculas la probabilidad de medir uno para cinco ángulos, posprocesando el BitArray sin diccionarios.""",
+             [Mission("practica/p4-pubs.py", [
+                 (1, "Reproduce los barridos `(5,)` y `(4, 6)` y comprueba sus formas."),
+                 (2, "Rearma los observables para que `evs` tenga forma `(3, 10)`."),
+                 (3, r"Calcula $P(1)$ de cinco ángulos con `expectation_values` sobre un `BitArray`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma. Escribe con tus palabras; se guardan en tu navegador.""",
+             [T("Una forma bien pensada ahorra cientos de ejecuciones.", "subtitle")],
+             ask=reflect("Explica con tus palabras por qué observables de forma `(3, 1)` y parámetros de forma `(10,)` dan `(3, 10)` y no `(10, 3)`.",
+                         "Quieres estimar `ZZ` y `ZI` del mismo circuito. ¿Los pondrías en el mismo PUB o en PUBs distintos? ¿Por qué?")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Un PUB de Estimator lleva circuito, observables, parámetros y precisión. [[r2]]Uno de Sampler, circuito, parámetros y disparos. [[r3]]Las formas se combinan con broadcasting.
              [[r4]]Y la salida es un PrimitiveResult con un PubResult por PUB, que se posprocesa mejor con BitArray.""",
@@ -304,9 +374,22 @@ print(result[0].metadata)''', id="c", size=21),
                          "Correcto: para el estado de Bell, $\\langle XX\\rangle=1$, $\\langle YY\\rangle=-1$ y $\\langle ZZ\\rangle=1$: $1+1-(-1)+1=4$.",
                          tol=0.001, hint="En el estado de Bell $|\\Phi^+\\rangle$, $\\langle YY\\rangle=-1$.")),
 
+        beat("precision_pred", ("", "Antes de ejecutar"),
+             """Por defecto, la Estimator de referencia hace un cálculo exacto. Pero un experimento real usa un número finito de disparos, y eso deja un error estadístico.
+             [[exacto]]Los valores exactos eran cuatro, tres coma siete tres y dos. [[apuesta]]Apuesta: si pedimos una precisión de cero coma cero cinco, ¿cómo serán los tres valores?""",
+             [Table(["θ", "exacto"], [["0", "4"], ["π/6", "3.73"], ["π/2", "2"]], id="t", size=28),
+              T("`precision=0.05`", "note")],
+             [],
+             ask=predict("Con `precision=0.05`, ¿cómo serán los tres valores?",
+                         ["idénticos a los exactos: 4, 3.73 y 2",
+                          "cerca de los exactos, pero distintos: el error será del orden de 0.05",
+                          "mucho más lejos cuanto mayor sea θ",
+                          "todos cero"],
+                         "Anotado. Veamos qué devuelve.")),
+
         beat("precision", ("", "Simular el ruido de disparo"),
-             """Por defecto, la Estimator de referencia hace un cálculo exacto. [[prec]]Con el argumento precision introduces el ruido de muestreo que tendría un experimento real: el error estadístico por usar un número finito de disparos.
-             [[pub]]La precisión se fija en run, para todos los PUBs o PUB por PUB. [[res]]Con cero coma cero cinco, los valores ya no son exactos: cuatro coma cero dos, tres coma setenta y siete, dos coma cero dos.""",
+             """[[prec]]Con el argumento precision introduces el ruido de muestreo que tendría un experimento real: el error estadístico por usar un número finito de disparos.
+             [[pub]]La precisión se fija en run, para todos los PUBs o PUB por PUB. [[res]]Con cero coma cero cinco, los valores ya no son exactos: cuatro coma cero dos, tres coma setenta y siete, dos coma cero dos. Si apostaste por la opción b, acertaste: se parecen a los exactos, con errores de unas pocas centésimas.""",
              [Code('''estimator = StatevectorEstimator(seed=1)
 noisy = estimator.run([(circuit, observable, parameter_values)], precision=0.05).result()
 print(noisy[0].data.evs)''', id="c"),
@@ -338,6 +421,21 @@ sampler.run([(circuit, None, 123), (circuit, None, 456)])''', id="c", size=22),
              ask=choice("¿Cuántos disparos recibe `qc2`?", ["50", "300", "100"], 1,
                         "Correcto: lo que especificas dentro del PUB tiene prioridad sobre el `shots` global.",
                         wrong=["El valor del PUB gana al global.", None, "100 es el del primer PUB."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero reproduces los valores esperados exactos de la lección.
+             [[n2]]Después ajustas la precisión para que el error de muestreo sea pequeño, pero no cero. [[n3]]Y por último estimas una probabilidad con cuatro cantidades de disparos, un PUB por cada una, en una sola llamada a run.""",
+             [Mission("practica/p4-simular-exacto.py", [
+                 (1, "Ejecuta `StatevectorEstimator` y comprueba los tres valores exactos."),
+                 (2, "Elige `precision` para que el error máximo quede entre 0 y 0.02."),
+                 (3, "Envía cuatro PUBs de Sampler con 100 a 100 000 disparos y mide su error.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Un resultado exacto no es lo que verás en un experimento.", "subtitle")],
+             ask=reflect("Si la simulación exacta da el valor perfecto, ¿para qué te serviría simular con ruido de muestreo antes de ir a un QPU?",
+                         "Si multiplicas por cuatro los disparos, ¿qué crees que le pasa al error? Apuesta primero y compruébalo en el cuaderno.")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]La simulación clásica tiene un límite exponencial. [[r2]]StatevectorEstimator calcula valores exactos, o con ruido de muestreo usando precision. [[r3]]StatevectorSampler muestrea, con disparos globales o por PUB.
@@ -389,9 +487,21 @@ print(exact_value)''', id="c", size=22),
               Out("0.8870140234256602", id="o", hidden=True, check=True)],
              [A("hl", "c", at="ej", range="7-10"), A("hl", "c", at="tr", lines=[11]), A("show", "o", at="res"), A("hl", "c", at="res", range="12-14")]),
 
-        beat("ruido", ("", "Con ruido"),
+        beat("ruido_pred", ("", "Antes de añadir ruido"),
              """Ahora un modelo de ruido simple: un error despolarizante del dos por ciento en cada CX. En la práctica, las puertas de dos qubits son la fuente de error dominante.
-             [[est]]Se pasa a la Estimator de Aer en backend options. [[res]]Resultado: cero coma setenta y dos, lejos del valor exacto.""",
+             [[cx]]Este circuito tiene veintiuna CX. [[apuesta]]El valor exacto era cero coma ochenta y ocho siete. Apuesta: ¿qué valor devolverá la Estimator con ruido?""",
+             [Row(Box("def", "Sin ruido", T("$\\langle Z\\cdots Z\\rangle = 0.887$", "body")),
+                  Box("warn", "Con ruido", T("2 % despolarizante en cada una de las 21 CX", "body"), id="b", hidden=True), gap=26)],
+             [A("show", "b", at="cx")],
+             ask=predict("¿Qué valor esperas con ruido?",
+                         ["0.887: un 2 % por puerta no se nota",
+                          "entre 0.70 y 0.75",
+                          "entre 0.50 y 0.60",
+                          "cerca de 0"],
+                         "Anotado. Veámoslo.")),
+
+        beat("ruido", ("", "Con ruido"),
+             """[[est]]El modelo se pasa a la Estimator de Aer en backend options. [[res]]Resultado: cero coma setenta y dos, lejos del valor exacto. Si apostaste por la opción b, acertaste. Un dos por ciento por puerta parece poco, pero se acumula en veintiuna puertas.""",
              [Code('''from qiskit_aer.noise import NoiseModel, depolarizing_error
 
 noise_model = NoiseModel()
@@ -504,6 +614,21 @@ for j in range(4):
                         "Correcto: `[0, 1]` y `[1, 0]` son entradas distintas. Para cubrir todos los casos usa `add_all_qubit_quantum_error` o añade ambas.",
                         wrong=["El error está registrado solo para el par ordenado (0, 1)."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero comparas un GHZ ideal con el mismo circuito bajo ruido despolarizante.
+             [[n2]]Después buscas qué probabilidad de error deja la mitad de los disparos correctos, y la comparas con la estimación uno menos p a la m. [[n3]]Y por último construyes tú mismo un error de lectura asimétrico.""",
+             [Mission("practica/p4-aer-ruido.py", [
+                 (1, "Compara un GHZ de 6 qubits ideal y con un 2 % despolarizante por CX."),
+                 (2, "Ajusta `p` hasta que la fracción correcta caiga entre 0.55 y 0.65."),
+                 (3, "Construye un `ReadoutError` y comprueba que lees `0` el 10 % de las veces.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar, conectadas con tu proyecto. Escribe con tus palabras; se guardan en tu navegador.""",
+             [T("El ruido se acumula con cada puerta de dos qubits.", "subtitle")],
+             ask=reflect("En el cuaderno, la estimación `(1 - p) ** m` salió más pesimista que la simulación. ¿Por qué crees que subestima la fracción de disparos correctos?",
+                         "En tu proyecto Ising, cada paso de Trotter añade CX. ¿Cómo esperas que cambie la curva de magnetización ruidosa a medida que avanza el tiempo simulado?")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Las primitivas de Aer aceptan un modelo de ruido en backend options. [[r2]]Uno menos p a la m da una idea rápida del daño. [[r3]]NoiseModel, QuantumError y ReadoutError construyen modelos a medida.
              [[r4]]Y from backend copia el ruido de un dispositivo real.""",
@@ -540,10 +665,18 @@ clifford = lesson(
                     dict(t="comparar con el QPU", s="¿se comporta bien?")], id="f", stagger=True)],
              [A("item", "f", at="verificar", i=0), A("item", "f", at="cliff", i=1), A("item", "f", at="conf", i=2)]),
 
-        beat("q500", ("", "Quinientos qubits"),
+        beat("q500_pred", ("", "Antes de simular"),
              """Un efficient su2 de quinientos qubits es imposible de simular en general. Pero tiene parámetros: si todos los ángulos son múltiplos de pi medios, el circuito es de Clifford.
-             [[sampler]]Creamos un Sampler de Aer con el método stabilizer [[tr]]y transpilamos para el simulador en ese modo.
-             [[res]]Resultado: mil veinticuatro muestras de quinientos bits, en unos segundos.""",
+             [[datos]]Lo muestrearemos mil veinticuatro veces. [[apuesta]]Apuesta: entre esas mil veinticuatro cadenas de quinientos bits, ¿cuántas serán distintas?""",
+             [Table(["Dato", "Valor"], [["qubits", "500"], ["ángulos", "múltiplos de $\\pi/2$"], ["disparos", "1024"]], id="t", hidden=True, size=28)],
+             [A("show", "t", at="datos")],
+             ask=predict("¿Cuántas cadenas distintas habrá entre los 1024 disparos?",
+                         ["2: solo `0…0` y `1…1`", "unas pocas docenas", "1024: todas distintas", "ninguna: el simulador falla"],
+                         "Anotado. Veamos.")),
+
+        beat("q500", ("", "Quinientos qubits"),
+             """[[sampler]]Creamos un Sampler de Aer con el método stabilizer [[tr]]y transpilamos para el simulador en ese modo.
+             [[res]]Resultado: mil veinticuatro cadenas de quinientos bits, en unos segundos. Si apostaste por la opción c, acertaste: las mil veinticuatro son distintas. Un estado de Clifford puede tener una distribución enorme, no solo dos cadenas como un GHZ.""",
              [Code('''import numpy as np
 from qiskit.circuit.library import efficient_su2
 from qiskit.transpiler import generate_preset_pass_manager
@@ -596,6 +729,21 @@ print(float(estimator.run([pub]).result()[0].data.evs))''', id="c"),
              ask=choice("¿Puedes simularlo con el método `stabilizer`?", ["sí", "no: $R_z(\\pi/4)$ (como T) no es de Clifford"], 1,
                         "Correcto: $\\pi/4$ no es múltiplo de $\\pi/2$. Para pocos T existe el método `extended_stabilizer`, aproximado.",
                         wrong=["La rotación de π/4 rompe la estructura de Clifford."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero simulas un GHZ de cien qubits, algo imposible con un vector de estado.
+             [[n2]]Después arreglas un circuito que el simulador rechaza, cambiando solo el ángulo de una rotación. [[n3]]Y por último escribes la función que redondea los ángulos de un circuito a múltiplos de pi medios, para obtener su versión de Clifford.""",
+             [Mission("practica/p4-estabilizadores.py", [
+                 (1, "Simula un GHZ de 100 qubits con `method=\"stabilizer\"`."),
+                 (2, r"Corrige el ángulo de una $R_z$ para que el circuito sea de Clifford."),
+                 (3, r"Escribe `a_clifford(params)`: redondea cada ángulo al múltiplo de $\pi/2$ más cercano.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; se guardan en tu navegador.""",
+             [T("Simular una versión no es simular el original.", "subtitle")],
+             ask=reflect("¿Por qué una rotación de π/2 se puede simular con quinientos qubits y una de π/4 ya no, con el mismo método?",
+                         "Tu QPU reproduce bien la versión de Clifford de un circuito de 100 qubits. ¿Qué sabes con eso del circuito original, y qué no?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Los circuitos de Clifford usan H, S, CX y mediciones. [[r2]]Se simulan eficientemente, con cientos de qubits. [[r3]]En Aer se piden con method igual a stabilizer, y solo admiten ruido de Pauli.
@@ -675,10 +823,23 @@ noisy_sim = AerSimulator.from_backend(fake_manila)   # o un backend real''', id=
              [A("item", "t", at="auto", i=0), A("item", "t", at="sv", i=1), A("item", "t", at="dm", i=2), A("item", "t", at="stab", i=3), A("item", "t", at="mps", i=4),
               A("item", "t", at="otros", i=5)]),
 
-        beat("mitigar", ("", "Probar la mitigación en local"),
+        beat("mitigar_pred", ("", "Antes de mitigar"),
              """Una novedad importante: con las primitivas del lado del cliente, la supresión y mitigación de errores ocurren en tu computadora. Antes, con las primitivas del servidor, esas opciones no tenían efecto en modo local.
-             [[ej]]Probemos la mitigación de errores de lectura con Estimator sobre FakeManila. El estado de Bell debería dar ZZ igual a uno.
-             [[sin]]Sin mitigación sale alrededor de cero coma ochenta y siete. [[con]]Con measure mitigation activada, cerca de cero coma noventa y nueve. Los valores exactos cambian un poco en cada ejecución.
+             [[ej]]Probemos la mitigación de errores de lectura con Estimator sobre FakeManila. El estado de Bell ideal daría Z Z igual a uno.
+             [[apuesta]]Apuesta: ¿qué valor saldrá sin mitigación, y cuál con measure mitigation activada?""",
+             [Circ(2, [G("h", 0), G("cx", 0, 1)], id="q"),
+              M(r"\langle ZZ\rangle_{\text{ideal}} = 1", size=40)],
+             [],
+             ask=predict("¿Qué valores de ⟨ZZ⟩ esperas en FakeManila?",
+                         ["1.0 en ambos casos: el simulador es exacto",
+                          "sin mitigar cerca de 0.87, y mitigado más cerca de 1",
+                          "sin mitigar cerca de 0.99, y mitigado cerca de 0.87",
+                          "ambos cerca de 0.5"],
+                         "Anotado. Veamos el código y los números.")),
+
+        beat("mitigar", ("", "Probar la mitigación en local"),
+             """[[ej]]Este es el código. Para cada valor de measure mitigation, un Estimator sobre FakeManila.
+             [[sin]]Sin mitigación sale alrededor de cero coma ochenta y siete. [[con]]Con measure mitigation activada, cerca de cero coma noventa y nueve. Si apostaste por la opción b, acertaste. Los valores exactos cambian un poco en cada ejecución.
              [[costo]]Ojo: la mitigación añade memoria y tiempo. Para que las pruebas locales sigan siendo manejables, usa backends pequeños, simuladores sin ruido o simulación de Clifford.""",
              [Code('''from qiskit.quantum_info import SparsePauliOp
 from qiskit_ibm_runtime.executor_estimator import Estimator
@@ -718,6 +879,33 @@ for mitigation in (False, True):
              ask=choice("¿Tiene efecto?", ["no: la mitigación solo existe en el servidor", "sí: las primitivas del lado del cliente la aplican localmente"], 1,
                         "Correcto: desde la 0.50, Sampler y Estimator son del lado del cliente, así que puedes probar mitigación antes de usar un QPU.",
                         wrong=["Eso era así con las primitivas del servidor, anteriores a la 0.50."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero ejecutas un estado de Bell en un backend falso y miras cuánto ruido trae su instantánea.
+             [[n2]]Después cambias el backend por un AerSimulator ideal, sin tocar el resto del programa. [[n3]]Y por último completas una función que estima Z Z con y sin mitigación, y compruebas que la mitigada se acerca más al valor ideal.""",
+             [Mission("practica/p4-local-testing.py", [
+                 (1, "Ejecuta un Bell en `FakeManilaV2` y cuenta los `01` y `10`."),
+                 (2, "Cambia `backend` por `AerSimulator()` y comprueba que el ruido desaparece."),
+                 (3, "Completa `ev_zz(mitigar)` y comprueba que la mitigación acerca el valor a 1.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("proyecto", ("", "Tu proyecto: la magnetización en el tiempo"),
+             """Cierre de la parte con tu proyecto. [[hito]]El hito cuatro responde la pregunta de la cadena de espines con simuladores: cómo evoluciona la magnetización tras encender el campo, exacta frente a una simulación de Aer con ruido.
+             Primero recalculas lo que ya tienes, el Hamiltoniano, el circuito de Trotter y el observable, y comparas la curva exacta con la del circuito. Después añades ruido despolarizante a las CX y simulas con Aer. Y por último escribes una función que dice hasta qué instante te puedes fiar de la simulación ruidosa.
+             Ese instante te dirá cuántos pasos pedirle al QPU en la parte cinco.""",
+             [M(r"M(t)=\frac1N\sum_i\langle Z_i\rangle", size=46),
+              Mission("practica/proyecto/hito4.py", [
+                  (1, "Recalcula la magnetización exacta y la del circuito de Trotter, sin ruido."),
+                  (2, "Añade un error despolarizante a cada CX y simula con `AerEstimator`."),
+                  (3, "Escribe `tiempo_de_validez`: el primer instante en que el ruido supera una tolerancia.")],
+                  title="Proyecto Ising · Hito IV", id="m", hidden=True)],
+             [A("show", "m", at="hito")]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para cerrar la parte. Escribe con tus palabras; se guardan en tu navegador.""",
+             [T("Simula en local, ejecuta en hardware.", "subtitle")],
+             ask=reflect("Con tus palabras: ¿por qué IBM recomienda simular en local y ejecutar en hardware, si un simulador con ruido ya se parece al QPU?",
+                         "En el hito IV usaste un ruido despolarizante simple. ¿Qué crees que le falta frente al backend falso de un QPU real, y cómo lo comprobarías?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]En modo local pasas un backend falso o un AerSimulator como mode. [[r2]]Los backends falsos imitan QPUs reales. [[r3]]Desde la cero punto cincuenta, la mitigación también se prueba en local.

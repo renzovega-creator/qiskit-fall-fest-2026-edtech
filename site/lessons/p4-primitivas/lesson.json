@@ -126,6 +126,142 @@
    ]
   },
   {
+   "id": "predice",
+   "tag": [
+    "4.1",
+    "Antes de ejecutar"
+   ],
+   "say": "Probemos las dos primitivas sobre el mismo estado: un estado de Bell. [[obs]]A Estimator le damos el circuito sin mediciones y tres observables: Z Z, Z sobre el qubit uno, y X X. [[apuesta]]Apuesta: ¿qué tres valores esperados devolverá?",
+   "scene": [
+    {
+     "type": "row",
+     "items": [
+      {
+       "type": "circuit",
+       "qubits": 2,
+       "ops": [
+        {
+         "g": "h",
+         "q": [
+          0
+         ]
+        },
+        {
+         "g": "cx",
+         "q": [
+          0,
+          1
+         ]
+        }
+       ],
+       "id": "q"
+      },
+      {
+       "type": "table",
+       "head": [
+        "Observable",
+        "Significa"
+       ],
+       "rows": [
+        [
+         "`ZZ`",
+         "los dos qubits a la vez"
+        ],
+        [
+         "`ZI`",
+         "solo el qubit 1"
+        ],
+        [
+         "`XX`",
+         "medir ambos en la base X"
+        ]
+       ],
+       "id": "t",
+       "hidden": true,
+       "size": 24
+      }
+     ],
+     "gap": 30
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "t",
+     "at": "obs"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué devuelve Estimator para `ZZ`, `ZI` y `XX`?",
+    "options": [
+     "[1, 1, 1]",
+     "[1, 0, 1]",
+     "[0, 0, 0]",
+     "[1, 0, 0]"
+    ],
+    "after": "Anotado. Veámoslo, y comparémoslo con lo que da Sampler."
+   },
+   "align": "top"
+  },
+  {
+   "id": "mismo_estado",
+   "tag": [
+    "4.1",
+    "El mismo estado, dos preguntas"
+   ],
+   "say": "Este es el código. [[est]]Estimator devuelve uno, cero y uno. Z Z vale uno porque los dos qubits siempre coinciden. Z sobre el qubit uno vale cero, porque por sí solo es una moneda perfecta. Y X X vale uno. Si apostaste por la opción b, acertaste. [[sam]]Sampler, en cambio, no devuelve números esperados: devuelve cadenas medidas, cero cero y uno uno, mitad y mitad. [[idea]]Es el mismo estado visto de dos maneras: la primitiva que elijas decide qué pregunta le haces.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "bell = QuantumCircuit(2)\nbell.h(0)\nbell.cx(0, 1)\nobs = [SparsePauliOp(p) for p in [\"ZZ\", \"ZI\", \"XX\"]]\nprint(StatevectorEstimator().run([(bell, obs)]).result()[0].data.evs)\n\nbell.measure_all()\nprint(StatevectorSampler(seed=3).run([bell], shots=1024).result()[0].data.meas.get_counts())",
+     "lang": "python",
+     "id": "c",
+     "size": 22,
+     "setup": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.primitives import StatevectorEstimator, StatevectorSampler"
+    },
+    {
+     "type": "code",
+     "src": "[1. 0. 1.]\n{'00': 515, '11': 509}",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    },
+    {
+     "type": "text",
+     "text": "Estimator: números · Sampler: cadenas de bits",
+     "style": "note",
+     "id": "n",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "4-5",
+     "id": "c",
+     "at": "est"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "est"
+    },
+    {
+     "do": "hl",
+     "range": "7-8",
+     "id": "c",
+     "at": "sam"
+    },
+    {
+     "do": "show",
+     "id": "n",
+     "at": "idea"
+    }
+   ]
+  },
+  {
    "id": "impl",
    "tag": [
     "4.1",
@@ -364,6 +500,80 @@
     "why": "Correcto: Sampler devuelve las muestras de bits; con ellas construyes la distribución.",
     "wrong": [
      "Estimator devuelve valores esperados, no muestras."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "4.1",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero ejecutas Estimator y Sampler sobre el estado de Bell y comparas con tu apuesta. [[n2]]Después cambias la implementación de Sampler por BackendSamplerV2, sin tocar el resto del código. [[n3]]Y por último calculas un valor esperado de dos maneras, con Estimator y a partir de los conteos de Sampler, y compruebas que coinciden. [[check]]Cada misión tiene una comprobación que se actualiza sola: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p4-primitivas.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Ejecuta Estimator y Sampler sobre el estado de Bell."
+      },
+      {
+       "level": 2,
+       "text": "Cambia `StatevectorSampler` por `BackendSamplerV2` sin tocar el resto."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `z_desde_conteos` y compruébala contra el $\\langle Z_0\\rangle$ de Estimator."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "4.1",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda y lo verás cuando vuelvas a esta lección.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "La primitiva que eliges decide la pregunta que haces.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "En el estado de Bell, ¿por qué Estimator da `0` para `ZI` mientras que `ZZ` da `1`? Explícalo con lo que verías en los conteos de Sampler.",
+     "El método `run` es igual en todas las implementaciones, pero las opciones no. ¿Qué ventaja y qué riesgo ves en eso al cambiar de un simulador a un QPU?"
     ]
    },
    "align": "top"

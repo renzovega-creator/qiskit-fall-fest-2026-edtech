@@ -74,12 +74,11 @@
    ]
   ]
  },
- "precision": {
-  "dur": 31.416,
+ "precision_pred": {
+  "dur": 24.84,
   "marks": {
-   "prec": 5.59,
-   "pub": 15.951,
-   "res": 21.187
+   "exacto": 12.61,
+   "apuesta": 17.89
   },
   "cues": [
    [
@@ -88,15 +87,41 @@
    ],
    [
     5.59,
+    "Pero un experimento real usa un número finito de disparos, y eso deja un error estadístico."
+   ],
+   [
+    12.61,
+    "Los valores exactos eran cuatro, tres coma siete tres y dos."
+   ],
+   [
+    17.89,
+    "Apuesta: si pedimos una precisión de cero coma cero cinco, ¿cómo serán los tres valores?"
+   ]
+  ]
+ },
+ "precision": {
+  "dur": 34.464,
+  "marks": {
+   "prec": 0.107,
+   "pub": 10.473,
+   "res": 15.71
+  },
+  "cues": [
+   [
+    0.107,
     "Con el argumento precision introduces el ruido de muestreo que tendría un experimento real: el error estadístico por usar un número finito de disparos."
    ],
    [
-    15.951,
+    10.473,
     "La precisión se fija en run, para todos los PUBs o PUB por PUB."
    ],
    [
-    21.187,
+    15.71,
     "Con cero coma cero cinco, los valores ya no son exactos: cuatro coma cero dos, tres coma setenta y siete, dos coma cero dos."
+   ],
+   [
+    25.928,
+    "Si apostaste por la opción b, acertaste: se parecen a los exactos, con errores de unas pocas centésimas."
    ]
   ]
  },
@@ -142,6 +167,50 @@
    [
     0.107,
     "Sobre los disparos."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 26.808,
+  "marks": {
+   "n1": 6.454,
+   "n2": 11.337,
+   "n3": 17.748
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.454,
+    "Primero reproduces los valores esperados exactos de la lección."
+   ],
+   [
+    11.337,
+    "Después ajustas la precisión para que el error de muestreo sea pequeño, pero no cero."
+   ],
+   [
+    17.748,
+    "Y por último estimas una probabilidad con cuatro cantidades de disparos, un PUB por cada una, en una sola llamada a run."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 7.992,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda en tu navegador."
    ]
   ]
  },
