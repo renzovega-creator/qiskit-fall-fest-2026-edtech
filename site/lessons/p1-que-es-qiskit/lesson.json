@@ -245,12 +245,63 @@
    ]
   },
   {
+   "id": "pred_modos",
+   "tag": [
+    "1.1",
+    "Antes de seguir"
+   ],
+   "say": "Antes de ver el servicio, una apuesta. IBM ofrece tres maneras de enviar trabajo: un trabajo suelto, una sesión, para cargas iterativas, y un lote, para enviar todo de una vez. [[cual]]Una de ellas no está disponible con el plan gratuito, el plan Open. ¿Cuál crees que es?",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "Job"
+      },
+      {
+       "t": "Session"
+      },
+      {
+       "t": "Batch"
+      }
+     ],
+     "id": "m"
+    },
+    {
+     "type": "text",
+     "text": "plan Open: el gratuito",
+     "style": "note",
+     "id": "n",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "n",
+     "at": "cual"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué modo de ejecución no puedes usar con el plan Open?",
+    "options": [
+     "el trabajo suelto (`job`)",
+     "la sesión (`session`)",
+     "el lote (`batch`)",
+     "ninguno: con el plan Open puedo usar los tres"
+    ],
+    "after": "Anotado. Veamos qué dice el servicio."
+   },
+   "align": "top"
+  },
+  {
    "id": "servicio",
    "tag": [
     "1.1",
     "IBM Quantum Compute Service"
    ],
-   "say": "El servicio de cómputo de IBM ejecuta tus circuitos en sus procesadores cuánticos, en la nube. [[cli]]Tu programa habla con él a través del paquete qiskit ibm runtime. [[mas]]No solo ejecuta: añade recursos clásicos y cuánticos para devolver mejores resultados, con supresión de errores, como el desacoplamiento dinámico, y mitigación, como la extrapolación a ruido cero. [[modos]]Y ofrece tres modos de ejecución: un trabajo suelto, una sesión para cargas iterativas, o un lote para enviar todo de una vez. [[open]]Ojo: con el plan Open, el gratuito, no se pueden usar sesiones.",
+   "say": "El servicio de cómputo de IBM ejecuta tus circuitos en sus procesadores cuánticos, en la nube. [[cli]]Tu programa habla con él a través del paquete qiskit ibm runtime. [[mas]]No solo ejecuta: añade recursos clásicos y cuánticos para devolver mejores resultados, con supresión de errores, como el desacoplamiento dinámico, y mitigación, como la extrapolación a ruido cero. [[modos]]Y ofrece tres modos de ejecución: un trabajo suelto, una sesión para cargas iterativas, o un lote para enviar todo de una vez. [[open]]Ojo: con el plan Open, el gratuito, no se pueden usar sesiones. Si apostaste por la sesión, acertaste.",
    "scene": [
     {
      "type": "code",
@@ -552,6 +603,80 @@
      "El cliente de IBM no hace falta para simular localmente.",
      "El catálogo es para Qiskit Functions, que corren en la nube de IBM.",
      "Serverless es para cargas remotas en IBM Quantum Platform."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "1.1",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero reproduces un estado de Bell pasando por cuatro módulos del SDK. [[n2]]Después cambias un observable y calculas su valor exacto, sin simular mediciones. [[n3]]Y por último escribes tu propia función de valor esperado, y la comparas con la primitiva del SDK. [[check]]Cada misión tiene una comprobación que se actualiza sola: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p1-que-es-qiskit.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Pasa un estado de Bell por `circuit`, `quantum_info`, `transpiler` y `primitives`."
+      },
+      {
+       "level": 2,
+       "text": "Cambia el observable para medir solo la $Z$ del qubit 0 y comprueba su valor exacto."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `valor_esperado(qc, obs)` con `quantum_info` y compárala con `StatevectorEstimator`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "1.1",
+    "Reflexiona"
+   ],
+   "say": "Antes de cerrar, dos preguntas para pensar. No hay respuesta automática: escribe con tus palabras. Lo que escribas se guarda y lo verás cuando vuelvas a esta lección.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Explica con tus palabras la diferencia entre el SDK `qiskit` y el servicio IBM Quantum Compute. ¿Qué instalarías para cada uno?",
+     "Piensa en un problema que te interese, como química u optimización. ¿Qué parte del mapa usarías: solo el SDK, un addon o una Function? ¿Por qué?"
     ]
    },
    "align": "top"

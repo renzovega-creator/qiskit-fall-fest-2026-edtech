@@ -450,12 +450,54 @@
    ]
   },
   {
+   "id": "predice_config",
+   "tag": [
+    "1.3",
+    "Antes de configurar"
+   ],
+   "say": "Antes de ver la configuración, apuesta. Imagina que tu archivo settings punto conf fija el nivel de optimización por defecto en cero. [[cual]]Luego transpilas, sin indicar ningún nivel, un circuito con dos Hadamard seguidas. Dos Hadamard seguidas se cancelan entre sí. ¿Cuántas quedan?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "# settings.conf: transpile_optimization_level = 0\nqc = QuantumCircuit(1)\nqc.h(0)\nqc.h(0)\nprint(dict(transpile(qc).count_ops()))",
+     "lang": "python",
+     "id": "c",
+     "norun": true,
+     "size": 26
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      2,
+      3,
+      5
+     ],
+     "id": "c",
+     "at": "cual"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuántas Hadamard quedan en el circuito transpilado?",
+    "options": [
+     "ninguna: el transpilador las cancela",
+     "una",
+     "las dos",
+     "no se puede saber sin indicar el nivel"
+    ],
+    "after": "Anotado. Veamos qué dice la configuración."
+   },
+   "align": "top"
+  },
+  {
    "id": "config",
    "tag": [
     "1.3",
     "Configuración local"
    ],
-   "say": "Qiskit lee un archivo de configuración opcional, settings punto conf, en la carpeta punto qiskit de tu usuario. [[env]]Otra ruta se indica con la variable QISKIT SETTINGS. [[draw]]Con circuit drawer eliges el dibujante por defecto: texto, matplotlib o LaTeX. [[style]]Con circuit mpl style, el estilo de matplotlib. [[state]]Con state drawer, cómo se dibujan los estados. [[opt]]transpile optimization level fija el nivel de optimización por defecto, de cero a tres. [[par]]parallel y num processes controlan el paralelismo con varios procesos. [[qpy]]Y min qpy version rechaza archivos QPY antiguos, por seguridad.",
+   "say": "Qiskit lee un archivo de configuración opcional, settings punto conf, en la carpeta punto qiskit de tu usuario. [[env]]Otra ruta se indica con la variable QISKIT SETTINGS. [[draw]]Con circuit drawer eliges el dibujante por defecto: texto, matplotlib o LaTeX. [[style]]Con circuit mpl style, el estilo de matplotlib. [[state]]Con state drawer, cómo se dibujan los estados. [[opt]]transpile optimization level fija el nivel de optimización por defecto de la función transpile, de cero a tres; generate preset pass manager tiene su propio nivel por defecto. [[cero]]Con cero no se optimiza nada: las dos Hadamard se quedan, aunque se cancelen. Si apostaste por las dos, acertaste. [[par]]parallel y num processes controlan el paralelismo con varios procesos. [[qpy]]Y min qpy version rechaza archivos QPY antiguos, por seguridad.",
    "scene": [
     {
      "type": "code",
@@ -469,6 +511,13 @@
      "text": "otra ruta: variable `QISKIT_SETTINGS`",
      "style": "note",
      "id": "n",
+     "hidden": true
+    },
+    {
+     "type": "text",
+     "text": "con nivel 0, dos `h` seguidas siguen siendo `{'h': 2}`",
+     "style": "note",
+     "id": "z",
      "hidden": true
     }
    ],
@@ -509,6 +558,11 @@
      ],
      "id": "c",
      "at": "opt"
+    },
+    {
+     "do": "show",
+     "id": "z",
+     "at": "cero"
     },
     {
      "do": "hl",
@@ -704,6 +758,80 @@
      "t": 1
     }
    ]
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "1.3",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero compruebas tu instalación: la versión de Qiskit y el intérprete de Python. [[n2]]Después editas un archivo settings punto conf y compruebas que Qiskit lo lee. [[n3]]Y por último escribes dos funciones que convierten cuadernos entre Jupyter y marimo, con marimo convert. Así podrás usar las guías de IBM, que están en Jupyter. [[check]]Cada misión tiene una comprobación que se actualiza sola: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p1-instalar.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Comprueba tu versión de Qiskit y que tu Python es CPython de 64 bits."
+      },
+      {
+       "level": 2,
+       "text": "Edita un `settings.conf`: dibujo `mpl` y `transpile` sin optimizar."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `jupyter_a_marimo` y `marimo_a_jupyter` con `marimo convert` y `marimo export ipynb`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "1.3",
+    "Reflexiona"
+   ],
+   "say": "Antes de cerrar, dos preguntas para pensar. No hay respuesta automática: escribe con tus palabras. Lo que escribas se guarda y lo verás cuando vuelvas a esta lección.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Qué ventaja te da un entorno virtual por proyecto? Cuéntalo con un ejemplo de algo que podría salir mal sin él.",
+     "Un cuaderno de marimo es un archivo `.py`; uno de Jupyter es un `.ipynb`. ¿Qué ventaja ves en el primero, y cuándo necesitarías convertirlo a Jupyter?"
+    ]
+   },
+   "align": "top"
   },
   {
    "id": "cierre",

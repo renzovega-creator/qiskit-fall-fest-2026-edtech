@@ -9,21 +9,42 @@
      "section": "1.1",
      "title": "Qué es Qiskit",
      "summary": "El SDK, el servicio de cómputo de IBM, el ecosistema, los addons, Serverless y Functions: el mapa de todo lo que vas a aprender.",
-     "minutes": 7
+     "minutes": 9,
+     "missions": [
+      {
+       "notebook": "practica/p1-que-es-qiskit.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     },
     {
      "id": "p1-patrones",
      "section": "1.2",
      "title": "El flujo de trabajo: patrones de Qiskit",
      "summary": "Mapear, optimizar, ejecutar y posprocesar: los cuatro pasos de todo programa cuántico, con un ejemplo completo.",
-     "minutes": 6
+     "minutes": 9,
+     "missions": [
+      {
+       "notebook": "practica/p1-patrones.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     },
     {
      "id": "p1-instalar",
      "section": "1.3",
      "title": "Instalar y configurar Qiskit",
      "summary": "Entornos virtuales, pip, Jupyter, sistemas soportados, instalación desde el código fuente, configuración local y entornos en línea.",
-     "minutes": 8
+     "minutes": 11,
+     "missions": [
+      {
+       "notebook": "practica/p1-instalar.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     },
     {
      "id": "p1-quickstart",
@@ -49,7 +70,14 @@
      "section": "1.5",
      "title": "IBM Quantum Composer",
      "summary": "La herramienta gráfica de IBM: construir con arrastrar y soltar o con OpenQASM, inspeccionar paso a paso, ejecutar en QPUs y leer sus visualizaciones.",
-     "minutes": 8
+     "minutes": 11,
+     "missions": [
+      {
+       "notebook": "practica/p1-composer.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     }
    ]
   },

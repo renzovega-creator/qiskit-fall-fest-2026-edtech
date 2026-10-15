@@ -63,8 +63,8 @@ comprueba la cobertura. Para actualizar las guías se cambia ese hash, se ejecut
 
 ### `practica/`
 
-`p1-quickstart.py`, `p2-circuitos.py` y `proyecto/hito1.py` son cuadernos
-marimo. Cada misión de una lección nombra su cuaderno con `Mission(...)`.
+Cada `.py` de esta carpeta, y de `proyecto/`, es un cuaderno marimo. Cada misión
+de una lección nombra su cuaderno con `Mission(...)`.
 `soluciones/<cuaderno>.json` (con `__` en lugar de `/` para los cuadernos de
 subcarpetas) guarda los pares (texto, reemplazo) que `tools/practica.py` aplica
 para comprobar que todas las verificaciones dan ✅.
