@@ -179,7 +179,7 @@
    "scene": [
     {
      "type": "code",
-     "src": "import os\nimport qiskit.capi\n\nprint(os.listdir(qiskit.capi.get_include()))\n# setup.py:\n# Extension(name=\"spectator_measures._core\",\n#           sources=[\"src/spectator_measures/_coremodule.c\"],\n#           include_dirs=[qiskit.capi.get_include()])",
+     "src": "import os\nimport qiskit.capi\n\nprint(sorted(os.listdir(qiskit.capi.get_include())))\n# setup.py:\n# Extension(name=\"spectator_measures._core\",\n#           sources=[\"src/spectator_measures/_coremodule.c\"],\n#           include_dirs=[qiskit.capi.get_include()])",
      "lang": "python",
      "id": "c",
      "size": 22

@@ -512,7 +512,7 @@ qc = QuantumCircuit(3)
 qc.h(0)
 qc.cx(0, 2)
 print(sorted(transpile(qc, MiBackend()).count_ops()))''', id="c", size=17),
-              Out("['cz', 'rz', 'sx', 'x']", id="o", hidden=True, check=True)],
+              Out("['cz', 'rz', 'sx']", id="o", hidden=True, check=True)],
              [A("hl", "c", at="prov", range="6-8"), A("hl", "c", at="backend", range="17-24"), A("hl", "c", at="target", range="9-15"), A("hl", "c", at="res", range="26-29"), A("show", "o", at="res")]),
 
         beat("multichip", ("", "Un backend de varios chips"),

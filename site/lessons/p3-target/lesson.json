@@ -283,7 +283,7 @@
     },
     {
      "type": "code",
-     "src": "['cz', 'rz', 'sx', 'x']",
+     "src": "['cz', 'rz', 'sx']",
      "lang": "out",
      "id": "o",
      "hidden": true,
