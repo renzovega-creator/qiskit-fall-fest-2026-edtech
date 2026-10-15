@@ -77,8 +77,33 @@
    ]
   ]
  },
+ "export_pred": {
+  "dur": 18.288,
+  "marks": {
+   "med": 4.713,
+   "cual": 14.054
+  },
+  "cues": [
+   [
+    0.107,
+    "Aquí tienes un estado de Bell escrito en OpenQASM dos."
+   ],
+   [
+    4.713,
+    "La medición se escribe con una flecha, de q a meas."
+   ],
+   [
+    9.2,
+    "Vamos a exportar el mismo circuito a OpenQASM tres."
+   ],
+   [
+    14.054,
+    "¿Cómo crees que se escribirá la medición del primer qubit?"
+   ]
+  ]
+ },
  "export": {
-  "dur": 19.488,
+  "dur": 24.552,
   "marks": {
    "q3": 6.581
   },
@@ -93,7 +118,11 @@
    ],
    [
     9.185,
-    "Fíjate en las diferencias: en OpenQASM tres, los registros se declaran con qubit y bit, y la medición se escribe como una asignación."
+    "Fíjate en las diferencias: en OpenQASM tres, los registros se declaran con qubit y bit, y la medición se escribe como una asignación: el bit recibe el resultado de measure."
+   ],
+   [
+    22.093,
+    "La flecha desaparece."
    ]
   ]
  },
@@ -167,12 +196,11 @@
    ]
   ]
  },
- "qpy": {
-  "dur": 34.608,
+ "qpy_pred": {
+  "dur": 22.728,
   "marks": {
-   "comp": 10.388,
-   "dump": 19.333,
-   "load": 26.282
+   "dump": 10.388,
+   "load": 16.488
   },
   "cues": [
    [
@@ -181,19 +209,45 @@
    ],
    [
     10.388,
+    "qpy punto dump escribe un circuito en un archivo abierto en modo binario."
+   ],
+   [
+    16.488,
+    "Y qpy punto load lo lee de vuelta."
+   ],
+   [
+    20.451,
+    "¿Qué crees que devuelve?"
+   ]
+  ]
+ },
+ "qpy": {
+  "dur": 28.872,
+  "marks": {
+   "comp": 2.066,
+   "dump": 11.011,
+   "load": 17.96
+  },
+  "cues": [
+   [
+    0.107,
+    "Comprobemos."
+   ],
+   [
+    2.066,
     "Un archivo QPY se podrá leer con versiones más nuevas de Qiskit, aunque no necesariamente con versiones más viejas."
    ],
    [
-    19.333,
+    11.011,
     "qpy punto dump escribe uno o varios circuitos en un archivo abierto en modo binario."
    ],
    [
-    26.282,
+    17.96,
     "Y qpy punto load los lee."
    ],
    [
-    29.736,
-    "Siempre devuelve una lista, aunque hayas guardado uno solo."
+    21.414,
+    "Siempre devuelve una lista, aunque hayas guardado uno solo; por eso hay que tomar el elemento cero."
    ]
   ]
  },
@@ -204,6 +258,46 @@
    [
     0.107,
     "Una pregunta sobre formatos."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 25.08,
+  "marks": {
+   "n1": 2.137,
+   "n2": 8.605,
+   "n3": 16.757
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, predice cuántas instrucciones tiene un programa OpenQASM al importarlo."
+   ],
+   [
+    8.605,
+    "Después, relee un archivo antiguo que usa la puerta r x x, con las instrucciones heredadas."
+   ],
+   [
+    16.757,
+    "Y por último, escribe dos funciones, una que guarde un circuito con QPY y otra que lo cargue de vuelta."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 8.64,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
+   ],
+   [
+    3.397,
+    "Escribe con tus palabras; lo que escribas se guarda en el navegador."
    ]
   ]
  },

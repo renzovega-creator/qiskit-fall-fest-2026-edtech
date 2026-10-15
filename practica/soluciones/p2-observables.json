@@ -1,0 +1,14 @@
+[
+ [
+  "    prediccion = None   # ✏️ tu apuesta: ¿cuántos términos?",
+  "    prediccion = 7"
+ ],
+ [
+  "    # ✏️ cambio de base para medir Y",
+  "    medir_y.sdg(0)\n    medir_y.h(0)"
+ ],
+ [
+  "        # ✏️ una tripleta (eje, [i], 1 / n) por cada qubit",
+  "        for i in range(n):\n            terminos.append((eje, [i], 1 / n))"
+ ]
+]

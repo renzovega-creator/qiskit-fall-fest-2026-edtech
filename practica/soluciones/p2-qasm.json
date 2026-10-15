@@ -1,0 +1,18 @@
+[
+ [
+  "    prediccion = None   # ✏️ tu apuesta: ¿cuántas instrucciones?",
+  "    prediccion = 4"
+ ],
+ [
+  "qasm2.loads(programa_antiguo)   # ✏️ añade el argumento que falta",
+  "qasm2.loads(programa_antiguo, custom_instructions=qasm2.LEGACY_CUSTOM_INSTRUCTIONS)"
+ ],
+ [
+  "        # ✏️ escribe el circuito con qpy.dump en un io.BytesIO y devuelve sus bytes (getvalue)\n        return b\"\"",
+  "        archivo = io.BytesIO()\n        qpy.dump(circuito, archivo)\n        return archivo.getvalue()"
+ ],
+ [
+  "        # ✏️ lee con qpy.load desde io.BytesIO(datos) y devuelve el circuito, no la lista\n        return None",
+  "        return qpy.load(io.BytesIO(datos))[0]"
+ ]
+]

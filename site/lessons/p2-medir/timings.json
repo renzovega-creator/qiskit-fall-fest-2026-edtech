@@ -61,8 +61,32 @@
    ]
   ]
  },
+ "all_pred": {
+  "dur": 16.776,
+  "marks": {
+   "cual": 9.652
+  },
+  "cues": [
+   [
+    0.107,
+    "Una apuesta."
+   ],
+   [
+    1.967,
+    "Este circuito de tres qubits ya tiene un bit clásico, y ponemos una X en los qubits cero y dos."
+   ],
+   [
+    9.652,
+    "Ahora llamamos a measure all."
+   ],
+   [
+    12.341,
+    "¿Cuántos bits clásicos tendrá el circuito cuando termine?"
+   ]
+  ]
+ },
  "all": {
-  "dur": 31.2,
+  "dur": 35.856,
   "marks": {
    "reg": 5.973,
    "bar": 13.035,
@@ -88,6 +112,10 @@
    [
     23.834,
     "Aquí, el registro c original se queda vacío, en cero, y los resultados van a meas."
+   ],
+   [
+    31.193,
+    "En total son cuatro bits: uno de c y tres de meas."
    ]
   ]
  },
@@ -148,13 +176,53 @@
    ]
   ]
  },
+ "mision": {
+  "dur": 26.832,
+  "marks": {
+   "n1": 2.137,
+   "n2": 9.115,
+   "n3": 15.625
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, predice cuántos bits clásicos tiene un circuito después de measure all y compruébalo."
+   ],
+   [
+    9.115,
+    "Después, cambia los argumentos de measure para que el qubit dos se guarde en el bit cero."
+   ],
+   [
+    15.625,
+    "Y por último, entrelaza los qubits uno y tres de un circuito de cinco, mídelos con measure active, y prepara su copia sin mediciones para Estimator."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 8.64,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
+   ],
+   [
+    3.397,
+    "Escribe con tus palabras; lo que escribas se guarda en el navegador."
+   ]
+  ]
+ },
  "cierre": {
-  "dur": 20.616,
+  "dur": 20.64,
   "marks": {
    "r1": 1.868,
-   "r2": 3.326,
-   "r3": 9.256,
-   "r4": 15.116
+   "r2": 3.397,
+   "r3": 9.27,
+   "r4": 15.13
   },
   "cues": [
    [
@@ -163,18 +231,14 @@
    ],
    [
     1.868,
-    "Se mide en la base Z."
+    "Se mide en la base Z.measure te da control total, y Measure es la misma operación como instrucción."
    ],
    [
-    3.326,
-    "measure te da control total, y Measure es la misma operación como instrucción."
-   ],
-   [
-    9.256,
+    9.27,
     "measure all mide todo en un registro nuevo y measure active, solo lo que se usó."
    ],
    [
-    15.116,
+    15.13,
     "Y recuerda: Sampler con mediciones, Estimator sin ellas."
    ]
   ]

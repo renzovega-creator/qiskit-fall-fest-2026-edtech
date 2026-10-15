@@ -40,12 +40,10 @@
    ]
   ]
  },
- "nlocal": {
-  "dur": 44.4,
+ "nlocal_pred": {
+  "dur": 20.64,
   "marks": {
-   "var": 7.275,
-   "ej": 18.654,
-   "asig": 37.208
+   "cual": 13.799
   },
   "cues": [
    [
@@ -54,18 +52,44 @@
    ],
    [
     7.275,
-    "Son muy usados en los algoritmos variacionales, porque producen una gran variedad de estados: el algoritmo ajusta los ángulos hasta encontrar el estado que buscas."
+    "Este es de tres qubits, con rotaciones RX y entrelazamiento CZ."
    ],
    [
-    18.654,
-    "n local de tres, rx, cz: tres qubits, rotaciones RX y entrelazamiento con CZ."
+    13.799,
+    "Por defecto repite el bloque varias veces."
    ],
    [
-    27.867,
-    "Por defecto repite tres veces el bloque y termina con una capa de rotaciones: cuatro capas de tres ángulos, doce parámetros."
+    17.479,
+    "¿Cuántos parámetros crees que tendrá?"
+   ]
+  ]
+ },
+ "nlocal": {
+  "dur": 35.064,
+  "marks": {
+   "var": 1.939,
+   "ej": 14.153,
+   "asig": 27.853
+  },
+  "cues": [
+   [
+    0.107,
+    "Contemos."
    ],
    [
-    37.208,
+    1.939,
+    "Estos circuitos son muy usados en los algoritmos variacionales, porque producen una gran variedad de estados: el algoritmo ajusta los ángulos hasta encontrar el estado que buscas."
+   ],
+   [
+    14.153,
+    "Por defecto el bloque se repite tres veces y se termina con una capa de rotaciones: cuatro capas de tres ángulos, doce parámetros."
+   ],
+   [
+    23.692,
+    "Si dijiste nueve, olvidaste la capa final."
+   ],
+   [
+    27.853,
     "Y como cualquier circuito con parámetros, se asignan con un diccionario, de parámetro a número."
    ]
   ]
@@ -164,38 +188,58 @@
    ]
   ]
  },
- "suma": {
-  "dur": 32.52,
+ "suma_pred": {
+  "dur": 15.768,
   "marks": {
-   "add": 8.775,
-   "ini": 16.035,
-   "regs": 20.848,
-   "med": 26.24,
-   "res": 28.83
+   "cual": 12.186
   },
   "cues": [
    [
     0.107,
-    "La biblioteca también tiene circuitos aritméticos, útiles en estimación de amplitud o en el algoritmo HHL."
+    "La biblioteca también tiene circuitos aritméticos."
    ],
    [
-    8.775,
+    4.458,
+    "Vamos a sumar con un circuito: a vale dos y b vale tres, y el resultado queda en el registro de b."
+   ],
+   [
+    12.186,
+    "Si medimos b, ¿qué número esperas?"
+   ]
+  ]
+ },
+ "suma": {
+  "dur": 30.936,
+  "marks": {
+   "add": 7.176,
+   "ini": 14.436,
+   "regs": 19.248,
+   "med": 24.64,
+   "res": 27.231
+  },
+  "cues": [
+   [
+    0.107,
+    "Estos circuitos aritméticos son útiles en estimación de amplitud o en el algoritmo HHL."
+   ],
+   [
+    7.176,
     "FullAdderGate de tres suma dos números de tres bits, a y b, y deja el resultado en el registro de b."
    ],
    [
-    16.035,
+    14.436,
     "Preparamos a igual a dos y b igual a tres con initialize."
    ],
    [
-    20.848,
+    19.248,
     "El sumador usa además un qubit de acarreo de entrada y otro de salida."
    ],
    [
-    26.24,
+    24.64,
     "Medimos el registro b."
    ],
    [
-    28.83,
+    27.231,
     "En los mil veinticuatro disparos sale cinco."
    ]
   ]
@@ -217,6 +261,46 @@
    [
     0.107,
     "Otra pregunta, sobre codificación."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 23.28,
+  "marks": {
+   "n1": 2.137,
+   "n2": 8.237,
+   "n3": 16.644
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, predice cuántos parámetros tiene un circuito N-local y compruébalo."
+   ],
+   [
+    8.237,
+    "Después, cambia sus argumentos para que sea más barato: ocho parámetros y solo tres puertas de dos qubits."
+   ],
+   [
+    16.644,
+    "Y por último, escribe una función que sume dos números con el sumador de la biblioteca."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 8.64,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
+   ],
+   [
+    3.397,
+    "Escribe con tus palabras; lo que escribas se guarda en el navegador."
    ]
   ]
  },

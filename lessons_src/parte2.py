@@ -233,9 +233,21 @@ qc.measure(range(5), range(5))''')],
                         wrong=["Esa sería la lectura con el bit 0 a la izquierda; Qiskit lo pone a la derecha.", None,
                                "Los qubits con X son 0, 1 y 4, no 2, 3 y 4.", "Revisa qué qubits llevan X: 0, 1 y 4."])),
 
+        beat("all_pred", ("", "Antes de medir todo"),
+             """Una apuesta. Este circuito de tres qubits ya tiene un bit clásico, y ponemos una X en los qubits cero y dos.
+             [[cual]]Ahora llamamos a measure all. ¿Cuántos bits clásicos tendrá el circuito cuando termine?""",
+             [Code('''from qiskit import QuantumCircuit
+
+qc = QuantumCircuit(3, 1)
+qc.x([0, 2])
+qc.measure_all()
+print(qc.num_clbits)''', id="c", size=26)],
+             [A("hl", "c", at="cual", lines=[6])],
+             ask=predict("Tras `measure_all()`, ¿cuántos bits clásicos tiene el circuito?", ["1", "3", "4", "6"], "Anotado. Veamos qué hace measure all.")),
+
         beat("all", ("", "measure_all"),
              """measure all no necesita argumentos y sirve para circuitos sin bits clásicos. [[reg]]Crea un registro nuevo llamado meas, con un bit por qubit, y guarda el qubit i en el bit i. [[bar]]Además añade una barrera antes de medir.
-             [[nuevo]]Ojo: si el circuito ya tenía bits clásicos, measure all añade otro registro aparte. Aquí, el registro c original se queda vacío, en cero, y los resultados van a meas.""",
+             [[nuevo]]Ojo: si el circuito ya tenía bits clásicos, measure all añade otro registro aparte. Aquí, el registro c original se queda vacío, en cero, y los resultados van a meas. En total son cuatro bits: uno de c y tres de meas.""",
              [Code('''qc = QuantumCircuit(3, 1)
 qc.x([0, 2])
 qc.measure_all()''', id="c"),
@@ -273,8 +285,23 @@ qc.measure_active()''')],
                          "Correcto: solo los qubits 0 y 2 tienen operaciones, así que se miden dos.", tol=0.001,
                          hint="Cuenta los qubits que tienen al menos una puerta.")),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, predice cuántos bits clásicos tiene un circuito después de measure all y compruébalo. [[n2]]Después, cambia los argumentos de measure para que el qubit dos se guarde en el bit cero.
+             [[n3]]Y por último, entrelaza los qubits uno y tres de un circuito de cinco, mídelos con measure active, y prepara su copia sin mediciones para Estimator.""",
+             [Mission("practica/p2-medir.py", [
+                 (1, "Predice cuántos bits clásicos tiene un circuito tras `measure_all()`."),
+                 (2, "Cambia `measure` para que el qubit 2 vaya al bit 0."),
+                 (3, "Un Bell entre los qubits 1 y 3 con `measure_active()`, y su copia sin mediciones para Estimator.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.""",
+             [T("Sampler devuelve bits; Estimator devuelve promedios.", "subtitle")],
+             ask=reflect("¿Por qué crees que Sampler necesita que el circuito termine en mediciones y Estimator, en cambio, no las admite? Piensa en lo que devuelve cada uno.",
+                         "En tu proyecto Ising quieres la magnetización media de la cadena. ¿Usarías Sampler o Estimator, y qué le pasarías?")),
+
         beat("cierre", ("", "Resumen"),
-             """Resumen. [[r1]]Se mide en la base Z. [[r2]]measure te da control total, y Measure es la misma operación como instrucción. [[r3]]measure all mide todo en un registro nuevo y measure active, solo lo que se usó.
+             """Resumen. [[r1]]Se mide en la base Z.[[r2]]measure te da control total, y Measure es la misma operación como instrucción. [[r3]]measure all mide todo en un registro nuevo y measure active, solo lo que se usó.
              [[r4]]Y recuerda: Sampler con mediciones, Estimator sin ellas.""",
              s_cierre, a_cierre),
     ],
@@ -301,10 +328,15 @@ qc.qubits[0]     # el qubit "0"''', id="c", hidden=True, setup="from qiskit impo
               Circ(2, [G("x", 1)], id="q", hidden=True)],
              [A("show", "c", at="lista"), A("show", "q", at="diag")]),
 
+        beat("cadena_pred", ("", "Antes de leer la cadena"),
+             """Una apuesta. Ponemos una X en el qubit uno, el de abajo, y medimos los dos qubits. [[cual]]Qiskit nos devuelve una cadena de dos bits. ¿Cuál crees que será?""",
+             [Circ(2, [G("x", 1), G("barrier"), G("measure", 0, c=0), G("measure", 1, c=1)], clbits=2, creg="meas")],
+             ask=predict("¿Qué cadena devolverá `get_counts()`?", ["`'01'`", "`'10'`", "`'11'`", "`'00'`"], "Anotado. Veamos qué imprime.")),
+
         beat("enteros", ("", "Enteros y cadenas"),
              """Al leer los bits como un número, el bit cero es el menos significativo: cada bit k vale dos a la k. [[ej]]Si ponemos una X en el qubit uno y medimos, el bit cero vale cero y el bit uno vale uno: el número dos.
              [[cad]]Y al escribirlos como cadena, el bit n menos uno va a la izquierda y el bit cero a la derecha, como escribimos los números: el dígito más significativo primero.
-             [[asi]]Por eso Qiskit imprime uno cero, aunque el qubit que cambiamos sea el uno.""",
+             [[asi]]Por eso Qiskit imprime uno cero, aunque el qubit que cambiamos sea el uno. Si apostaste por cero uno, es el error más común: leer la cadena con el qubit cero a la izquierda.""",
              [Code('''from qiskit import QuantumCircuit
 from qiskit.primitives import StatevectorSampler
 
@@ -368,6 +400,21 @@ qc2 = qc.reverse_bits()        # circuito nuevo: X sobre q1''', id="c"),
                          "Correcto: $q_0=1$ y $q_2=1$, así que $2^0+2^2=5$ (la cadena es `'101'`).", tol=0.001,
                          hint="Cada qubit $k$ con valor 1 aporta $2^k$.")),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, predice la cadena de bits de un circuito con X en los qubits cero y dos. [[n2]]Después, cambia las X de un circuito para preparar el estado cero uno uno.
+             [[n3]]Y por último, escribe una función que prepare el estado de la base con el índice que le pidas, para cualquier número de qubits.""",
+             [Mission("practica/p2-orden-bits.py", [
+                 (1, "Predice la cadena de bits de un circuito con X en los qubits 0 y 2."),
+                 (2, r"Cambia las X para preparar $|q_2q_1q_0\rangle=|011\rangle$."),
+                 (3, "Escribe `preparar(k, n)`: el estado de la base con índice `k` en el vector de estado.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.""",
+             [T("La convención es arbitraria; lo que importa es no mezclar dos.", "subtitle")],
+             ask=reflect("En el diagrama el qubit 0 está arriba, pero en la cadena de bits va a la derecha. ¿Cómo se lo explicarías a alguien para que no se confunda al leer los conteos?",
+                         "En tu proyecto Ising mides cada espín. En la cadena `'0010'`, ¿qué carácter corresponde al espín 0 y cómo lo sacarías en código?")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]En los diagramas, el qubit cero está arriba. [[r2]]Como número, el bit cero es el menos significativo. [[r3]]Como cadena, el bit cero va a la derecha.
              [[r4]]Y en el vector de estado, el índice x es el estado x en binario. reverse bits en draw solo cambia el dibujo.""",
@@ -409,10 +456,18 @@ qc.append(MCXGate(3), [0, 1, 2, 3])''', id="c"),
               Circ(4, [G("h", 0), dict(g="c", ctrl=[0, 1, 2], q=[3], base="x", label="X", hidden=True)], id="q")],
              [A("gate", "q", at="mcx", i=1), A("hl", "c", at="app", lines=[5, 6])]),
 
+        beat("nlocal_pred", ("", "Antes de contar parámetros"),
+             """Los circuitos N-local alternan capas de rotaciones de un qubit con capas de puertas que entrelazan. Este es de tres qubits, con rotaciones RX y entrelazamiento CZ. [[cual]]Por defecto repite el bloque varias veces. ¿Cuántos parámetros crees que tendrá?""",
+             [Code('''from qiskit.circuit.library import n_local
+
+two_local = n_local(3, "rx", "cz")
+print(two_local.num_parameters)''', id="c")],
+             [A("hl", "c", at="cual", lines=[4])],
+             ask=predict("¿Cuántos parámetros tiene `two_local`?", ["3", "6", "9", "12"], "Anotado. Veamos cómo se construye.")),
+
         beat("nlocal", ("", "Circuitos N-local"),
-             """Los circuitos N-local alternan capas de rotaciones de un qubit con capas de puertas que entrelazan.
-             [[var]]Son muy usados en los algoritmos variacionales, porque producen una gran variedad de estados: el algoritmo ajusta los ángulos hasta encontrar el estado que buscas.
-             [[ej]]n local de tres, rx, cz: tres qubits, rotaciones RX y entrelazamiento con CZ. Por defecto repite tres veces el bloque y termina con una capa de rotaciones: cuatro capas de tres ángulos, doce parámetros.
+             """Contemos. [[var]]Estos circuitos son muy usados en los algoritmos variacionales, porque producen una gran variedad de estados: el algoritmo ajusta los ángulos hasta encontrar el estado que buscas.
+             [[ej]]Por defecto el bloque se repite tres veces y se termina con una capa de rotaciones: cuatro capas de tres ángulos, doce parámetros. Si dijiste nueve, olvidaste la capa final.
              [[asig]]Y como cualquier circuito con parámetros, se asignan con un diccionario, de parámetro a número.""",
              [Code('''from qiskit.circuit.library import n_local
 
@@ -468,8 +523,13 @@ print(qv.count_ops())''', id="c"),
                 id="l", stagger=True, size=27)],
              [A("show", "o", at="qv"), A("item", "l", at="qv", t=2, i=0), A("item", "l", at="iqp", i=1), A("item", "l", at="otros", i=2)]),
 
+        beat("suma_pred", ("", "Antes de sumar"),
+             """La biblioteca también tiene circuitos aritméticos. Vamos a sumar con un circuito: a vale dos y b vale tres, y el resultado queda en el registro de b. [[cual]]Si medimos b, ¿qué número esperas?""",
+             [T("a = 2 · b = 3 · medimos el registro de b", "body", id="t")],
+             ask=predict("Tras sumar, ¿qué número sale al medir el registro de `b`?", ["2", "3", "5", "6"], "Anotado. Construyamos el sumador.")),
+
         beat("suma", ("", "Aritmética: sumar 2 + 3"),
-             """La biblioteca también tiene circuitos aritméticos, útiles en estimación de amplitud o en el algoritmo HHL. [[add]]FullAdderGate de tres suma dos números de tres bits, a y b, y deja el resultado en el registro de b.
+             """Estos circuitos aritméticos son útiles en estimación de amplitud o en el algoritmo HHL. [[add]]FullAdderGate de tres suma dos números de tres bits, a y b, y deja el resultado en el registro de b.
              [[ini]]Preparamos a igual a dos y b igual a tres con initialize. [[regs]]El sumador usa además un qubit de acarreo de entrada y otro de salida.
              [[med]]Medimos el registro b. [[res]]En los mil veinticuatro disparos sale cinco.""",
              [Code('''from qiskit.circuit.library import FullAdderGate
@@ -511,6 +571,21 @@ print(result[0].data.res.get_int_counts())''', id="c", size=19),
              ask=choice("¿Qué codificación permitiría cargarlos todos?", ["en base", "en ángulo", "en amplitud"], 2,
                         "Correcto: $2^{10}=1024$ amplitudes. El precio es que preparar ese estado puede requerir un circuito muy profundo.",
                         wrong=["En base, 10 qubits representan un solo entero de 10 bits.", "En ángulo necesitarías una rotación por número.", None])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, predice cuántos parámetros tiene un circuito N-local y compruébalo. [[n2]]Después, cambia sus argumentos para que sea más barato: ocho parámetros y solo tres puertas de dos qubits.
+             [[n3]]Y por último, escribe una función que sume dos números con el sumador de la biblioteca.""",
+             [Mission("practica/p2-biblioteca.py", [
+                 (1, "Predice cuántos parámetros tiene `n_local(3, \"rx\", \"cz\")`."),
+                 (2, "Cambia `n_local` para tener 8 parámetros y solo 3 puertas de dos qubits."),
+                 (3, "Escribe `sumar(x, y)` con `FullAdderGate` y pruébala con 5 + 6.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.""",
+             [T("La biblioteca ahorra código, pero hay que saber qué hay dentro.", "subtitle")],
+             ask=reflect("¿Qué ganas y qué pierdes al usar un circuito de la biblioteca en vez de escribirlo puerta por puerta?",
+                         "Para evolucionar en el tiempo la cadena de Ising, ¿usarías `PauliEvolutionGate` o escribirías `rzz` y `rx` a mano? Defiende tu elección.")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Las puertas estándar se añaden con append. [[r2]]Los circuitos N-local y de codificación traen parámetros. [[r3]]Hay circuitos de evolución temporal y de referencia, como el volumen cuántico.
@@ -651,8 +726,16 @@ circ.append(Pauli("XX"), [0, 1])''', id="c"),
               Out("False", id="o", hidden=True, check=True)],
              [A("hl", "c", at="ej", lines=[4]), A("show", "o", at="unit"), A("hl", "c", at="circ", range="7-9")]),
 
+        beat("fase_pred", ("", "Antes de comparar"),
+             """Dos Operator se comparan con doble igual, que revisa cada elemento de la matriz. Multiplicar una puerta por e elevado a i medio es solo una fase global: físicamente es la misma operación. [[cual]]¿Qué crees que responde el doble igual?""",
+             [Code('''from qiskit.circuit.library import XGate
+
+print(Operator(XGate()) == np.exp(0.5j) * Operator(XGate()))''', id="c")],
+             [A("hl", "c", at="cual", lines=[3])],
+             ask=predict("¿Qué imprime la comparación?", ["`True`", "`False`", "un error"], "Anotado. Veamos qué dice Qiskit.")),
+
         beat("comparar", ("", "Comparar operadores"),
-             """Dos Operator se comparan con doble igual, que revisa cada elemento de la matriz. [[fase]]Ojo: dos unitarias que solo difieren en una fase global no son iguales para doble igual, aunque físicamente sean la misma operación.
+             """Comparemos. [[fase]]Imprime falso: dos unitarias que solo difieren en una fase global no son iguales para doble igual, aunque físicamente sean la misma operación. Si apostaste por verdadero, pensaste como físico; el doble igual piensa como matemático.
              [[fid]]Para eso está process fidelity, una medida de qué tan parecidos son dos canales cuánticos. Para unitarias, no depende de la fase global: aquí da exactamente uno.""",
              [Code('''from qiskit.quantum_info import process_fidelity
 from qiskit.circuit.library import XGate
@@ -669,6 +752,21 @@ print(process_fidelity(Operator(XGate()), np.exp(0.5j) * Operator(XGate())))''',
              ask=choice("¿Qué clase usarías?", ["`Operator`", "`SparsePauliOp`", "`Pauli`"], 1,
                         "Correcto: guarda solo unos 200 términos. Un `Operator` necesitaría una matriz de $2^{100}\\times2^{100}$.",
                         wrong=["Una matriz densa de 100 qubits no cabe en ninguna memoria.", None, "Un `Pauli` es una sola cadena; aquí hay una suma de muchas."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, predice el resultado de componer una X y una Z en cada orden. [[n2]]Después, usa el argumento qargs para colocar un operador sobre los qubits que tú elijas.
+             [[n3]]Y por último, escribe una función que construya la cadena de Heisenberg para cualquier número de espines.""",
+             [Mission("practica/p2-operadores.py", [
+                 (1, "Predice el resultado de `compose` con $Z$ y $X$ y compruébalo."),
+                 (2, "Usa `qargs` para colocar $XZ$ sobre los qubits 1 y 2 de un operador de 3 qubits."),
+                 (3, "Escribe `heisenberg(n)`: $\\sum_i X_iX_{i+1}+Y_iY_{i+1}+Z_iZ_{i+1}$ con `SparsePauliOp`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.""",
+             [T("Elegir la clase correcta es elegir cuánta memoria gastas.", "subtitle")],
+             ask=reflect("¿Por qué `A.compose(B)` es el producto $B\\cdot A$ y no $A\\cdot B$? Explícalo con lo que pasa en un circuito.",
+                         "Tu cadena de Ising tiene 100 espines. ¿Qué perderías si la guardaras como `Operator` en vez de `SparsePauliOp`, y qué sigues pudiendo hacer con la versión escasa?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]SparsePauliOp para observables. [[r2]]Pauli para una sola cadena con fase. [[r3]]Operator para matrices densas pequeñas, con tensor, expand, compose y sumas.
@@ -701,10 +799,19 @@ observables = lesson(
               T("$O^\\dagger=O$ → coeficientes reales", "note", id="n", hidden=True)],
              [A("show", "m", at="mat"), A("show", "n", at="herm")]),
 
+        beat("ising_pred", ("", "Antes de construir el Ising"),
+             """Un ejemplo clásico: espines en una línea, con interacción Z Z entre vecinos y un campo transversal en X. [[cual]]Para cuatro espines, ¿cuántos términos tendrá el hamiltoniano?""",
+             [M(r"H=\sum_{i}Z_iZ_{i+1}-\sum_{i}X_i", id="m", size=42),
+              Code('''n = 4
+interactions = [("ZZ", [i, i + 1], 1) for i in range(n - 1)]
+field = [("X", [i], -1) for i in range(n)]
+hamiltonian = SparsePauliOp.from_sparse_list(interactions + field, num_qubits=n)''', id="c", setup="from qiskit.quantum_info import SparsePauliOp")],
+             [A("hl", "c", at="cual", lines=[2, 3])],
+             ask=predict("¿Cuántos términos tiene `hamiltonian`?", ["4", "6", "7", "8"], "Anotado. Veamos cómo se escribe.")),
+
         beat("ising", ("", "Un hamiltoniano de Ising"),
-             """Un ejemplo clásico: espines en una línea, con interacción Z Z entre vecinos y un campo transversal en X.
-             [[int]]Las interacciones son tripletas Z Z sobre los qubits i e i más uno, con coeficiente uno. [[campo]]El campo, X sobre cada qubit, con coeficiente menos uno.
-             [[res]]Con cuatro qubits salen siete términos. [[mag]]Y si en vez de la energía quieres la magnetización media, el observable es la suma de las Z dividida entre n.""",
+             """Veamos. [[int]]Las interacciones son tripletas Z Z sobre los qubits i e i más uno, con coeficiente uno. [[campo]]El campo, X sobre cada qubit, con coeficiente menos uno.
+             [[res]]Con cuatro qubits salen siete términos: tres pares de vecinos y cuatro campos. Si dijiste ocho, contaste cuatro pares, pero en una línea hay uno menos que espines. [[mag]]Y si en vez de la energía quieres la magnetización media, el observable es la suma de las Z dividida entre n.""",
              [M(r"H=\sum_{i}Z_iZ_{i+1}-\sum_{i}X_i", size=42),
               Code('''from qiskit.quantum_info import SparsePauliOp
 
@@ -768,9 +875,13 @@ circuit.unitary(U, circuit.qubits)''', id="c"),
               Box("warn", "Síntesis general", T("costo exponencial · circuitos profundos · si conoces una descomposición, úsala", "body"), id="b", hidden=True)],
              [A("hl", "c", at="unit", lines=[6]), A("show", "b", at="ojo")]),
 
+        beat("resintesis_pred", ("", "Antes de re-sintetizar"),
+             """La síntesis también sirve para optimizar. Este circuito usa tres puertas de dos qubits: dos CX y una CZ. [[cual]]Si calculamos su matriz y la volvemos a sintetizar, ¿cuántas puertas de dos qubits crees que quedarán?""",
+             [Circ(2, [G("h", 0), G("cx", 0, 1), G("sx", 1), G("cz", 0, 1), G("x", 1), G("x", 0), G("cx", 0, 1), G("h", 0)])],
+             ask=predict("Tras re-sintetizar, ¿cuántas puertas de dos qubits tiene el circuito?", ["3", "2", "1", "0"], "Anotado. Comprobémoslo.")),
+
         beat("resintesis", ("", "Re-sintetizar para acortar"),
-             """La síntesis también sirve para optimizar. Este circuito usa tres puertas de dos qubits: dos CX y una CZ.
-             [[op]]Calculamos su matriz con Operator, [[re]]y la volvemos a sintetizar en un circuito nuevo. [[res]]¡Resultado: una sola CX, rodeada de rotaciones de un qubit!
+             """Comprobemos. [[op]]Calculamos su matriz con Operator, [[re]]y la volvemos a sintetizar en un circuito nuevo. [[res]]¡Resultado: una sola CX, rodeada de rotaciones de un qubit! Una matriz de dos qubits nunca necesita más de tres puertas de dos qubits, y aquí bastó una.
              [[tr]]La función transpile hace esta re-síntesis automáticamente con niveles de optimización suficientemente altos.""",
              [Circ(2, [G("h", 0), G("cx", 0, 1), G("sx", 1), G("cz", 0, 1), G("x", 1), G("x", 0), G("cx", 0, 1), G("h", 0)], id="a"),
               Code('''from qiskit.quantum_info import Operator
@@ -790,6 +901,21 @@ print(circuit.count_ops(), better.decompose().count_ops())''', id="c",
              ask=choice("¿Qué puertas añades al qubit 0 antes de medirlo?", ["H", "S y luego H", "S† y luego H", "H y luego S†"], 2,
                         "Correcto: $HS^\\dagger$ lleva los autoestados de $Y$ a los de $Z$; luego mides normalmente.",
                         wrong=["Con H mides $X$, no $Y$.", "Con S en vez de S† mides $-Y$: los resultados quedan invertidos.", None, "El orden importa: primero S†, después H."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, predice cuántos términos tiene un hamiltoniano de Ising. [[n2]]Después, añade el cambio de base que permite medir Y con un Sampler.
+             [[n3]]Y por último, escribe una función que construya el observable de magnetización de una cadena, en el eje que le pidas.""",
+             [Mission("practica/p2-observables.py", [
+                 (1, "Predice cuántos términos tiene el hamiltoniano de Ising de 4 espines y compruébalo."),
+                 (2, "Añade las puertas que cambian de base para medir $Y$ con un Sampler."),
+                 (3, "Escribe `magnetizacion(n, eje)`: el promedio de $\\sigma_i$ sobre los $n$ espines.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.""",
+             [T("Un observable es una suma; una medición es una base.", "subtitle")],
+             ask=reflect("¿Por qué un Sampler no puede medir $X$ directamente, y qué hace el cambio de base para solucionarlo?",
+                         "En el Ising, ¿puedes medir la magnetización $M_Z$ y la energía $H$ con las mismas mediciones? Razona con los términos de cada uno.")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Todo observable es una suma de cadenas de Pauli. [[r2]]from operator descompone cualquier matriz. [[r3]]Para medir X o Y hay que cambiar de base, salvo con Estimator.
@@ -855,13 +981,23 @@ control = lesson(
              [A("item", "t", at="cuatro", i=0), A("item", "t", at="cuatro", t=.5, i=1), A("item", "t", at="cuatro", t=1, i=2),
               A("item", "t", at="cuatro", t=1.5, i=3)]),
 
+        beat("if_pred", ("", "Antes del primer if"),
+             """Primer ejemplo: una Hadamard y una medición; sale cero o uno al azar. [[if]]Si salió uno, aplicamos una X. [[med]]Y medimos otra vez. [[cual]]¿Qué crees que sale en la segunda medición?""",
+             [Code('''circuit.h(q0)
+circuit.measure(q0, c0)
+with circuit.if_test((c0, 1)):
+    circuit.x(q0)
+circuit.measure(q0, c0)''', id="c",
+                   setup="from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister\n\nqubits = QuantumRegister(1, \"q\")\nclbits = ClassicalRegister(1, \"c\")\ncircuit = QuantumCircuit(qubits, clbits)\n(q0,), (c0,) = qubits, clbits")],
+             [A("hl", "c", at="if", range="3-4"), A("hl", "c", at="med", lines=[5])],
+             ask=predict("En la segunda medición, ¿qué resultado sale?", ["siempre 0", "siempre 1", "0 o 1 al azar", "depende de la primera medición"], "Anotado. Simulémoslo.")),
+
         beat("if", ("", "if"),
-             """Primer ejemplo: una Hadamard y una medición; sale cero o uno al azar. [[if]]Si salió uno, aplicamos una X, que devuelve el qubit a cero. [[med]]Medimos otra vez.
-             [[res]]El resultado final es cero con probabilidad uno: corregimos el azar con feedforward.
-             [[aer]]Para simular circuitos dinámicos usamos el Sampler de Qiskit Aer.""",
+             """Lo ejecutamos completo. [[if]]Si la primera medición dio uno, la X devuelve el qubit a cero. Y si dio cero, no hacemos nada. [[aer]]Para simular circuitos dinámicos usamos el Sampler de Qiskit Aer.
+             [[res]]El resultado final es cero con probabilidad uno: corregimos el azar con feedforward. Si apostaste por azar, olvidaste que el if actúa antes de la segunda medición.""",
              [Code(IF_CODE, id="c", size=21),
               Out("{'0': 1024}", id="o", hidden=True, check=True)],
-             [A("hl", "c", at="if", range="11-12"), A("hl", "c", at="med", lines=[13]), A("show", "o", at="res"), A("hl", "c", at="aer", lines=[2, 15])]),
+             [A("hl", "c", at="if", range="11-12"), A("hl", "c", at="aer", lines=[2, 15]), A("show", "o", at="res")]),
 
         beat("else", ("", "else y condiciones sobre registros"),
              """El with de if test puede guardar un objeto, else, que abre el bloque contrario. [[ej]]Si el qubit cero midió uno, Hadamard al qubit uno; si no, una X.
@@ -889,9 +1025,19 @@ with circuit.if_test((clbits, 0b001)):
         circuit.x(q2)''', id="c", setup=CONTROL_SETUP)],
              [A("hl", "c", at="cases", range="2-3"), A("hl", "c", at="def", range="6-7")]),
 
+        beat("loops_pred", ("", "Antes del while"),
+             """while loop repite mientras se cumpla una condición. [[while]]Aquí, Hadamard a dos qubits y medir, y repetir mientras salga uno uno. [[cual]]Al terminar, ¿con qué frecuencia crees que aparecerá el resultado uno uno?""",
+             [Code('''circuit.h([q0, q1])
+circuit.measure([q0, q1], [c0, c1])
+with circuit.while_loop((clbits, 0b11)):
+    circuit.h([q0, q1])
+    circuit.measure([q0, q1], [c0, c1])''', id="c", setup=CONTROL_SETUP)],
+             [A("hl", "c", at="while", range="3-5")],
+             ask=predict("En el resultado final, ¿con qué frecuencia aparece `11`?", ["cerca del 25 %", "cerca del 50 %", "nunca", "siempre"], "Anotado. Veamos el histograma.")),
+
         beat("loops", ("", "for y while"),
              """for loop repite operaciones sobre una secuencia de valores. [[for]]Cinco X sobre un qubit: como cinco es impar, termina en uno.
-             [[while]]while loop repite mientras se cumpla una condición. Aquí, Hadamard a dos qubits y medir, y repetir mientras salga uno uno. [[res]]Al final, uno uno no aparece nunca; los otros tres salen con frecuencias parecidas.""",
+             [[while]]Y el while que acabamos de ver repite mientras salga uno uno. [[res]]Al final, uno uno no aparece nunca: el bucle solo termina cuando sale otra cosa. Los otros tres resultados salen con frecuencias parecidas.""",
              [Code('''with circuit.for_loop(range(5)) as _:
     circuit.x(q0)
 
@@ -964,6 +1110,21 @@ circuit.barrier()''', id="c", setup=CONTROL_SETUP),
              ask=numeric("¿Cuánto vale $a$ (sin contar el resto)?", 9,
                          "Correcto: $4a+24=60$, así que $a=9$ y no hay resto.", tol=0.001,
                          hint="Cuenta cuántas veces aparece $a$ y cuántas X hay.")),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, predice qué sale al corregir con if test una moneda al azar. [[n2]]Después, cambia la condición del if para que el resultado final sea siempre uno.
+             [[n3]]Y por último, escribe una función que repita un experimento con while loop hasta que el bit clásico valga uno.""",
+             [Mission("practica/p2-control-clasico.py", [
+                 (1, "Predice el resultado final del circuito que corrige la moneda con `if_test`."),
+                 (2, "Cambia la condición del `if_test` para que el resultado final sea siempre 1."),
+                 (3, "Escribe `hasta_uno()`: un circuito que repite con `while_loop` hasta medir 1.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.""",
+             [T("Medir a mitad del circuito cambia lo que un circuito puede hacer.", "subtitle")],
+             ask=reflect("¿Qué puede hacer un circuito dinámico que uno estático no puede? Pon un ejemplo de este capítulo.",
+                         "Mientras la lógica clásica decide, los demás qubits esperan. ¿Qué les puede pasar, y qué herramienta del capítulo ayuda?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Un circuito dinámico mide a mitad de camino y decide. [[r2]]if test, switch, for loop y while loop, siempre con with. [[r3]]Las expresiones clásicas calculan paridades y store las guarda.
@@ -1056,8 +1217,23 @@ qasm2.loads(program,
             strict=False)''', id="c", setup=QASM_CUSTOM_SETUP, size=23)],
              [A("hl", "c", at="custom", range="4-5"), A("hl", "c", at="legacy", range="7-8"), A("hl", "c", at="clas", range="10-13")]),
 
+        beat("export_pred", ("", "Antes de exportar"),
+             """Aquí tienes un estado de Bell escrito en OpenQASM dos. [[med]]La medición se escribe con una flecha, de q a meas. Vamos a exportar el mismo circuito a OpenQASM tres. [[cual]]¿Cómo crees que se escribirá la medición del primer qubit?""",
+             [Code('''OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+creg meas[2];
+h q[0];
+cx q[0], q[1];
+measure q[0] -> meas[0];
+measure q[1] -> meas[1];''', "qasm", id="c", size=26)],
+             [A("hl", "c", at="med", range="7-8")],
+             ask=predict("En OpenQASM 3, ¿cómo se escribe la medición del primer qubit?",
+                         ["`measure q[0] -> meas[0];`", "`meas[0] = measure q[0];`", "`q[0].measure(meas[0]);`", "`measure(q[0], meas[0]);`"],
+                         "Anotado. Exportemos el circuito.")),
+
         beat("export", ("", "Exportar"),
-             """Para exportar, qasm2 punto dumps devuelve el texto y dump lo escribe en un archivo. [[q3]]Lo mismo con qasm3. Fíjate en las diferencias: en OpenQASM tres, los registros se declaran con qubit y bit, y la medición se escribe como una asignación.""",
+             """Para exportar, qasm2 punto dumps devuelve el texto y dump lo escribe en un archivo. [[q3]]Lo mismo con qasm3. Fíjate en las diferencias: en OpenQASM tres, los registros se declaran con qubit y bit, y la medición se escribe como una asignación: el bit recibe el resultado de measure. La flecha desaparece.""",
              [Code('''from qiskit import QuantumCircuit, qasm3
 
 qc = QuantumCircuit(2)
@@ -1118,9 +1294,26 @@ print(circuit.num_qubits, circuit.num_clbits)''', id="c", hidden=True),
                         "Correcto: el control de flujo anidado (incluido `else if`) se puede representar en Qiskit, pero no ejecutar en hardware.",
                         wrong=["El hardware no admite anidamiento.", None, "OpenQASM 2 ni siquiera tiene bloques `if` con cuerpo."])),
 
+        beat("qpy_pred", ("", "Antes de guardar con QPY"),
+             """Para guardar un circuito exactamente como es, con todos sus objetos de Qiskit, usa QPY, el formato binario de serialización. [[dump]]qpy punto dump escribe un circuito en un archivo abierto en modo binario. [[load]]Y qpy punto load lo lee de vuelta. ¿Qué crees que devuelve?""",
+             [Code('''from qiskit import qpy
+
+qc = QuantumCircuit(2)
+qc.h(0)
+qc.cx(0, 1)
+qc.measure_all()
+
+with open("test.qpy", "wb") as file:
+    qpy.dump(qc, file)
+
+with open("test.qpy", "rb") as handle:
+    circuits = qpy.load(handle)''', id="c", size=23, setup="from qiskit import QuantumCircuit")],
+             [A("hl", "c", at="dump", range="8-9"), A("hl", "c", at="load", range="11-12")],
+             ask=predict("¿Qué es `circuits`?", ["el circuito", "una lista con el circuito", "un diccionario", "un texto en OpenQASM"], "Anotado. Veamos qué devuelve.")),
+
         beat("qpy", ("", "Guardar circuitos con QPY"),
-             """Para guardar un circuito exactamente como es, con todos sus objetos de Qiskit, usa QPY, el formato binario de serialización. [[comp]]Un archivo QPY se podrá leer con versiones más nuevas de Qiskit, aunque no necesariamente con versiones más viejas.
-             [[dump]]qpy punto dump escribe uno o varios circuitos en un archivo abierto en modo binario. [[load]]Y qpy punto load los lee. Siempre devuelve una lista, aunque hayas guardado uno solo.""",
+             """Comprobemos. [[comp]]Un archivo QPY se podrá leer con versiones más nuevas de Qiskit, aunque no necesariamente con versiones más viejas.
+             [[dump]]qpy punto dump escribe uno o varios circuitos en un archivo abierto en modo binario. [[load]]Y qpy punto load los lee. Siempre devuelve una lista, aunque hayas guardado uno solo; por eso hay que tomar el elemento cero.""",
              [Code('''from qiskit import qpy
 
 qc = QuantumCircuit(2)
@@ -1143,6 +1336,21 @@ print(len(circuits), circuits[0] == qc)''', id="c", size=23),
              ask=choice("¿Qué formato conserva todo con más fidelidad?", ["OpenQASM 2", "OpenQASM 3", "QPY"], 2,
                         "Correcto: QPY guarda el objeto de Qiskit completo. OpenQASM es ideal para intercambiar con otras herramientas, pero no todo se ida y vuelve igual.",
                         wrong=["OpenQASM 2 no tiene control de flujo con bloques.", "OpenQASM 3 es bueno para intercambiar, pero la importación aún es parcial.", None])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, predice cuántas instrucciones tiene un programa OpenQASM al importarlo. [[n2]]Después, relee un archivo antiguo que usa la puerta r x x, con las instrucciones heredadas.
+             [[n3]]Y por último, escribe dos funciones, una que guarde un circuito con QPY y otra que lo cargue de vuelta.""",
+             [Mission("practica/p2-qasm.py", [
+                 (1, "Predice cuántas instrucciones tiene el circuito que sale de importar un programa OpenQASM 2."),
+                 (2, "Relee un programa que usa `rxx` pasando `LEGACY_CUSTOM_INSTRUCTIONS`."),
+                 (3, "Escribe `guardar(circuito)` y `cargar(datos)` con QPY, sin tocar el disco.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.""",
+             [T("El formato correcto depende de quién va a leer el archivo.", "subtitle")],
+             ask=reflect("¿Cuándo elegirías OpenQASM y cuándo QPY para guardar un circuito? Responde según quién lo va a leer.",
+                         "Quieres guardar el circuito de Trotter de tu proyecto para usarlo en el hito V. ¿Qué formato usarías, y qué podría salir mal si eliges el otro?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]OpenQASM es la lengua franca entre herramientas. [[r2]]qasm2 importa y exporta, con opciones para puertas propias y archivos antiguos. [[r3]]qasm3 exporta, y para importar necesita un paquete extra.
@@ -1258,6 +1466,24 @@ print(SparsePauliOp.from_operator(psi))''', id="c"),
               M(r"|\psi\rangle\langle\psi|=\tfrac14\sum_P\langle P\rangle\,P", id="m", hidden=True, size=38)],
              [A("show", "o", at="coef"), A("show", "m", at="coef", t=2)]),
 
+        beat("bloch_pred", ("", "Antes de la esfera de Bloch"),
+             """Una apuesta con el estado de Bell, el más entrelazado de dos qubits. [[cual]]Si lo dibujamos con plot bloch multivector, que muestra una esfera por qubit, ¿qué esperas ver?""",
+             [Circ(2, [G("h", 0), G("cx", 0, 1)], id="q")],
+             ask=predict("Para el estado de Bell, ¿qué muestra `plot_bloch_multivector`?",
+                         ["dos flechas apuntando hacia arriba", "dos flechas en el ecuador, una opuesta a la otra", "dos vectores de longitud cero", "una sola esfera con una flecha"],
+                         "Anotado. Veamos qué dibuja.")),
+
+        beat("bloch_res", ("", "Sin correlaciones"),
+             """Dos esferas con vectores de longitud cero. [[cero]]Cada qubit, mirado por separado, está completamente indeterminado: sus valores esperados de X, Y y Z valen cero. [[corr]]Toda la información está en la correlación entre los dos, y la esfera de Bloch no puede mostrarla. Para eso sirven la ciudad, paulivec o la q-esfera.""",
+             [Code('''bell = QuantumCircuit(2)
+bell.h(0)
+bell.cx(0, 1)
+plot_bloch_multivector(Statevector(bell))''', id="c",
+                   setup="from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import Statevector\nfrom qiskit.visualization import plot_bloch_multivector"),
+              Row(Box("warn", "Cada qubit", T("$\\langle X\\rangle=\\langle Y\\rangle=\\langle Z\\rangle=0$", "body"), id="a", hidden=True),
+                  Box("def", "Los dos juntos", T("$\\langle ZZ\\rangle=\\langle XX\\rangle=1$", "body"), id="b", hidden=True), gap=24)],
+             [A("show", "a", at="cero"), A("show", "b", at="corr")]),
+
         beat("q1", ("", "Comprueba"),
              """Elige la gráfica.""",
              [T("Quieres ver si dos qubits están correlacionados.", "body")],
@@ -1326,6 +1552,33 @@ draw(isa_circuit, style=IQXDebugging(), target=backend.target)''', id="c", size=
              ask=choice("¿Qué cambia?", ["el circuito: la X pasa al otro qubit", "solo el dibujo: el qubit 0 queda abajo", "el orden de los bits en los conteos"], 1,
                         "Correcto: la opción de `draw` solo cambia el dibujo. El método `circuit.reverse_bits()` sí crea un circuito nuevo.",
                         wrong=["Eso hace el método `reverse_bits()`, no la opción de `draw`.", None, "Los conteos no dependen de cómo dibujes el circuito."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, predice la probabilidad de medir cero cero en el estado de la lección y mírala en la gráfica de Pauli. [[n2]]Después, personaliza un dibujo de texto: el qubit cero abajo y sin barreras.
+             [[n3]]Y por último, escribe una función que grafique con barras los valores esperados que calcula un Estimator.""",
+             [Mission("practica/p2-visualizar.py", [
+                 (1, "Predice la probabilidad de medir `00` en el estado de la lección."),
+                 (2, "Dibuja un circuito en texto con el qubit 0 abajo y sin barreras."),
+                 (3, "Escribe `valores_esperados(circuito, etiquetas)` con Estimator y grafícalos con barras.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("proyecto", ("", "Proyecto Ising: hito II"),
+             """Volvamos al proyecto de la cadena de espines. En el hito uno simulaste dos espines y un paso de tiempo. [[ham]]Hoy tienes todo para generalizarlo: el hamiltoniano de n espines como SparsePauliOp, [[circ]]un circuito de Trotter de varios pasos, [[mag]]y la magnetización como observable, que sigues a lo largo del tiempo.
+             [[hito]]El hito dos recalcula lo del hito uno, así que no necesitas nada del cuaderno anterior. Al final comparas tu curva con la evolución exacta.""",
+             [M(r"H = J\sum_i Z_iZ_{i+1} + h\sum_i X_i", size=44),
+              Flow([dict(t="Hamiltoniano", s="SparsePauliOp"), dict(t="N pasos", s="circuito de Trotter"), dict(t="Magnetización", s="observable")], id="f", hidden=True),
+              Mission("practica/proyecto/hito2.py", [
+                  (1, "Escribe el Hamiltoniano de $N$ espines como `SparsePauliOp` y comprueba que con $N=2$ recuperas el hito I."),
+                  (2, "Construye el circuito de Trotter de varios pasos con `compose`."),
+                  (3, "Calcula la curva de magnetización y compárala con la evolución exacta.")],
+                  title="Proyecto Ising · Hito II", id="m", hidden=True)],
+             [A("show", "f", at="ham"), A("show", "m", at="hito")]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Antes de cerrar la parte, dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en el navegador.""",
+             [T("Una gráfica es un argumento: elige la que responde tu pregunta.", "subtitle")],
+             ask=reflect("Quieres explicar a alguien que un estado de Bell está entrelazado. ¿Qué gráfica de esta lección usarías y cuál evitarías? Justifícalo.",
+                         "Vas a mostrar cómo evoluciona la magnetización de la cadena de Ising con el tiempo. ¿Qué gráfica usarías, y qué pondrías en cada eje?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]draw dibuja circuitos en texto, matplotlib o LaTeX, con muchas opciones. [[r2]]Hay cinco gráficas de estados, más LaTeX. [[r3]]plot histogram para Sampler, barras de matplotlib para Estimator.

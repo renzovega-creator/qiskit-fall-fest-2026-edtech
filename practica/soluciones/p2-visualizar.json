@@ -1,0 +1,14 @@
+[
+ [
+  "    prediccion = None   # ✏️ tu apuesta: P(00)",
+  "    prediccion = 0.5"
+ ],
+ [
+  "    dibujo = circuito.draw(\"text\")   # ✏️ añade las opciones de draw",
+  "    dibujo = circuito.draw(\"text\", reverse_bits=True, plot_barriers=False)"
+ ],
+ [
+  "        # ✏️ un SparsePauliOp por etiqueta, forma (k, 1), una sola llamada a run y evs.flatten()\n        return np.zeros(len(etiquetas))",
+  "        obs = np.fromiter([SparsePauliOp(e) for e in etiquetas], dtype=object).reshape(len(etiquetas), 1)\n        res = StatevectorEstimator().run([(circuito, obs)]).result()[0]\n        return res.data.evs.flatten()"
+ ]
+]

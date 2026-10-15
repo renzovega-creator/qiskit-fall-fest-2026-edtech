@@ -28,8 +28,32 @@
    ]
   ]
  },
+ "cadena_pred": {
+  "dur": 14.184,
+  "marks": {
+   "cual": 8.195
+  },
+  "cues": [
+   [
+    0.107,
+    "Una apuesta."
+   ],
+   [
+    1.967,
+    "Ponemos una X en el qubit uno, el de abajo, y medimos los dos qubits."
+   ],
+   [
+    8.195,
+    "Qiskit nos devuelve una cadena de dos bits."
+   ],
+   [
+    11.973,
+    "¿Cuál crees que será?"
+   ]
+  ]
+ },
  "enteros": {
-  "dur": 34.32,
+  "dur": 42.192,
   "marks": {
    "ej": 8.053,
    "cad": 16.715,
@@ -51,6 +75,10 @@
    [
     28.688,
     "Por eso Qiskit imprime uno cero, aunque el qubit que cambiamos sea el uno."
+   ],
+   [
+    34.321,
+    "Si apostaste por cero uno, es el error más común: leer la cadena con el qubit cero a la izquierda."
    ]
   ]
  },
@@ -148,6 +176,46 @@
    [
     0.107,
     "Un circuito con tres qubits."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 24.12,
+  "marks": {
+   "n1": 2.137,
+   "n2": 8.648,
+   "n3": 15.031
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, predice la cadena de bits de un circuito con X en los qubits cero y dos."
+   ],
+   [
+    8.648,
+    "Después, cambia las X de un circuito para preparar el estado cero uno uno."
+   ],
+   [
+    15.031,
+    "Y por último, escribe una función que prepare el estado de la base con el índice que le pidas, para cualquier número de qubits."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 8.64,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
+   ],
+   [
+    3.397,
+    "Escribe con tus palabras; lo que escribas se guarda en el navegador."
    ]
   ]
  },

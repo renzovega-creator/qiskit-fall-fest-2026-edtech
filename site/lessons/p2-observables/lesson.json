@@ -52,12 +52,58 @@
    ]
   },
   {
+   "id": "ising_pred",
+   "tag": [
+    "2.6",
+    "Antes de construir el Ising"
+   ],
+   "say": "Un ejemplo clásico: espines en una línea, con interacción Z Z entre vecinos y un campo transversal en X. [[cual]]Para cuatro espines, ¿cuántos términos tendrá el hamiltoniano?",
+   "scene": [
+    {
+     "type": "math",
+     "tex": "H=\\sum_{i}Z_iZ_{i+1}-\\sum_{i}X_i",
+     "id": "m",
+     "size": 42
+    },
+    {
+     "type": "code",
+     "src": "n = 4\ninteractions = [(\"ZZ\", [i, i + 1], 1) for i in range(n - 1)]\nfield = [(\"X\", [i], -1) for i in range(n)]\nhamiltonian = SparsePauliOp.from_sparse_list(interactions + field, num_qubits=n)",
+     "lang": "python",
+     "id": "c",
+     "setup": "from qiskit.quantum_info import SparsePauliOp"
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      2,
+      3
+     ],
+     "id": "c",
+     "at": "cual"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuántos términos tiene `hamiltonian`?",
+    "options": [
+     "4",
+     "6",
+     "7",
+     "8"
+    ],
+    "after": "Anotado. Veamos cómo se escribe."
+   },
+   "align": "top"
+  },
+  {
    "id": "ising",
    "tag": [
     "2.6",
     "Un hamiltoniano de Ising"
    ],
-   "say": "Un ejemplo clásico: espines en una línea, con interacción Z Z entre vecinos y un campo transversal en X. [[int]]Las interacciones son tripletas Z Z sobre los qubits i e i más uno, con coeficiente uno. [[campo]]El campo, X sobre cada qubit, con coeficiente menos uno. [[res]]Con cuatro qubits salen siete términos. [[mag]]Y si en vez de la energía quieres la magnetización media, el observable es la suma de las Z dividida entre n.",
+   "say": "Veamos. [[int]]Las interacciones son tripletas Z Z sobre los qubits i e i más uno, con coeficiente uno. [[campo]]El campo, X sobre cada qubit, con coeficiente menos uno. [[res]]Con cuatro qubits salen siete términos: tres pares de vecinos y cuatro campos. Si dijiste ocho, contaste cuatro pares, pero en una línea hay uno menos que espines. [[mag]]Y si en vez de la energía quieres la magnetización media, el observable es la suma de las Z dividida entre n.",
    "scene": [
     {
      "type": "math",
@@ -394,12 +440,92 @@
    ]
   },
   {
+   "id": "resintesis_pred",
+   "tag": [
+    "2.6",
+    "Antes de re-sintetizar"
+   ],
+   "say": "La síntesis también sirve para optimizar. Este circuito usa tres puertas de dos qubits: dos CX y una CZ. [[cual]]Si calculamos su matriz y la volvemos a sintetizar, ¿cuántas puertas de dos qubits crees que quedarán?",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 2,
+     "ops": [
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        1
+       ]
+      },
+      {
+       "g": "sx",
+       "q": [
+        1
+       ]
+      },
+      {
+       "g": "cz",
+       "q": [
+        0,
+        1
+       ]
+      },
+      {
+       "g": "x",
+       "q": [
+        1
+       ]
+      },
+      {
+       "g": "x",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        1
+       ]
+      },
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      }
+     ]
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Tras re-sintetizar, ¿cuántas puertas de dos qubits tiene el circuito?",
+    "options": [
+     "3",
+     "2",
+     "1",
+     "0"
+    ],
+    "after": "Anotado. Comprobémoslo."
+   },
+   "align": "top"
+  },
+  {
    "id": "resintesis",
    "tag": [
     "2.6",
     "Re-sintetizar para acortar"
    ],
-   "say": "La síntesis también sirve para optimizar. Este circuito usa tres puertas de dos qubits: dos CX y una CZ. [[op]]Calculamos su matriz con Operator, [[re]]y la volvemos a sintetizar en un circuito nuevo. [[res]]¡Resultado: una sola CX, rodeada de rotaciones de un qubit! [[tr]]La función transpile hace esta re-síntesis automáticamente con niveles de optimización suficientemente altos.",
+   "say": "Comprobemos. [[op]]Calculamos su matriz con Operator, [[re]]y la volvemos a sintetizar en un circuito nuevo. [[res]]¡Resultado: una sola CX, rodeada de rotaciones de un qubit! Una matriz de dos qubits nunca necesita más de tres puertas de dos qubits, y aquí bastó una. [[tr]]La función transpile hace esta re-síntesis automáticamente con niveles de optimización suficientemente altos.",
    "scene": [
     {
      "type": "circuit",
@@ -575,6 +701,80 @@
      "Con S en vez de S† mides $-Y$: los resultados quedan invertidos.",
      null,
      "El orden importa: primero S†, después H."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "2.6",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, predice cuántos términos tiene un hamiltoniano de Ising. [[n2]]Después, añade el cambio de base que permite medir Y con un Sampler. [[n3]]Y por último, escribe una función que construya el observable de magnetización de una cadena, en el eje que le pidas.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p2-observables.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Predice cuántos términos tiene el hamiltoniano de Ising de 4 espines y compruébalo."
+      },
+      {
+       "level": 2,
+       "text": "Añade las puertas que cambian de base para medir $Y$ con un Sampler."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `magnetizacion(n, eje)`: el promedio de $\\sigma_i$ sobre los $n$ espines."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "2.6",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Un observable es una suma; una medición es una base.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Por qué un Sampler no puede medir $X$ directamente, y qué hace el cambio de base para solucionarlo?",
+     "En el Ising, ¿puedes medir la magnetización $M_Z$ y la energía $H$ con las mismas mediciones? Razona con los términos de cada uno."
     ]
    },
    "align": "top"

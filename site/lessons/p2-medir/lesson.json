@@ -152,12 +152,51 @@
    "align": "top"
   },
   {
+   "id": "all_pred",
+   "tag": [
+    "2.2",
+    "Antes de medir todo"
+   ],
+   "say": "Una apuesta. Este circuito de tres qubits ya tiene un bit clásico, y ponemos una X en los qubits cero y dos. [[cual]]Ahora llamamos a measure all. ¿Cuántos bits clásicos tendrá el circuito cuando termine?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit import QuantumCircuit\n\nqc = QuantumCircuit(3, 1)\nqc.x([0, 2])\nqc.measure_all()\nprint(qc.num_clbits)",
+     "lang": "python",
+     "id": "c",
+     "size": 26
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      6
+     ],
+     "id": "c",
+     "at": "cual"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Tras `measure_all()`, ¿cuántos bits clásicos tiene el circuito?",
+    "options": [
+     "1",
+     "3",
+     "4",
+     "6"
+    ],
+    "after": "Anotado. Veamos qué hace measure all."
+   },
+   "align": "top"
+  },
+  {
    "id": "all",
    "tag": [
     "2.2",
     "measure_all"
    ],
-   "say": "measure all no necesita argumentos y sirve para circuitos sin bits clásicos. [[reg]]Crea un registro nuevo llamado meas, con un bit por qubit, y guarda el qubit i en el bit i. [[bar]]Además añade una barrera antes de medir. [[nuevo]]Ojo: si el circuito ya tenía bits clásicos, measure all añade otro registro aparte. Aquí, el registro c original se queda vacío, en cero, y los resultados van a meas.",
+   "say": "measure all no necesita argumentos y sirve para circuitos sin bits clásicos. [[reg]]Crea un registro nuevo llamado meas, con un bit por qubit, y guarda el qubit i en el bit i. [[bar]]Además añade una barrera antes de medir. [[nuevo]]Ojo: si el circuito ya tenía bits clásicos, measure all añade otro registro aparte. Aquí, el registro c original se queda vacío, en cero, y los resultados van a meas. En total son cuatro bits: uno de c y tres de meas.",
    "scene": [
     {
      "type": "code",
@@ -420,12 +459,86 @@
    "align": "top"
   },
   {
+   "id": "mision",
+   "tag": [
+    "2.2",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, predice cuántos bits clásicos tiene un circuito después de measure all y compruébalo. [[n2]]Después, cambia los argumentos de measure para que el qubit dos se guarde en el bit cero. [[n3]]Y por último, entrelaza los qubits uno y tres de un circuito de cinco, mídelos con measure active, y prepara su copia sin mediciones para Estimator.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p2-medir.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Predice cuántos bits clásicos tiene un circuito tras `measure_all()`."
+      },
+      {
+       "level": 2,
+       "text": "Cambia `measure` para que el qubit 2 vaya al bit 0."
+      },
+      {
+       "level": 3,
+       "text": "Un Bell entre los qubits 1 y 3 con `measure_active()`, y su copia sin mediciones para Estimator."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "2.2",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Sampler devuelve bits; Estimator devuelve promedios.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Por qué crees que Sampler necesita que el circuito termine en mediciones y Estimator, en cambio, no las admite? Piensa en lo que devuelve cada uno.",
+     "En tu proyecto Ising quieres la magnetización media de la cadena. ¿Usarías Sampler o Estimator, y qué le pasarías?"
+    ]
+   },
+   "align": "top"
+  },
+  {
    "id": "cierre",
    "tag": [
     "2.2",
     "Resumen"
    ],
-   "say": "Resumen. [[r1]]Se mide en la base Z. [[r2]]measure te da control total, y Measure es la misma operación como instrucción. [[r3]]measure all mide todo en un registro nuevo y measure active, solo lo que se usó. [[r4]]Y recuerda: Sampler con mediciones, Estimator sin ellas.",
+   "say": "Resumen. [[r1]]Se mide en la base Z.[[r2]]measure te da control total, y Measure es la misma operación como instrucción. [[r3]]measure all mide todo en un registro nuevo y measure active, solo lo que se usó. [[r4]]Y recuerda: Sampler con mediciones, Estimator sin ellas.",
    "scene": [
     {
      "type": "list",

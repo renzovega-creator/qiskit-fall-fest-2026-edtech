@@ -438,12 +438,49 @@
    ]
   },
   {
+   "id": "fase_pred",
+   "tag": [
+    "2.5",
+    "Antes de comparar"
+   ],
+   "say": "Dos Operator se comparan con doble igual, que revisa cada elemento de la matriz. Multiplicar una puerta por e elevado a i medio es solo una fase global: físicamente es la misma operación. [[cual]]¿Qué crees que responde el doble igual?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit.circuit.library import XGate\n\nprint(Operator(XGate()) == np.exp(0.5j) * Operator(XGate()))",
+     "lang": "python",
+     "id": "c"
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      3
+     ],
+     "id": "c",
+     "at": "cual"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué imprime la comparación?",
+    "options": [
+     "`True`",
+     "`False`",
+     "un error"
+    ],
+    "after": "Anotado. Veamos qué dice Qiskit."
+   },
+   "align": "top"
+  },
+  {
    "id": "comparar",
    "tag": [
     "2.5",
     "Comparar operadores"
    ],
-   "say": "Dos Operator se comparan con doble igual, que revisa cada elemento de la matriz. [[fase]]Ojo: dos unitarias que solo difieren en una fase global no son iguales para doble igual, aunque físicamente sean la misma operación. [[fid]]Para eso está process fidelity, una medida de qué tan parecidos son dos canales cuánticos. Para unitarias, no depende de la fase global: aquí da exactamente uno.",
+   "say": "Comparemos. [[fase]]Imprime falso: dos unitarias que solo difieren en una fase global no son iguales para doble igual, aunque físicamente sean la misma operación. Si apostaste por verdadero, pensaste como físico; el doble igual piensa como matemático. [[fid]]Para eso está process fidelity, una medida de qué tan parecidos son dos canales cuánticos. Para unitarias, no depende de la fase global: aquí da exactamente uno.",
    "scene": [
     {
      "type": "code",
@@ -513,6 +550,80 @@
      "Una matriz densa de 100 qubits no cabe en ninguna memoria.",
      null,
      "Un `Pauli` es una sola cadena; aquí hay una suma de muchas."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "2.5",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, predice el resultado de componer una X y una Z en cada orden. [[n2]]Después, usa el argumento qargs para colocar un operador sobre los qubits que tú elijas. [[n3]]Y por último, escribe una función que construya la cadena de Heisenberg para cualquier número de espines.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p2-operadores.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Predice el resultado de `compose` con $Z$ y $X$ y compruébalo."
+      },
+      {
+       "level": 2,
+       "text": "Usa `qargs` para colocar $XZ$ sobre los qubits 1 y 2 de un operador de 3 qubits."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `heisenberg(n)`: $\\sum_i X_iX_{i+1}+Y_iY_{i+1}+Z_iZ_{i+1}$ con `SparsePauliOp`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "2.5",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Elegir la clase correcta es elegir cuánta memoria gastas.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Por qué `A.compose(B)` es el producto $B\\cdot A$ y no $A\\cdot B$? Explícalo con lo que pasa en un circuito.",
+     "Tu cadena de Ising tiene 100 espines. ¿Qué perderías si la guardaras como `Operator` en vez de `SparsePauliOp`, y qué sigues pudiendo hacer con la versión escasa?"
     ]
    },
    "align": "top"

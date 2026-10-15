@@ -128,12 +128,49 @@
    ]
   },
   {
+   "id": "export_pred",
+   "tag": [
+    "2.8",
+    "Antes de exportar"
+   ],
+   "say": "Aquí tienes un estado de Bell escrito en OpenQASM dos. [[med]]La medición se escribe con una flecha, de q a meas. Vamos a exportar el mismo circuito a OpenQASM tres. [[cual]]¿Cómo crees que se escribirá la medición del primer qubit?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg meas[2];\nh q[0];\ncx q[0], q[1];\nmeasure q[0] -> meas[0];\nmeasure q[1] -> meas[1];",
+     "lang": "qasm",
+     "id": "c",
+     "size": 26
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "7-8",
+     "id": "c",
+     "at": "med"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "En OpenQASM 3, ¿cómo se escribe la medición del primer qubit?",
+    "options": [
+     "`measure q[0] -> meas[0];`",
+     "`meas[0] = measure q[0];`",
+     "`q[0].measure(meas[0]);`",
+     "`measure(q[0], meas[0]);`"
+    ],
+    "after": "Anotado. Exportemos el circuito."
+   },
+   "align": "top"
+  },
+  {
    "id": "export",
    "tag": [
     "2.8",
     "Exportar"
    ],
-   "say": "Para exportar, qasm2 punto dumps devuelve el texto y dump lo escribe en un archivo. [[q3]]Lo mismo con qasm3. Fíjate en las diferencias: en OpenQASM tres, los registros se declaran con qubit y bit, y la medición se escribe como una asignación.",
+   "say": "Para exportar, qasm2 punto dumps devuelve el texto y dump lo escribe en un archivo. [[q3]]Lo mismo con qasm3. Fíjate en las diferencias: en OpenQASM tres, los registros se declaran con qubit y bit, y la medición se escribe como una asignación: el bit recibe el resultado de measure. La flecha desaparece.",
    "scene": [
     {
      "type": "code",
@@ -328,12 +365,56 @@
    "align": "top"
   },
   {
+   "id": "qpy_pred",
+   "tag": [
+    "2.8",
+    "Antes de guardar con QPY"
+   ],
+   "say": "Para guardar un circuito exactamente como es, con todos sus objetos de Qiskit, usa QPY, el formato binario de serialización. [[dump]]qpy punto dump escribe un circuito en un archivo abierto en modo binario. [[load]]Y qpy punto load lo lee de vuelta. ¿Qué crees que devuelve?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit import qpy\n\nqc = QuantumCircuit(2)\nqc.h(0)\nqc.cx(0, 1)\nqc.measure_all()\n\nwith open(\"test.qpy\", \"wb\") as file:\n    qpy.dump(qc, file)\n\nwith open(\"test.qpy\", \"rb\") as handle:\n    circuits = qpy.load(handle)",
+     "lang": "python",
+     "id": "c",
+     "size": 23,
+     "setup": "from qiskit import QuantumCircuit"
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "8-9",
+     "id": "c",
+     "at": "dump"
+    },
+    {
+     "do": "hl",
+     "range": "11-12",
+     "id": "c",
+     "at": "load"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué es `circuits`?",
+    "options": [
+     "el circuito",
+     "una lista con el circuito",
+     "un diccionario",
+     "un texto en OpenQASM"
+    ],
+    "after": "Anotado. Veamos qué devuelve."
+   },
+   "align": "top"
+  },
+  {
    "id": "qpy",
    "tag": [
     "2.8",
     "Guardar circuitos con QPY"
    ],
-   "say": "Para guardar un circuito exactamente como es, con todos sus objetos de Qiskit, usa QPY, el formato binario de serialización. [[comp]]Un archivo QPY se podrá leer con versiones más nuevas de Qiskit, aunque no necesariamente con versiones más viejas. [[dump]]qpy punto dump escribe uno o varios circuitos en un archivo abierto en modo binario. [[load]]Y qpy punto load los lee. Siempre devuelve una lista, aunque hayas guardado uno solo.",
+   "say": "Comprobemos. [[comp]]Un archivo QPY se podrá leer con versiones más nuevas de Qiskit, aunque no necesariamente con versiones más viejas. [[dump]]qpy punto dump escribe uno o varios circuitos en un archivo abierto en modo binario. [[load]]Y qpy punto load los lee. Siempre devuelve una lista, aunque hayas guardado uno solo; por eso hay que tomar el elemento cero.",
    "scene": [
     {
      "type": "code",
@@ -401,6 +482,80 @@
      "OpenQASM 2 no tiene control de flujo con bloques.",
      "OpenQASM 3 es bueno para intercambiar, pero la importación aún es parcial.",
      null
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "2.8",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, predice cuántas instrucciones tiene un programa OpenQASM al importarlo. [[n2]]Después, relee un archivo antiguo que usa la puerta r x x, con las instrucciones heredadas. [[n3]]Y por último, escribe dos funciones, una que guarde un circuito con QPY y otra que lo cargue de vuelta.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p2-qasm.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Predice cuántas instrucciones tiene el circuito que sale de importar un programa OpenQASM 2."
+      },
+      {
+       "level": 2,
+       "text": "Relee un programa que usa `rxx` pasando `LEGACY_CUSTOM_INSTRUCTIONS`."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `guardar(circuito)` y `cargar(datos)` con QPY, sin tocar el disco."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "2.8",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "El formato correcto depende de quién va a leer el archivo.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Cuándo elegirías OpenQASM y cuándo QPY para guardar un circuito? Responde según quién lo va a leer.",
+     "Quieres guardar el circuito de Trotter de tu proyecto para usarlo en el hito V. ¿Qué formato usarías, y qué podría salir mal si eliges el otro?"
     ]
    },
    "align": "top"
