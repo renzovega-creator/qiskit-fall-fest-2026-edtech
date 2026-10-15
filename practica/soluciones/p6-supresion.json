@@ -1,0 +1,10 @@
+[
+ [
+  "    secuencia = [XGate(), XGate()]   # ✏️ cuatro pulsos X",
+  "    secuencia = [XGate()] * 4"
+ ],
+ [
+  "        despues = antes   # ✏️ la Pauli que mantiene la operación ideal",
+  "        despues = antes.evolve(CXGate())"
+ ]
+]
