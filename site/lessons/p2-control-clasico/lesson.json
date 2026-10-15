@@ -101,12 +101,57 @@
    ]
   },
   {
+   "id": "if_pred",
+   "tag": [
+    "2.7",
+    "Antes del primer if"
+   ],
+   "say": "Primer ejemplo: una Hadamard y una medición; sale cero o uno al azar. [[if]]Si salió uno, aplicamos una X. [[med]]Y medimos otra vez. [[cual]]¿Qué crees que sale en la segunda medición?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "circuit.h(q0)\ncircuit.measure(q0, c0)\nwith circuit.if_test((c0, 1)):\n    circuit.x(q0)\ncircuit.measure(q0, c0)",
+     "lang": "python",
+     "id": "c",
+     "setup": "from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister\n\nqubits = QuantumRegister(1, \"q\")\nclbits = ClassicalRegister(1, \"c\")\ncircuit = QuantumCircuit(qubits, clbits)\n(q0,), (c0,) = qubits, clbits"
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "3-4",
+     "id": "c",
+     "at": "if"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      5
+     ],
+     "id": "c",
+     "at": "med"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "En la segunda medición, ¿qué resultado sale?",
+    "options": [
+     "siempre 0",
+     "siempre 1",
+     "0 o 1 al azar",
+     "depende de la primera medición"
+    ],
+    "after": "Anotado. Simulémoslo."
+   },
+   "align": "top"
+  },
+  {
    "id": "if",
    "tag": [
     "2.7",
     "if"
    ],
-   "say": "Primer ejemplo: una Hadamard y una medición; sale cero o uno al azar. [[if]]Si salió uno, aplicamos una X, que devuelve el qubit a cero. [[med]]Medimos otra vez. [[res]]El resultado final es cero con probabilidad uno: corregimos el azar con feedforward. [[aer]]Para simular circuitos dinámicos usamos el Sampler de Qiskit Aer.",
+   "say": "Lo ejecutamos completo. [[if]]Si la primera medición dio uno, la X devuelve el qubit a cero. Y si dio cero, no hacemos nada. [[aer]]Para simular circuitos dinámicos usamos el Sampler de Qiskit Aer. [[res]]El resultado final es cero con probabilidad uno: corregimos el azar con feedforward. Si apostaste por azar, olvidaste que el if actúa antes de la segunda medición.",
    "scene": [
     {
      "type": "code",
@@ -134,24 +179,16 @@
     {
      "do": "hl",
      "lines": [
-      13
-     ],
-     "id": "c",
-     "at": "med"
-    },
-    {
-     "do": "show",
-     "id": "o",
-     "at": "res"
-    },
-    {
-     "do": "hl",
-     "lines": [
       2,
       15
      ],
      "id": "c",
      "at": "aer"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "res"
     }
    ]
   },
@@ -248,12 +285,49 @@
    ]
   },
   {
+   "id": "loops_pred",
+   "tag": [
+    "2.7",
+    "Antes del while"
+   ],
+   "say": "while loop repite mientras se cumpla una condición. [[while]]Aquí, Hadamard a dos qubits y medir, y repetir mientras salga uno uno. [[cual]]Al terminar, ¿con qué frecuencia crees que aparecerá el resultado uno uno?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "circuit.h([q0, q1])\ncircuit.measure([q0, q1], [c0, c1])\nwith circuit.while_loop((clbits, 0b11)):\n    circuit.h([q0, q1])\n    circuit.measure([q0, q1], [c0, c1])",
+     "lang": "python",
+     "id": "c",
+     "setup": "from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister\nfrom qiskit.circuit.classical import expr\n\nqubits = QuantumRegister(3, \"q\")\nclbits = ClassicalRegister(3, \"c\")\ncircuit = QuantumCircuit(qubits, clbits)\n(q0, q1, q2), (c0, c1, c2) = qubits, clbits"
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "3-5",
+     "id": "c",
+     "at": "while"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "En el resultado final, ¿con qué frecuencia aparece `11`?",
+    "options": [
+     "cerca del 25 %",
+     "cerca del 50 %",
+     "nunca",
+     "siempre"
+    ],
+    "after": "Anotado. Veamos el histograma."
+   },
+   "align": "top"
+  },
+  {
    "id": "loops",
    "tag": [
     "2.7",
     "for y while"
    ],
-   "say": "for loop repite operaciones sobre una secuencia de valores. [[for]]Cinco X sobre un qubit: como cinco es impar, termina en uno. [[while]]while loop repite mientras se cumpla una condición. Aquí, Hadamard a dos qubits y medir, y repetir mientras salga uno uno. [[res]]Al final, uno uno no aparece nunca; los otros tres salen con frecuencias parecidas.",
+   "say": "for loop repite operaciones sobre una secuencia de valores. [[for]]Cinco X sobre un qubit: como cinco es impar, termina en uno. [[while]]Y el while que acabamos de ver repite mientras salga uno uno. [[res]]Al final, uno uno no aparece nunca: el bucle solo termina cuando sale otra cosa. Los otros tres resultados salen con frecuencias parecidas.",
    "scene": [
     {
      "type": "code",
@@ -536,6 +610,80 @@
     "why": "Correcto: $4a+24=60$, así que $a=9$ y no hay resto.",
     "tol": 0.001,
     "hint": "Cuenta cuántas veces aparece $a$ y cuántas X hay."
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "2.7",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, predice qué sale al corregir con if test una moneda al azar. [[n2]]Después, cambia la condición del if para que el resultado final sea siempre uno. [[n3]]Y por último, escribe una función que repita un experimento con while loop hasta que el bit clásico valga uno.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p2-control-clasico.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Predice el resultado final del circuito que corrige la moneda con `if_test`."
+      },
+      {
+       "level": 2,
+       "text": "Cambia la condición del `if_test` para que el resultado final sea siempre 1."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `hasta_uno()`: un circuito que repite con `while_loop` hasta medir 1."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "2.7",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Medir a mitad del circuito cambia lo que un circuito puede hacer.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Qué puede hacer un circuito dinámico que uno estático no puede? Pon un ejemplo de este capítulo.",
+     "Mientras la lógica clásica decide, los demás qubits esperan. ¿Qué les puede pasar, y qué herramienta del capítulo ayuda?"
+    ]
    },
    "align": "top"
   },

@@ -28,13 +28,12 @@
    ]
   ]
  },
- "if": {
-  "dur": 26.112,
+ "if_pred": {
+  "dur": 15.84,
   "marks": {
    "if": 6.128,
-   "med": 11.931,
-   "res": 14.181,
-   "aer": 20.621
+   "med": 10.105,
+   "cual": 12.497
   },
   "cues": [
    [
@@ -43,19 +42,49 @@
    ],
    [
     6.128,
-    "Si salió uno, aplicamos una X, que devuelve el qubit a cero."
+    "Si salió uno, aplicamos una X."
    ],
    [
-    11.931,
-    "Medimos otra vez."
+    10.105,
+    "Y medimos otra vez."
    ],
    [
-    14.181,
+    12.497,
+    "¿Qué crees que sale en la segunda medición?"
+   ]
+  ]
+ },
+ "if": {
+  "dur": 29.904,
+  "marks": {
+   "if": 2.675,
+   "aer": 11.676,
+   "res": 17.168
+  },
+  "cues": [
+   [
+    0.107,
+    "Lo ejecutamos completo."
+   ],
+   [
+    2.675,
+    "Si la primera medición dio uno, la X devuelve el qubit a cero."
+   ],
+   [
+    8.237,
+    "Y si dio cero, no hacemos nada."
+   ],
+   [
+    11.676,
+    "Para simular circuitos dinámicos usamos el Sampler de Qiskit Aer."
+   ],
+   [
+    17.168,
     "El resultado final es cero con probabilidad uno: corregimos el azar con feedforward."
    ],
    [
-    20.621,
-    "Para simular circuitos dinámicos usamos el Sampler de Qiskit Aer."
+    23.607,
+    "Si apostaste por azar, olvidaste que el if actúa antes de la segunda medición."
    ]
   ]
  },
@@ -115,12 +144,33 @@
    ]
   ]
  },
+ "loops_pred": {
+  "dur": 15.936,
+  "marks": {
+   "while": 4.331,
+   "cual": 10.233
+  },
+  "cues": [
+   [
+    0.107,
+    "while loop repite mientras se cumpla una condición."
+   ],
+   [
+    4.331,
+    "Aquí, Hadamard a dos qubits y medir, y repetir mientras salga uno uno."
+   ],
+   [
+    10.233,
+    "Al terminar, ¿con qué frecuencia crees que aparecerá el resultado uno uno?"
+   ]
+  ]
+ },
  "loops": {
-  "dur": 27.36,
+  "dur": 26.688,
   "marks": {
    "for": 4.642,
    "while": 10.318,
-   "res": 20.437
+   "res": 15.2
   },
   "cues": [
    [
@@ -133,15 +183,15 @@
    ],
    [
     10.318,
-    "while loop repite mientras se cumpla una condición."
+    "Y el while que acabamos de ver repite mientras salga uno uno."
    ],
    [
-    14.535,
-    "Aquí, Hadamard a dos qubits y medir, y repetir mientras salga uno uno."
+    15.2,
+    "Al final, uno uno no aparece nunca: el bucle solo termina cuando sale otra cosa."
    ],
    [
-    20.437,
-    "Al final, uno uno no aparece nunca; los otros tres salen con frecuencias parecidas."
+    22.036,
+    "Los otros tres resultados salen con frecuencias parecidas."
    ]
   ]
  },
@@ -252,6 +302,46 @@
    [
     0.107,
     "Resuelve un stretch."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 22.176,
+  "marks": {
+   "n1": 2.137,
+   "n2": 7.713,
+   "n3": 13.912
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, predice qué sale al corregir con if test una moneda al azar."
+   ],
+   [
+    7.713,
+    "Después, cambia la condición del if para que el resultado final sea siempre uno."
+   ],
+   [
+    13.912,
+    "Y por último, escribe una función que repita un experimento con while loop hasta que el bit clásico valga uno."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 8.64,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
+   ],
+   [
+    3.397,
+    "Escribe con tus palabras; lo que escribas se guarda en el navegador."
    ]
   ]
  },

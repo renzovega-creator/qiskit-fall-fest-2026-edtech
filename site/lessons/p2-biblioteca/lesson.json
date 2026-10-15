@@ -160,12 +160,50 @@
    ]
   },
   {
+   "id": "nlocal_pred",
+   "tag": [
+    "2.4",
+    "Antes de contar parámetros"
+   ],
+   "say": "Los circuitos N-local alternan capas de rotaciones de un qubit con capas de puertas que entrelazan. Este es de tres qubits, con rotaciones RX y entrelazamiento CZ. [[cual]]Por defecto repite el bloque varias veces. ¿Cuántos parámetros crees que tendrá?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit.circuit.library import n_local\n\ntwo_local = n_local(3, \"rx\", \"cz\")\nprint(two_local.num_parameters)",
+     "lang": "python",
+     "id": "c"
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      4
+     ],
+     "id": "c",
+     "at": "cual"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuántos parámetros tiene `two_local`?",
+    "options": [
+     "3",
+     "6",
+     "9",
+     "12"
+    ],
+    "after": "Anotado. Veamos cómo se construye."
+   },
+   "align": "top"
+  },
+  {
    "id": "nlocal",
    "tag": [
     "2.4",
     "Circuitos N-local"
    ],
-   "say": "Los circuitos N-local alternan capas de rotaciones de un qubit con capas de puertas que entrelazan. [[var]]Son muy usados en los algoritmos variacionales, porque producen una gran variedad de estados: el algoritmo ajusta los ángulos hasta encontrar el estado que buscas. [[ej]]n local de tres, rx, cz: tres qubits, rotaciones RX y entrelazamiento con CZ. Por defecto repite tres veces el bloque y termina con una capa de rotaciones: cuatro capas de tres ángulos, doce parámetros. [[asig]]Y como cualquier circuito con parámetros, se asignan con un diccionario, de parámetro a número.",
+   "say": "Contemos. [[var]]Estos circuitos son muy usados en los algoritmos variacionales, porque producen una gran variedad de estados: el algoritmo ajusta los ángulos hasta encontrar el estado que buscas. [[ej]]Por defecto el bloque se repite tres veces y se termina con una capa de rotaciones: cuatro capas de tres ángulos, doce parámetros. Si dijiste nueve, olvidaste la capa final. [[asig]]Y como cualquier circuito con parámetros, se asignan con un diccionario, de parámetro a número.",
    "scene": [
     {
      "type": "code",
@@ -493,12 +531,41 @@
    ]
   },
   {
+   "id": "suma_pred",
+   "tag": [
+    "2.4",
+    "Antes de sumar"
+   ],
+   "say": "La biblioteca también tiene circuitos aritméticos. Vamos a sumar con un circuito: a vale dos y b vale tres, y el resultado queda en el registro de b. [[cual]]Si medimos b, ¿qué número esperas?",
+   "scene": [
+    {
+     "type": "text",
+     "text": "a = 2 · b = 3 · medimos el registro de b",
+     "style": "body",
+     "id": "t"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Tras sumar, ¿qué número sale al medir el registro de `b`?",
+    "options": [
+     "2",
+     "3",
+     "5",
+     "6"
+    ],
+    "after": "Anotado. Construyamos el sumador."
+   },
+   "align": "top"
+  },
+  {
    "id": "suma",
    "tag": [
     "2.4",
     "Aritmética: sumar 2 + 3"
    ],
-   "say": "La biblioteca también tiene circuitos aritméticos, útiles en estimación de amplitud o en el algoritmo HHL. [[add]]FullAdderGate de tres suma dos números de tres bits, a y b, y deja el resultado en el registro de b. [[ini]]Preparamos a igual a dos y b igual a tres con initialize. [[regs]]El sumador usa además un qubit de acarreo de entrada y otro de salida. [[med]]Medimos el registro b. [[res]]En los mil veinticuatro disparos sale cinco.",
+   "say": "Estos circuitos aritméticos son útiles en estimación de amplitud o en el algoritmo HHL. [[add]]FullAdderGate de tres suma dos números de tres bits, a y b, y deja el resultado en el registro de b. [[ini]]Preparamos a igual a dos y b igual a tres con initialize. [[regs]]El sumador usa además un qubit de acarreo de entrada y otro de salida. [[med]]Medimos el registro b. [[res]]En los mil veinticuatro disparos sale cinco.",
    "scene": [
     {
      "type": "code",
@@ -613,6 +680,80 @@
      "En base, 10 qubits representan un solo entero de 10 bits.",
      "En ángulo necesitarías una rotación por número.",
      null
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "2.4",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, predice cuántos parámetros tiene un circuito N-local y compruébalo. [[n2]]Después, cambia sus argumentos para que sea más barato: ocho parámetros y solo tres puertas de dos qubits. [[n3]]Y por último, escribe una función que sume dos números con el sumador de la biblioteca.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p2-biblioteca.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Predice cuántos parámetros tiene `n_local(3, \"rx\", \"cz\")`."
+      },
+      {
+       "level": 2,
+       "text": "Cambia `n_local` para tener 8 parámetros y solo 3 puertas de dos qubits."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `sumar(x, y)` con `FullAdderGate` y pruébala con 5 + 6."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "2.4",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "La biblioteca ahorra código, pero hay que saber qué hay dentro.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Qué ganas y qué pierdes al usar un circuito de la biblioteca en vez de escribirlo puerta por puerta?",
+     "Para evolucionar en el tiempo la cadena de Ising, ¿usarías `PauliEvolutionGate` o escribirías `rzz` y `rx` a mano? Defiende tu elección."
     ]
    },
    "align": "top"

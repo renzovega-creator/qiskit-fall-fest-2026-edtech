@@ -354,6 +354,112 @@
    ]
   },
   {
+   "id": "bloch_pred",
+   "tag": [
+    "2.9",
+    "Antes de la esfera de Bloch"
+   ],
+   "say": "Una apuesta con el estado de Bell, el más entrelazado de dos qubits. [[cual]]Si lo dibujamos con plot bloch multivector, que muestra una esfera por qubit, ¿qué esperas ver?",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 2,
+     "ops": [
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        1
+       ]
+      }
+     ],
+     "id": "q"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Para el estado de Bell, ¿qué muestra `plot_bloch_multivector`?",
+    "options": [
+     "dos flechas apuntando hacia arriba",
+     "dos flechas en el ecuador, una opuesta a la otra",
+     "dos vectores de longitud cero",
+     "una sola esfera con una flecha"
+    ],
+    "after": "Anotado. Veamos qué dibuja."
+   },
+   "align": "top"
+  },
+  {
+   "id": "bloch_res",
+   "tag": [
+    "2.9",
+    "Sin correlaciones"
+   ],
+   "say": "Dos esferas con vectores de longitud cero. [[cero]]Cada qubit, mirado por separado, está completamente indeterminado: sus valores esperados de X, Y y Z valen cero. [[corr]]Toda la información está en la correlación entre los dos, y la esfera de Bloch no puede mostrarla. Para eso sirven la ciudad, paulivec o la q-esfera.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "bell = QuantumCircuit(2)\nbell.h(0)\nbell.cx(0, 1)\nplot_bloch_multivector(Statevector(bell))",
+     "lang": "python",
+     "id": "c",
+     "setup": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import Statevector\nfrom qiskit.visualization import plot_bloch_multivector"
+    },
+    {
+     "type": "row",
+     "items": [
+      {
+       "type": "box",
+       "kind": "warn",
+       "title": "Cada qubit",
+       "body": [
+        {
+         "type": "text",
+         "text": "$\\langle X\\rangle=\\langle Y\\rangle=\\langle Z\\rangle=0$",
+         "style": "body"
+        }
+       ],
+       "id": "a",
+       "hidden": true
+      },
+      {
+       "type": "box",
+       "kind": "def",
+       "title": "Los dos juntos",
+       "body": [
+        {
+         "type": "text",
+         "text": "$\\langle ZZ\\rangle=\\langle XX\\rangle=1$",
+         "style": "body"
+        }
+       ],
+       "id": "b",
+       "hidden": true
+      }
+     ],
+     "gap": 24
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "a",
+     "at": "cero"
+    },
+    {
+     "do": "show",
+     "id": "b",
+     "at": "corr"
+    }
+   ]
+  },
+  {
    "id": "q1",
    "tag": [
     "2.9",
@@ -578,6 +684,147 @@
      "Eso hace el método `reverse_bits()`, no la opción de `draw`.",
      null,
      "Los conteos no dependen de cómo dibujes el circuito."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "2.9",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, predice la probabilidad de medir cero cero en el estado de la lección y mírala en la gráfica de Pauli. [[n2]]Después, personaliza un dibujo de texto: el qubit cero abajo y sin barreras. [[n3]]Y por último, escribe una función que grafique con barras los valores esperados que calcula un Estimator.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p2-visualizar.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Predice la probabilidad de medir `00` en el estado de la lección."
+      },
+      {
+       "level": 2,
+       "text": "Dibuja un circuito en texto con el qubit 0 abajo y sin barreras."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `valores_esperados(circuito, etiquetas)` con Estimator y grafícalos con barras."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "proyecto",
+   "tag": [
+    "2.9",
+    "Proyecto Ising: hito II"
+   ],
+   "say": "Volvamos al proyecto de la cadena de espines. En el hito uno simulaste dos espines y un paso de tiempo. [[ham]]Hoy tienes todo para generalizarlo: el hamiltoniano de n espines como SparsePauliOp, [[circ]]un circuito de Trotter de varios pasos, [[mag]]y la magnetización como observable, que sigues a lo largo del tiempo. [[hito]]El hito dos recalcula lo del hito uno, así que no necesitas nada del cuaderno anterior. Al final comparas tu curva con la evolución exacta.",
+   "scene": [
+    {
+     "type": "math",
+     "tex": "H = J\\sum_i Z_iZ_{i+1} + h\\sum_i X_i",
+     "size": 44
+    },
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "Hamiltoniano",
+       "s": "SparsePauliOp"
+      },
+      {
+       "t": "N pasos",
+       "s": "circuito de Trotter"
+      },
+      {
+       "t": "Magnetización",
+       "s": "observable"
+      }
+     ],
+     "id": "f",
+     "hidden": true
+    },
+    {
+     "type": "mission",
+     "notebook": "practica/proyecto/hito2.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Escribe el Hamiltoniano de $N$ espines como `SparsePauliOp` y comprueba que con $N=2$ recuperas el hito I."
+      },
+      {
+       "level": 2,
+       "text": "Construye el circuito de Trotter de varios pasos con `compose`."
+      },
+      {
+       "level": 3,
+       "text": "Calcula la curva de magnetización y compárala con la evolución exacta."
+      }
+     ],
+     "title": "Proyecto Ising · Hito II",
+     "id": "m",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "f",
+     "at": "ham"
+    },
+    {
+     "do": "show",
+     "id": "m",
+     "at": "hito"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "2.9",
+    "Reflexiona"
+   ],
+   "say": "Antes de cerrar la parte, dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en el navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Una gráfica es un argumento: elige la que responde tu pregunta.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Quieres explicar a alguien que un estado de Bell está entrelazado. ¿Qué gráfica de esta lección usarías y cuál evitarías? Justifícalo.",
+     "Vas a mostrar cómo evoluciona la magnetización de la cadena de Ising con el tiempo. ¿Qué gráfica usarías, y qué pondrías en cada eje?"
     ]
    },
    "align": "top"

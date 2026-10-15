@@ -29,13 +29,10 @@
    ]
   ]
  },
- "ising": {
-  "dur": 33.672,
+ "ising_pred": {
+  "dur": 14.088,
   "marks": {
-   "int": 9.129,
-   "campo": 16.446,
-   "res": 21.852,
-   "mag": 25.433
+   "cual": 9.129
   },
   "cues": [
    [
@@ -44,18 +41,41 @@
    ],
    [
     9.129,
+    "Para cuatro espines, ¿cuántos términos tendrá el hamiltoniano?"
+   ]
+  ]
+ },
+ "ising": {
+  "dur": 36.12,
+  "marks": {
+   "int": 1.84,
+   "campo": 9.157,
+   "res": 14.563,
+   "mag": 27.896
+  },
+  "cues": [
+   [
+    0.107,
+    "Veamos."
+   ],
+   [
+    1.84,
     "Las interacciones son tripletas Z Z sobre los qubits i e i más uno, con coeficiente uno."
    ],
    [
-    16.446,
+    9.157,
     "El campo, X sobre cada qubit, con coeficiente menos uno."
    ],
    [
-    21.852,
-    "Con cuatro qubits salen siete términos."
+    14.563,
+    "Con cuatro qubits salen siete términos: tres pares de vecinos y cuatro campos."
    ],
    [
-    25.433,
+    20.848,
+    "Si dijiste ocho, contaste cuatro pares, pero en una línea hay uno menos que espines."
+   ],
+   [
+    27.896,
     "Y si en vez de la energía quieres la magnetización media, el observable es la suma de las Z dividida entre n."
    ]
   ]
@@ -165,13 +185,10 @@
    ]
   ]
  },
- "resintesis": {
-  "dur": 31.152,
+ "resintesis_pred": {
+  "dur": 18.024,
   "marks": {
-   "op": 10.586,
-   "re": 13.035,
-   "res": 16.941,
-   "tr": 22.985
+   "cual": 10.586
   },
   "cues": [
    [
@@ -184,14 +201,37 @@
    ],
    [
     10.586,
+    "Si calculamos su matriz y la volvemos a sintetizar, ¿cuántas puertas de dos qubits crees que quedarán?"
+   ]
+  ]
+ },
+ "resintesis": {
+  "dur": 29.856,
+  "marks": {
+   "op": 2.066,
+   "re": 4.515,
+   "res": 8.421,
+   "tr": 21.683
+  },
+  "cues": [
+   [
+    0.107,
+    "Comprobemos."
+   ],
+   [
+    2.066,
     "Calculamos su matriz con Operator, y la volvemos a sintetizar en un circuito nuevo."
    ],
    [
-    16.941,
+    8.421,
     "¡Resultado: una sola CX, rodeada de rotaciones de un qubit!"
    ],
    [
-    22.985,
+    14.464,
+    "Una matriz de dos qubits nunca necesita más de tres puertas de dos qubits, y aquí bastó una."
+   ],
+   [
+    21.683,
     "La función transpile hace esta re-síntesis automáticamente con niveles de optimización suficientemente altos."
    ]
   ]
@@ -203,6 +243,46 @@
    [
     0.107,
     "Una pregunta sobre medición."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 21.984,
+  "marks": {
+   "n1": 2.137,
+   "n2": 7.643,
+   "n3": 13.233
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, predice cuántos términos tiene un hamiltoniano de Ising."
+   ],
+   [
+    7.643,
+    "Después, añade el cambio de base que permite medir Y con un Sampler."
+   ],
+   [
+    13.233,
+    "Y por último, escribe una función que construya el observable de magnetización de una cadena, en el eje que le pidas."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 8.64,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
+   ],
+   [
+    3.397,
+    "Escribe con tus palabras; lo que escribas se guarda en el navegador."
    ]
   ]
  },

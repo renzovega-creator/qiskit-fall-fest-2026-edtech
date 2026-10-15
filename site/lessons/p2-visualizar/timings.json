@@ -147,6 +147,47 @@
    ]
   ]
  },
+ "bloch_pred": {
+  "dur": 12.816,
+  "marks": {
+   "cual": 5.69
+  },
+  "cues": [
+   [
+    0.107,
+    "Una apuesta con el estado de Bell, el más entrelazado de dos qubits."
+   ],
+   [
+    5.69,
+    "Si lo dibujamos con plot bloch multivector, que muestra una esfera por qubit, ¿qué esperas ver?"
+   ]
+  ]
+ },
+ "bloch_res": {
+  "dur": 25.224,
+  "marks": {
+   "cero": 3.779,
+   "corr": 14.012
+  },
+  "cues": [
+   [
+    0.107,
+    "Dos esferas con vectores de longitud cero."
+   ],
+   [
+    3.779,
+    "Cada qubit, mirado por separado, está completamente indeterminado: sus valores esperados de X, Y y Z valen cero."
+   ],
+   [
+    14.012,
+    "Toda la información está en la correlación entre los dos, y la esfera de Bloch no puede mostrarla."
+   ],
+   [
+    20.791,
+    "Para eso sirven la ciudad, paulivec o la q-esfera."
+   ]
+  ]
+ },
  "q1": {
   "dur": 2.424,
   "marks": {},
@@ -242,6 +283,77 @@
    [
     0.107,
     "Una pregunta sobre draw."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 24.552,
+  "marks": {
+   "n1": 2.137,
+   "n2": 9.935,
+   "n3": 16.602
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, predice la probabilidad de medir cero cero en el estado de la lección y mírala en la gráfica de Pauli."
+   ],
+   [
+    9.935,
+    "Después, personaliza un dibujo de texto: el qubit cero abajo y sin barreras."
+   ],
+   [
+    16.602,
+    "Y por último, escribe una función que grafique con barras los valores esperados que calcula un Estimator."
+   ]
+  ]
+ },
+ "proyecto": {
+  "dur": 34.008,
+  "marks": {
+   "ham": 8.732,
+   "circ": 14.96,
+   "mag": 17.564,
+   "hito": 22.999
+  },
+  "cues": [
+   [
+    0.107,
+    "Volvamos al proyecto de la cadena de espines."
+   ],
+   [
+    3.949,
+    "En el hito uno simulaste dos espines y un paso de tiempo."
+   ],
+   [
+    8.732,
+    "Hoy tienes todo para generalizarlo: el hamiltoniano de n espines como SparsePauliOp, un circuito de Trotter de varios pasos, y la magnetización como observable, que sigues a lo largo del tiempo."
+   ],
+   [
+    22.999,
+    "El hito dos recalcula lo del hito uno, así que no necesitas nada del cuaderno anterior."
+   ],
+   [
+    29.863,
+    "Al final comparas tu curva con la evolución exacta."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 9.96,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Antes de cerrar la parte, dos preguntas para pensar."
+   ],
+   [
+    4.713,
+    "Escribe con tus palabras; lo que escribas se guarda en el navegador."
    ]
   ]
  },

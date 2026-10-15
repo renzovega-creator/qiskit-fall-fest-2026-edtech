@@ -60,12 +60,67 @@
    ]
   },
   {
+   "id": "cadena_pred",
+   "tag": [
+    "2.3",
+    "Antes de leer la cadena"
+   ],
+   "say": "Una apuesta. Ponemos una X en el qubit uno, el de abajo, y medimos los dos qubits. [[cual]]Qiskit nos devuelve una cadena de dos bits. ¿Cuál crees que será?",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 2,
+     "ops": [
+      {
+       "g": "x",
+       "q": [
+        1
+       ]
+      },
+      {
+       "g": "barrier",
+       "q": []
+      },
+      {
+       "g": "measure",
+       "q": [
+        0
+       ],
+       "c": 0
+      },
+      {
+       "g": "measure",
+       "q": [
+        1
+       ],
+       "c": 1
+      }
+     ],
+     "clbits": 2,
+     "creg": "meas"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué cadena devolverá `get_counts()`?",
+    "options": [
+     "`'01'`",
+     "`'10'`",
+     "`'11'`",
+     "`'00'`"
+    ],
+    "after": "Anotado. Veamos qué imprime."
+   },
+   "align": "top"
+  },
+  {
    "id": "enteros",
    "tag": [
     "2.3",
     "Enteros y cadenas"
    ],
-   "say": "Al leer los bits como un número, el bit cero es el menos significativo: cada bit k vale dos a la k. [[ej]]Si ponemos una X en el qubit uno y medimos, el bit cero vale cero y el bit uno vale uno: el número dos. [[cad]]Y al escribirlos como cadena, el bit n menos uno va a la izquierda y el bit cero a la derecha, como escribimos los números: el dígito más significativo primero. [[asi]]Por eso Qiskit imprime uno cero, aunque el qubit que cambiamos sea el uno.",
+   "say": "Al leer los bits como un número, el bit cero es el menos significativo: cada bit k vale dos a la k. [[ej]]Si ponemos una X en el qubit uno y medimos, el bit cero vale cero y el bit uno vale uno: el número dos. [[cad]]Y al escribirlos como cadena, el bit n menos uno va a la izquierda y el bit cero a la derecha, como escribimos los números: el dígito más significativo primero. [[asi]]Por eso Qiskit imprime uno cero, aunque el qubit que cambiamos sea el uno. Si apostaste por cero uno, es el error más común: leer la cadena con el qubit cero a la izquierda.",
    "scene": [
     {
      "type": "code",
@@ -415,6 +470,80 @@
     "why": "Correcto: $q_0=1$ y $q_2=1$, así que $2^0+2^2=5$ (la cadena es `'101'`).",
     "tol": 0.001,
     "hint": "Cada qubit $k$ con valor 1 aporta $2^k$."
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "2.3",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, predice la cadena de bits de un circuito con X en los qubits cero y dos. [[n2]]Después, cambia las X de un circuito para preparar el estado cero uno uno. [[n3]]Y por último, escribe una función que prepare el estado de la base con el índice que le pidas, para cualquier número de qubits.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p2-orden-bits.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Predice la cadena de bits de un circuito con X en los qubits 0 y 2."
+      },
+      {
+       "level": 2,
+       "text": "Cambia las X para preparar $|q_2q_1q_0\\rangle=|011\\rangle$."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `preparar(k, n)`: el estado de la base con índice `k` en el vector de estado."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "2.3",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "La convención es arbitraria; lo que importa es no mezclar dos.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "En el diagrama el qubit 0 está arriba, pero en la cadena de bits va a la derecha. ¿Cómo se lo explicarías a alguien para que no se confunda al leer los conteos?",
+     "En tu proyecto Ising mides cada espín. En la cadena `'0010'`, ¿qué carácter corresponde al espín 0 y cómo lo sacarías en código?"
+    ]
    },
    "align": "top"
   },

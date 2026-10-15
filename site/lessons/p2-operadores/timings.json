@@ -232,11 +232,10 @@
    ]
   ]
  },
- "comparar": {
-  "dur": 29.376,
+ "fase_pred": {
+  "dur": 17.592,
   "marks": {
-   "fase": 6.539,
-   "fid": 16.304
+   "cual": 14.436
   },
   "cues": [
    [
@@ -245,14 +244,39 @@
    ],
    [
     6.539,
-    "Ojo: dos unitarias que solo difieren en una fase global no son iguales para doble igual, aunque físicamente sean la misma operación."
+    "Multiplicar una puerta por e elevado a i medio es solo una fase global: físicamente es la misma operación."
    ],
    [
-    16.304,
+    14.436,
+    "¿Qué crees que responde el doble igual?"
+   ]
+  ]
+ },
+ "comparar": {
+  "dur": 32.712,
+  "marks": {
+   "fase": 1.981,
+   "fid": 19.644
+  },
+  "cues": [
+   [
+    0.107,
+    "Comparemos."
+   ],
+   [
+    1.981,
+    "Imprime falso: dos unitarias que solo difieren en una fase global no son iguales para doble igual, aunque físicamente sean la misma operación."
+   ],
+   [
+    12.398,
+    "Si apostaste por verdadero, pensaste como físico; el doble igual piensa como matemático."
+   ],
+   [
+    19.644,
     "Para eso está process fidelity, una medida de qué tan parecidos son dos canales cuánticos."
    ],
    [
-    23.225,
+    26.565,
     "Para unitarias, no depende de la fase global: aquí da exactamente uno."
    ]
   ]
@@ -264,6 +288,46 @@
    [
     0.107,
     "Una pregunta práctica."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 23.04,
+  "marks": {
+   "n1": 2.137,
+   "n2": 8.492,
+   "n3": 15.314
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, predice el resultado de componer una X y una Z en cada orden."
+   ],
+   [
+    8.492,
+    "Después, usa el argumento qargs para colocar un operador sobre los qubits que tú elijas."
+   ],
+   [
+    15.314,
+    "Y por último, escribe una función que construya la cadena de Heisenberg para cualquier número de espines."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 8.64,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
+   ],
+   [
+    3.397,
+    "Escribe con tus palabras; lo que escribas se guarda en el navegador."
    ]
   ]
  },
