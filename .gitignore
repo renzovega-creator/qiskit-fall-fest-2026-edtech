@@ -1,4 +1,4 @@
-docs/
+.cache/
 shots/
 __pycache__/
 .venv/
