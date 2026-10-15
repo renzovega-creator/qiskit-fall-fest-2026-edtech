@@ -58,11 +58,22 @@ que_es = lesson(
                       id="a", hidden=True), gap=30)],
              [A("show", "e", at="aer"), A("show", "a", at="add")]),
 
+        beat("pred_modos", ("", "Antes de seguir"),
+             """Antes de ver el servicio, una apuesta. IBM ofrece tres maneras de enviar trabajo: un trabajo suelto, una sesión, para cargas iterativas, y un lote, para enviar todo de una vez.
+             [[cual]]Una de ellas no está disponible con el plan gratuito, el plan Open. ¿Cuál crees que es?""",
+             [Flow(["Job", "Session", "Batch"], id="m"),
+              T("plan Open: el gratuito", "note", id="n", hidden=True)],
+             [A("show", "n", at="cual")],
+             ask=predict("¿Qué modo de ejecución no puedes usar con el plan Open?",
+                         ["el trabajo suelto (`job`)", "la sesión (`session`)", "el lote (`batch`)",
+                          "ninguno: con el plan Open puedo usar los tres"],
+                         "Anotado. Veamos qué dice el servicio.")),
+
         beat("servicio", ("", "IBM Quantum Compute Service"),
              """El servicio de cómputo de IBM ejecuta tus circuitos en sus procesadores cuánticos, en la nube. [[cli]]Tu programa habla con él a través del paquete qiskit ibm runtime.
              [[mas]]No solo ejecuta: añade recursos clásicos y cuánticos para devolver mejores resultados, con supresión de errores, como el desacoplamiento dinámico, y mitigación, como la extrapolación a ruido cero.
              [[modos]]Y ofrece tres modos de ejecución: un trabajo suelto, una sesión para cargas iterativas, o un lote para enviar todo de una vez.
-             [[open]]Ojo: con el plan Open, el gratuito, no se pueden usar sesiones.""",
+             [[open]]Ojo: con el plan Open, el gratuito, no se pueden usar sesiones. Si apostaste por la sesión, acertaste.""",
              [Code("pip install qiskit-ibm-runtime", "sh", id="c", hidden=True),
               Row(Box("def", "Supresión", T("desacoplamiento dinámico…", "body")),
                   Box("def", "Mitigación", T("lectura (TREX), ZNE…", "body")), id="r", hidden=True, gap=26),
@@ -101,6 +112,21 @@ que_es = lesson(
                         "Correcto: el SDK trae simuladores exactos (las primitivas de referencia). El cliente de IBM solo hace falta para usar sus QPUs.",
                         wrong=[None, "El cliente de IBM no hace falta para simular localmente.", "El catálogo es para Qiskit Functions, que corren en la nube de IBM.",
                                "Serverless es para cargas remotas en IBM Quantum Platform."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero reproduces un estado de Bell pasando por cuatro módulos del SDK. [[n2]]Después cambias un observable y calculas su valor exacto, sin simular mediciones.
+             [[n3]]Y por último escribes tu propia función de valor esperado, y la comparas con la primitiva del SDK. [[check]]Cada misión tiene una comprobación que se actualiza sola: busca la marca verde.""",
+             [Mission("practica/p1-que-es-qiskit.py", [
+                 (1, "Pasa un estado de Bell por `circuit`, `quantum_info`, `transpiler` y `primitives`."),
+                 (2, "Cambia el observable para medir solo la $Z$ del qubit 0 y comprueba su valor exacto."),
+                 (3, "Escribe `valor_esperado(qc, obs)` con `quantum_info` y compárala con `StatevectorEstimator`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Antes de cerrar, dos preguntas para pensar. No hay respuesta automática: escribe con tus palabras. Lo que escribas se guarda y lo verás cuando vuelvas a esta lección.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("Explica con tus palabras la diferencia entre el SDK `qiskit` y el servicio IBM Quantum Compute. ¿Qué instalarías para cada uno?",
+                         "Piensa en un problema que te interese, como química u optimización. ¿Qué parte del mapa usarías: solo el SDK, un addon o una Function? ¿Por qué?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]El SDK, de código abierto, construye, transforma y ejecuta circuitos. [[r2]]IBM Quantum Compute Service ejecuta en hardware real, con mitigación de errores y tres modos de ejecución.
@@ -214,9 +240,17 @@ patrones = lesson(
              [A("hl", "c", at="m", range="7-11", dim=True), A("hl", "c", at="o", range="13-16", dim=True), A("hl", "c", at="lay", lines=[17], dim=True),
               A("hl", "c", at="e", range="19-21", dim=True), A("hl", "c", at="p", range="23-24", dim=True)]),
 
+        beat("predice", ("", "Antes de ejecutar"),
+             """Antes de ejecutarlo, apuesta. Para un estado de Bell ideal, ZZ vale uno y XX también vale uno: la suma ideal es dos.
+             [[cual]]Pero el backend falso incluye un modelo del ruido de un procesador real. ¿Qué crees que imprimirá el programa?""",
+             [M(r"\langle ZZ\rangle+\langle XX\rangle = 1+1 = 2 \quad\text{(ideal)}", size=40)],
+             ask=predict("¿Qué valor esperas para la suma, con el ruido del backend falso?",
+                         ["exactamente 2", "un poco menos de 2, cerca de 1,9", "cerca de 1", "cerca de 0"],
+                         "Anotado. Ejecutémoslo y veamos si acertaste.")),
+
         beat("resultado", ("", "El resultado"),
              """Para un estado de Bell ideal, ZZ vale uno y XX también vale uno: la suma debería dar exactamente dos.
-             [[sal]]El backend falso incluye un modelo del ruido del procesador real, así que obtenemos un poco menos, alrededor de uno coma nueve.
+             [[sal]]El backend falso incluye un modelo del ruido del procesador real, así que obtenemos un poco menos, alrededor de uno coma nueve. Si apostaste por esa opción, acertaste.
              [[mens]]Esa diferencia es el ruido, y buena parte del curso trata de cómo reducirla.""",
              [M(r"\langle ZZ\rangle+\langle XX\rangle = 1+1 = 2 \quad\text{(ideal)}", size=40),
               Out("1.9267693296232773", id="o", hidden=True),
@@ -239,6 +273,21 @@ patrones = lesson(
              ask=choice("¿Qué primitiva usarías?", ["Sampler", "Estimator"], 1,
                         "Correcto: Estimator devuelve valores esperados de observables, y además ofrece más opciones de mitigación.",
                         wrong=["Con Sampler tendrías que reconstruir el valor esperado a partir de muestras; Estimator lo calcula directamente."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero reproduces los cuatro pasos con el simulador exacto. [[n2]]Después cambias el observable y apuestas por el valor que saldrá.
+             [[n3]]Y por último escribes el patrón como una función que sirve para cualquier circuito. [[check]]Cada misión tiene una comprobación que se actualiza sola: busca la marca verde.""",
+             [Mission("practica/p1-patrones.py", [
+                 (1, "Ejecuta los cuatro pasos y comprueba que el circuito es ISA."),
+                 (2, r"Añade `YY` al observable y predice $\langle ZZ\rangle+\langle XX\rangle+\langle YY\rangle$."),
+                 (3, "Escribe `patron(qc, obs, backend, nivel)` y pruébala con los niveles 0, 1 y 3.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Antes de cerrar, dos preguntas para pensar. No hay respuesta automática: escribe con tus palabras. Lo que escribas se guarda y lo verás cuando vuelvas a esta lección.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("¿Por qué el paso de optimizar es obligatorio en un procesador real y no lo es en un simulador ideal? Explícalo con tus palabras.",
+                         "Elige un problema de tu área o de tu interés. ¿Cómo sería su paso uno, mapear? ¿Usarías Sampler o Estimator, y por qué?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Todo programa sigue cuatro pasos: mapear, optimizar, ejecutar y posprocesar. [[r2]]En hardware de IBM solo se ejecutan circuitos ISA: puertas base y conectividad del chip.
@@ -338,10 +387,23 @@ $ python setup.py build_rust --release --inplace""", id="c", reveal=True),
              [A("show", "r", at="rust"), A("lines", "c", at="clone", to=2), A("lines", "c", at="dev", to=3), A("lines", "c", at="edit", to=4),
               A("lines", "c", at="rel", to=5), A("show", "n", at="rt")]),
 
+        beat("predice_config", ("", "Antes de configurar"),
+             """Antes de ver la configuración, apuesta. Imagina que tu archivo settings punto conf fija el nivel de optimización por defecto en cero.
+             [[cual]]Luego transpilas, sin indicar ningún nivel, un circuito con dos Hadamard seguidas. Dos Hadamard seguidas se cancelan entre sí. ¿Cuántas quedan?""",
+             [Code('''# settings.conf: transpile_optimization_level = 0
+qc = QuantumCircuit(1)
+qc.h(0)
+qc.h(0)
+print(dict(transpile(qc).count_ops()))''', id="c", norun=True, size=26)],
+             [A("hl", "c", at="cual", lines=[2, 3, 5])],
+             ask=predict("¿Cuántas Hadamard quedan en el circuito transpilado?",
+                         ["ninguna: el transpilador las cancela", "una", "las dos", "no se puede saber sin indicar el nivel"],
+                         "Anotado. Veamos qué dice la configuración.")),
+
         beat("config", ("", "Configuración local"),
              """Qiskit lee un archivo de configuración opcional, settings punto conf, en la carpeta punto qiskit de tu usuario. [[env]]Otra ruta se indica con la variable QISKIT SETTINGS.
              [[draw]]Con circuit drawer eliges el dibujante por defecto: texto, matplotlib o LaTeX. [[style]]Con circuit mpl style, el estilo de matplotlib. [[state]]Con state drawer, cómo se dibujan los estados.
-             [[opt]]transpile optimization level fija el nivel de optimización por defecto, de cero a tres. [[par]]parallel y num processes controlan el paralelismo con varios procesos.
+             [[opt]]transpile optimization level fija el nivel de optimización por defecto de la función transpile, de cero a tres; generate preset pass manager tiene su propio nivel por defecto. [[cero]]Con cero no se optimiza nada: las dos Hadamard se quedan, aunque se cancelen. Si apostaste por las dos, acertaste. [[par]]parallel y num processes controlan el paralelismo con varios procesos.
              [[qpy]]Y min qpy version rechaza archivos QPY antiguos, por seguridad.""",
              [Code("""[default]
 circuit_drawer = mpl
@@ -351,9 +413,10 @@ transpile_optimization_level = 3
 parallel = False
 num_processes = 15
 min_qpy_version = 14""", "text", title="~/.qiskit/settings.conf", id="c"),
-              T("otra ruta: variable `QISKIT_SETTINGS`", "note", id="n", hidden=True)],
+              T("otra ruta: variable `QISKIT_SETTINGS`", "note", id="n", hidden=True),
+              T("con nivel 0, dos `h` seguidas siguen siendo `{'h': 2}`", "note", id="z", hidden=True)],
              [A("show", "n", at="env"), A("hl", "c", at="draw", lines=[2]), A("hl", "c", at="style", lines=[3]), A("hl", "c", at="state", lines=[4]),
-              A("hl", "c", at="opt", lines=[5]), A("hl", "c", at="par", lines=[6, 7]), A("hl", "c", at="qpy", lines=[8])]),
+              A("hl", "c", at="opt", lines=[5]), A("show", "z", at="cero"), A("hl", "c", at="par", lines=[6, 7]), A("hl", "c", at="qpy", lines=[8])]),
 
         beat("variables", ("", "Variables de entorno"),
              """Algunas variables de entorno cambian el comportamiento de Qiskit. [[par]]QISKIT PARALLEL activa el multiprocesamiento, y QISKIT NUM PROCS limita cuántos procesos lanza.
@@ -382,6 +445,21 @@ min_qpy_version = 14""", "text", title="~/.qiskit/settings.conf", id="c"),
                   Box("idea", "Instalándolo tú", L(["Google Colab", "IBM Watson Studio", "Azure ML Studio"], size=27), id="b", hidden=True), id="r", hidden=True, gap=26),
               Code("%pip install qiskit", id="c", hidden=True, norun=True)],
              [A("show", "r", at="pre"), A("show", "b", at="otros"), A("show", "c", at="otros", t=1)]),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero compruebas tu instalación: la versión de Qiskit y el intérprete de Python. [[n2]]Después editas un archivo settings punto conf y compruebas que Qiskit lo lee.
+             [[n3]]Y por último escribes dos funciones que convierten cuadernos entre Jupyter y marimo, con marimo convert. Así podrás usar las guías de IBM, que están en Jupyter. [[check]]Cada misión tiene una comprobación que se actualiza sola: busca la marca verde.""",
+             [Mission("practica/p1-instalar.py", [
+                 (1, "Comprueba tu versión de Qiskit y que tu Python es CPython de 64 bits."),
+                 (2, "Edita un `settings.conf`: dibujo `mpl` y `transpile` sin optimizar."),
+                 (3, "Escribe `jupyter_a_marimo` y `marimo_a_jupyter` con `marimo convert` y `marimo export ipynb`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Antes de cerrar, dos preguntas para pensar. No hay respuesta automática: escribe con tus palabras. Lo que escribas se guarda y lo verás cuando vuelvas a esta lección.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("¿Qué ventaja te da un entorno virtual por proyecto? Cuéntalo con un ejemplo de algo que podría salir mal sin él.",
+                         "Un cuaderno de marimo es un archivo `.py`; uno de Jupyter es un `.ipynb`. ¿Qué ventaja ves en el primero, y cuándo necesitarías convertirlo a Jupyter?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Trabaja en un entorno virtual por proyecto. [[r2]]pip install qiskit para el SDK, y qiskit ibm runtime para el hardware de IBM. [[r3]]Si un cuaderno no encuentra Qiskit, revisa el entorno.
@@ -646,9 +724,17 @@ measure q -> c;""", "qasm", id="c", reveal=True, size=27)],
                   Box("idea", "A la esfera de Bloch", M(r"x=2\sqrt{p(1-p)}\cos\varphi\\ y=2\sqrt{p(1-p)}\sin\varphi\\ z=1-2p", size=30), id="b", hidden=True), gap=26)],
              [A("show", "d", at="disco"), A("show", "b", at="bloch")]),
 
+        beat("pred_vistas", ("", "Antes de ver las vistas"),
+             """Antes de ver las visualizaciones, apuesta. Tomemos un circuito de dos qubits: una Hadamard en cada uno y una puerta CZ. Las dos Hadamard dejan los cuatro estados con la misma probabilidad.
+             [[cual]]¿Qué crees que hará la CZ con esas probabilidades?""",
+             [Circ(2, [G("h", 0), G("h", 1), G("cz", 0, 1)])],
+             ask=predict("Después de la CZ, ¿cómo quedan las probabilidades de `00`, `01`, `10` y `11`?",
+                         ["las cuatro siguen en 1/4", "`11` sube a 1/2 y las otras bajan", "`11` baja a 0", "solo quedan `00` y `11`"],
+                         "Anotado. Veamos las vistas.")),
+
         beat("vistas", ("", "Probabilidades, vector de estado y q-esfera"),
              """Las otras tres vistas muestran el estado de todos los qubits juntos. Tomemos este circuito: Hadamard en los dos qubits y una CZ.
-             [[prob]]La vista de probabilidades: barras con la probabilidad de cada estado de la base, hasta ocho qubits. Aquí, un cuarto para cada uno. No muestra fases.
+             [[prob]]La vista de probabilidades: barras con la probabilidad de cada estado de la base, hasta ocho qubits. Aquí, un cuarto para cada uno: la CZ no cambió ninguna probabilidad, y si apostaste por eso, acertaste. No muestra fases.
              [[sv]]La vista de vector de estado, hasta seis qubits, muestra las amplitudes: la altura es el módulo y el color, la fase. Aquí todas miden un medio, pero uno uno tiene fase pi: un signo menos.
              [[qs]]Y la q-esfera, hasta cinco qubits, pone cada estado de la base en una esfera: cero cero en el polo norte, uno uno en el sur, y los demás en paralelos según cuántos unos tienen. El tamaño de cada nodo es la probabilidad y el color, la fase.""",
              [Row(Circ(2, [G("h", 0), G("h", 1), G("cz", 0, 1)], id="q"),
@@ -688,6 +774,21 @@ measure q -> c;""", "qasm", id="c", reveal=True, size=27)],
                         ["$\\pi$", "$\\pi/2$", "$\\pi/4$", "$\\pi/8$"], 2,
                         "Correcto: $T=P(\\pi/4)$. Y $S=P(\\pi/2)=T^2$, $Z=P(\\pi)=S^2$.",
                         wrong=["$P(\\pi)$ es Z.", "$P(\\pi/2)$ es S.", None, "Cuidado: a T a veces se la llama «puerta π/8» porque, salvo una fase global, es $R_Z(\\pi/4)$ y se escribe con $e^{\\mp i\\pi/8}$; pero como puerta de fase es $P(\\pi/4)$."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Composer corre en la web, así que el cuaderno de práctica usa el mismo OpenQASM, ejecutado en tu equipo. Ábrelo con el comando de abajo. [[n1]]Primero ejecutas el programa con una puerta propia.
+             [[n2]]Después cambias una CZ por una fase controlada y compruebas que las probabilidades no se mueven, pero la amplitud sí. [[n3]]Y por último defines tu propia puerta GHZ. [[check]]Cada misión tiene una comprobación que se actualiza sola: busca la marca verde.""",
+             [Mission("practica/p1-composer.py", [
+                 (1, "Ejecuta el OpenQASM con la puerta propia `bell` y lee los conteos."),
+                 (2, r"Cambia la `cz` por `cu1(pi/2)`: la amplitud de $|11\rangle$ pasa a $i/2$ y las probabilidades no cambian."),
+                 (3, "Define en OpenQASM una puerta `ghz a, b, c` para tres qubits.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Antes de cerrar, dos preguntas para pensar. No hay respuesta automática: escribe con tus palabras. Lo que escribas se guarda y lo verás cuando vuelvas a esta lección.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("La vista de probabilidades no muestra fases. ¿En qué situación te engañaría mirar solo esa vista? Explícalo con un ejemplo.",
+                         "¿Cuándo preferirías construir un circuito arrastrando puertas y cuándo escribiéndolo en código? Piensa en un ejemplo de cada caso.")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Composer construye circuitos arrastrando puertas o escribiendo OpenQASM dos. [[r2]]El modo inspección muestra la evolución capa por capa. [[r3]]Run circuit envía el trabajo a un QPU y los resultados aparecen en Workloads.
