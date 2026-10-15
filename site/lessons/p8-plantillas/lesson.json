@@ -194,12 +194,60 @@
    ]
   },
   {
+   "id": "predice",
+   "tag": [
+    "8.6",
+    "Antes de desplegar"
+   ],
+   "say": "Una apuesta sobre la plantilla de AQC más Trotter. [[total]]Pides diez pasos de Trotter en total. [[plan]]Y un plan de compresión: seis de esos pasos se comprimen en un ansatz de dos capas. Los pasos que quedan se ejecutan sin comprimir. [[pregunta]]¿Cuántas capas de Trotter tendrá el circuito del último paso?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "job = fn.run(hamiltonian=H, t_steps=10,\n             aqc_segments=[{\"n_steps\": 6, \"ansatz_steps\": 2}],\n             backend=\"statevector\")",
+     "lang": "python",
+     "id": "c",
+     "norun": true,
+     "size": 24
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      1
+     ],
+     "id": "c",
+     "at": "total"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      2
+     ],
+     "id": "c",
+     "at": "plan"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuántas capas de Trotter tendrá el circuito del último paso?",
+    "options": [
+     "10",
+     "6",
+     "4",
+     "2"
+    ],
+    "after": "Anotado. En el siguiente paso lo comprobamos y vemos cómo se despliega."
+   },
+   "align": "top"
+  },
+  {
    "id": "desplegar",
    "tag": [
     "8.6",
     "Desplegar una plantilla"
    ],
-   "say": "Para desplegar una plantilla, descargas su carpeta source files del repositorio, y la subes con QiskitFunction, como en la primera lección de esta parte, declarando sus dependencias de pip. [[run]]La de AQC más Trotter solo exige tres entradas: el Hamiltoniano, una cadena unidimensional con vecinos cercanos, el número de pasos de Trotter y el plan de compresión. [[backends]]Y se puede ejecutar en tres sitios con el mismo código: statevector, exacto; fake, simulación ruidosa; y runtime, en un QPU real. Prueba primero en los simuladores: no gastan tiempo de QPU.",
+   "say": "Para desplegar una plantilla, descargas su carpeta source files del repositorio, y la subes con QiskitFunction, como en la primera lección de esta parte, declarando sus dependencias de pip. [[run]]La de AQC más Trotter solo exige tres entradas: el Hamiltoniano, una cadena unidimensional con vecinos cercanos, el número de pasos de Trotter y el plan de compresión. Esta es la respuesta a tu apuesta: seis. Dos capas del ansatz, más los cuatro pasos que no se comprimen. [[backends]]Y se puede ejecutar en tres sitios con el mismo código: statevector, exacto; fake, simulación ruidosa; y runtime, en un QPU real. Prueba primero en los simuladores: no gastan tiempo de QPU.",
    "scene": [
     {
      "type": "code",
@@ -294,6 +342,162 @@
      "Los registros ayudan a diagnosticar, pero no evitan el gasto.",
      null,
      "Más núcleos solo harían fallar antes por casualidad."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "8.6",
+    "Tu turno"
+   ],
+   "say": "Abre el cuaderno de práctica de esta lección. Las plantillas se despliegan en Serverless y piden una cuenta; el cuaderno trae una versión local con la misma estructura y los backends statevector y fake. [[n1]]Primero ejecutas la misma función en los dos backends y miras cómo el ruido separa las curvas. [[n2]]Después reordenas la función para que valide antes de la etapa cara. [[n3]]Y por último calculas cuántas capas de Trotter deja un plan de compresión, con validación temprana.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p8-plantillas.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Ejecuta la función en `statevector` y en `fake` y compara las curvas."
+      },
+      {
+       "level": 2,
+       "text": "Mueve la validación antes de la etapa cara."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `pasos_en_qpu(t_steps, plan)` y lanza `ValueError` si el plan no cabe."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "proyecto",
+   "tag": [
+    "8.6",
+    "Proyecto Ising: hito VIII"
+   ],
+   "say": "Con esto llegamos al hito ocho del proyecto Ising. [[obp]]En esta parte conociste los addons, y OBP en particular: llevar las últimas capas del circuito al observable. [[aqc]]AQC-Tensor, la técnica de la plantilla que acabas de ver, persigue lo mismo desde otro lado: comprimir las primeras capas en un circuito más corto. [[hito]]El hito ocho recalcula tu cadena de espines, reduce su profundidad con OBP, y te hace pensar en un presupuesto: cuántos términos estás dispuesto a medir a cambio de un circuito más corto.",
+   "scene": [
+    {
+     "type": "row",
+     "items": [
+      {
+       "type": "box",
+       "kind": "def",
+       "title": "OBP",
+       "body": [
+        {
+         "type": "text",
+         "text": "absorbe las últimas capas en el observable",
+         "style": "body"
+        }
+       ],
+       "id": "a",
+       "hidden": true
+      },
+      {
+       "type": "box",
+       "kind": "idea",
+       "title": "AQC-Tensor",
+       "body": [
+        {
+         "type": "text",
+         "text": "comprime las primeras capas en un ansatz",
+         "style": "body"
+        }
+       ],
+       "id": "b",
+       "hidden": true
+      }
+     ],
+     "gap": 24
+    },
+    {
+     "type": "mission",
+     "notebook": "practica/proyecto/hito8.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Recalcula el Hamiltoniano, la magnetización de Trotter y la profundidad transpilada."
+      },
+      {
+       "level": 2,
+       "text": "Elige cuántas capas absorbe OBP: baja la profundidad un 25 % sin pasar de cien términos."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `ahorro(pasos)` con un presupuesto de operador y mira cómo cambia el ahorro con los pasos."
+      }
+     ],
+     "title": "Proyecto Ising · Hito VIII",
+     "id": "m",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "a",
+     "at": "obp"
+    },
+    {
+     "do": "show",
+     "id": "b",
+     "at": "aqc"
+    },
+    {
+     "do": "show",
+     "id": "m",
+     "at": "hito"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "8.6",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Validar pronto y probar barato son la misma idea.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Qué errores de tu función descubrirías con `statevector` antes de gastar tiempo de QPU, y cuáles solo con `fake`?",
+     "En el hito ocho, con un límite fijo de términos, el ahorro de profundidad se queda constante al agregar pasos. ¿Qué implica eso para circuitos de Trotter muy largos, y cómo te ayudaría AQC-Tensor?"
     ]
    },
    "align": "top"

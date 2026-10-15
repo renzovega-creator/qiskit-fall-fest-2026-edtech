@@ -38,11 +38,41 @@
    ]
   ]
  },
+ "predice": {
+  "dur": 23.208,
+  "marks": {
+   "hoy": 9.723,
+   "mitad": 16.658,
+   "pregunta": 21.315
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de ver QESEM, una apuesta."
+   ],
+   [
+    3.467,
+    "QESEM te deja elegir la precisión que quieres: el error máximo de tu estimación."
+   ],
+   [
+    9.723,
+    "Imagina que con un error de cero punto cero dos el trabajo tarda diez minutos de QPU."
+   ],
+   [
+    16.658,
+    "Ahora pides la mitad del error: cero punto cero uno."
+   ],
+   [
+    21.315,
+    "¿Cuánto tarda?"
+   ]
+  ]
+ },
  "qesem": {
-  "dur": 41.568,
+  "dur": 48.672,
   "marks": {
    "tiempo": 16.446,
-   "estimar": 29.707
+   "estimar": 36.798
   },
   "cues": [
    [
@@ -55,14 +85,18 @@
    ],
    [
     16.446,
-    "Su sobrecosto de QPU crece exponencialmente con el volumen activo del circuito, el número de puertas de dos qubits que afectan al observable, y con el inverso del cuadrado de la precisión."
+    "Esta es la respuesta a tu apuesta: su sobrecosto de QPU crece con el inverso del cuadrado de la precisión, así que la mitad del error cuesta cuatro veces más tiempo."
    ],
    [
-    29.707,
+    28.122,
+    "Y crece exponencialmente con el volumen activo del circuito, el número de puertas de dos qubits que afectan al observable."
+   ],
+   [
+    36.798,
     "Por eso tiene un modo para estimar el tiempo antes de gastar: estimate time only."
    ],
    [
-    35.906,
+    42.997,
     "Con un backend simulado, como fake fez, no gasta QPU."
    ]
   ]
@@ -128,6 +162,50 @@
    [
     0.107,
     "Elige la función."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 26.568,
+  "marks": {
+   "n1": 8.393,
+   "n2": 13.601,
+   "n3": 19.319
+  },
+  "cues": [
+   [
+    0.107,
+    "Abre el cuaderno de práctica de esta lección."
+   ],
+   [
+    3.807,
+    "Corre con primitivas locales; no usa ninguna cuenta."
+   ],
+   [
+    8.393,
+    "Primero mides cómo baja el error de un estimador al subir su precisión."
+   ],
+   [
+    13.601,
+    "Después arreglas una fórmula de tiempo de QPU cuyo exponente está mal."
+   ],
+   [
+    19.319,
+    "Y por último inviertes la fórmula: dado un tiempo máximo, calculas qué precisión puedes pedir."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 9.336,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección."
    ]
   ]
  },

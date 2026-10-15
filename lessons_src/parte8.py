@@ -1,6 +1,6 @@
 """Parte VIII · Serverless, addons y Qiskit Functions."""
 from lib import (T, M, L, Row, Box, A, beat, choice, numeric, lesson,
-                 Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph)
+                 Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph, predict, reflect, Mission)
 from parte2 import resumen
 
 # ------------------------------------------------------------------ 8.1 Qiskit Serverless
@@ -91,9 +91,23 @@ update_status(Job.EXECUTING_QPU)        # RUNNING: EXECUTING_QPU
 update_status(Job.POST_PROCESSING)      # RUNNING: POST_PROCESSING''', id="c", norun=True, size=21)],
              [A("hl", "c", at="estados", range="3-7"), A("hl", "c", at="auto", lines=[7], dim=False)]),
 
+        beat("predice", ("", "Antes de paralelizar"),
+             """Antes de ver cómo se paraleliza, apuesta. [[codigo]]Esta función lleva el decorador distribute task, y la llamamos una vez con un circuito. [[cual]]¿Qué crees que es x justo después de la llamada? No hace falta que sepas la respuesta: equivocarse en una predicción enseña más que acertar por memoria.""",
+             [Code('''@distribute_task(target={"cpu": 1})
+def transpile_remote(circuit, optimization_level, backend):
+    pm = generate_preset_pass_manager(optimization_level=optimization_level,
+                                      backend=service.backend(backend))
+    return pm.run(circuit)
+
+x = transpile_remote(circuit, 3, backend)''', id="c", norun=True, size=21)],
+             [A("hl", "c", at="codigo", range="1-5"), A("hl", "c", at="cual", lines=[7])],
+             ask=predict("¿Qué es `x` justo después de la llamada?",
+                         ["el circuito transpilado", "una referencia a una tarea asíncrona", "una lista con el circuito", "`None`, hasta que llames a `get`"],
+                         "Anotado. Veamos qué hace el decorador.")),
+
         beat("paralelo", ("", "Paralelizar"),
              """La ventaja principal: paralelizar trabajo clásico. Decoras una función con distribute task, indicando los recursos que necesita cada tarea, por ejemplo un núcleo.
-             [[refs]]Cada llamada ya no devuelve el resultado, sino una referencia a una tarea asíncrona que corre en su propio trabajador. [[get]]get, con la lista de referencias, espera y reúne los resultados.
+             [[refs]]Esta es la respuesta a tu apuesta: cada llamada ya no devuelve el resultado, sino una referencia a una tarea asíncrona que corre en su propio trabajador. [[get]]get, con la lista de referencias, espera y reúne los resultados.
              [[recursos]]Puedes pedir núcleos completos o fracciones, y memoria en bytes: dos gigas son dos por mil veinticuatro al cubo.""",
              [Code('''from qiskit_serverless import distribute_task, get
 
@@ -137,6 +151,22 @@ serverless.file_delete(...)''', id="c", norun=True, size=22),
              ask=choice("¿Qué problema tiene esta llamada?", ["ninguno", "`backend` debería ser el nombre (texto), porque las entradas deben ser serializables", "falta `save_result`"], 1,
                         "Correcto: Serverless solo acepta entradas y salidas serializables; pasa `backend_name=\"ibm_fez\"` y crea el backend dentro del programa.",
                         wrong=["El objeto backend no se puede serializar.", None, "`save_result` va dentro del programa, no en la llamada."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. Serverless corre en la nube y pide una cuenta de pago, así que el cuaderno reproduce su contrato en tu equipo, con un backend simulado.
+             [[n1]]Primero ejecutas un programa y lees sus resultados. [[n2]]Después arreglas una llamada cuyo argumento no se puede serializar. [[n3]]Y por último paralelizas con distribute task y get.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.""",
+             [Mission("practica/p8-serverless.py", [
+                 (1, "Ejecuta el programa y lee la profundidad transpilada de cada circuito."),
+                 (2, "Arregla la llamada: cambia la entrada que no se puede serializar."),
+                 (3, "Paraleliza la transpilación con `distribute_task` y reúne los resultados con `get`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Antes de cerrar, dos preguntas para pensar. No hay respuesta automática: escribe con tus palabras. Lo que escribas se guarda y lo verás cuando vuelvas a esta lección.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("¿Por qué Serverless exige que las entradas sean serializables? Piensa en dónde corre tu programa y dónde corre tu cuaderno.",
+                         "Tienes un cuaderno que transpila 500 circuitos uno tras otro. ¿Qué cambiarías para llevarlo a Serverless, y qué partes dejarías secuenciales?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Un programa lee argumentos y guarda resultados. [[r2]]Se describe con QiskitFunction, se sube y se ejecuta con run. [[r3]]distribute task y get paralelizan el trabajo clásico.
@@ -208,6 +238,48 @@ print(circuit.decompose().count_ops())''', id="c", size=21),
               Out("6 11\nOrderedDict({'cx': 20, 'r': 12, 'rz': 10})", id="o", hidden=True, check=True)],
              [A("hl", "c", at="ej", range="6-9"), A("hl", "c", at="trotter", range="10-11"), A("show", "o", at="trotter", t=1)]),
 
+        beat("predice", ("", "Antes de absorber capas"),
+             """Veamos la retropropagación en acción, y antes apuesta. [[circ]]Usaremos la misma cadena de seis espines de Ising, con cuatro pasos de Trotter: doce capas de puertas. [[obs]]El observable es la magnetización media: seis términos, uno por espín.
+             [[abs]]Vamos a absorber las cuatro últimas capas en el observable. ¿Cuántos términos tendrá el observable nuevo? No hace falta que sepas la respuesta: equivocarse en una predicción enseña más que acertar por memoria.""",
+             [Table(["", "antes", "después"], [["capas del circuito", "12", "?"], ["términos del observable", "6", "?"], ["capas absorbidas", "0", "las 4 últimas"]],
+                    id="t", stagger=True, size=26)],
+             [A("item", "t", at="circ", i=0), A("item", "t", at="obs", i=1), A("item", "t", at="abs", i=2)],
+             ask=predict("¿Cuántos términos tendrá el observable tras absorber 4 capas?",
+                         ["6, los mismos", "unos 12", "64", "más de mil"],
+                         "Anotado. Ejecutémoslo y veamos si acertaste.")),
+
+        beat("obp", ("", "Retropropagar el observable"),
+             """Este es el código. [[ej]]Construimos el circuito y lo cortamos en capas: cada capa es una columna de puertas del mismo tipo.
+             [[bp]]backpropagate recibe el observable y las capas que quieres absorber, de la última a la primera, y devuelve el observable nuevo y las capas que no absorbió.
+             [[res]]El resultado: de seis a sesenta y cuatro términos. El circuito pasa de profundidad doce a ocho. Y el valor esperado es el mismo, cero punto ocho dos cuatro nueve. Si apostaste por sesenta y cuatro, acertaste.
+             [[costo]]Ese es el intercambio de OBP: un circuito más corto a cambio de un observable más grande, con más términos que medir.""",
+             [Code('''from qiskit import QuantumCircuit
+from qiskit.quantum_info import SparsePauliOp, Statevector
+from qiskit_addon_utils.slicing import combine_slices, slice_by_gate_types
+from qiskit_addon_obp import backpropagate
+
+n = 6
+circuito = QuantumCircuit(n)
+for _ in range(4):
+    for a in range(0, n - 1, 2):
+        circuito.rzz(0.4, a, a + 1)
+    for a in range(1, n - 1, 2):
+        circuito.rzz(0.4, a, a + 1)
+    for a in range(n):
+        circuito.rx(0.2, a)
+
+M = SparsePauliOp.from_sparse_list([("Z", [i], 1 / n) for i in range(n)], num_qubits=n)
+capas = slice_by_gate_types(circuito)
+obs, resto, meta = backpropagate(M, capas[-4:])
+corto = combine_slices(capas[:-4] + list(resto), include_barriers=False)
+
+valor = lambda c, o: Statevector(c).expectation_value(o).real
+print("términos:", len(M), "->", len(obs))
+print("profundidad:", circuito.depth(), "->", corto.depth())
+print(f"valor: {valor(circuito, M):.4f} {valor(corto, obs):.4f}")''', id="c", size=17),
+              Out("términos: 6 -> 64\nprofundidad: 12 -> 8\nvalor: 0.8249 0.8249", id="o", hidden=True, check=True)],
+             [A("hl", "c", at="ej", range="6-17"), A("hl", "c", at="bp", range="18-19"), A("hl", "c", at="res", range="22-24"), A("show", "o", at="res", t=1)]),
+
         beat("q1", ("", "Comprueba"),
              """Elige el addon.""",
              [T("Tu circuito de evolución temporal es demasiado profundo y solo quieres un valor esperado al final.", "body")],
@@ -215,13 +287,28 @@ print(circuit.decompose().count_ops())''', id="c", size=21),
                         "Correcto: OBP absorbe las últimas capas del circuito en el observable; ejecutas un circuito más corto a cambio de medir más términos.",
                         wrong=["M3 mitiga errores de lectura; no cambia el circuito.", None, "SQD posprocesa muestras para diagonalizar Hamiltonianos."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Abre el cuaderno de práctica de esta lección. Todo corre en tu equipo con OBP.
+             [[n1]]Primero reproduces la retropropagación: cuatro capas absorbidas, sesenta y cuatro términos. [[n2]]Después le pones un presupuesto de operador, para que OBP se detenga antes de que el observable crezca demasiado. [[n3]]Y por último escribes una función que elige cuántas capas absorber dado un límite de términos.""",
+             [Mission("practica/p8-addons.py", [
+                 (1, "Retropropaga cuatro capas y compara términos, profundidad y valor esperado."),
+                 (2, "Añade un presupuesto de operador para que OBP se detenga solo."),
+                 (3, "Escribe `mejor_k(limite)`: cuántas capas puedes absorber sin pasar del límite de términos.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección.""",
+             [T("OBP cambia profundidad por términos que medir.", "subtitle")],
+             ask=reflect("OBP mueve el costo del circuito al observable. ¿Cuándo dejaría de compensar absorber más capas?",
+                         "Tu observable tiene un solo término Z en un qubit. ¿Crees que OBP crecería igual de rápido que con la magnetización media? ¿Por qué?")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Para mapear: Fermions, AQC-Tensor, MPF. [[r2]]Para optimizar: OBP y corte de circuitos. [[r3]]Para el ruido: noise learning, PNA, Mitigation, SQD, M3 y Paulice.
              [[r4]]Y de apoyo, addon utilities y Pauli propagation.""",
              s_cierre, a_cierre),
     ],
     sources=["addons"],
-    practice=["Instala `qiskit-addon-obp` y reduce con él la profundidad del circuito de Trotter de esta lección.",
+    practice=["Con `qiskit-addon-obp` (ya está en las dependencias del curso), absorbe las capas de un circuito de Trotter de ocho pasos y mide cuántos términos tiene el observable en cada paso.",
               "Recorre los tutoriales de [SQD](https://quantum.cloud.ibm.com/docs/en/addons/qiskit-addon-sqd) para una molécula pequeña."])
 
 # ------------------------------------------------------------------ 8.3 Qiskit Functions
@@ -261,9 +348,21 @@ catalog.list()''', id="c", norun=True, size=22),
  QiskitFunction(q-ctrl/optimization-solver), ...]''', id="o", hidden=True)],
              [A("hl", "c", at="cuenta", range="3-5"), A("hl", "c", at="clave", range="3-4"), A("show", "o", at="clave", t=3)]),
 
+        beat("predice", ("", "Antes de ejecutar"),
+             """Una apuesta antes de ejecutar. [[carga]]Cargas la función QESEM. [[run]]Y la ejecutas nombrando un backend al que tu instancia no tiene acceso. [[pregunta]]¿Qué crees que hace run?""",
+             [Code('''qesem = catalog.load("qedma/qesem")
+job = qesem.run(
+    pubs=[(circuit, [avg_magnetization])],
+    backend_name="ibm_inexistente",   # tu instancia no lo ve
+)''', id="c", norun=True, size=23)],
+             [A("hl", "c", at="carga", lines=[1]), A("hl", "c", at="run", range="2-5")],
+             ask=predict("Nombras un backend al que tu instancia no tiene acceso. ¿Qué hace `run`?",
+                         ["lo envía y el trabajo falla después, en la cola", "falla enseguida, con un error", "elige otro backend por ti", "espera hasta que tengas acceso"],
+                         "Anotado. En el siguiente paso lo vemos.")),
+
         beat("ejecutar", ("", "Ejecutar una función"),
              """Cargas una función con catalog punto load y su nombre, proveedor barra nombre. [[run]]Cada función tiene sus propias entradas y opciones; esta, QESEM de Qedma, recibe PUBs y el nombre del backend.
-             [[uno]]Por defecto solo puedes tener un trabajo de función en ejecución a la vez. [[capacidad]]Antes de enviarlo, run comprueba tu capacidad restante y el acceso al backend, y falla enseguida si algo no está bien, en vez de dejar que el trabajo falle en la cola.""",
+             [[uno]]Por defecto solo puedes tener un trabajo de función en ejecución a la vez. [[capacidad]]Esta es la respuesta a tu apuesta: antes de enviarlo, run comprueba tu capacidad restante y el acceso al backend, y falla enseguida si algo no está bien, en vez de dejar que el trabajo falle en la cola.""",
              [Code('''qesem = catalog.load("qedma/qesem")
 job = qesem.run(
     pubs=[(circuit, [avg_magnetization, observable])],
@@ -298,6 +397,21 @@ job.error_message()''', id="c", norun=True, size=21)],
              ask=choice("¿Qué tipo de función le conviene?", ["de circuito", "de aplicación", "ninguna: tiene que escribir el circuito"], 1,
                         "Correcto: una función de aplicación (por ejemplo, HI-VQE de Qunova) recibe la geometría de la molécula y devuelve energías.",
                         wrong=["Una función de circuito necesita que ya tengas circuitos y observables.", None, "Precisamente para eso existen las funciones de aplicación."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Abre el cuaderno de práctica de esta lección. Las funciones piden un plan de pago, así que el cuaderno trae un catálogo local con la misma interfaz, y nada sale de tu equipo.
+             [[n1]]Primero listas el catálogo, cargas una función, la ejecutas y sigues sus estados. [[n2]]Después arreglas un backend al que no tienes acceso. [[n3]]Y por último escribes una función que resume un trabajo: sus estados, sus trabajos de Runtime, sus registros y su error.""",
+             [Mission("practica/p8-functions.py", [
+                 (1, "Lista el catálogo, carga una función, ejecútala y sigue sus estados."),
+                 (2, "Arregla el backend: cambia el nombre por uno al que tu instancia tiene acceso."),
+                 (3, "Escribe `resumen(job)`: los estados que recorre, sus trabajos de Runtime, sus registros y su error.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección.""",
+             [T("Fallar enseguida cuesta menos que fallar en la cola.", "subtitle")],
+             ask=reflect("¿Por qué conviene que `run` valide el acceso al backend antes de enviar el trabajo, en lugar de dejar que falle en la cola?",
+                         "Tu trabajo lleva horas en `RUNNING` y quieres saber qué pasa. ¿Qué métodos del trabajo usarías, en qué orden, y qué esperas encontrar en cada uno?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Funciones de circuito y de aplicación. [[r2]]Se accede con QiskitFunctionsCatalog y se cargan por nombre. [[r3]]Se ejecutan con run, un trabajo a la vez.
@@ -341,9 +455,17 @@ job = tem.run(pubs=[pub], backend_name="ibm_marrakesh",
              [A("item", "l", at="ventajas", i=0), A("item", "l", at="ventajas", t=4, i=1), A("item", "l", at="ventajas", t=7, i=2), A("item", "l", at="ventajas", t=10, i=3),
               A("hl", "c", at="uso", range="3-4")]),
 
+        beat("predice", ("", "Antes de QESEM"),
+             """Antes de ver QESEM, una apuesta. QESEM te deja elegir la precisión que quieres: el error máximo de tu estimación. [[hoy]]Imagina que con un error de cero punto cero dos el trabajo tarda diez minutos de QPU. [[mitad]]Ahora pides la mitad del error: cero punto cero uno. [[pregunta]]¿Cuánto tarda?""",
+             [Table(["Error pedido", "Tiempo de QPU"], [["0.02", "10 min"], ["0.01", "?"]], id="t", stagger=True, size=30)],
+             [A("item", "t", at="hoy", i=0), A("item", "t", at="mitad", i=1)],
+             ask=predict("Pides la mitad de error a QESEM. ¿Cuánto crece el tiempo de QPU?",
+                         ["se reduce a la mitad", "el doble", "el cuádruple", "no cambia"],
+                         "Anotado. Ahora veamos cómo es el costo de QESEM.")),
+
         beat("qesem", ("", "QESEM, de Qedma"),
              """QESEM produce estimaciones sin sesgo, con garantías teóricas, hasta la precisión que pidas. Para ello caracteriza el dispositivo para tu circuito, transpila teniendo en cuenta el ruido, y aplica supresión y mitigación.
-             [[tiempo]]Su sobrecosto de QPU crece exponencialmente con el volumen activo del circuito, el número de puertas de dos qubits que afectan al observable, y con el inverso del cuadrado de la precisión.
+             [[tiempo]]Esta es la respuesta a tu apuesta: su sobrecosto de QPU crece con el inverso del cuadrado de la precisión, así que la mitad del error cuesta cuatro veces más tiempo. Y crece exponencialmente con el volumen activo del circuito, el número de puertas de dos qubits que afectan al observable.
              [[estimar]]Por eso tiene un modo para estimar el tiempo antes de gastar: estimate time only. Con un backend simulado, como fake fez, no gasta QPU.""",
              [M(r"T_{QPU}\approx a\,\frac{e^{\alpha\,IF\cdot V_a}}{\epsilon^2}+b", size=44),
               Code('''job = qesem.run(pubs=[(circ, [avg_magnetization])],
@@ -380,6 +502,21 @@ job = orbit.run(
              ask=choice("¿Qué función encaja mejor?", ["Orbit", "QESEM", "Performance Management"], 1,
                         "Correcto: QESEM da resultados sin sesgo con precisión elegida, y su modo `estimate_time_only` estima el tiempo de QPU antes de ejecutar.",
                         wrong=["Orbit suprime errores, pero no garantiza un resultado sin sesgo.", None, "Performance Management suprime errores; no estima tiempos ni garantiza sesgo cero."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Abre el cuaderno de práctica de esta lección. Corre con primitivas locales; no usa ninguna cuenta.
+             [[n1]]Primero mides cómo baja el error de un estimador al subir su precisión. [[n2]]Después arreglas una fórmula de tiempo de QPU cuyo exponente está mal. [[n3]]Y por último inviertes la fórmula: dado un tiempo máximo, calculas qué precisión puedes pedir.""",
+             [Mission("practica/p8-circuit-functions.py", [
+                 (1, "Ejecuta el estimador con varias precisiones y mide cómo cambia la dispersión."),
+                 (2, "Arregla el exponente de la fórmula del tiempo de QPU."),
+                 (3, "Escribe `precision_alcanzable(t_max, va)`: la inversa de la fórmula.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección.""",
+             [T("Pedir más precisión sale caro: el costo crece con el cuadrado.", "subtitle")],
+             ask=reflect("Si el costo crece con el inverso del cuadrado de la precisión, ¿cómo decidirías qué error te puedes permitir en un experimento con presupuesto de QPU limitado?",
+                         "Tienes un circuito de Trotter profundo y un observable de alto peso. ¿Qué función de circuito elegirías y por qué?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]TEM mitiga en posprocesamiento con redes de tensores. [[r2]]QESEM da valores sin sesgo y estima su costo. [[r3]]Performance Management suprime errores automáticamente.
@@ -431,9 +568,17 @@ aqarios = catalog.load("aqarios/constrained-quantum-optimizer")
 job = aqarios.run(problem=lp_str, backend_name="ibm_fez", options=options)''', id="c", norun=True, size=19)],
              [A("hl", "c", at="iskay", lines=[1]), A("hl", "c", at="qctrl", range="2-3"), A("hl", "c", at="parity", range="4-6"), A("hl", "c", at="aqarios", range="7-8")]),
 
+        beat("predice", ("", "Antes de finanzas"),
+             """Una apuesta antes de pasar a finanzas. El Quantum Portfolio Optimizer codifica cada decisión de inversión con varios qubits. [[datos]]En el ejemplo de la guía hay siete activos, [[pasos]]cuatro pasos de tiempo, [[res]]y cuatro qubits de resolución por cada decisión. [[pregunta]]¿Cuántos qubits necesita el problema entero?""",
+             [Table(["Dato", "Valor"], [["activos", "7"], ["pasos de tiempo", "4"], ["qubits de resolución por decisión", "4"], ["qubits en total", "?"]], id="t", stagger=True, size=28)],
+             [A("item", "t", at="datos", i=0), A("item", "t", at="pasos", i=1), A("item", "t", at="res", i=2), A("item", "t", at="pregunta", i=3)],
+             ask=predict("7 activos, 4 pasos de tiempo y 4 qubits de resolución. ¿Cuántos qubits necesita el problema?",
+                         ["15", "28", "112", "448"],
+                         "Anotado. En el siguiente paso ves cómo se obtiene.")),
+
         beat("finanzas", ("", "Finanzas"),
              """El Quantum Portfolio Optimizer resuelve la optimización dinámica de carteras: redistribuir periódicamente una inversión entre varios activos para maximizar el rendimiento y minimizar el riesgo.
-             [[como]]Formula el problema como QUBO, lo convierte en un Hamiltoniano de Ising y lo resuelve con VQE. [[ej]]En el ejemplo de la guía, siete activos, cuatro pasos de tiempo y cuatro qubits de resolución necesitan ciento doce qubits.""",
+             [[como]]Formula el problema como QUBO, lo convierte en un Hamiltoniano de Ising y lo resuelve con VQE. [[ej]]Esta es la respuesta a tu apuesta: siete activos por cuatro pasos de tiempo por cuatro qubits de resolución son ciento doce qubits. Se multiplican, no se suman.""",
              [Flow([dict(t="precios de activos"), dict(t="QUBO → Ising"), dict(t="VQE", color="gold"), dict(t="cartera óptima", color="teal")], id="f", stagger=True),
               M(r"7\ \text{activos}\times 4\ \text{pasos}\times 4\ \text{qubits}=112\ \text{qubits}", size=36, id="m", hidden=True)],
              [A("item", "f", at="finanzas", i=0), A("item", "f", at="como", i=1), A("item", "f", at="como", t=3, i=2), A("item", "f", at="como", t=5, i=3), A("show", "m", at="ej")]),
@@ -465,6 +610,21 @@ singularity.run(action="predict", name="my_classifier", X="X_test.npy")''', id="
              ask=choice("¿Cuál encaja mejor?", ["Singularity", "Constrained Quantum Optimizer (Aqarios)", "QUICK-PDE"], 1,
                         "Correcto: recibe archivos LP y impone las restricciones one-hot de forma nativa con mezcladores XY.",
                         wrong=["Singularity clasifica datos.", None, "QUICK-PDE resuelve ecuaciones diferenciales."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Abre el cuaderno de práctica de esta lección. Las funciones de aplicación piden problemas en el formato del dominio; aquí los resuelves tú, en tu equipo, sin cuenta.
+             [[n1]]Primero resuelves un máximo corte, con el diccionario QUBO de Parity Twine. [[n2]]Después arreglas una cartera que debe elegir exactamente dos activos: la penalización es demasiado pequeña. [[n3]]Y por último escribes la conversión de QUBO a Hamiltoniano de Ising, y la compruebas contra las dieciséis energías.""",
+             [Mission("practica/p8-app-functions.py", [
+                 (1, "Resuelve un máximo corte con el diccionario QUBO y busca el mejor corte."),
+                 (2, "Sube la penalización para que la cartera elija exactamente dos activos."),
+                 (3, "Escribe `qubo_a_ising`: convierte x = (1 − Z)/2 y comprueba las energías.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección.""",
+             [T("Una función de aplicación esconde el circuito, pero no el problema.", "subtitle")],
+             ask=reflect("En la misión de la cartera, una penalización muy pequeña dio una solución que rompía la restricción. ¿Por qué la penalización no puede ser un número cualquiera?",
+                         "Una función de aplicación te evita escribir el circuito. ¿Qué pierdes y qué ganas al usarla en lugar de armar tu propio flujo con primitivas?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Cuatro optimizadores: Iskay, Q-CTRL, Parity Twine y Aqarios. [[r2]]Finanzas con el Portfolio Optimizer. [[r3]]Química con HI-VQE y ecuaciones diferenciales con QUICK-PDE.
@@ -509,9 +669,19 @@ plantillas = lesson(
                     dict(t="resto de Trotter"), dict(t="Estimator", s="con mitigación", color="teal")], id="f", stagger=True)],
              [A("item", "f", at="validar", i=0), A("item", "f", at="aqc", i=1), A("item", "f", at="ejec", i=2), A("item", "f", at="ejec", t=3, i=3)]),
 
+        beat("predice", ("", "Antes de desplegar"),
+             """Una apuesta sobre la plantilla de AQC más Trotter. [[total]]Pides diez pasos de Trotter en total. [[plan]]Y un plan de compresión: seis de esos pasos se comprimen en un ansatz de dos capas. Los pasos que quedan se ejecutan sin comprimir. [[pregunta]]¿Cuántas capas de Trotter tendrá el circuito del último paso?""",
+             [Code('''job = fn.run(hamiltonian=H, t_steps=10,
+             aqc_segments=[{"n_steps": 6, "ansatz_steps": 2}],
+             backend="statevector")''', id="c", norun=True, size=24)],
+             [A("hl", "c", at="total", lines=[1]), A("hl", "c", at="plan", lines=[2])],
+             ask=predict("¿Cuántas capas de Trotter tendrá el circuito del último paso?",
+                         ["10", "6", "4", "2"],
+                         "Anotado. En el siguiente paso lo comprobamos y vemos cómo se despliega.")),
+
         beat("desplegar", ("", "Desplegar una plantilla"),
              """Para desplegar una plantilla, descargas su carpeta source files del repositorio, y la subes con QiskitFunction, como en la primera lección de esta parte, declarando sus dependencias de pip.
-             [[run]]La de AQC más Trotter solo exige tres entradas: el Hamiltoniano, una cadena unidimensional con vecinos cercanos, el número de pasos de Trotter y el plan de compresión.
+             [[run]]La de AQC más Trotter solo exige tres entradas: el Hamiltoniano, una cadena unidimensional con vecinos cercanos, el número de pasos de Trotter y el plan de compresión. Esta es la respuesta a tu apuesta: seis. Dos capas del ansatz, más los cuatro pasos que no se comprimen.
              [[backends]]Y se puede ejecutar en tres sitios con el mismo código: statevector, exacto; fake, simulación ruidosa; y runtime, en un QPU real. Prueba primero en los simuladores: no gastan tiempo de QPU.""",
              [Code('''fn = QiskitFunction(title="aqc-dynamics-function", entrypoint="program.py",
                     working_dir="source_files/", dependencies=DEPENDENCIES)
@@ -529,6 +699,33 @@ job = fn.run(hamiltonian=H, t_steps=10,
              ask=choice("¿Qué buena práctica de las plantillas habría evitado esa pérdida?", ["imprimir más registros", "validar todas las entradas al principio del programa", "usar más núcleos"], 1,
                         "Correcto: leer y validar las entradas al principio hace que la función falle en segundos, antes de gastar recursos.",
                         wrong=["Los registros ayudan a diagnosticar, pero no evitan el gasto.", None, "Más núcleos solo harían fallar antes por casualidad."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Abre el cuaderno de práctica de esta lección. Las plantillas se despliegan en Serverless y piden una cuenta; el cuaderno trae una versión local con la misma estructura y los backends statevector y fake.
+             [[n1]]Primero ejecutas la misma función en los dos backends y miras cómo el ruido separa las curvas. [[n2]]Después reordenas la función para que valide antes de la etapa cara. [[n3]]Y por último calculas cuántas capas de Trotter deja un plan de compresión, con validación temprana.""",
+             [Mission("practica/p8-plantillas.py", [
+                 (1, "Ejecuta la función en `statevector` y en `fake` y compara las curvas."),
+                 (2, "Mueve la validación antes de la etapa cara."),
+                 (3, "Escribe `pasos_en_qpu(t_steps, plan)` y lanza `ValueError` si el plan no cabe.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("proyecto", ("", "Proyecto Ising: hito VIII"),
+             """Con esto llegamos al hito ocho del proyecto Ising. [[obp]]En esta parte conociste los addons, y OBP en particular: llevar las últimas capas del circuito al observable. [[aqc]]AQC-Tensor, la técnica de la plantilla que acabas de ver, persigue lo mismo desde otro lado: comprimir las primeras capas en un circuito más corto.
+             [[hito]]El hito ocho recalcula tu cadena de espines, reduce su profundidad con OBP, y te hace pensar en un presupuesto: cuántos términos estás dispuesto a medir a cambio de un circuito más corto.""",
+             [Row(Box("def", "OBP", T("absorbe las últimas capas en el observable", "body"), id="a", hidden=True),
+                  Box("idea", "AQC-Tensor", T("comprime las primeras capas en un ansatz", "body"), id="b", hidden=True), gap=24),
+              Mission("practica/proyecto/hito8.py", [
+                  (1, "Recalcula el Hamiltoniano, la magnetización de Trotter y la profundidad transpilada."),
+                  (2, "Elige cuántas capas absorbe OBP: baja la profundidad un 25 % sin pasar de cien términos."),
+                  (3, "Escribe `ahorro(pasos)` con un presupuesto de operador y mira cómo cambia el ahorro con los pasos.")],
+                  title="Proyecto Ising · Hito VIII", id="m", hidden=True)],
+             [A("show", "a", at="obp"), A("show", "b", at="aqc"), A("show", "m", at="hito")]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección.""",
+             [T("Validar pronto y probar barato son la misma idea.", "subtitle")],
+             ask=reflect("¿Qué errores de tu función descubrirías con `statevector` antes de gastar tiempo de QPU, y cuáles solo con `fake`?",
+                         "En el hito ocho, con un límite fijo de términos, el ahorro de profundidad se queda constante al agregar pasos. ¿Qué implica eso para circuitos de Trotter muy largos, y cómo te ayudaría AQC-Tensor?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Plantillas de implementación de química y física. [[r2]]Plantillas base con buenas prácticas para tus funciones. [[r3]]Se despliegan en tu cuenta de Serverless.

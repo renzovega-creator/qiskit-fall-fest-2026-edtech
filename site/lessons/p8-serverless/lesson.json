@@ -333,12 +333,58 @@
    ]
   },
   {
+   "id": "predice",
+   "tag": [
+    "8.1",
+    "Antes de paralelizar"
+   ],
+   "say": "Antes de ver cómo se paraleliza, apuesta. [[codigo]]Esta función lleva el decorador distribute task, y la llamamos una vez con un circuito. [[cual]]¿Qué crees que es x justo después de la llamada? No hace falta que sepas la respuesta: equivocarse en una predicción enseña más que acertar por memoria.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "@distribute_task(target={\"cpu\": 1})\ndef transpile_remote(circuit, optimization_level, backend):\n    pm = generate_preset_pass_manager(optimization_level=optimization_level,\n                                      backend=service.backend(backend))\n    return pm.run(circuit)\n\nx = transpile_remote(circuit, 3, backend)",
+     "lang": "python",
+     "id": "c",
+     "norun": true,
+     "size": 21
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "1-5",
+     "id": "c",
+     "at": "codigo"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      7
+     ],
+     "id": "c",
+     "at": "cual"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué es `x` justo después de la llamada?",
+    "options": [
+     "el circuito transpilado",
+     "una referencia a una tarea asíncrona",
+     "una lista con el circuito",
+     "`None`, hasta que llames a `get`"
+    ],
+    "after": "Anotado. Veamos qué hace el decorador."
+   },
+   "align": "top"
+  },
+  {
    "id": "paralelo",
    "tag": [
     "8.1",
     "Paralelizar"
    ],
-   "say": "La ventaja principal: paralelizar trabajo clásico. Decoras una función con distribute task, indicando los recursos que necesita cada tarea, por ejemplo un núcleo. [[refs]]Cada llamada ya no devuelve el resultado, sino una referencia a una tarea asíncrona que corre en su propio trabajador. [[get]]get, con la lista de referencias, espera y reúne los resultados. [[recursos]]Puedes pedir núcleos completos o fracciones, y memoria en bytes: dos gigas son dos por mil veinticuatro al cubo.",
+   "say": "La ventaja principal: paralelizar trabajo clásico. Decoras una función con distribute task, indicando los recursos que necesita cada tarea, por ejemplo un núcleo. [[refs]]Esta es la respuesta a tu apuesta: cada llamada ya no devuelve el resultado, sino una referencia a una tarea asíncrona que corre en su propio trabajador. [[get]]get, con la lista de referencias, espera y reúne los resultados. [[recursos]]Puedes pedir núcleos completos o fracciones, y memoria en bytes: dos gigas son dos por mil veinticuatro al cubo.",
    "scene": [
     {
      "type": "code",
@@ -528,6 +574,80 @@
      "El objeto backend no se puede serializar.",
      null,
      "`save_result` va dentro del programa, no en la llamada."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "8.1",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. Serverless corre en la nube y pide una cuenta de pago, así que el cuaderno reproduce su contrato en tu equipo, con un backend simulado. [[n1]]Primero ejecutas un programa y lees sus resultados. [[n2]]Después arreglas una llamada cuyo argumento no se puede serializar. [[n3]]Y por último paralelizas con distribute task y get. [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p8-serverless.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Ejecuta el programa y lee la profundidad transpilada de cada circuito."
+      },
+      {
+       "level": 2,
+       "text": "Arregla la llamada: cambia la entrada que no se puede serializar."
+      },
+      {
+       "level": 3,
+       "text": "Paraleliza la transpilación con `distribute_task` y reúne los resultados con `get`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "8.1",
+    "Reflexiona"
+   ],
+   "say": "Antes de cerrar, dos preguntas para pensar. No hay respuesta automática: escribe con tus palabras. Lo que escribas se guarda y lo verás cuando vuelvas a esta lección.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Por qué Serverless exige que las entradas sean serializables? Piensa en dónde corre tu programa y dónde corre tu cuaderno.",
+     "Tienes un cuaderno que transpila 500 circuitos uno tras otro. ¿Qué cambiarías para llevarlo a Serverless, y qué partes dejarías secuenciales?"
     ]
    },
    "align": "top"

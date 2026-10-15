@@ -112,12 +112,58 @@
    ]
   },
   {
+   "id": "predice",
+   "tag": [
+    "8.3",
+    "Antes de ejecutar"
+   ],
+   "say": "Una apuesta antes de ejecutar. [[carga]]Cargas la función QESEM. [[run]]Y la ejecutas nombrando un backend al que tu instancia no tiene acceso. [[pregunta]]¿Qué crees que hace run?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "qesem = catalog.load(\"qedma/qesem\")\njob = qesem.run(\n    pubs=[(circuit, [avg_magnetization])],\n    backend_name=\"ibm_inexistente\",   # tu instancia no lo ve\n)",
+     "lang": "python",
+     "id": "c",
+     "norun": true,
+     "size": 23
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      1
+     ],
+     "id": "c",
+     "at": "carga"
+    },
+    {
+     "do": "hl",
+     "range": "2-5",
+     "id": "c",
+     "at": "run"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Nombras un backend al que tu instancia no tiene acceso. ¿Qué hace `run`?",
+    "options": [
+     "lo envía y el trabajo falla después, en la cola",
+     "falla enseguida, con un error",
+     "elige otro backend por ti",
+     "espera hasta que tengas acceso"
+    ],
+    "after": "Anotado. En el siguiente paso lo vemos."
+   },
+   "align": "top"
+  },
+  {
    "id": "ejecutar",
    "tag": [
     "8.3",
     "Ejecutar una función"
    ],
-   "say": "Cargas una función con catalog punto load y su nombre, proveedor barra nombre. [[run]]Cada función tiene sus propias entradas y opciones; esta, QESEM de Qedma, recibe PUBs y el nombre del backend. [[uno]]Por defecto solo puedes tener un trabajo de función en ejecución a la vez. [[capacidad]]Antes de enviarlo, run comprueba tu capacidad restante y el acceso al backend, y falla enseguida si algo no está bien, en vez de dejar que el trabajo falle en la cola.",
+   "say": "Cargas una función con catalog punto load y su nombre, proveedor barra nombre. [[run]]Cada función tiene sus propias entradas y opciones; esta, QESEM de Qedma, recibe PUBs y el nombre del backend. [[uno]]Por defecto solo puedes tener un trabajo de función en ejecución a la vez. [[capacidad]]Esta es la respuesta a tu apuesta: antes de enviarlo, run comprueba tu capacidad restante y el acceso al backend, y falla enseguida si algo no está bien, en vez de dejar que el trabajo falle en la cola.",
    "scene": [
     {
      "type": "code",
@@ -297,6 +343,80 @@
      "Una función de circuito necesita que ya tengas circuitos y observables.",
      null,
      "Precisamente para eso existen las funciones de aplicación."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "8.3",
+    "Tu turno"
+   ],
+   "say": "Abre el cuaderno de práctica de esta lección. Las funciones piden un plan de pago, así que el cuaderno trae un catálogo local con la misma interfaz, y nada sale de tu equipo. [[n1]]Primero listas el catálogo, cargas una función, la ejecutas y sigues sus estados. [[n2]]Después arreglas un backend al que no tienes acceso. [[n3]]Y por último escribes una función que resume un trabajo: sus estados, sus trabajos de Runtime, sus registros y su error.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p8-functions.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Lista el catálogo, carga una función, ejecútala y sigue sus estados."
+      },
+      {
+       "level": 2,
+       "text": "Arregla el backend: cambia el nombre por uno al que tu instancia tiene acceso."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `resumen(job)`: los estados que recorre, sus trabajos de Runtime, sus registros y su error."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "8.3",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Fallar enseguida cuesta menos que fallar en la cola.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Por qué conviene que `run` valide el acceso al backend antes de enviar el trabajo, en lugar de dejar que falle en la cola?",
+     "Tu trabajo lleva horas en `RUNNING` y quieres saber qué pasa. ¿Qué métodos del trabajo usarías, en qué orden, y qué esperas encontrar en cada uno?"
     ]
    },
    "align": "top"

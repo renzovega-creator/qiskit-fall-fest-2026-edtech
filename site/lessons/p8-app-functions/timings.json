@@ -56,8 +56,35 @@
    ]
   ]
  },
+ "predice": {
+  "dur": 22.344,
+  "marks": {
+   "datos": 10.077,
+   "pasos": 12.922,
+   "res": 14.634,
+   "pregunta": 18.753
+  },
+  "cues": [
+   [
+    0.107,
+    "Una apuesta antes de pasar a finanzas."
+   ],
+   [
+    3.524,
+    "El Quantum Portfolio Optimizer codifica cada decisión de inversión con varios qubits."
+   ],
+   [
+    10.077,
+    "En el ejemplo de la guía hay siete activos, cuatro pasos de tiempo, y cuatro qubits de resolución por cada decisión."
+   ],
+   [
+    18.753,
+    "¿Cuántos qubits necesita el problema entero?"
+   ]
+  ]
+ },
  "finanzas": {
-  "dur": 30.48,
+  "dur": 33.816,
   "marks": {
    "como": 13.502,
    "ej": 21.116
@@ -73,7 +100,11 @@
    ],
    [
     21.116,
-    "En el ejemplo de la guía, siete activos, cuatro pasos de tiempo y cuatro qubits de resolución necesitan ciento doce qubits."
+    "Esta es la respuesta a tu apuesta: siete activos por cuatro pasos de tiempo por cuatro qubits de resolución son ciento doce qubits."
+   ],
+   [
+    30.486,
+    "Se multiplican, no se suman."
    ]
   ]
  },
@@ -137,6 +168,50 @@
    [
     0.107,
     "Elige la función."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 34.92,
+  "marks": {
+   "n1": 12.582,
+   "n2": 18.569,
+   "n3": 26.594
+  },
+  "cues": [
+   [
+    0.107,
+    "Abre el cuaderno de práctica de esta lección."
+   ],
+   [
+    3.807,
+    "Las funciones de aplicación piden problemas en el formato del dominio; aquí los resuelves tú, en tu equipo, sin cuenta."
+   ],
+   [
+    12.582,
+    "Primero resuelves un máximo corte, con el diccionario QUBO de Parity Twine."
+   ],
+   [
+    18.569,
+    "Después arreglas una cartera que debe elegir exactamente dos activos: la penalización es demasiado pequeña."
+   ],
+   [
+    26.594,
+    "Y por último escribes la conversión de QUBO a Hamiltoniano de Ising, y la compruebas contra las dieciséis energías."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 9.336,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección."
    ]
   ]
  },

@@ -62,8 +62,34 @@
    ]
   ]
  },
+ "predice": {
+  "dur": 13.44,
+  "marks": {
+   "carga": 3.114,
+   "run": 5.746,
+   "pregunta": 11.039
+  },
+  "cues": [
+   [
+    0.107,
+    "Una apuesta antes de ejecutar."
+   ],
+   [
+    3.114,
+    "Cargas la función QESEM."
+   ],
+   [
+    5.746,
+    "Y la ejecutas nombrando un backend al que tu instancia no tiene acceso."
+   ],
+   [
+    11.039,
+    "¿Qué crees que hace run?"
+   ]
+  ]
+ },
  "ejecutar": {
-  "dur": 32.256,
+  "dur": 34.44,
   "marks": {
    "run": 6.227,
    "uno": 15.186,
@@ -84,7 +110,7 @@
    ],
    [
     20.536,
-    "Antes de enviarlo, run comprueba tu capacidad restante y el acceso al backend, y falla enseguida si algo no está bien, en vez de dejar que el trabajo falle en la cola."
+    "Esta es la respuesta a tu apuesta: antes de enviarlo, run comprueba tu capacidad restante y el acceso al backend, y falla enseguida si algo no está bien, en vez de dejar que el trabajo falle en la cola."
    ]
   ]
  },
@@ -142,6 +168,50 @@
    [
     0.107,
     "Elige el tipo de función."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 33.432,
+  "marks": {
+   "n1": 13.233,
+   "n2": 20.069,
+   "n3": 24.329
+  },
+  "cues": [
+   [
+    0.107,
+    "Abre el cuaderno de práctica de esta lección."
+   ],
+   [
+    3.807,
+    "Las funciones piden un plan de pago, así que el cuaderno trae un catálogo local con la misma interfaz, y nada sale de tu equipo."
+   ],
+   [
+    13.233,
+    "Primero listas el catálogo, cargas una función, la ejecutas y sigues sus estados."
+   ],
+   [
+    20.069,
+    "Después arreglas un backend al que no tienes acceso."
+   ],
+   [
+    24.329,
+    "Y por último escribes una función que resume un trabajo: sus estados, sus trabajos de Runtime, sus registros y su error."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 9.336,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección."
    ]
   ]
  },
