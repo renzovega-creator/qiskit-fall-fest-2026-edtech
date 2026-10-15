@@ -1,24 +1,56 @@
-// Tema claro / oscuro. Se carga en <head> para aplicar el tema antes de pintar la página.
-// Sin elección guardada se sigue la preferencia del sistema; el botón alterna y la recuerda.
+// Se carga en <head> para fijar ambos atributos antes de pintar. Sin modo guardado, sigue la preferencia del sistema.
 (() => {
-  const KEY = 'qiskit:theme';
+  const MODE = 'qiskit:theme', PAL = 'qiskit:paleta';
+  const PALETAS = { fosforo: 'Fósforo', cobre: 'Cobre', medianoche: 'Medianoche' };
+  const root = document.documentElement;
+  const read = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const write = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   const sys = () => matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-  let saved = null;
-  try { saved = localStorage.getItem(KEY); } catch (e) {}
-  if (saved) document.documentElement.dataset.theme = saved;
-  const current = () => document.documentElement.dataset.theme || sys();
-  const label = () => current() === 'light' ? '☾' : '☀';
+
+  const savedMode = read(MODE), savedPal = read(PAL);
+  root.dataset.theme = savedMode === 'light' || savedMode === 'dark' ? savedMode : sys();
+  root.dataset.paleta = Object.hasOwn(PALETAS, savedPal) ? savedPal : 'fosforo';
+
+  const modeLabel = () => root.dataset.theme === 'light' ? '☾' : '☀';
+  const modeTitle = () => 'Cambiar a tema ' + (root.dataset.theme === 'light' ? 'oscuro' : 'claro');
+  const paint = () => document.querySelectorAll('[data-theme-ctl]').forEach(c => {
+    c.querySelector('select').value = root.dataset.paleta;
+    const b = c.querySelector('button');
+    b.textContent = modeLabel(); b.title = modeTitle();
+  });
+
   window.toggleTheme = () => {
-    const next = current() === 'light' ? 'dark' : 'light';
-    document.documentElement.dataset.theme = next;
-    try { localStorage.setItem(KEY, next); } catch (e) {}
-    document.querySelectorAll('.theme-btn').forEach(b => { b.textContent = label(); b.title = 'Cambiar a tema ' + (current() === 'light' ? 'oscuro' : 'claro'); });
+    root.dataset.theme = root.dataset.theme === 'light' ? 'dark' : 'light';
+    write(MODE, root.dataset.theme);
+    paint();
     dispatchEvent(new Event('themechange'));
   };
+  const setPaleta = p => {
+    root.dataset.paleta = p;
+    write(PAL, p);
+    paint();
+    dispatchEvent(new Event('themechange'));
+  };
+
   addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.theme-btn').forEach(b => { b.textContent = label(); b.title = 'Cambiar a tema ' + (current() === 'light' ? 'oscuro' : 'claro'); b.onclick = window.toggleTheme; });
+    document.querySelectorAll('[data-theme-ctl]').forEach(c => {
+      const sel = document.createElement('select');
+      sel.setAttribute('aria-label', 'Paleta');
+      sel.title = 'Paleta de colores';
+      for (const k in PALETAS) sel.add(new Option(PALETAS[k], k));
+      sel.onchange = () => setPaleta(sel.value);
+      const btn = document.createElement('button');
+      btn.setAttribute('aria-label', 'Tema claro u oscuro');
+      btn.onclick = window.toggleTheme;
+      c.classList.add('theme-ctl');
+      c.append(sel, btn);
+    });
+    paint();
   });
   matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
-    if (!document.documentElement.dataset.theme) dispatchEvent(new Event('themechange'));
+    if (read(MODE)) return;
+    root.dataset.theme = sys();
+    paint();
+    dispatchEvent(new Event('themechange'));
   });
 })();

@@ -1,0 +1,86 @@
+:root, [data-paleta="fosforo"][data-theme="dark"] {
+  --bg:#0b0e0d; --bg2:#121715; --card:#151b19; --stage:#121715; --line:#24302b; --ink:#e9f0ec; --muted:#8b9a93;
+  --acc:#b8f34a; --acc-ink:#142004; --acc2:#3dd6b5; --acc3:#f2c14e; --bad:#ff7b7b;
+  --blue:#6cb4ff; --teal:#3dd6b5; --violet:#b69cff; --green:#7bd88f; --glow:#b8f34a33; color-scheme:dark;
+}
+[data-paleta="cobre"][data-theme="dark"] {
+  --bg:#121014; --bg2:#19161b; --card:#1e1a20; --stage:#19161b; --line:#322b33; --ink:#f3ece8; --muted:#a3958f;
+  --acc:#ff8a4c; --acc-ink:#2a1205; --acc2:#b69cff; --acc3:#ffd27a; --bad:#ff7b9c;
+  --blue:#6cb4ff; --teal:#4fd1c5; --violet:#b69cff; --green:#7bd88f; --glow:#ff8a4c33; color-scheme:dark;
+}
+[data-paleta="medianoche"][data-theme="dark"] {
+  --bg:#0a0f1e; --bg2:#0f1629; --card:#131b31; --stage:#0f1629; --line:#232e4a; --ink:#e8edf7; --muted:#8a96b3;
+  --acc:#5eead4; --acc-ink:#04221d; --acc2:#f472b6; --acc3:#fbbf24; --bad:#fb7185;
+  --blue:#6cb4ff; --teal:#5eead4; --violet:#b69cff; --green:#7bd88f; --glow:#5eead433; color-scheme:dark;
+}
+[data-paleta="fosforo"][data-theme="light"] {
+  --bg:#f4f6f2; --bg2:#eaefe6; --card:#ffffff; --stage:#fbfcf9; --line:#d9e1d4; --ink:#16201a; --muted:#5d6b63;
+  --acc:#43770a; --acc-ink:#ffffff; --acc2:#0d7863; --acc3:#955d0b; --bad:#c4314b;
+  --blue:#1f63c6; --teal:#0d7863; --violet:#6a48cf; --green:#257840; --glow:#43770a22; color-scheme:light;
+}
+[data-paleta="cobre"][data-theme="light"] {
+  --bg:#faf7f4; --bg2:#f2ece6; --card:#ffffff; --stage:#fdfbf9; --line:#e6ddd4; --ink:#211a17; --muted:#6e625c;
+  --acc:#bd3f0c; --acc-ink:#ffffff; --acc2:#6a48cf; --acc3:#955d0b; --bad:#be123c;
+  --blue:#1f63c6; --teal:#0e766d; --violet:#6a48cf; --green:#257840; --glow:#bd3f0c22; color-scheme:light;
+}
+[data-paleta="medianoche"][data-theme="light"] {
+  --bg:#f5f7fc; --bg2:#e9eef8; --card:#ffffff; --stage:#fbfcfe; --line:#d8dfee; --ink:#121a2e; --muted:#5b6782;
+  --acc:#0e7490; --acc-ink:#ffffff; --acc2:#be185d; --acc3:#975c07; --bad:#be123c;
+  --blue:#1f63c6; --teal:#0e7490; --violet:#6a48cf; --green:#257840; --glow:#0e749022; color-scheme:light;
+}
+
+:root {
+  --fg: var(--ink);
+  --gold: var(--acc3);
+  --red: var(--bad);
+  --panel: var(--card);
+  --fg-soft: color-mix(in srgb, var(--ink) 88%, var(--bg));
+  --card-text: color-mix(in srgb, var(--ink) 80%, var(--bg));
+  --line-strong: color-mix(in srgb, var(--ink) 24%, var(--line));
+  --axis: color-mix(in srgb, var(--muted) 75%, var(--stage));
+  --axis-strong: var(--muted);
+  --wire: var(--axis);
+  --grid: color-mix(in srgb, var(--blue) 45%, var(--stage));
+  --grid-ghost: color-mix(in srgb, var(--line) 60%, var(--stage));
+  --fig-bg: var(--card);
+  --code-bg: var(--card);
+  --node: var(--card);
+  --dot: var(--blue);
+  --dotgrid: color-mix(in srgb, var(--ink) 5%, transparent);
+  --seg: var(--line);
+  --seg-hover: var(--line-strong);
+  --seg-done: color-mix(in srgb, var(--blue) 55%, var(--bg));
+  --seg-q: color-mix(in srgb, var(--gold) 25%, var(--bg));
+  --emph-bg: color-mix(in srgb, var(--gold) 16%, transparent);
+  --emph-ring: color-mix(in srgb, var(--gold) 55%, transparent);
+  --box-bg: color-mix(in srgb, var(--ink) 4%, transparent);
+  --ask-bg: linear-gradient(to bottom, color-mix(in srgb, var(--stage) 94%, transparent), color-mix(in srgb, var(--stage) 98%, transparent));
+  --opt-bg: var(--card);
+  --opt-line: var(--line);
+  --opt-hover: var(--line-strong);
+  --input-bg: var(--bg);
+  --btn-bg: var(--bg2);
+  --overlay: color-mix(in srgb, var(--bg) 95%, transparent);
+  --cursor: color-mix(in srgb, var(--blue) 11%, transparent);
+  --barrier: color-mix(in srgb, var(--muted) 13%, transparent);
+  --code-hl: color-mix(in srgb, var(--gold) 14%, transparent);
+}
+
+:root {
+  --display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+  --sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+}
+
+.brand { font: 800 20px/1 var(--display); letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; color: var(--ink); white-space: nowrap; }
+.brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 14px var(--acc); }
+.theme-ctl { display: flex; gap: 6px; align-items: center; }
+.theme-ctl select, .theme-ctl button { height: 34px; border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 999px; font: 500 13px var(--sans); cursor: pointer; }
+.theme-ctl select { padding: 0 10px; }
+.theme-ctl button { width: 34px; font-size: 15px; }
+.theme-ctl select:hover, .theme-ctl button:hover { color: var(--ink); border-color: var(--line-strong); }
+.theme-ctl option { color: var(--ink); background: var(--card); }
+@media (max-width: 600px) {
+  .theme-ctl select { appearance: none; width: 34px; padding: 0; color: transparent;
+    background: radial-gradient(circle, var(--acc) 0 6px, transparent 7px) center / auto no-repeat var(--card); }
+}

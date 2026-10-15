@@ -3,16 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lección</title>
+<title>Qubit a qubit</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
+<link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="app.css">
 <script src="theme.js"></script>
 </head>
 <body>
 <header class="bar">
-  <a class="brand" href="index.html">Qiskit <span>·</span> Guías</a>
+  <a class="brand" href="index.html"><span class="dot"></span>Qubit a qubit</a>
   <div class="crumb"><small id="crumb-part"></small><b id="crumb-title"></b></div>
   <div class="tools">
     <select class="tool" id="speed" aria-label="Velocidad">
@@ -21,7 +22,7 @@
     </select>
     <button class="tool on" id="cc" title="Subtítulos (C)">CC</button>
     <button class="tool" id="mute">🔊</button>
-    <button class="tool theme-btn" title="Tema claro u oscuro"></button>
+    <div data-theme-ctl></div>
   </div>
 </header>
 
@@ -80,6 +81,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<script src="notebooks.js"></script>
 <script src="sfx.js"></script>
 <script src="blocks.js"></script>
 <script src="engine.js"></script>
