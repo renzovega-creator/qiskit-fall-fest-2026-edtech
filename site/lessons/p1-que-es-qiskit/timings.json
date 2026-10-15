@@ -116,8 +116,32 @@
    ]
   ]
  },
+ "pred_modos": {
+  "dur": 23.016,
+  "marks": {
+   "cual": 15.186
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de ver el servicio, una apuesta."
+   ],
+   [
+    3.765,
+    "IBM ofrece tres maneras de enviar trabajo: un trabajo suelto, una sesión, para cargas iterativas, y un lote, para enviar todo de una vez."
+   ],
+   [
+    15.186,
+    "Una de ellas no está disponible con el plan gratuito, el plan Open."
+   ],
+   [
+    20.748,
+    "¿Cuál crees que es?"
+   ]
+  ]
+ },
  "servicio": {
-  "dur": 43.272,
+  "dur": 47.04,
   "marks": {
    "cli": 7.43,
    "mas": 12.724,
@@ -144,6 +168,10 @@
    [
     37.024,
     "Ojo: con el plan Open, el gratuito, no se pueden usar sesiones."
+   ],
+   [
+    43.252,
+    "Si apostaste por la sesión, acertaste."
    ]
   ]
  },
@@ -225,6 +253,59 @@
    [
     0.107,
     "Una pregunta para ordenar el mapa."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 32.88,
+  "marks": {
+   "n1": 7.374,
+   "n2": 13.106,
+   "n3": 19.503,
+   "check": 26.947
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica de esta lección con el comando de abajo."
+   ],
+   [
+    7.374,
+    "Primero reproduces un estado de Bell pasando por cuatro módulos del SDK."
+   ],
+   [
+    13.106,
+    "Después cambias un observable y calculas su valor exacto, sin simular mediciones."
+   ],
+   [
+    19.503,
+    "Y por último escribes tu propia función de valor esperado, y la comparas con la primitiva del SDK."
+   ],
+   [
+    26.947,
+    "Cada misión tiene una comprobación que se actualiza sola: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 13.728,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Antes de cerrar, dos preguntas para pensar."
+   ],
+   [
+    4.119,
+    "No hay respuesta automática: escribe con tus palabras."
+   ],
+   [
+    8.789,
+    "Lo que escribas se guarda y lo verás cuando vuelvas a esta lección."
    ]
   ]
  },

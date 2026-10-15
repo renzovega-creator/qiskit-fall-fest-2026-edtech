@@ -194,12 +194,36 @@
    ]
   ]
  },
+ "pred_vistas": {
+  "dur": 20.256,
+  "marks": {
+   "cual": 15.851
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de ver las visualizaciones, apuesta."
+   ],
+   [
+    4.104,
+    "Tomemos un circuito de dos qubits: una Hadamard en cada uno y una puerta CZ."
+   ],
+   [
+    10.827,
+    "Las dos Hadamard dejan los cuatro estados con la misma probabilidad."
+   ],
+   [
+    15.851,
+    "¿Qué crees que hará la CZ con esas probabilidades?"
+   ]
+  ]
+ },
  "vistas": {
-  "dur": 57.936,
+  "dur": 63.888,
   "marks": {
    "prob": 10.983,
-   "sv": 24.103,
-   "qs": 39.558
+   "sv": 30.061,
+   "qs": 45.516
   },
   "cues": [
    [
@@ -216,26 +240,26 @@
    ],
    [
     18.526,
-    "Aquí, un cuarto para cada uno."
+    "Aquí, un cuarto para cada uno: la CZ no cambió ninguna probabilidad, y si apostaste por eso, acertaste."
    ],
    [
-    21.824,
+    27.782,
     "No muestra fases."
    ],
    [
-    24.103,
+    30.061,
     "La vista de vector de estado, hasta seis qubits, muestra las amplitudes: la altura es el módulo y el color, la fase."
    ],
    [
-    33.331,
+    39.289,
     "Aquí todas miden un medio, pero uno uno tiene fase pi: un signo menos."
    ],
    [
-    39.558,
+    45.516,
     "Y la q-esfera, hasta cinco qubits, pone cada estado de la base en una esfera: cero cero en el polo norte, uno uno en el sur, y los demás en paralelos según cuántos unos tienen."
    ],
    [
-    52.734,
+    58.693,
     "El tamaño de cada nodo es la probabilidad y el color, la fase."
    ]
   ]
@@ -298,6 +322,63 @@
    [
     0.107,
     "Una pregunta sobre las puertas de fase."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 36.72,
+  "marks": {
+   "n1": 13.644,
+   "n2": 17.762,
+   "n3": 26.48,
+   "check": 30.769
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Composer corre en la web, así que el cuaderno de práctica usa el mismo OpenQASM, ejecutado en tu equipo."
+   ],
+   [
+    10.799,
+    "Ábrelo con el comando de abajo."
+   ],
+   [
+    13.644,
+    "Primero ejecutas el programa con una puerta propia."
+   ],
+   [
+    17.762,
+    "Después cambias una CZ por una fase controlada y compruebas que las probabilidades no se mueven, pero la amplitud sí."
+   ],
+   [
+    26.48,
+    "Y por último defines tu propia puerta GHZ."
+   ],
+   [
+    30.769,
+    "Cada misión tiene una comprobación que se actualiza sola: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 13.728,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Antes de cerrar, dos preguntas para pensar."
+   ],
+   [
+    4.119,
+    "No hay respuesta automática: escribe con tus palabras."
+   ],
+   [
+    8.789,
+    "Lo que escribas se guarda y lo verás cuando vuelvas a esta lección."
    ]
   ]
  },

@@ -430,12 +430,60 @@
    ]
   },
   {
+   "id": "pred_vistas",
+   "tag": [
+    "1.5",
+    "Antes de ver las vistas"
+   ],
+   "say": "Antes de ver las visualizaciones, apuesta. Tomemos un circuito de dos qubits: una Hadamard en cada uno y una puerta CZ. Las dos Hadamard dejan los cuatro estados con la misma probabilidad. [[cual]]¿Qué crees que hará la CZ con esas probabilidades?",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 2,
+     "ops": [
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "h",
+       "q": [
+        1
+       ]
+      },
+      {
+       "g": "cz",
+       "q": [
+        0,
+        1
+       ]
+      }
+     ]
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Después de la CZ, ¿cómo quedan las probabilidades de `00`, `01`, `10` y `11`?",
+    "options": [
+     "las cuatro siguen en 1/4",
+     "`11` sube a 1/2 y las otras bajan",
+     "`11` baja a 0",
+     "solo quedan `00` y `11`"
+    ],
+    "after": "Anotado. Veamos las vistas."
+   },
+   "align": "top"
+  },
+  {
    "id": "vistas",
    "tag": [
     "1.5",
     "Probabilidades, vector de estado y q-esfera"
    ],
-   "say": "Las otras tres vistas muestran el estado de todos los qubits juntos. Tomemos este circuito: Hadamard en los dos qubits y una CZ. [[prob]]La vista de probabilidades: barras con la probabilidad de cada estado de la base, hasta ocho qubits. Aquí, un cuarto para cada uno. No muestra fases. [[sv]]La vista de vector de estado, hasta seis qubits, muestra las amplitudes: la altura es el módulo y el color, la fase. Aquí todas miden un medio, pero uno uno tiene fase pi: un signo menos. [[qs]]Y la q-esfera, hasta cinco qubits, pone cada estado de la base en una esfera: cero cero en el polo norte, uno uno en el sur, y los demás en paralelos según cuántos unos tienen. El tamaño de cada nodo es la probabilidad y el color, la fase.",
+   "say": "Las otras tres vistas muestran el estado de todos los qubits juntos. Tomemos este circuito: Hadamard en los dos qubits y una CZ. [[prob]]La vista de probabilidades: barras con la probabilidad de cada estado de la base, hasta ocho qubits. Aquí, un cuarto para cada uno: la CZ no cambió ninguna probabilidad, y si apostaste por eso, acertaste. No muestra fases. [[sv]]La vista de vector de estado, hasta seis qubits, muestra las amplitudes: la altura es el módulo y el color, la fase. Aquí todas miden un medio, pero uno uno tiene fase pi: un signo menos. [[qs]]Y la q-esfera, hasta cinco qubits, pone cada estado de la base en una esfera: cero cero en el polo norte, uno uno en el sur, y los demás en paralelos según cuántos unos tienen. El tamaño de cada nodo es la probabilidad y el color, la fase.",
    "scene": [
     {
      "type": "row",
@@ -711,6 +759,80 @@
      "$P(\\pi/2)$ es S.",
      null,
      "Cuidado: a T a veces se la llama «puerta π/8» porque, salvo una fase global, es $R_Z(\\pi/4)$ y se escribe con $e^{\\mp i\\pi/8}$; pero como puerta de fase es $P(\\pi/4)$."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "1.5",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Composer corre en la web, así que el cuaderno de práctica usa el mismo OpenQASM, ejecutado en tu equipo. Ábrelo con el comando de abajo. [[n1]]Primero ejecutas el programa con una puerta propia. [[n2]]Después cambias una CZ por una fase controlada y compruebas que las probabilidades no se mueven, pero la amplitud sí. [[n3]]Y por último defines tu propia puerta GHZ. [[check]]Cada misión tiene una comprobación que se actualiza sola: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p1-composer.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Ejecuta el OpenQASM con la puerta propia `bell` y lee los conteos."
+      },
+      {
+       "level": 2,
+       "text": "Cambia la `cz` por `cu1(pi/2)`: la amplitud de $|11\\rangle$ pasa a $i/2$ y las probabilidades no cambian."
+      },
+      {
+       "level": 3,
+       "text": "Define en OpenQASM una puerta `ghz a, b, c` para tres qubits."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "1.5",
+    "Reflexiona"
+   ],
+   "say": "Antes de cerrar, dos preguntas para pensar. No hay respuesta automática: escribe con tus palabras. Lo que escribas se guarda y lo verás cuando vuelvas a esta lección.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "La vista de probabilidades no muestra fases. ¿En qué situación te engañaría mirar solo esa vista? Explícalo con un ejemplo.",
+     "¿Cuándo preferirías construir un circuito arrastrando puertas y cuándo escribiéndolo en código? Piensa en un ejemplo de cada caso."
     ]
    },
    "align": "top"

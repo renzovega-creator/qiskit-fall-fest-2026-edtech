@@ -240,16 +240,45 @@
    ]
   ]
  },
+ "predice_config": {
+  "dur": 22.872,
+  "marks": {
+   "cual": 10.586
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de ver la configuración, apuesta."
+   ],
+   [
+    3.751,
+    "Imagina que tu archivo settings punto conf fija el nivel de optimización por defecto en cero."
+   ],
+   [
+    10.586,
+    "Luego transpilas, sin indicar ningún nivel, un circuito con dos Hadamard seguidas."
+   ],
+   [
+    17.309,
+    "Dos Hadamard seguidas se cancelan entre sí."
+   ],
+   [
+    20.932,
+    "¿Cuántas quedan?"
+   ]
+  ]
+ },
  "config": {
-  "dur": 46.92,
+  "dur": 62.448,
   "marks": {
    "env": 9.001,
    "draw": 13.488,
    "style": 20.027,
    "state": 24.513,
    "opt": 28.504,
-   "par": 35.227,
-   "qpy": 40.775
+   "cero": 41.03,
+   "par": 50.767,
+   "qpy": 56.315
   },
   "cues": [
    [
@@ -274,14 +303,22 @@
    ],
    [
     28.504,
-    "transpile optimization level fija el nivel de optimización por defecto, de cero a tres."
+    "transpile optimization level fija el nivel de optimización por defecto de la función transpile, de cero a tres; generate preset pass manager tiene su propio nivel por defecto."
    ],
    [
-    35.227,
+    41.03,
+    "Con cero no se optimiza nada: las dos Hadamard se quedan, aunque se cancelen."
+   ],
+   [
+    46.988,
+    "Si apostaste por las dos, acertaste."
+   ],
+   [
+    50.767,
     "parallel y num processes controlan el paralelismo con varios procesos."
    ],
    [
-    40.775,
+    56.315,
     "Y min qpy version rechaza archivos QPY antiguos, por seguridad."
    ]
   ]
@@ -345,6 +382,63 @@
    [
     18.441,
     "Y en Google Colab, Watson Studio o Azure Machine Learning Studio basta con instalarlo en una celda, con por ciento pip install qiskit."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 37.872,
+  "marks": {
+   "n1": 7.374,
+   "n2": 13.629,
+   "n3": 19.39,
+   "check": 31.929
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica de esta lección con el comando de abajo."
+   ],
+   [
+    7.374,
+    "Primero compruebas tu instalación: la versión de Qiskit y el intérprete de Python."
+   ],
+   [
+    13.629,
+    "Después editas un archivo settings punto conf y compruebas que Qiskit lo lee."
+   ],
+   [
+    19.39,
+    "Y por último escribes dos funciones que convierten cuadernos entre Jupyter y marimo, con marimo convert."
+   ],
+   [
+    26.749,
+    "Así podrás usar las guías de IBM, que están en Jupyter."
+   ],
+   [
+    31.929,
+    "Cada misión tiene una comprobación que se actualiza sola: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 13.728,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Antes de cerrar, dos preguntas para pensar."
+   ],
+   [
+    4.119,
+    "No hay respuesta automática: escribe con tus palabras."
+   ],
+   [
+    8.789,
+    "Lo que escribas se guarda y lo verás cuando vuelvas a esta lección."
    ]
   ]
  },

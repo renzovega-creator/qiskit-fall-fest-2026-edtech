@@ -205,11 +205,35 @@
    ]
   ]
  },
+ "predice": {
+  "dur": 19.872,
+  "marks": {
+   "cual": 11.606
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de ejecutarlo, apuesta."
+   ],
+   [
+    3.34,
+    "Para un estado de Bell ideal, ZZ vale uno y XX también vale uno: la suma ideal es dos."
+   ],
+   [
+    11.606,
+    "Pero el backend falso incluye un modelo del ruido de un procesador real."
+   ],
+   [
+    16.87,
+    "¿Qué crees que imprimirá el programa?"
+   ]
+  ]
+ },
  "resultado": {
-  "dur": 25.104,
+  "dur": 28.896,
   "marks": {
    "sal": 9.468,
-   "mens": 19.022
+   "mens": 22.829
   },
   "cues": [
    [
@@ -222,6 +246,10 @@
    ],
    [
     19.022,
+    "Si apostaste por esa opción, acertaste."
+   ],
+   [
+    22.829,
     "Esa diferencia es el ruido, y buena parte del curso trata de cómo reducirla."
    ]
   ]
@@ -243,6 +271,59 @@
    [
     0.107,
     "Otra pregunta, sobre la ejecución."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 28.824,
+  "marks": {
+   "n1": 7.374,
+   "n2": 12.044,
+   "n3": 16.927,
+   "check": 22.886
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica de esta lección con el comando de abajo."
+   ],
+   [
+    7.374,
+    "Primero reproduces los cuatro pasos con el simulador exacto."
+   ],
+   [
+    12.044,
+    "Después cambias el observable y apuestas por el valor que saldrá."
+   ],
+   [
+    16.927,
+    "Y por último escribes el patrón como una función que sirve para cualquier circuito."
+   ],
+   [
+    22.886,
+    "Cada misión tiene una comprobación que se actualiza sola: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 13.728,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Antes de cerrar, dos preguntas para pensar."
+   ],
+   [
+    4.119,
+    "No hay respuesta automática: escribe con tus palabras."
+   ],
+   [
+    8.789,
+    "Lo que escribas se guarda y lo verás cuando vuelvas a esta lección."
    ]
   ]
  },

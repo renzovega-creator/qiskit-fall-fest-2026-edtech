@@ -550,12 +550,40 @@
    ]
   },
   {
+   "id": "predice",
+   "tag": [
+    "1.2",
+    "Antes de ejecutar"
+   ],
+   "say": "Antes de ejecutarlo, apuesta. Para un estado de Bell ideal, ZZ vale uno y XX también vale uno: la suma ideal es dos. [[cual]]Pero el backend falso incluye un modelo del ruido de un procesador real. ¿Qué crees que imprimirá el programa?",
+   "scene": [
+    {
+     "type": "math",
+     "tex": "\\langle ZZ\\rangle+\\langle XX\\rangle = 1+1 = 2 \\quad\\text{(ideal)}",
+     "size": 40
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué valor esperas para la suma, con el ruido del backend falso?",
+    "options": [
+     "exactamente 2",
+     "un poco menos de 2, cerca de 1,9",
+     "cerca de 1",
+     "cerca de 0"
+    ],
+    "after": "Anotado. Ejecutémoslo y veamos si acertaste."
+   },
+   "align": "top"
+  },
+  {
    "id": "resultado",
    "tag": [
     "1.2",
     "El resultado"
    ],
-   "say": "Para un estado de Bell ideal, ZZ vale uno y XX también vale uno: la suma debería dar exactamente dos. [[sal]]El backend falso incluye un modelo del ruido del procesador real, así que obtenemos un poco menos, alrededor de uno coma nueve. [[mens]]Esa diferencia es el ruido, y buena parte del curso trata de cómo reducirla.",
+   "say": "Para un estado de Bell ideal, ZZ vale uno y XX también vale uno: la suma debería dar exactamente dos. [[sal]]El backend falso incluye un modelo del ruido del procesador real, así que obtenemos un poco menos, alrededor de uno coma nueve. Si apostaste por esa opción, acertaste. [[mens]]Esa diferencia es el ruido, y buena parte del curso trata de cómo reducirla.",
    "scene": [
     {
      "type": "math",
@@ -671,6 +699,80 @@
     "why": "Correcto: Estimator devuelve valores esperados de observables, y además ofrece más opciones de mitigación.",
     "wrong": [
      "Con Sampler tendrías que reconstruir el valor esperado a partir de muestras; Estimator lo calcula directamente."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "1.2",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero reproduces los cuatro pasos con el simulador exacto. [[n2]]Después cambias el observable y apuestas por el valor que saldrá. [[n3]]Y por último escribes el patrón como una función que sirve para cualquier circuito. [[check]]Cada misión tiene una comprobación que se actualiza sola: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p1-patrones.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Ejecuta los cuatro pasos y comprueba que el circuito es ISA."
+      },
+      {
+       "level": 2,
+       "text": "Añade `YY` al observable y predice $\\langle ZZ\\rangle+\\langle XX\\rangle+\\langle YY\\rangle$."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `patron(qc, obs, backend, nivel)` y pruébala con los niveles 0, 1 y 3."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "1.2",
+    "Reflexiona"
+   ],
+   "say": "Antes de cerrar, dos preguntas para pensar. No hay respuesta automática: escribe con tus palabras. Lo que escribas se guarda y lo verás cuando vuelvas a esta lección.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Por qué el paso de optimizar es obligatorio en un procesador real y no lo es en un simulador ideal? Explícalo con tus palabras.",
+     "Elige un problema de tu área o de tu interés. ¿Cómo sería su paso uno, mapear? ¿Usarías Sampler o Estimator, y por qué?"
     ]
    },
    "align": "top"
