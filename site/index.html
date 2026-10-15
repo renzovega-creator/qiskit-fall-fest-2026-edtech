@@ -114,11 +114,13 @@ const HITOS = [
 ];
 function renderProyecto(course) {
   const done = LS.get('qiskit:hitos', []);
+  const linkedNotebooks = new Set(course.parts.flatMap(p => p.lessons).flatMap(l => l.missions || []).map(m => m.notebook));
+  const notebookForHito = h => { const notebook = `practica/proyecto/hito${h.n}.py`; return linkedNotebooks.has(notebook) ? notebook : null; };
   const cur = HITOS.find(h => !done.includes(h.n)) || HITOS[HITOS.length - 1];
   const track = $('#track'); track.textContent = '';
   HITOS.forEach(h => {
     const d = document.createElement('div');
-    d.className = 'hito' + (done.includes(h.n) ? ' done' : h.nb ? ' open' : '');
+    d.className = 'hito' + (done.includes(h.n) ? ' done' : notebookForHito(h) ? ' open' : '');
     d.textContent = h.n; d.title = `Hito ${h.n} · ${h.t}`;
     track.appendChild(d);
   });
@@ -126,8 +128,9 @@ function renderProyecto(course) {
   const box = $('#hito');
   box.innerHTML = `<div class="k">Hito ${cur.n} de 10 · Parte ${cur.part}</div><h3></h3><p></p>`;
   box.querySelector('h3').textContent = cur.t; box.querySelector('p').textContent = cur.d;
-  if (cur.nb) {
-    const cmd = `uv run marimo edit ${cur.nb}`;
+  const currentNotebook = notebookForHito(cur);
+  if (currentNotebook) {
+    const cmd = `uv run marimo edit ${currentNotebook}`;
     const row = document.createElement('div'); row.className = 'cmd';
     row.innerHTML = `<code></code><button>Copiar</button><button class="chk">Marcar como hecho</button>`;
     row.querySelector('code').textContent = cmd;
