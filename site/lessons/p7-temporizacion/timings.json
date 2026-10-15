@@ -30,17 +30,17 @@
   ]
  },
  "activar": {
-  "dur": 19.104,
+  "dur": 17.928,
   "marks": {
-   "leer": 9.737
+   "leer": 8.563
   },
   "cues": [
    [
     0.107,
-    "Se activa con una opción experimental del Sampler: en options punto experimental, execution, scheduler timing igual a True."
+    "Se activa con una opción experimental del Sampler: en options punto execution, scheduler timing igual a True."
    ],
    [
-    9.737,
+    8.563,
     "Después, en la metadata de cada PUB, bajo compilation, scheduler timing, timing, están los datos en bruto."
    ]
   ]
@@ -117,12 +117,12 @@
   ]
  },
  "cierre": {
-  "dur": 24.528,
+  "dur": 24.312,
   "marks": {
    "r1": 1.868,
    "r2": 6.51,
-   "r3": 12.03,
-   "r4": 18.611
+   "r3": 11.818,
+   "r4": 18.399
   },
   "cues": [
    [
@@ -135,14 +135,14 @@
    ],
    [
     6.51,
-    "Se activan con scheduler timing en las opciones experimentales del Sampler."
+    "Se activan con scheduler timing en las opciones de ejecución del Sampler."
    ],
    [
-    12.03,
+    11.818,
     "Cada línea tiene rama, instrucción, canal, inicio, duración y pulso."
    ],
    [
-    18.611,
+    18.399,
     "Y draw circuit schedule timing los dibuja; ese tiempo no es el facturado."
    ]
   ]

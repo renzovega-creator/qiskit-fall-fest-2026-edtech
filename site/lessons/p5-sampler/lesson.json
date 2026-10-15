@@ -120,11 +120,11 @@
     "5.5",
     "Intervalos de ejecución"
    ],
-   "say": "Los resultados de Sampler en el servicio de IBM incluyen información de tiempos: los intervalos de ejecución, execution spans. [[que]]Los disparos se agrupan en intervalos, cada uno con un inicio, un fin y qué disparos contiene. [[mask]]El método mask, dado el índice de un PUB, devuelve una máscara booleana con los disparos de ese PUB que se ejecutaron en ese intervalo. [[util]]Sirve, por ejemplo, para filtrar datos por momento de ejecución. filter by pub selecciona los intervalos de ciertos PUBs, y start, stop y duration dan los tiempos globales. [[ojo]]Los intervalos pueden solaparse: no porque el QPU haga dos cosas a la vez, sino por procesamiento clásico concurrente.",
+   "say": "Los resultados de Sampler en un QPU incluyen información de tiempos: los intervalos de ejecución. [[que]]Con el Sampler del lado del cliente de la cero punto cincuenta, están en la metadata del Executor, como chunk timing: una lista de intervalos que envuelve ChunkTiming. [[partes]]Cada intervalo tiene un inicio, un fin y sus partes: de cada una, el índice del PUB y cuántos elementos se ejecutaron en ese intervalo. [[util]]start, stop y duration dan los tiempos globales, y draw dibuja los intervalos en una gráfica. [[ojo]]Los intervalos pueden solaparse: no porque el QPU haga dos cosas a la vez, sino por procesamiento clásico concurrente.",
    "scene": [
     {
      "type": "code",
-     "src": "spans = job.result().metadata[\"execution\"][\"execution_spans\"]\nprint(len(spans), spans.start, spans.stop, spans.duration)\nmask = spans[0].mask(0)                      # disparos del PUB 0 en este intervalo\nbits = result[0].data.meas\nfiltered = BitArray(bits.array[mask], bits.num_bits)\nspans.filter_by_pub([0, 2])",
+     "src": "from qiskit_ibm_runtime.results import ChunkTiming\n\nchunks = job.result().metadata[\"executor\"].chunk_timing\ntiming = ChunkTiming(chunks)\nprint(len(timing), timing.start, timing.stop, timing.duration)\nfor part in timing[0].parts:                 # PUBs de este intervalo\n    print(part.idx_item, part.size)\ntiming.draw()",
      "lang": "python",
      "id": "c",
      "norun": true,
@@ -134,21 +134,22 @@
    "actions": [
     {
      "do": "hl",
-     "range": "1-2",
+     "range": "3-4",
      "id": "c",
      "at": "que"
     },
     {
      "do": "hl",
-     "lines": [
-      3
-     ],
+     "range": "6-7",
      "id": "c",
-     "at": "mask"
+     "at": "partes"
     },
     {
      "do": "hl",
-     "range": "4-6",
+     "lines": [
+      5,
+      8
+     ],
      "id": "c",
      "at": "util"
     }
@@ -377,7 +378,7 @@
      "desactiva el twirling"
     ],
     "right": 1,
-    "why": "Correcto: Sampler no admite niveles de resiliencia; activas cada técnica de supresión por separado.",
+    "why": "Correcto: Sampler no admite niveles de resiliencia; activas cada técnica de supresión por separado. En la 0.50 la asignación lanza un `ValidationError`.",
     "wrong": [
      "Eso es de Estimator.",
      null,
@@ -396,10 +397,10 @@
    "scene": [
     {
      "type": "code",
-     "src": "job = sampler.run([isa_circuit])                          # uno\njob = sampler.run(isa_circuits)                            # varios\njob = sampler.run([(isa_circuit, parameter_values)])       # 3 juegos de parámetros\nwith Batch(backend=backend) as batch:                      # lote\n    sampler = Sampler(mode=batch)\n    job = sampler.run([isa_circuit])\n    another_job = sampler.run([another_isa_circuit])",
+     "src": "job = sampler.run([isa_circuit])                          # uno\njob = sampler.run(isa_circuits)                            # varios\njob = sampler.run([(isa_ansatz, parameter_values)])        # 3 juegos de parámetros\nwith Batch(backend=backend) as batch:                      # lote\n    sampler = Sampler(mode=batch)\n    job = sampler.run([isa_circuit])\n    another_job = sampler.run([another_isa_circuit])",
      "lang": "python",
      "id": "c",
-     "norun": true,
+     "setup": "import numpy as np\nfrom qiskit import QuantumCircuit\nfrom qiskit.circuit.library import real_amplitudes\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime import Batch\nfrom qiskit_ibm_runtime.executor_sampler import Sampler\nfrom qiskit_ibm_runtime.fake_provider import FakeBelemV2\n\nbackend = FakeBelemV2()\npm = generate_preset_pass_manager(backend=backend, optimization_level=1)\nghz = QuantumCircuit(3)\nghz.h(0)\nghz.cx(0, 1)\nghz.cx(1, 2)\nghz.measure_all()\nisa_circuit = pm.run(ghz)\nanother_isa_circuit = isa_circuit.copy()\nisa_circuits = [isa_circuit, another_isa_circuit]\nansatz = real_amplitudes(3, reps=1)\nansatz.measure_all()\nisa_ansatz = pm.run(ansatz)\nparameter_values = np.random.rand(3, ansatz.num_parameters)\nsampler = Sampler(mode=backend)",
      "size": 22
     }
    ],
@@ -447,7 +448,7 @@
      "type": "list",
      "items": [
       "`Sampler(mode=…)` · PUB (circuito con mediciones, parámetros, disparos)",
-      "un `BitArray` por registro · `execution_spans` con los tiempos de cada disparo",
+      "un `BitArray` por registro · `chunk_timing` en la metadata con los intervalos de ejecución",
       "disparos: PUB > `run()` > twirling > `default_shots` · en 0.50, todos los PUBs igual",
       "opciones: DD, twirling, `meas_type`, `max_execution_time` (sin `resilience_level`)"
      ],
@@ -490,7 +491,7 @@
   "sampler-examples"
  ],
  "practice": [
-  "Ejecuta el GHZ de 10 qubits con `Sampler(mode=FakeTorino())` y cuenta qué fracción de disparos no es `0…0` ni `1…1`.",
+  "Ejecuta un GHZ de 5 qubits con `Sampler(mode=FakeBelemV2())` y cuenta qué fracción de disparos no es `0…0` ni `1…1`.",
   "Activa `sampler.options.twirling.enable_measure = True` y compara esa fracción.",
   "Guías originales: [get-started-with-sampler](https://quantum.cloud.ibm.com/docs/en/guides/get-started-with-sampler) · [sampler-input-output](https://quantum.cloud.ibm.com/docs/en/guides/sampler-input-output) · [sampler-options](https://quantum.cloud.ibm.com/docs/en/guides/sampler-options) · [sampler-examples](https://quantum.cloud.ibm.com/docs/en/guides/sampler-examples)"
  ],

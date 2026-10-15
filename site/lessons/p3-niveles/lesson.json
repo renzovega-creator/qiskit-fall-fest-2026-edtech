@@ -286,7 +286,6 @@
      "src": "generate_preset_pass_manager(\n    optimization_level=1,\n    backend=None, target=None,\n    basis_gates=None, coupling_map=None,\n    initial_layout=None,\n    layout_method=None, routing_method=None,\n    translation_method=None, scheduling_method=None,\n    approximation_degree=1.0,\n    seed_transpiler=None,\n    unitary_synthesis_method=\"default\",\n    unitary_synthesis_plugin_config=None,\n    hls_config=None,\n    init_method=None, optimization_method=None,\n)",
      "lang": "python",
      "id": "c",
-     "norun": true,
      "size": 22
     }
    ],
@@ -321,8 +320,7 @@
     {
      "type": "code",
      "src": "generate_preset_pass_manager(1, backend=backend,\n                             coupling_map=[[0, 1], [1, 2]])",
-     "lang": "python",
-     "norun": true
+     "lang": "python"
     }
    ],
    "actions": [],
@@ -335,7 +333,7 @@
      "ninguno: da error"
     ],
     "right": 1,
-    "why": "Correcto: un argumento explícito como `coupling_map` sobrescribe lo que trae el backend.",
+    "why": "Correcto: un argumento explícito como `coupling_map` sobrescribe lo que trae el backend. Qiskit lo avisa con un `UserWarning`: se pierden las duraciones y los errores del backend.",
     "wrong": [
      "Lo que pasas a mano tiene prioridad sobre el backend.",
      null,

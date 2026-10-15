@@ -276,7 +276,7 @@
      "type": "code",
      "src": "sampler.run([(qc1, None, 100), (qc2, None, 300)], shots=50)",
      "lang": "python",
-     "norun": true
+     "setup": "from qiskit import QuantumCircuit\nfrom qiskit.primitives import StatevectorSampler\n\nsampler = StatevectorSampler()\nqc1 = QuantumCircuit(1)\nqc1.h(0)\nqc1.measure_all()\nqc2 = qc1.copy()"
     }
    ],
    "actions": [],

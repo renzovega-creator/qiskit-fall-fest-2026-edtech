@@ -212,11 +212,11 @@
     },
     {
      "type": "code",
-     "src": "from qiskit.transpiler import Target\nerr_targ = Target.from_configuration(\n    basis_gates=basis_gates, coupling_map=coupling_map,\n    num_qubits=target.num_qubits, custom_name_mapping={...})\nfor i, (op, qargs) in enumerate(target.instructions):\n    if op.name in basis_gates:\n        err_targ[op.name][qargs] = target.instruction_properties(i)",
+     "src": "from qiskit.transpiler import Target\nerr_targ = Target.from_configuration(\n    basis_gates=basis_gates, coupling_map=coupling_map,\n    num_qubits=target.num_qubits)\nfor i, (op, qargs) in enumerate(target.instructions):\n    if op.name in basis_gates:\n        err_targ[op.name][qargs] = target.instruction_properties(i)",
      "lang": "python",
      "id": "c2",
      "hidden": true,
-     "norun": true,
+     "setup": "basis_gates = [\"rz\", \"sx\", \"x\", \"ecr\"]",
      "size": 22
     }
    ],
@@ -272,7 +272,7 @@
     "3.4",
     "Un backend propio"
    ],
-   "say": "Qiskit no depende del fabricante: cualquiera puede describir su propio dispositivo. Las piezas son tres. [[prov]]Un Provider, que entrega objetos backend y se ocupa de credenciales. [[backend]]Un BackendV2, con cuatro partes: un Target, max circuits, el máximo de circuitos por trabajo, un método run, y unas opciones por defecto. [[target]]Y el Target, que se llena con add instruction: para cada puerta, un diccionario de los qubits donde está disponible, con su error y su duración. [[res]]Una CX entre los qubits cero y dos, que no son vecinos en esta cadena, termina convertida en CZ y puertas de un qubit: el transpilador lo resolvió todo con la información del Target.",
+   "say": "Qiskit no depende del fabricante: cualquiera puede describir su propio dispositivo. Las piezas son tres. [[prov]]Un Provider, que entrega objetos backend y se ocupa de credenciales. [[backend]]Un BackendV2, con cuatro partes: un Target, max circuits, el máximo de circuitos por trabajo, un método run, y unas opciones por defecto. [[target]]Y el Target, que se llena con add instruction: para cada puerta, un diccionario de los qubits donde está disponible, con su error y su duración. [[res]]Una CX entre los qubits cero y dos, que no son vecinos en esta cadena: el transpilador los coloca en dos qubits contiguos, así que no hacen falta SWAP, y traduce la CX a una CZ y puertas de un qubit. La X está en el Target, pero el transpilador solo la usa cuando una secuencia de puertas de un qubit equivale, salvo rotaciones Z, a una X; aquí ninguna lo hace, y por eso no aparece. Todo salió de la información del Target.",
    "scene": [
     {
      "type": "code",

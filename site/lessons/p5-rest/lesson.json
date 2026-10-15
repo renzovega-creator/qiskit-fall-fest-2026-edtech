@@ -218,7 +218,7 @@
      "src": "theta, phi = Parameter(\"theta\"), Parameter(\"phi\")\nqc = QuantumCircuit(2)\nqc.rx(theta, 0)\nqc.ry(phi, 1)\nqc.cx(0, 1)\nqc.measure_all()\nqasm_str = qiskit.qasm3.dumps(pm.run(qc))\njob_input = {\"program_id\": \"sampler\", \"backend\": backend,\n             \"params\": {\"pubs\": [[qasm_str, {\"theta\": 1.57, \"phi\": 3.14}, 500]]}}",
      "lang": "python",
      "id": "c",
-     "norun": true,
+     "setup": "import qiskit.qasm3\nfrom qiskit import QuantumCircuit\nfrom qiskit.circuit import Parameter\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.fake_provider import FakeFez\n\nbackend = \"ibm_fez\"\npm = generate_preset_pass_manager(backend=FakeFez(), optimization_level=1)",
      "size": 22
     }
    ],

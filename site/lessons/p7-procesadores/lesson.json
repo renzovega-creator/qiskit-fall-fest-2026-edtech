@@ -366,7 +366,7 @@
      "src": "backend.default_rep_delay          # 0.00025 s\nbackend.rep_delay_range            # [0.0, 0.0005]\nsampler.options.execution.rep_delay = 0.0005\nsampler.options.execution.init_qubits = True",
      "lang": "python",
      "id": "c",
-     "norun": true
+     "setup": "from qiskit_ibm_runtime.executor_sampler import Sampler\nfrom qiskit_ibm_runtime.fake_provider import FakeFez\nbackend = FakeFez()\nsampler = Sampler(backend)"
     },
     {
      "type": "row",

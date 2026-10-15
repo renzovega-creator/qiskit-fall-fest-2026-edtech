@@ -174,42 +174,42 @@
   ]
  },
  "ejemplo": {
-  "dur": 35.064,
+  "dur": 36.72,
   "marks": {
-   "m": 9.369,
-   "o": 15.71,
-   "lay": 21.456,
-   "e": 26.721,
-   "p": 31.406
+   "m": 11.025,
+   "o": 17.366,
+   "lay": 23.112,
+   "e": 28.377,
+   "p": 33.062
   },
   "cues": [
    [
     0.107,
-    "Así se ven los cuatro pasos en un programa completo, usando un backend falso que imita al procesador Fez y corre en tu computadora."
+    "Así se ven los cuatro pasos en un programa completo, usando un backend falso de cinco qubits, que imita al procesador Belem y corre en tu computadora."
    ],
    [
-    9.369,
+    11.025,
     "Mapear: un circuito de Bell y un observable, ZZ más XX."
    ],
    [
-    15.71,
+    17.366,
     "Optimizar: un pass manager preparado para el backend produce el circuito ISA, y el observable se reacomoda a los qubits físicos con apply layout."
    ],
    [
-    26.721,
+    28.377,
     "Ejecutar: Estimator, con el backend como modo."
    ],
    [
-    31.406,
+    33.062,
     "Posprocesar: leer el valor esperado."
    ]
   ]
  },
  "resultado": {
-  "dur": 25.632,
+  "dur": 25.104,
   "marks": {
    "sal": 9.468,
-   "mens": 19.56
+   "mens": 19.022
   },
   "cues": [
    [
@@ -218,10 +218,10 @@
    ],
    [
     9.468,
-    "El backend falso incluye un modelo del ruido del procesador real, así que obtenemos un poco menos, alrededor de uno coma ocho siete."
+    "El backend falso incluye un modelo del ruido del procesador real, así que obtenemos un poco menos, alrededor de uno coma nueve."
    ],
    [
-    19.56,
+    19.022,
     "Esa diferencia es el ruido, y buena parte del curso trata de cómo reducirla."
    ]
   ]

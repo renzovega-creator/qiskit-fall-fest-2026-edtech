@@ -127,8 +127,7 @@
     {
      "type": "code",
      "src": "qc = QuantumCircuit(5, 5)\nqc.x([0, 1, 4])\nqc.measure(range(5), range(5))",
-     "lang": "python",
-     "norun": true
+     "lang": "python"
     }
    ],
    "actions": [],
@@ -406,8 +405,7 @@
     {
      "type": "code",
      "src": "qc = QuantumCircuit(4)\nqc.h(0)\nqc.cx(0, 2)\nqc.measure_active()",
-     "lang": "python",
-     "norun": true
+     "lang": "python"
     }
    ],
    "actions": [],

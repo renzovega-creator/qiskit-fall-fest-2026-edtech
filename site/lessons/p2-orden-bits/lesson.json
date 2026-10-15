@@ -29,7 +29,7 @@
      "lang": "python",
      "id": "c",
      "hidden": true,
-     "norun": true
+     "setup": "from qiskit import QuantumCircuit"
     },
     {
      "type": "circuit",

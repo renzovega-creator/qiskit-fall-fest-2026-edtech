@@ -212,7 +212,7 @@
      "src": "a = SparsePauliOp.from_list([(\"XX\", 1), (\"XY\", 1), (\"IZ\", 1)])  # forma ()\nb = [SparsePauliOp(\"XX\"), SparsePauliOp(\"XY\"), SparsePauliOp(\"IZ\")]  # forma (3,)\nc = [[SparsePauliOp(\"XX\")], [SparsePauliOp(\"XY\")], [SparsePauliOp(\"IZ\")]]  # forma (3, 1)",
      "lang": "python",
      "id": "c",
-     "norun": true,
+     "setup": "from qiskit.quantum_info import SparsePauliOp",
      "size": 22
     }
    ],
@@ -499,7 +499,7 @@
      "type": "code",
      "src": "qc = QuantumCircuit(2, 2)\nqc.h(0)\nqc.measure([0, 1], [0, 1])",
      "lang": "python",
-     "norun": true
+     "setup": "from qiskit import QuantumCircuit"
     }
    ],
    "actions": [],

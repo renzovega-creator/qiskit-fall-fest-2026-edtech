@@ -567,8 +567,7 @@
     {
      "type": "code",
      "src": "n_local(4, \"ry\", \"cz\", reps=2)",
-     "lang": "python",
-     "norun": true
+     "lang": "python"
     }
    ],
    "actions": [],

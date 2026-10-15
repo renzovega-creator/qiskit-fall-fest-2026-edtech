@@ -99,18 +99,18 @@
     "5.3",
     "Estructura de las opciones"
    ],
-   "say": "Las opciones tienen estructura de árbol. Las más usadas, como resilience level, están en el primer nivel; las demás se agrupan en categorías, como execution o dynamical decoupling. [[formato]]Se escriben así: options punto opción punto subopción igual a valor. [[unset]]Si no fijas una opción, recibe un valor especial, Unset, y se usa el valor por defecto del servidor: así el comportamiento no depende de tu versión del código.",
+   "say": "Las opciones tienen estructura de árbol. Las más usadas, como resilience level, están en el primer nivel; las demás se agrupan en categorías, como execution o dynamical decoupling. [[formato]]Se escriben así: options punto opción punto subopción igual a valor. [[unset]]Si no fijas una opción, queda en None, y se usa su valor por defecto, que a veces depende del nivel de resiliencia.",
    "scene": [
     {
      "type": "code",
      "src": "estimator.options.resilience_level = 2\nestimator.options.dynamical_decoupling.enable = True\nestimator.options.resilience.zne.noise_factors = [1, 3, 5]",
      "lang": "python",
      "id": "c",
-     "norun": true
+     "setup": "from qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2\n\nestimator = Estimator(mode=FakeManilaV2())"
     },
     {
      "type": "text",
-     "text": "sin fijar → `Unset` → valor por defecto del servidor",
+     "text": "sin fijar → `None` → valor por defecto (a veces según el nivel de resiliencia)",
      "style": "note",
      "id": "n",
      "hidden": true
@@ -136,11 +136,11 @@
     "5.3",
     "Cuatro formas de fijarlas"
    ],
-   "say": "Hay cuatro formas. [[clase]]Con una instancia de la clase de opciones, al crear la primitiva. [[dict]]Con un diccionario, también al crearla. En ambos casos la primitiva copia las opciones: cambiar después el original no le afecta. [[attr]]Asignando atributos después de crearla, con autocompletado. [[update]]O con update, para cambiar varias de golpe. [[asdict]]Y como options es una dataclass, asdict la convierte en diccionario.",
+   "say": "Hay cuatro formas. [[clase]]Con una instancia de la clase de opciones, al crear la primitiva. [[dict]]Con un diccionario, también al crearla. En ambos casos la primitiva copia las opciones: cambiar después el original no le afecta. [[attr]]Asignando atributos después de crearla, con autocompletado. [[update]]O con update, para cambiar varias de golpe. [[dump]]Y como options es un modelo de pydantic, model dump lo convierte en diccionario.",
    "scene": [
     {
      "type": "code",
-     "src": "from dataclasses import asdict\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2\n\nbackend = FakeManilaV2()\noptions = EstimatorOptions()\noptions.resilience_level = 2\noptions.resilience.zne_mitigation = True\nestimator = Estimator(mode=backend, options=options)                 # clase\nestimator = Estimator(mode=backend, options={\"resilience_level\": 2}) # diccionario\nestimator.options.default_precision = 0.01                           # atributo\nestimator.options.update(default_precision=0.02,\n                         resilience={\"zne_mitigation\": True})       # update\nprint(estimator.options.default_precision, list(asdict(estimator.options))[:4])",
+     "src": "from qiskit_ibm_runtime.fake_provider import FakeManilaV2\n\nbackend = FakeManilaV2()\noptions = EstimatorOptions()\noptions.resilience_level = 2\noptions.resilience.zne_mitigation = True\nestimator = Estimator(mode=backend, options=options)                 # clase\nestimator = Estimator(mode=backend, options={\"resilience_level\": 2}) # diccionario\nestimator.options.default_precision = 0.01                           # atributo\nestimator.options.update(default_precision=0.02,\n                         resilience={\"zne_mitigation\": True})       # update\nprint(estimator.options.default_precision, list(estimator.options.model_dump())[:4])",
      "lang": "python",
      "id": "c",
      "size": 20
@@ -157,14 +157,14 @@
    "actions": [
     {
      "do": "hl",
-     "range": "5-8",
+     "range": "4-7",
      "id": "c",
      "at": "clase"
     },
     {
      "do": "hl",
      "lines": [
-      9
+      8
      ],
      "id": "c",
      "at": "dict"
@@ -172,29 +172,29 @@
     {
      "do": "hl",
      "lines": [
-      10
+      9
      ],
      "id": "c",
      "at": "attr"
     },
     {
      "do": "hl",
-     "range": "11-12",
+     "range": "10-11",
      "id": "c",
      "at": "update"
     },
     {
      "do": "hl",
      "lines": [
-      13
+      12
      ],
      "id": "c",
-     "at": "asdict"
+     "at": "dump"
     },
     {
      "do": "show",
      "id": "o",
-     "at": "asdict"
+     "at": "dump"
     }
    ]
   },
@@ -209,8 +209,7 @@
     {
      "type": "code",
      "src": "opts = {\"resilience_level\": 1}\nestimator = Estimator(mode=backend, options=opts)\nopts[\"resilience_level\"] = 2",
-     "lang": "python",
-     "norun": true
+     "lang": "python"
     }
    ],
    "actions": [],
@@ -347,7 +346,7 @@
      "items": [
       "Estimator · Sampler · Executor (beta, bajo nivel)",
       "desde 0.50: Sampler y Estimator del lado del cliente (`executor_sampler`, `executor_estimator`)",
-      "opciones: clase, diccionario, atributos o `update()` · `Unset` = valor por defecto del servidor",
+      "opciones: clase, diccionario, atributos o `update()` · `None` = valor por defecto",
       "modelo de ejecución dirigida: cajas anotadas + samplex + Executor + NoiseLearnerV3"
      ],
      "id": "r",
@@ -388,7 +387,7 @@
   "directed-execution-model"
  ],
  "practice": [
-  "Crea un `Estimator` local con `FakeManilaV2`, imprime `asdict(estimator.options)` y busca qué opciones siguen en `Unset`.",
+  "Crea un `Estimator` local con `FakeManilaV2`, imprime `estimator.options.model_dump()` y busca qué opciones siguen en `None`.",
   "Lee la guía de [Samplomatic](https://quantum.cloud.ibm.com/docs/en/addons/samplomatic) para conocer los tipos de anotaciones.",
   "Guías originales: [qiskit-runtime-primitives](https://quantum.cloud.ibm.com/docs/en/guides/qiskit-runtime-primitives) · [runtime-options-overview](https://quantum.cloud.ibm.com/docs/en/guides/runtime-options-overview) · [directed-execution-model](https://quantum.cloud.ibm.com/docs/en/guides/directed-execution-model)"
  ],

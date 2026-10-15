@@ -69,7 +69,7 @@
      "src": "params = np.vstack([np.linspace(-np.pi, np.pi, 100),\n                    np.linspace(-4 * np.pi, 4 * np.pi, 100)]).T       # (100, 2)\nobservables = [[SparsePauliOp([\"XX\", \"IY\"], [0.5, 0.5])],\n               [SparsePauliOp(\"XX\")],\n               [SparsePauliOp(\"IY\")]]                                 # (3, 1)\njob = estimator.run([(transpiled_circuit, observables, params)])     # evs: (3, 100)",
      "lang": "python",
      "id": "c",
-     "norun": true,
+     "setup": "import numpy as np\nfrom qiskit import QuantumCircuit\nfrom qiskit.circuit import Parameter\nfrom qiskit.providers.fake_provider import GenericBackendV2\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.executor_estimator import Estimator\n\nbackend = GenericBackendV2(2, basis_gates=[\"cz\", \"rz\", \"sx\", \"x\"], seed=1)\npm = generate_preset_pass_manager(backend=backend, optimization_level=1)\na, b = Parameter(\"a\"), Parameter(\"b\")\ncircuit = QuantumCircuit(2)\ncircuit.rx(a, 0)\ncircuit.ry(b, 1)\ncircuit.cx(0, 1)\ntranspiled_circuit = pm.run(circuit)\nestimator = Estimator(mode=backend)\nbell = QuantumCircuit(2)\nbell.h(0)\nbell.cx(0, 1)\nqc1 = qc2 = pm.run(bell)\nobs1 = obs2 = SparsePauliOp(\"ZZ\")",
      "size": 22
     }
    ],
@@ -96,21 +96,21 @@
     "5.4",
     "Salidas"
    ],
-   "say": "La salida es la misma estructura que ya conoces: un PubResult por PUB, con data y metadata. [[data]]En data están evs, los valores esperados; stds, sus desviaciones; y ensemble standard error. Según la mitigación, puede haber más. [[meta]]La metadata del PrimitiveResult recoge las opciones usadas: desacoplamiento dinámico, twirling, resiliencia. La de cada PUB, los disparos, la precisión objetivo y el número de aleatorizaciones. [[local]]Este es el resultado real del programa de la lección anterior, ejecutado en local.",
+   "say": "La salida es la misma estructura que ya conoces: un PubResult por PUB, con data y metadata. [[data]]En data están evs, los valores esperados; stds, sus desviaciones; y ensemble standard error. Según la mitigación, puede haber más. [[meta]]La metadata del PrimitiveResult recoge las opciones usadas: desacoplamiento dinámico, twirling, resiliencia. La de cada PUB, los disparos, la precisión objetivo y el número de aleatorizaciones. [[local]]Estas son las claves reales del resultado del trabajo anterior, ejecutado en local.",
    "scene": [
     {
      "type": "code",
      "src": "res = job.result()[0]\nprint(list(res.data.keys()))",
      "lang": "python",
-     "id": "c",
-     "norun": true
+     "id": "c"
     },
     {
      "type": "code",
      "src": "['evs', 'stds', 'ensemble_standard_error']",
      "lang": "out",
      "id": "o",
-     "hidden": true
+     "hidden": true,
+     "check": true
     },
     {
      "type": "code",
@@ -200,7 +200,7 @@
     "5.4",
     "¿Cuántos disparos?"
    ],
-   "say": "La precisión se puede indicar en varios sitios, y gana el primero de esta lista. [[pub]]Uno: la precisión dentro del PUB. [[run]]Dos: el argumento precision de run. [[tw]]Tres: si el twirling está activo, que lo está por defecto, el número de aleatorizaciones por los disparos de cada una. [[shots]]Cuatro: default shots. [[prec]]Cinco: default precision, que por defecto es uno sobre la raíz de cuatro mil noventa y seis. [[falla]]Cuidado: si pides una precisión que necesita más disparos de los que permite la configuración de twirling, el trabajo falla. Y recuerda: más precisión, más tiempo de QPU.",
+   "say": "La precisión se puede indicar en varios sitios, y gana el primero de esta lista. [[pub]]Uno: la precisión dentro del PUB. [[run]]Dos: el argumento precision de run. [[tw]]Tres: si el twirling está activo, que lo está por defecto, el número de aleatorizaciones por los disparos de cada una. [[shots]]Cuatro: default shots. [[prec]]Cinco: default precision, que por defecto es uno sobre la raíz de cuatro mil noventa y seis. [[falla]]Cuidado: si pides una precisión que necesita más disparos de los que permite la configuración de twirling, el trabajo falla. Y recuerda: más precisión, más tiempo de QPU. [[uno]]Y un detalle de la cero punto cincuenta: todos los PUBs de un mismo trabajo deben tener la misma precisión; si mezclas, da error.",
    "scene": [
     {
      "type": "table",
@@ -233,6 +233,20 @@
      "id": "t",
      "stagger": true,
      "size": 24
+    },
+    {
+     "type": "box",
+     "kind": "warn",
+     "title": "qiskit-ibm-runtime 0.50",
+     "body": [
+      {
+       "type": "text",
+       "text": "«All pubs must have the same precision»: una única precisión por trabajo",
+       "style": "body"
+      }
+     ],
+     "id": "b",
+     "hidden": true
     }
    ],
    "actions": [
@@ -265,6 +279,11 @@
      "i": 4,
      "id": "t",
      "at": "prec"
+    },
+    {
+     "do": "show",
+     "id": "b",
+     "at": "uno"
     }
    ]
   },
@@ -278,26 +297,26 @@
    "scene": [
     {
      "type": "code",
-     "src": "estimator.options.default_precision = 0.05\nestimator.run([(qc1, obs1, None, 0.01), (qc2, obs2)], precision=0.02)",
+     "src": "estimator.options.default_precision = 0.05\nestimator.run([(qc1, obs1), (qc2, obs2)], precision=0.02)",
      "lang": "python",
-     "norun": true
+     "setup": "import numpy as np\nfrom qiskit import QuantumCircuit\nfrom qiskit.circuit import Parameter\nfrom qiskit.providers.fake_provider import GenericBackendV2\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.executor_estimator import Estimator\n\nbackend = GenericBackendV2(2, basis_gates=[\"cz\", \"rz\", \"sx\", \"x\"], seed=1)\npm = generate_preset_pass_manager(backend=backend, optimization_level=1)\na, b = Parameter(\"a\"), Parameter(\"b\")\ncircuit = QuantumCircuit(2)\ncircuit.rx(a, 0)\ncircuit.ry(b, 1)\ncircuit.cx(0, 1)\ntranspiled_circuit = pm.run(circuit)\nestimator = Estimator(mode=backend)\nbell = QuantumCircuit(2)\nbell.h(0)\nbell.cx(0, 1)\nqc1 = qc2 = pm.run(bell)\nobs1 = obs2 = SparsePauliOp(\"ZZ\")"
     }
    ],
    "actions": [],
    "ask": {
     "kind": "choice",
-    "prompt": "¿Qué precisión objetivo tiene el segundo PUB?",
+    "prompt": "¿Qué precisión objetivo tienen los PUBs?",
     "options": [
      "0.05",
      "0.02",
-     "0.01"
+     "0.015625"
     ],
     "right": 1,
-    "why": "Correcto: el segundo PUB no especifica precisión, así que manda el argumento de `run`, 0.02. El primero usa su propio 0.01.",
+    "why": "Correcto: ningún PUB especifica precisión, así que manda el argumento de `run`, 0.02, que gana a `default_precision`.",
     "wrong": [
      "`run` tiene prioridad sobre `default_precision`.",
      null,
-     "0.01 es la del primer PUB."
+     "Ese es el valor por defecto de `default_precision`, y aquí `run` lo anula."
     ]
    },
    "align": "top"
@@ -461,10 +480,10 @@
    "scene": [
     {
      "type": "code",
-     "src": "theta = Parameter(\"θ\")\nchsh = QuantumCircuit(2)\nchsh.h(0)\nchsh.cx(0, 1)\nchsh.ry(theta, 0)\nphases = [[ph] for ph in np.linspace(0, 2 * np.pi, 21)]              # (21, 1)\nops = np.fromiter([SparsePauliOp(p) for p in [\"ZZ\", \"ZX\", \"XZ\", \"XX\"]],\n                  dtype=object).reshape((4, 1))                      # (4, 1)\nestimator = Estimator(backend, options={\"default_shots\": int(1e4)})\njob = estimator.run([(chsh_isa, isa_ops, phases)])                   # evs: (4, 21)",
+     "src": "theta = Parameter(\"θ\")\nchsh = QuantumCircuit(2)\nchsh.h(0)\nchsh.cx(0, 1)\nchsh.ry(theta, 0)\nphases = [[ph] for ph in np.linspace(0, 2 * np.pi, 21)]              # (21, 1)\nops = np.fromiter([SparsePauliOp(p) for p in [\"ZZ\", \"ZX\", \"XZ\", \"XX\"]],\n                  dtype=object).reshape((4, 1))                      # (4, 1)\nchsh_isa = pm.run(chsh)\nisa_ops = [[op.apply_layout(chsh_isa.layout)] for op in ops.flat]\nestimator = Estimator(backend, options={\"default_shots\": int(1e4)})\njob = estimator.run([(chsh_isa, isa_ops, phases)])                   # evs: (4, 21)",
      "lang": "python",
      "id": "c",
-     "norun": true,
+     "setup": "import numpy as np\nfrom qiskit import QuantumCircuit\nfrom qiskit.circuit import Parameter\nfrom qiskit.providers.fake_provider import GenericBackendV2\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.executor_estimator import Estimator\n\nbackend = GenericBackendV2(2, basis_gates=[\"cz\", \"rz\", \"sx\", \"x\"], seed=1)\npm = generate_preset_pass_manager(backend=backend, optimization_level=1)\na, b = Parameter(\"a\"), Parameter(\"b\")\ncircuit = QuantumCircuit(2)\ncircuit.rx(a, 0)\ncircuit.ry(b, 1)\ncircuit.cx(0, 1)\ntranspiled_circuit = pm.run(circuit)\nestimator = Estimator(mode=backend)\nbell = QuantumCircuit(2)\nbell.h(0)\nbell.cx(0, 1)\nqc1 = qc2 = pm.run(bell)\nobs1 = obs2 = SparsePauliOp(\"ZZ\")",
      "size": 21
     },
     {

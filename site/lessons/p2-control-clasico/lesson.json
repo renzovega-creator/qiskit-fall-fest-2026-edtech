@@ -168,7 +168,7 @@
      "src": "with circuit.if_test((c0, 1)) as else_:\n    circuit.h(q1)\nwith else_:\n    circuit.x(q1)\n\nwith circuit.if_test((clbits, 0b001)):\n    circuit.x(q2)",
      "lang": "python",
      "id": "c",
-     "norun": true
+     "setup": "from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister\nfrom qiskit.circuit.classical import expr\n\nqubits = QuantumRegister(3, \"q\")\nclbits = ClassicalRegister(3, \"c\")\ncircuit = QuantumCircuit(qubits, clbits)\n(q0, q1, q2), (c0, c1, c2) = qubits, clbits"
     },
     {
      "type": "circuit",
@@ -229,7 +229,7 @@
      "src": "with circuit.switch(clbits) as case:\n    with case(0b000, 0b011):\n        circuit.z(q2)\n    with case(0b001):\n        circuit.y(q2)\n    with case(case.DEFAULT):\n        circuit.x(q2)",
      "lang": "python",
      "id": "c",
-     "norun": true
+     "setup": "from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister\nfrom qiskit.circuit.classical import expr\n\nqubits = QuantumRegister(3, \"q\")\nclbits = ClassicalRegister(3, \"c\")\ncircuit = QuantumCircuit(qubits, clbits)\n(q0, q1, q2), (c0, c1, c2) = qubits, clbits"
     }
    ],
    "actions": [
@@ -260,7 +260,7 @@
      "src": "with circuit.for_loop(range(5)) as _:\n    circuit.x(q0)\n\ncircuit.h([q0, q1])\ncircuit.measure([q0, q1], [c0, c1])\nwith circuit.while_loop((clbits, 0b11)):\n    circuit.h([q0, q1])\n    circuit.measure([q0, q1], [c0, c1])",
      "lang": "python",
      "id": "c",
-     "norun": true
+     "setup": "from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister\nfrom qiskit.circuit.classical import expr\n\nqubits = QuantumRegister(3, \"q\")\nclbits = ClassicalRegister(3, \"c\")\ncircuit = QuantumCircuit(qubits, clbits)\n(q0, q1, q2), (c0, c1, c2) = qubits, clbits"
     },
     {
      "type": "hist",
@@ -325,7 +325,7 @@
      "type": "code",
      "src": "circuit.h(q0)\ncircuit.measure(q0, c0)\nwith circuit.switch(c0) as case:\n    with case(0):\n        circuit.x(q0)\n    with case(1):\n        circuit.z(q0)\ncircuit.measure(q0, c0)",
      "lang": "python",
-     "norun": true
+     "setup": "from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister\nfrom qiskit.circuit.classical import expr\n\nqubits = QuantumRegister(3, \"q\")\nclbits = ClassicalRegister(3, \"c\")\ncircuit = QuantumCircuit(qubits, clbits)\n(q0, q1, q2), (c0, c1, c2) = qubits, clbits"
     }
    ],
    "actions": [],
@@ -360,7 +360,7 @@
      "src": "from qiskit.circuit.classical import expr\n\nparity = expr.lift(mr[0])\nfor k in [1, 2]:\n    parity = expr.bit_xor(mr[k], parity)\nwith qc.if_test(parity):\n    qc.x(qr[5])\n\nqc.store(temp, expr.bit_not(creg))",
      "lang": "python",
      "id": "c",
-     "norun": true
+     "setup": "from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister\nfrom qiskit.circuit.classical import expr\n\nqr = QuantumRegister(6, \"qr\")\nmr = ClassicalRegister(3, \"mr\")\ncreg = ClassicalRegister(3, \"creg\")\nqc = QuantumCircuit(qr, mr, creg)\ntemp = qc.add_var(\"temp\", expr.lift(creg))"
     }
    ],
    "actions": [
@@ -407,7 +407,7 @@
      "src": "s = circuit.add_stretch(\"s\")\ncircuit.delay(s, q1)\ncircuit.x(q1)\ncircuit.delay(expr.mul(s, 2), q1)\ncircuit.x(q1)\ncircuit.delay(s, q1)\ncircuit.barrier()",
      "lang": "python",
      "id": "c",
-     "norun": true
+     "setup": "from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister\nfrom qiskit.circuit.classical import expr\n\nqubits = QuantumRegister(3, \"q\")\nclbits = ClassicalRegister(3, \"c\")\ncircuit = QuantumCircuit(qubits, clbits)\n(q0, q1, q2), (c0, c1, c2) = qubits, clbits"
     },
     {
      "type": "flow",

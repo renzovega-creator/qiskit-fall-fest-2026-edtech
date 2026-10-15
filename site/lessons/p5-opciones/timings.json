@@ -55,7 +55,7 @@
   ]
  },
  "estructura": {
-  "dur": 32.232,
+  "dur": 29.184,
   "marks": {
    "formato": 14.479,
    "unset": 20.395
@@ -75,18 +75,18 @@
    ],
    [
     20.395,
-    "Si no fijas una opción, recibe un valor especial, Unset, y se usa el valor por defecto del servidor: así el comportamiento no depende de tu versión del código."
+    "Si no fijas una opción, queda en None, y se usa su valor por defecto, que a veces depende del nivel de resiliencia."
    ]
   ]
  },
  "formas": {
-  "dur": 32.664,
+  "dur": 33.336,
   "marks": {
    "clase": 2.42,
    "dict": 7.501,
    "attr": 17.918,
    "update": 22.857,
-   "asdict": 26.863
+   "dump": 26.863
   },
   "cues": [
    [
@@ -115,7 +115,7 @@
    ],
    [
     26.863,
-    "Y como options es una dataclass, asdict la convierte en diccionario."
+    "Y como options es un modelo de pydantic, model dump lo convierte en diccionario."
    ]
   ]
  },

@@ -253,7 +253,7 @@
      "lang": "python",
      "id": "k",
      "hidden": true,
-     "norun": true
+     "setup": "from qiskit_aer.noise import NoiseModel\nfrom qiskit_ibm_runtime.fake_provider import FakeSherbrooke"
     }
    ],
    "actions": [
@@ -489,7 +489,7 @@
      "lang": "python",
      "id": "c",
      "hidden": true,
-     "norun": true,
+     "setup": "import numpy as np\nfrom qiskit_aer.noise import NoiseModel, thermal_relaxation_error\n\nT1s = np.array([50e3, 80e3, 120e3, 60e3])\nT2s = np.array([40e3, 90e3, 100e3, 70e3])\nnoise_thermal = NoiseModel()",
      "size": 20
     }
    ],

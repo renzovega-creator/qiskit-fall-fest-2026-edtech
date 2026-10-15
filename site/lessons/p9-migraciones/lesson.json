@@ -189,8 +189,8 @@
      "lang": "python",
      "id": "d",
      "hidden": true,
-     "norun": true,
-     "size": 21
+     "size": 21,
+     "setup": "from qiskit.providers.fake_provider import GenericBackendV2\ntarget = GenericBackendV2(5, seed=1).target"
     }
    ],
    "actions": [
@@ -265,7 +265,6 @@
      "src": "from qiskit_ibm_runtime.executor_sampler import Sampler\nfrom qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.options_models import SamplerOptions, EstimatorOptions",
      "lang": "python",
      "id": "c",
-     "norun": true,
      "size": 21
     },
     {
@@ -279,7 +278,7 @@
    "actions": [
     {
      "do": "hl",
-     "range": "1-3",
+     "range": "4-6",
      "id": "c",
      "at": "imports"
     },

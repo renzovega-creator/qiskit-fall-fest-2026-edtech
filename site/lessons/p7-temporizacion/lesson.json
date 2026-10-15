@@ -78,11 +78,11 @@
     "7.3",
     "Pedir los datos"
    ],
-   "say": "Se activa con una opción experimental del Sampler: en options punto experimental, execution, scheduler timing igual a True. [[leer]]Después, en la metadata de cada PUB, bajo compilation, scheduler timing, timing, están los datos en bruto.",
+   "say": "Se activa con una opción experimental del Sampler: en options punto execution, scheduler timing igual a True. [[leer]]Después, en la metadata de cada PUB, bajo compilation, scheduler timing, timing, están los datos en bruto.",
    "scene": [
     {
      "type": "code",
-     "src": "sampler = SamplerV2(backend)\nsampler.options.experimental = {\"execution\": {\"scheduler_timing\": True}}\nresult = sampler.run([isa_circuit]).result()\ntiming = result[0].metadata[\"compilation\"][\"scheduler_timing\"][\"timing\"]",
+     "src": "from qiskit_ibm_runtime.executor_sampler import Sampler\n\nsampler = Sampler(backend)\nsampler.options.execution.scheduler_timing = True\nresult = sampler.run([isa_circuit]).result()\ntiming = result[0].metadata[\"compilation\"][\"scheduler_timing\"][\"timing\"]",
      "lang": "python",
      "id": "c",
      "norun": true
@@ -92,14 +92,14 @@
     {
      "do": "hl",
      "lines": [
-      2
+      4
      ],
      "id": "c"
     },
     {
      "do": "hl",
      "lines": [
-      4
+      6
      ],
      "id": "c",
      "at": "leer"
@@ -264,13 +264,13 @@
     "7.3",
     "Resumen"
    ],
-   "say": "Resumen. [[r1]]Para circuitos dinámicos, pide los tiempos al servicio. [[r2]]Se activan con scheduler timing en las opciones experimentales del Sampler. [[r3]]Cada línea tiene rama, instrucción, canal, inicio, duración y pulso. [[r4]]Y draw circuit schedule timing los dibuja; ese tiempo no es el facturado.",
+   "say": "Resumen. [[r1]]Para circuitos dinámicos, pide los tiempos al servicio. [[r2]]Se activan con scheduler timing en las opciones de ejecución del Sampler. [[r3]]Cada línea tiene rama, instrucción, canal, inicio, duración y pulso. [[r4]]Y draw circuit schedule timing los dibuja; ese tiempo no es el facturado.",
    "scene": [
     {
      "type": "list",
      "items": [
       "para circuitos dinámicos, el dibujo de tiempos de Qiskit no es exacto",
-      "Sampler: `options.experimental = {\"execution\": {\"scheduler_timing\": True}}`",
+      "Sampler: `options.execution.scheduler_timing = True`",
       "metadata `[\"compilation\"][\"scheduler_timing\"][\"timing\"]`: rama, instrucción, canal, inicio, duración, pulso",
       "`draw_circuit_schedule_timing` · ese tiempo total **no** es el que se factura"
      ],

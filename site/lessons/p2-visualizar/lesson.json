@@ -107,7 +107,7 @@
      "lang": "python",
      "id": "c",
      "hidden": true,
-     "norun": true
+     "setup": "from qiskit.visualization import circuit_drawer"
     }
    ],
    "actions": [
@@ -401,7 +401,7 @@
      "src": "plot_histogram(\n    [result[0].data.meas.get_counts(),\n     second_result[0].data.meas.get_counts()],\n    legend=[\"first\", \"second\"],\n    sort=\"desc\",\n    number_to_keep=4,\n    color=[\"orange\", \"black\"],\n    bar_labels=False,\n    figsize=(15, 12),\n)",
      "lang": "python",
      "id": "c",
-     "norun": true
+     "setup": "from qiskit import QuantumCircuit\nfrom qiskit.primitives import StatevectorSampler\nfrom qiskit.visualization import plot_histogram\n\nqc = QuantumCircuit(2)\nqc.h(0)\nqc.cx(0, 1)\nqc.measure_all()\nresult = StatevectorSampler().run([qc], shots=1024).result()\nsecond_result = StatevectorSampler().run([qc], shots=1024).result()"
     },
     {
      "type": "text",
@@ -526,7 +526,7 @@
    "scene": [
     {
      "type": "code",
-     "src": "from qiskit.visualization.timeline import draw, IQXDebugging\nfrom qiskit.providers.fake_provider import GenericBackendV2\nfrom qiskit.transpiler import generate_preset_pass_manager\n\nqc = QuantumCircuit(2)\nqc.h(0)\nqc.cx(0, 1)\nbackend = GenericBackendV2(5)\npm = generate_preset_pass_manager(backend=backend, optimization_level=1)\nisa_circuit = pm.run(qc)\ndraw(isa_circuit, style=IQXDebugging(), target=backend.target)",
+     "src": "from qiskit.visualization.timeline import draw, IQXDebugging\nfrom qiskit.providers.fake_provider import GenericBackendV2\nfrom qiskit.transpiler import generate_preset_pass_manager\n\nqc = QuantumCircuit(2)\nqc.h(0)\nqc.cx(0, 1)\nbackend = GenericBackendV2(5)\npm = generate_preset_pass_manager(backend=backend, optimization_level=1, scheduling_method=\"alap\")\nisa_circuit = pm.run(qc)\ndraw(isa_circuit, style=IQXDebugging(), target=backend.target)",
      "lang": "python",
      "id": "c",
      "size": 22
@@ -560,8 +560,7 @@
     {
      "type": "code",
      "src": "circuit.draw(reverse_bits=True)",
-     "lang": "python",
-     "norun": true
+     "lang": "python"
     }
    ],
    "actions": [],

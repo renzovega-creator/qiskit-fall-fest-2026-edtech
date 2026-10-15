@@ -103,7 +103,7 @@
   ]
  },
  "sampler": {
-  "dur": 32.136,
+  "dur": 35.928,
   "marks": {
    "tiene": 6.666,
    "no_trex": 12.993,
@@ -128,7 +128,7 @@
    ],
    [
     27.669,
-    "La llamada al servicio requiere backend y credenciales."
+    "Las opciones se escriben igual con un backend real o con uno falso; solo el backend real exige credenciales."
    ]
   ]
  },
