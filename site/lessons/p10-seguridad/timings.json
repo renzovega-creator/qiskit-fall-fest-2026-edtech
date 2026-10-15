@@ -45,6 +45,30 @@
    ]
   ]
  },
+ "red_pred": {
+  "dur": 22.728,
+  "marks": {
+   "cual": 9.907
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de verlo, apuesta."
+   ],
+   [
+    3.0,
+    "Has creado un punto de acceso privado virtual, VPE, desde tu nube privada virtual."
+   ],
+   [
+    9.907,
+    "Ahora abres la consola web en el navegador, ejecutas un script con el SDK de Python y haces una llamada a la API REST."
+   ],
+   [
+    19.305,
+    "¿Cuáles de las tres van por la red privada?"
+   ]
+  ]
+ },
  "red": {
   "dur": 38.928,
   "marks": {
@@ -135,6 +159,58 @@
    [
     0.107,
     "Sobre responsabilidades."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 36.264,
+  "marks": {
+   "n1": 7.062,
+   "n2": 13.912,
+   "n3": 21.753
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Abre el cuaderno de práctica de esta lección con el comando de abajo."
+   ],
+   [
+    7.062,
+    "Primero lees una auditoría: conviertes eventos de actividad en los permisos que se ejercieron."
+   ],
+   [
+    13.912,
+    "Después amplías un detector de claves de API escritas en el código, sin marcar las que vienen del entorno."
+   ],
+   [
+    21.753,
+    "Y por último escribes qué hacer ante una caída regional, según tu plan, tus qubits y la residencia de tus datos."
+   ],
+   [
+    30.302,
+    "Todo con datos de ejemplo, sin cuenta."
+   ],
+   [
+    33.897,
+    "Busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 6.768,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
+   ],
+   [
+    3.397,
+    "Lo que escribas se guarda en tu navegador."
    ]
   ]
  },

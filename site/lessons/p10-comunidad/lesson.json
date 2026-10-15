@@ -178,6 +178,58 @@
    ]
   },
   {
+   "id": "citar_pred",
+   "tag": [
+    "10.4",
+    "Antes de citar"
+   ],
+   "say": "Antes de verlo, apuesta. Escribes un artículo y ejecutaste tu experimento en el QPU ibm fez. [[cual]]¿Qué datos del QPU debe llevar la cita?",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "tu artículo"
+      },
+      {
+       "t": "ibm_fez",
+       "s": "el QPU que usaste",
+       "color": "teal"
+      }
+     ],
+     "id": "f",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "f",
+     "at": "cual"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "f",
+     "at": "cual",
+     "t": 2
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué debe llevar la cita del QPU?",
+    "options": [
+     "solo «IBM Quantum», sin más datos",
+     "su nombre único, y opcionalmente su versión; conviene nombrar el procesador",
+     "el nombre de la persona que lo opera",
+     "la dirección IP del sistema"
+    ],
+    "after": "Anotado. Veamos qué recomienda la guía."
+   },
+   "align": "top"
+  },
+  {
    "id": "citar",
    "tag": [
     "10.4",
@@ -369,6 +421,142 @@
      "El soporte de IBM es para tu cuenta y tus trabajos; los errores del SDK van a GitHub.",
      null,
      "Mejor en público, donde otros pueden reproducirlo y ayudar."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "10.4",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero escribes la cita de un programa de IBM Quantum con la versión que tienes instalada. [[n2]]Después haces que la cita de un QPU sirva para cualquier backend, con su nombre, su versión y su familia. [[n3]]Y por último armas la sección de citas de un artículo: el agradecimiento, una frase por QPU y la referencia con el año. Usas backends simulados, sin cuenta. Busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p10-comunidad.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Cita un programa de IBM Quantum con la versión instalada."
+      },
+      {
+       "level": 2,
+       "text": "Haz que `cita_qpu` use el nombre, la versión y la familia del backend."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `seccion_de_citas(backends, anio)` con agradecimiento, QPU y referencia."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "proyecto",
+   "tag": [
+    "10.4",
+    "Tu proyecto: el informe final"
+   ],
+   "say": "Y el proyecto llega a su final. [[recalcula]]El hito diez es un informe reproducible. Recalculas la magnetización de tu cadena de espines: la curva exacta, los pasos de Trotter y la simulación con el ruido de Fake Fez. [[pasos]]Eliges cuántos pasos usar, equilibrando el error con la profundidad del circuito transpilado. [[informe]]Y escribes el informe: parámetros, tabla de resultados, versiones de software, y la cita de Qiskit y del QPU. Con las mismas semillas, cualquiera obtiene los mismos números.",
+   "scene": [
+    {
+     "type": "math",
+     "tex": "M(t) = \\frac{1}{N}\\sum_i \\langle Z_i \\rangle",
+     "size": 46
+    },
+    {
+     "type": "mission",
+     "notebook": "practica/proyecto/hito10.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Recalcula la curva exacta y compárala con 20 pasos de Trotter."
+      },
+      {
+       "level": 2,
+       "text": "Elige los pasos: error menor que 0.02 y profundidad transpilada de 200 o menos."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `informe(r, qpu, anio)` con parámetros, resultados, versiones y citas."
+      }
+     ],
+     "title": "Proyecto Ising · Hito X",
+     "id": "m",
+     "hidden": true,
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "m",
+     "at": "recalcula"
+    },
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "recalcula"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "pasos"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "informe"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "10.4",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para cerrar el curso. Lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Un resultado que nadie puede reproducir es solo una anécdota.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Qué necesita una persona ajena para reproducir tu informe dentro de un año? Haz una lista y marca qué parte ya incluye tu cuaderno.",
+     "Alguien te pide ayuda en Slack con un error. ¿Qué datos pondrías al preguntar, o al abrir un issue, para que la comunidad pueda reproducirlo?"
     ]
    },
    "align": "top"

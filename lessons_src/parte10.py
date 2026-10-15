@@ -1,6 +1,6 @@
 """Parte X · Organizaciones, seguridad y comunidad."""
-from lib import (T, M, L, Row, Box, A, beat, choice, numeric, lesson,
-                 Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph)
+from lib import (T, M, L, Row, Box, A, beat, choice, numeric, predict, reflect, lesson,
+                 Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph, Mission)
 from parte2 import resumen
 
 # ------------------------------------------------------------------ 10.1 Organizaciones e instancias
@@ -48,6 +48,15 @@ organizaciones = lesson(
                     dict(t="IDP y usuarios"), dict(t="cortafuegos", s="`quantum.cloud.ibm.com` …", color="gold")], id="f", stagger=True, numbered=True)],
              [A("item", "f", at="iam", i=0), A("item", "f", at="rg", i=1), A("item", "f", at="inst", i=2), A("item", "f", at="ag", i=3), A("item", "f", at="idp", i=4), A("item", "f", at="fw", i=5)]),
 
+        beat("limite_pred", ("", "Antes de ver el límite"),
+             """Antes de ver la regla, apuesta. Una instancia Premium tiene un límite de uso, y lo alcanza cuando tiene un trabajo en ejecución y tres en cola.
+             [[cual]]¿Qué crees que pasa con esos cuatro trabajos? No hace falta acertar: apostar primero hace que la regla se te quede.""",
+             [Table(["Instancia Premium con límite", ""], [["trabajos en ejecución", "1"], ["trabajos en cola", "3"], ["uso", "alcanzó el límite"]], id="t", size=24)],
+             ask=predict("Al alcanzar el límite, ¿qué pasa con esos cuatro trabajos?",
+                         ["los cuatro se cancelan", "el que se ejecuta continúa y los tres en cola esperan a que haya tiempo",
+                          "el que se ejecuta se detiene y los tres en cola pasan con menor prioridad", "todos siguen como si nada"],
+                         "Anotado. Veamos qué dice la regla.")),
+
         beat("asignacion", ("", "Asignaciones y límites"),
              """En Premium y Flex, la cuenta tiene un tiempo contratado que se reparte entre instancias. El tiempo asignado a cada una lo usa el planificador de reparto justo para su prioridad en la cola.
              [[limite]]La asignación puede ser además un límite. Cuando una instancia lo alcanza: lo que se está ejecutando sigue, lo pendiente queda en cola, y nada se cancela. Los colaboradores pueden enviar trabajos, pero esperan hasta que haya tiempo: en Flex, hasta que suban el límite; en Premium, hasta la siguiente ventana.
@@ -69,11 +78,26 @@ organizaciones = lesson(
              [A("show", "t", at="ext"), A("hl", "c", at="logs", lines=[2], dim=False)]),
 
         beat("q1", ("", "Comprueba"),
-             """Sobre límites.""",
-             [T("Una instancia Premium con límite alcanza su asignación mientras tiene 3 trabajos en cola.", "body")],
-             ask=choice("¿Qué les pasa a esos trabajos?", ["se cancelan", "siguen en cola hasta la siguiente ventana de uso", "se ejecutan con menor prioridad"], 1,
-                        "Correcto: con límite, nada se cancela; los pendientes esperan hasta que haya tiempo disponible (en Premium, la siguiente ventana de 28 días).",
-                        wrong=["Nunca se cancelan trabajos al llegar al límite.", None, "Eso pasa cuando la asignación no está marcada como límite."])),
+             """Ahora el caso contrario: una asignación que no es un límite.""",
+             [T("Una instancia Flex superó su tiempo asignado, pero la asignación no estaba marcada como límite.", "body")],
+             ask=choice("¿Qué pasa con sus trabajos nuevos?", ["se cancelan", "esperan hasta que suban el límite", "siguen, con menor prioridad y colas más largas"], 2,
+                        "Correcto: sin límite no se bloquea nada; la instancia pierde prioridad en el reparto justo y sus colas se alargan.",
+                        wrong=["Nunca se cancelan trabajos por superar la asignación.", "Eso pasa cuando la asignación sí es un límite.", None])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero lees una instancia con la API de gestión: el CRN va codificado en la ruta, y la respuesta trae los campos cuánticos. [[n2]]Después arreglas el cálculo de cuánto te queda en el plan Open: la ventana de veintiocho días se mueve, y los usos viejos dejan de contar.
+             [[n3]]Y por último escribes qué pasa con los trabajos al llegar a un límite, con y sin límite, sin cancelar ninguno. Las comprobaciones se actualizan solas: busca la marca verde.""",
+             [Mission("practica/p10-organizaciones.py", [
+                 (1, "Codifica el CRN de una instancia y lee los campos de `extensions`."),
+                 (2, "Corrige `restante` para que solo cuente la ventana móvil de 28 días del plan Open."),
+                 (3, "Escribe `tras_alcanzar`: qué pasa con cada trabajo con y sin límite.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma. Escribe con tus palabras: lo que escribas se guarda en tu navegador.""",
+             [T("Un límite protege el presupuesto; una asignación solo reparte prioridad.", "subtitle")],
+             ask=reflect("¿Por qué crees que alcanzar un límite deja los trabajos en cola en lugar de cancelarlos? ¿Qué se perdería si se cancelaran?",
+                         "Tu laboratorio tiene dos equipos y un proyecto compartido. ¿Cuántas instancias crearías, y cuáles tendrían un límite y cuáles solo una asignación?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Una instancia tiene un plan, una región y un CRN. [[r2]]Hay cuatro planes, de Open a Premium. [[r3]]Las asignaciones dan prioridad, y los límites detienen el consumo sin cancelar nada.
@@ -123,8 +147,23 @@ acceso = lesson(
              [A("item", "t", at="politicas", i=0), A("item", "t", at="politicas", t=4, i=1), A("item", "t", at="politicas", t=7, i=2), A("item", "t", at="politicas", t=10, i=3),
               A("show", "c", at="cli")]),
 
+        beat("custom_pred", ("", "Antes de los roles personalizados"),
+             """Antes de verlos, apuesta. Un rol personalizado se compone de acciones concretas del servicio. Este tiene siete: leer dispositivos, crear, leer y cancelar trabajos, leer y borrar programas, y cerrar sesión.
+             [[cual]]Un usuario con este rol, ¿podrá borrar un trabajo?""",
+             [Code('''quantum-computing.device.read
+quantum-computing.job.create
+quantum-computing.job.read
+quantum-computing.job.cancel
+quantum-computing.program.read
+quantum-computing.program.delete
+quantum-computing.user.logout''', "text", id="c", size=22)],
+             ask=predict("¿Puede este usuario borrar un trabajo (`DELETE /v1/jobs/{id}`)?",
+                         ["sí: puede crearlos y cancelarlos, así que también borrarlos", "no: borrar trabajos es una acción aparte que no está en la lista",
+                          "sí, porque puede borrar programas", "solo si además es administrador de la cuenta"],
+                         "Anotado. Veamos la lista completa.")),
+
         beat("custom", ("", "Roles personalizados"),
-             """Cuando los roles predefinidos no encajan, se crean roles personalizados eligiendo acciones concretas del servicio. [[trabajo]]Por ejemplo, un rol para trabajar con instancias: leer dispositivos, crear, leer y cancelar trabajos, leer y borrar programas, y opcionalmente borrar trabajos.
+             """Cuando los roles predefinidos no encajan, se crean roles personalizados eligiendo acciones concretas del servicio. [[trabajo]]Por ejemplo, un rol para trabajar con instancias: leer dispositivos, crear, leer y cancelar trabajos, leer y borrar programas, cerrar sesión, y opcionalmente borrar trabajos. Borrar programas no es borrar trabajos: son acciones distintas.
              [[analitica]]O un rol que solo ve la analítica de uso. [[lector]]Un patrón útil: dos roles, uno lector sin acciones de cancelar, borrar ni actualizar, y otro escritor con todas, cada uno en su grupo.""",
              [Code('''quantum-computing.device.read
 quantum-computing.job.create
@@ -132,6 +171,7 @@ quantum-computing.job.read
 quantum-computing.job.cancel
 quantum-computing.program.read
 quantum-computing.program.delete
+quantum-computing.user.logout
 quantum-computing.job.delete        # opcional''', "text", id="c", size=22),
               Row(Box("def", "MLreader", T("sin cancelar, borrar ni actualizar", "body")), Box("def", "MLwriter", T("todas las acciones", "body")), id="r", hidden=True, gap=24)],
              [A("hl", "c", at="trabajo", range="1-7"), A("show", "r", at="lector")]),
@@ -151,6 +191,21 @@ quantum-computing.job.delete        # opcional''', "text", id="c", size=22),
              ask=choice("¿Qué roles le das sobre esa instancia?", ["Manager (servicio) + Editor (plataforma)", "Writer (servicio) + Viewer (plataforma)", "Reader (servicio)"], 1,
                         "Correcto: Writer permite ejecutar trabajos y Viewer de plataforma permite ver la instancia; sin permisos de gestión.",
                         wrong=["Demasiados permisos: podría crear instancias y cancelar trabajos ajenos.", None, "Reader no permite ejecutar trabajos."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero compruebas qué llamadas de la API permite el rol de trabajar con instancias, y confirmas si puede borrar trabajos. [[n2]]Después derivas un rol lector a partir del escritor, quitando las acciones de cancelar, borrar y actualizar.
+             [[n3]]Y por último escribes un detector de valores que son subcadenas de otros, para que una regla dinámica no dé más acceso del que pretendes. Busca la marca verde en cada misión.""",
+             [Mission("practica/p10-acceso.py", [
+                 (1, "Lista qué llamadas de la API permite un rol personalizado."),
+                 (2, "Deriva `lector` del escritor sin tocar las demás acciones."),
+                 (3, "Escribe `conflictos(valores)` para detectar subcadenas como `ml` en `chemlab`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma. Lo que escribas se guarda en tu navegador.""",
+             [T("Dar menos permisos da más trabajo hoy y evita más problemas mañana.", "subtitle")],
+             ask=reflect("La guía recomienda dar a cada persona los permisos mínimos. ¿Qué riesgo concreto corre una organización que da Manager a todo el mundo?",
+                         "Tu equipo tiene estudiantes, investigadoras y una persona que audita el uso. ¿Qué grupos de acceso crearías y qué roles tendría cada uno?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Una cuenta tiene usuarios, instancias, políticas y grupos de acceso. [[r2]]Hay roles de plataforma y de servicio, y se combinan. [[r3]]Los roles personalizados afinan permisos.
@@ -187,6 +242,14 @@ seguridad = lesson(
              [A("item", "a", at="ibm", i=0), A("item", "a", at="ibm", t=2, i=1), A("item", "a", at="ibm", t=4, i=2), A("item", "a", at="ibm", t=6, i=3),
               A("item", "b", at="tu", i=0), A("item", "b", at="tu", t=2, i=1), A("item", "b", at="tu", t=3, i=2), A("item", "b", at="tu", t=5, i=3)]),
 
+        beat("red_pred", ("", "Antes de la red privada"),
+             """Antes de verlo, apuesta. Has creado un punto de acceso privado virtual, VPE, desde tu nube privada virtual. [[cual]]Ahora abres la consola web en el navegador, ejecutas un script con el SDK de Python y haces una llamada a la API REST. ¿Cuáles de las tres van por la red privada?""",
+             [Flow([dict(t="sitio web", s="navegador"), dict(t="SDK de Python", s="qiskit-ibm-runtime"), dict(t="API REST", s="curl")], id="f", stagger=True)],
+             [A("item", "f", at="cual", i=0), A("item", "f", at="cual", t=2, i=1), A("item", "f", at="cual", t=4, i=2)],
+             ask=predict("¿Cuáles de las tres conexiones van por el VPE?",
+                         ["las tres", "el SDK y la API, no el sitio web", "solo la API REST", "ninguna: el tráfico siempre sale a internet"],
+                         "Anotado. Veamos qué dice la guía.")),
+
         beat("red", ("", "Conexiones privadas y restricciones"),
              """Dentro de la red de IBM, la comunicación siempre es privada. Pero tu conexión con la plataforma va por internet, salvo que uses un punto de acceso privado virtual, VPE, desde tu nube privada virtual: así el tráfico no sale a la red pública. Funciona con la API y el SDK, no con el sitio web.
              [[cbr]]Las restricciones basadas en contexto añaden una capa más: además de quién eres, comprueban desde dónde llega la petición, por ejemplo desde ciertas redes. No dan acceso; solo lo restringen.""",
@@ -220,6 +283,21 @@ seguridad = lesson(
              ask=choice("¿De quién es la responsabilidad de actuar y qué haces?", ["de IBM: detectará el uso indebido", "tuya: revocar la clave de inmediato y crear otra", "de nadie: las claves no caducan"], 1,
                         "Correcto: proteger las claves es tu responsabilidad; revócala borrándola en IBM Cloud API keys y crea una nueva.",
                         wrong=["Proteger las claves es responsabilidad del cliente.", None, "Justamente por eso hay que revocarla."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero lees una auditoría: conviertes eventos de actividad en los permisos que se ejercieron. [[n2]]Después amplías un detector de claves de API escritas en el código, sin marcar las que vienen del entorno.
+             [[n3]]Y por último escribes qué hacer ante una caída regional, según tu plan, tus qubits y la residencia de tus datos. Todo con datos de ejemplo, sin cuenta. Busca la marca verde.""",
+             [Mission("practica/p10-seguridad.py", [
+                 (1, "Cuenta qué permisos ejercen los eventos de una auditoría."),
+                 (2, "Amplía el patrón que detecta claves de API en el código."),
+                 (3, "Escribe `ante_desastre`: esperar o crear una instancia en la otra región.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma. Lo que escribas se guarda en tu navegador.""",
+             [T("La seguridad es compartida: saber qué te toca a ti es la mitad del trabajo.", "subtitle")],
+             ask=reflect("Una clave de API de tu equipo apareció en un repositorio público. Describe con tus palabras qué haces en los primeros diez minutos y por qué.",
+                         "En tu proyecto Ising, ¿qué parte dependería de qubits concretos de una región y cuál podrías reenviar sin cambios a otra?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Tus datos están cifrados y se retienen tres años. [[r2]]La seguridad es compartida entre IBM y tú. [[r3]]Hay conexiones privadas, restricciones por contexto y alta disponibilidad en tres zonas.
@@ -264,6 +342,15 @@ comunidad = lesson(
                     id="t", stagger=True, size=22)],
              [A("item", "t", at="tarjeta", i=0), A("item", "t", at="clave", i=1), A("item", "t", at="region", i=2), A("item", "t", at="proxy", i=3), A("item", "t", at="aer", i=4)]),
 
+        beat("citar_pred", ("", "Antes de citar"),
+             """Antes de verlo, apuesta. Escribes un artículo y ejecutaste tu experimento en el QPU ibm fez. [[cual]]¿Qué datos del QPU debe llevar la cita?""",
+             [Flow([dict(t="tu artículo"), dict(t="ibm_fez", s="el QPU que usaste", color="teal")], id="f", stagger=True)],
+             [A("item", "f", at="cual", i=0), A("item", "f", at="cual", t=2, i=1)],
+             ask=predict("¿Qué debe llevar la cita del QPU?",
+                         ["solo «IBM Quantum», sin más datos", "su nombre único, y opcionalmente su versión; conviene nombrar el procesador",
+                          "el nombre de la persona que lo opera", "la dirección IP del sistema"],
+                         "Anotado. Veamos qué recomienda la guía.")),
+
         beat("citar", ("", "Citar en tu investigación"),
              """Si usas Qiskit en un artículo, cítalo con el archivo BibTeX del repositorio. [[agradecer]]Para los equipos de IBM, se recomienda un agradecimiento, y citar IBM Quantum con su dirección y el año. [[qpu]]Los QPUs se citan por su nombre único, opcionalmente con la versión, y conviene mencionar el tipo de procesador.""",
              [Box("def", "Agradecimiento sugerido", T("We acknowledge the use of IBM Quantum services for this work. The views expressed are those of the authors, and do not reflect the official policy or position of IBM or the IBM Quantum team.", "body"), id="b", hidden=True),
@@ -290,6 +377,32 @@ comunidad = lesson(
              ask=choice("¿Dónde lo reportas?", ["en un caso de IBM Cloud Support", "como issue en el GitHub de Qiskit", "en un mensaje privado a un desarrollador"], 1,
                         "Correcto: los errores del SDK se reportan como issues en github.com/Qiskit/qiskit, donde también se siguen las próximas versiones.",
                         wrong=["El soporte de IBM es para tu cuenta y tus trabajos; los errores del SDK van a GitHub.", None, "Mejor en público, donde otros pueden reproducirlo y ayudar."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero escribes la cita de un programa de IBM Quantum con la versión que tienes instalada. [[n2]]Después haces que la cita de un QPU sirva para cualquier backend, con su nombre, su versión y su familia.
+             [[n3]]Y por último armas la sección de citas de un artículo: el agradecimiento, una frase por QPU y la referencia con el año. Usas backends simulados, sin cuenta. Busca la marca verde.""",
+             [Mission("practica/p10-comunidad.py", [
+                 (1, "Cita un programa de IBM Quantum con la versión instalada."),
+                 (2, "Haz que `cita_qpu` use el nombre, la versión y la familia del backend."),
+                 (3, "Escribe `seccion_de_citas(backends, anio)` con agradecimiento, QPU y referencia.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("proyecto", ("", "Tu proyecto: el informe final"),
+             """Y el proyecto llega a su final. [[recalcula]]El hito diez es un informe reproducible. Recalculas la magnetización de tu cadena de espines: la curva exacta, los pasos de Trotter y la simulación con el ruido de Fake Fez.
+             [[pasos]]Eliges cuántos pasos usar, equilibrando el error con la profundidad del circuito transpilado. [[informe]]Y escribes el informe: parámetros, tabla de resultados, versiones de software, y la cita de Qiskit y del QPU. Con las mismas semillas, cualquiera obtiene los mismos números.""",
+             [M(r"M(t) = \frac{1}{N}\sum_i \langle Z_i \rangle", size=46),
+              Mission("practica/proyecto/hito10.py", [
+                  (1, "Recalcula la curva exacta y compárala con 20 pasos de Trotter."),
+                  (2, "Elige los pasos: error menor que 0.02 y profundidad transpilada de 200 o menos."),
+                  (3, "Escribe `informe(r, qpu, anio)` con parámetros, resultados, versiones y citas.")],
+                  title="Proyecto Ising · Hito X", id="m", hidden=True, stagger=True)],
+             [A("show", "m", at="recalcula"), A("item", "m", at="recalcula", i=0), A("item", "m", at="pasos", i=1), A("item", "m", at="informe", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para cerrar el curso. Lo que escribas se guarda en tu navegador.""",
+             [T("Un resultado que nadie puede reproducir es solo una anécdota.", "subtitle")],
+             ask=reflect("¿Qué necesita una persona ajena para reproducir tu informe dentro de un año? Haz una lista y marca qué parte ya incluye tu cuaderno.",
+                         "Alguien te pide ayuda en Slack con un error. ¿Qué datos pondrías al preguntar, o al abrir un issue, para que la comunidad pueda reproducirlo?")),
 
         beat("cierre", ("", "Fin del curso"),
              """Resumen. [[r1]]Soporte en IBM Cloud, comunidad en Slack y Stack Exchange. [[r2]]Errores y propuestas en GitHub. [[r3]]Cita Qiskit y los QPUs que uses.

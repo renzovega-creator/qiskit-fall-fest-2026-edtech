@@ -277,16 +277,46 @@
    ]
   },
   {
+   "id": "custom_pred",
+   "tag": [
+    "10.2",
+    "Antes de los roles personalizados"
+   ],
+   "say": "Antes de verlos, apuesta. Un rol personalizado se compone de acciones concretas del servicio. Este tiene siete: leer dispositivos, crear, leer y cancelar trabajos, leer y borrar programas, y cerrar sesión. [[cual]]Un usuario con este rol, ¿podrá borrar un trabajo?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "quantum-computing.device.read\nquantum-computing.job.create\nquantum-computing.job.read\nquantum-computing.job.cancel\nquantum-computing.program.read\nquantum-computing.program.delete\nquantum-computing.user.logout",
+     "lang": "text",
+     "id": "c",
+     "size": 22
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Puede este usuario borrar un trabajo (`DELETE /v1/jobs/{id}`)?",
+    "options": [
+     "sí: puede crearlos y cancelarlos, así que también borrarlos",
+     "no: borrar trabajos es una acción aparte que no está en la lista",
+     "sí, porque puede borrar programas",
+     "solo si además es administrador de la cuenta"
+    ],
+    "after": "Anotado. Veamos la lista completa."
+   },
+   "align": "top"
+  },
+  {
    "id": "custom",
    "tag": [
     "10.2",
     "Roles personalizados"
    ],
-   "say": "Cuando los roles predefinidos no encajan, se crean roles personalizados eligiendo acciones concretas del servicio. [[trabajo]]Por ejemplo, un rol para trabajar con instancias: leer dispositivos, crear, leer y cancelar trabajos, leer y borrar programas, y opcionalmente borrar trabajos. [[analitica]]O un rol que solo ve la analítica de uso. [[lector]]Un patrón útil: dos roles, uno lector sin acciones de cancelar, borrar ni actualizar, y otro escritor con todas, cada uno en su grupo.",
+   "say": "Cuando los roles predefinidos no encajan, se crean roles personalizados eligiendo acciones concretas del servicio. [[trabajo]]Por ejemplo, un rol para trabajar con instancias: leer dispositivos, crear, leer y cancelar trabajos, leer y borrar programas, cerrar sesión, y opcionalmente borrar trabajos. Borrar programas no es borrar trabajos: son acciones distintas. [[analitica]]O un rol que solo ve la analítica de uso. [[lector]]Un patrón útil: dos roles, uno lector sin acciones de cancelar, borrar ni actualizar, y otro escritor con todas, cada uno en su grupo.",
    "scene": [
     {
      "type": "code",
-     "src": "quantum-computing.device.read\nquantum-computing.job.create\nquantum-computing.job.read\nquantum-computing.job.cancel\nquantum-computing.program.read\nquantum-computing.program.delete\nquantum-computing.job.delete        # opcional",
+     "src": "quantum-computing.device.read\nquantum-computing.job.create\nquantum-computing.job.read\nquantum-computing.job.cancel\nquantum-computing.program.read\nquantum-computing.program.delete\nquantum-computing.user.logout\nquantum-computing.job.delete        # opcional",
      "lang": "text",
      "id": "c",
      "size": 22
@@ -437,6 +467,80 @@
      "Demasiados permisos: podría crear instancias y cancelar trabajos ajenos.",
      null,
      "Reader no permite ejecutar trabajos."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "10.2",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero compruebas qué llamadas de la API permite el rol de trabajar con instancias, y confirmas si puede borrar trabajos. [[n2]]Después derivas un rol lector a partir del escritor, quitando las acciones de cancelar, borrar y actualizar. [[n3]]Y por último escribes un detector de valores que son subcadenas de otros, para que una regla dinámica no dé más acceso del que pretendes. Busca la marca verde en cada misión.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p10-acceso.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Lista qué llamadas de la API permite un rol personalizado."
+      },
+      {
+       "level": 2,
+       "text": "Deriva `lector` del escritor sin tocar las demás acciones."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `conflictos(valores)` para detectar subcadenas como `ml` en `chemlab`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "10.2",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma. Lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Dar menos permisos da más trabajo hoy y evita más problemas mañana.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "La guía recomienda dar a cada persona los permisos mínimos. ¿Qué riesgo concreto corre una organización que da Manager a todo el mundo?",
+     "Tu equipo tiene estudiantes, investigadoras y una persona que audita el uso. ¿Qué grupos de acceso crearías y qué roles tendría cada uno?"
     ]
    },
    "align": "top"
