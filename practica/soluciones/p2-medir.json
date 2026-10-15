@@ -1,0 +1,14 @@
+[
+ [
+  "    prediccion = None   # ✏️ tu apuesta: ¿cuántos bits clásicos?",
+  "    prediccion = 4"
+ ],
+ [
+  "    emparejado.measure([0, 2], [0, 1])   # ✏️ qubits y bits en el orden que pide el enunciado",
+  "    emparejado.measure([2, 0], [0, 1])"
+ ],
+ [
+  "    # ✏️ entrelaza los qubits 1 y 3 y mídelos con measure_active()\n\n    para_estimator = bell13   # ✏️ el mismo circuito sin mediciones",
+  "    bell13.h(1)\n    bell13.cx(1, 3)\n    bell13.measure_active()\n\n    para_estimator = bell13.remove_final_measurements(inplace=False)"
+ ]
+]

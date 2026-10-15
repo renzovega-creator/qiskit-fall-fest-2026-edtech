@@ -1,0 +1,14 @@
+[
+ [
+  "    orden = \"\"   # ✏️ \"XZ\" o \"ZX\"",
+  "    orden = \"ZX\""
+ ],
+ [
+  "qargs=[0, 2])   # ✏️ cambia qargs",
+  "qargs=[2, 1])"
+ ],
+ [
+  "        # ✏️ añade a `terminos` las tripletas (cadena, [i, i + 1], 1) de cada par de vecinos",
+  "        for i in range(n - 1):\n            for cadena in (\"XX\", \"YY\", \"ZZ\"):\n                terminos.append((cadena, [i, i + 1], 1))"
+ ]
+]

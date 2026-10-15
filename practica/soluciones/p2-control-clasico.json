@@ -1,0 +1,14 @@
+[
+ [
+  "    prediccion = \"\"   # ✏️ tu apuesta: \"0\", \"1\" o \"azar\"",
+  "    prediccion = \"0\""
+ ],
+ [
+  "    with siempre_uno.if_test((c2[0], 1)):   # ✏️ ¿con qué valor del bit hay que aplicar la X?",
+  "    with siempre_uno.if_test((c2[0], 0)):"
+ ],
+ [
+  "        # ✏️ H y medir una vez; después, while_loop mientras c valga 0: H y medir otra vez",
+  "        qc.h(q[0])\n        qc.measure(q[0], c[0])\n        with qc.while_loop((c, 0)):\n            qc.h(q[0])\n            qc.measure(q[0], c[0])"
+ ]
+]

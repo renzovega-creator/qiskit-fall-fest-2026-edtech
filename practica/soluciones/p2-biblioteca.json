@@ -1,0 +1,14 @@
+[
+ [
+  "    prediccion = None   # ✏️ tu apuesta: ¿cuántos parámetros?",
+  "    prediccion = 12"
+ ],
+ [
+  "    barato = n_local(4, \"ry\", \"cz\")   # ✏️ añade los argumentos que faltan",
+  "    barato = n_local(4, \"ry\", \"cz\", reps=1, entanglement=\"linear\")"
+ ],
+ [
+  "        # ✏️ initialize(x) en a, initialize(y) en b, el sumador sobre todos los qubits y measure de b en res",
+  "        qc.initialize(x, a)\n        qc.initialize(y, b)\n        qc.append(FullAdderGate(4), qc.qubits)\n        qc.measure(b, res)"
+ ]
+]
