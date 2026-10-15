@@ -86,7 +86,7 @@
     "3.7",
     "Ver qué plugins hay"
    ],
-   "say": "Para cada tipo hay una función que lista lo instalado. [[stage]]list stage plugins, con el nombre de la etapa. [[unit]]unitary synthesis plugin names: aquí aparecen aqc, clifford, gridsynth y sk, el algoritmo de Solovay Kitaev. [[hl]]Y high level synthesis plugin names, con el tipo de objeto: para Clifford, siete métodos distintos.",
+   "say": "Para cada tipo hay una función que lista lo instalado. [[stage]]list stage plugins, con el nombre de la etapa. [[unit]]unitary synthesis plugin names: aquí aparecen aqc, clifford, gridsynth y sk, el algoritmo de Solovay Kitaev. [[hl]]Y high level synthesis plugin names, con el tipo de objeto: para Clifford, seis nombres, contando default.",
    "scene": [
     {
      "type": "code",
@@ -238,6 +238,113 @@
      "do": "show",
      "id": "t",
      "at": "ep"
+    }
+   ]
+  },
+  {
+   "id": "apuesta",
+   "tag": [
+    "3.7",
+    "Antes de ejecutar"
+   ],
+   "say": "Pongamos a prueba ese plugin. [[lista]]Lo pasamos a un HLSConfig seguido de greedy, un método que ya trae Qiskit: se prueban en orden, y el primero que devuelve un circuito gana. [[reto]]Y le damos un Clifford de cinco qubits. Apuesta: ¿quién lo sintetiza?",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "MyCliffordSynthesisPlugin",
+       "s": "solo hasta 3 qubits",
+       "color": "blue"
+      },
+      {
+       "t": "greedy",
+       "s": "método de Qiskit",
+       "color": "teal"
+      }
+     ],
+     "id": "f",
+     "stagger": true
+    },
+    {
+     "type": "text",
+     "text": "Clifford aleatorio de 5 qubits",
+     "style": "note"
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "f",
+     "at": "lista"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "f",
+     "at": "lista",
+     "t": 1
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Con `clifford=[MyCliffordSynthesisPlugin(), \"greedy\"]` y un Clifford de 5 qubits, ¿quién lo sintetiza?",
+    "options": [
+     "mi plugin",
+     "`greedy`",
+     "nadie: queda un `clifford` sin sintetizar",
+     "da error"
+    ],
+    "after": "Anotado. Lo comprobamos con y sin el método de respaldo."
+   },
+   "align": "top"
+  },
+  {
+   "id": "respaldo",
+   "tag": [
+    "3.7",
+    "Un método de respaldo"
+   ],
+   "say": "Probamos con dos Clifford, de tres y de cinco qubits, y dos configuraciones. [[solo]]Con mi plugin solo, el de tres qubits se sintetiza, pero el de cinco queda como un Clifford sin tocar: mi plugin devolvió None. [[resp]]Con greedy detrás, se sintetizan los dos. [[res]]Si apostaste por greedy, acertaste: devolver None no es un error, es la señal de pasar al siguiente método.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import random_clifford\nfrom qiskit.transpiler import PassManager\nfrom qiskit.transpiler.passes import HLSConfig, HighLevelSynthesis\n\ndef sin_sintetizar(n, metodos):\n    qc = QuantumCircuit(n)\n    qc.append(random_clifford(n, seed=1), range(n))\n    out = PassManager([HighLevelSynthesis(hls_config=HLSConfig(clifford=metodos))]).run(qc)\n    return \"clifford\" in out.count_ops()\n\nsolo = [(MyCliffordSynthesisPlugin(), {})]\ncon_respaldo = [(MyCliffordSynthesisPlugin(), {}), \"greedy\"]\nfor n in (3, 5):\n    print(n, sin_sintetizar(n, solo), sin_sintetizar(n, con_respaldo))",
+     "lang": "python",
+     "id": "c",
+     "size": 19
+    },
+    {
+     "type": "code",
+     "src": "3 False False\n5 True False",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      14
+     ],
+     "id": "c",
+     "at": "solo"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      15
+     ],
+     "id": "c",
+     "at": "resp"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "solo"
     }
    ]
   },
@@ -435,6 +542,158 @@
      null,
      "`improve` puede mover los qubits.",
      "`optimize` ignora tu layout."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "3.7",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, lista los métodos que Qiskit ya trae para Clifford, unitarias y routing. [[n2]]Después, cambia el método de routing de una cuadrícula para quitar CNOT. [[n3]]Y por último, escribe tu propio plugin de síntesis de Clifford, que se rinde con más de tres qubits y deja pasar al siguiente método.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p3-plugins.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Lista los plugins de Clifford, de unitarias y de routing."
+      },
+      {
+       "level": 2,
+       "text": "Cambia `routing_method` para bajar a 55 CNOT o menos."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `MiClifford.run`: sintetiza hasta 3 qubits y devuelve `None` si no."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "proyecto",
+   "tag": [
+    "3.7",
+    "Tu proyecto: transpilar la cadena"
+   ],
+   "say": "Con esto termina la transpilación, y el hito tres de tu proyecto. [[circuito]]Ya tienes el circuito de varios pasos de Trotter de la cadena de espines. [[fez]]Transpílalo para FakeFez, [[niveles]]compara los cuatro niveles de optimización [[prof]]y mide cuánta profundidad añade cada paso. Esa profundidad decidirá cuántos pasos caben cuando ejecutes en hardware real.",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "Trotter",
+       "s": "N pasos · rzz + rx",
+       "color": "blue"
+      },
+      {
+       "t": "FakeFez",
+       "s": "cz, rz, sx, x",
+       "color": "teal"
+      },
+      {
+       "t": "niveles 0-3",
+       "s": "profundidad",
+       "color": "gold"
+      }
+     ],
+     "id": "f",
+     "stagger": true
+    },
+    {
+     "type": "mission",
+     "notebook": "practica/proyecto/hito3.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Transpila el circuito de Trotter para `FakeFez` y cuenta las `cz`."
+      },
+      {
+       "level": 2,
+       "text": "Compara la profundidad en los niveles 0 a 3."
+      },
+      {
+       "level": 3,
+       "text": "Mide la profundidad frente al número de pasos y calcula cuántos caben."
+      }
+     ],
+     "title": "Proyecto Ising · Hito III",
+     "id": "m",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "f",
+     "at": "circuito"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "f",
+     "at": "fez"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "f",
+     "at": "niveles"
+    },
+    {
+     "do": "show",
+     "id": "m",
+     "at": "prof"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "3.7",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Un plugin convierte tu idea en una opción más del transpilador.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Qué ventaja tiene publicar un plugin frente a pasar tu pase suelto a cada colega? ¿Y qué cuesta mantenerlo?",
+     "Los pases de IA reducen CNOT, pero son una caja negra. ¿En qué casos los usarías en tu proyecto Ising, y qué comprobarías antes de fiarte?"
     ]
    },
    "align": "top"

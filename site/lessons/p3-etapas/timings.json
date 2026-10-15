@@ -201,14 +201,9 @@
    ]
   ]
  },
- "ejemplo": {
-  "dur": 37.992,
-  "marks": {
-   "n0": 17.592,
-   "n1": 20.819,
-   "n23": 22.815,
-   "var": 28.066
-  },
+ "apuesta": {
+  "dur": 27.288,
+  "marks": {},
   "cues": [
    [
     0.107,
@@ -216,18 +211,45 @@
    ],
    [
     11.945,
+    "El circuito original tiene catorce CNOT."
+   ],
+   [
+    15.965,
     "El qubit cero tiene que interactuar con todos, así que el routing sufre."
    ],
    [
-    17.592,
-    "Con el nivel cero salen sesenta y dos CNOT; con el uno, cincuenta; y con los niveles dos y tres, veintiséis, menos de la mitad."
+    21.612,
+    "Apuesta: con el nivel cero, ¿cuántas CNOT tendrá el resultado?"
+   ]
+  ]
+ },
+ "ejemplo": {
+  "dur": 29.52,
+  "marks": {
+   "n0": 3.015,
+   "n1": 12.327,
+   "n23": 14.323,
+   "var": 19.602
+  },
+  "cues": [
+   [
+    0.107,
+    "Ejecutemos el mismo ejemplo."
    ],
    [
-    28.066,
+    3.015,
+    "Con el nivel cero salen sesenta y dos CNOT: cuatro veces las que escribiste; si apostaste por unas sesenta, acertaste."
+   ],
+   [
+    12.327,
+    "Con el uno, cincuenta; y con los niveles dos y tres, veintiséis, menos de la mitad."
+   ],
+   [
+    19.602,
     "Como el routing es estocástico, estos números cambian con la semilla."
    ],
    [
-    33.387,
+    24.924,
     "Para resultados reproducibles, fija seed transpiler."
    ]
   ]
@@ -264,6 +286,42 @@
    [
     0.107,
     "Una pregunta conceptual."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 25.728,
+  "marks": {
+   "n1": 2.137,
+   "n2": 9.568,
+   "n3": 17.479
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, reproduce el GHZ de quince qubits en línea y compara las CNOT de cada nivel."
+   ],
+   [
+    9.568,
+    "Después, elige tú el layout inicial de un chip en forma de T para que el circuito no necesite ningún SWAP."
+   ],
+   [
+    17.479,
+    "Y por último, escribe una función que transpila varias veces con distintas semillas y devuelve el mejor resultado."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },

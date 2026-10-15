@@ -75,12 +75,56 @@
    ]
   },
   {
+   "id": "apuesta",
+   "tag": [
+    "3.3",
+    "Antes de ejecutar"
+   ],
+   "say": "Como las puertas de dos qubits son la mayor fuente de error, una buena medida de calidad es contarlas. Probemos con una unitaria aleatoria de dos qubits seguida de un SWAP, sobre el backend falso Sherbrooke, cuya puerta de dos qubits es la ECR. [[reto]]Un SWAP cuesta tres CNOT, y una unitaria aleatoria de dos qubits, hasta tres. Apuesta: con el nivel tres, ¿cuántas ECR quedan?",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 2,
+     "ops": [
+      {
+       "g": "box",
+       "q": [
+        0,
+        1
+       ],
+       "label": "U"
+      },
+      {
+       "g": "swap",
+       "q": [
+        0,
+        1
+       ]
+      }
+     ]
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Con `optimization_level=3` en `FakeSherbrooke`, ¿cuántas `ecr` tiene el resultado?",
+    "options": [
+     "1",
+     "3",
+     "6",
+     "9"
+    ],
+    "after": "Anotado. Veamos qué hace cada nivel."
+   },
+   "align": "top"
+  },
+  {
    "id": "accion",
    "tag": [
     "3.3",
     "Los niveles en acción"
    ],
-   "say": "Como las puertas de dos qubits son la mayor fuente de error, una buena medida de calidad es contarlas. Probemos con una unitaria aleatoria de dos qubits seguida de un SWAP, sobre el backend falso Sherbrooke, cuya puerta de dos qubits es la ECR. [[n01]]Con los niveles cero y uno salen seis ECR. [[n23]]Con los niveles dos y tres, solo tres: la unitaria y el SWAP se fusionan en un solo bloque de dos qubits, y cualquier unitaria de dos qubits se puede hacer con tres puertas de entrelazamiento como máximo. [[nota]]Subir de nivel no siempre cambia algo, pero aquí sí.",
+   "say": "Ejecutemos el código con los cuatro niveles. [[n01]]Con los niveles cero y uno salen seis ECR: la unitaria y el SWAP se traducen por separado, a tres cada uno. [[n23]]Con los niveles dos y tres, solo tres: la unitaria y el SWAP se fusionan en un solo bloque de dos qubits, y cualquier unitaria de dos qubits se puede hacer con tres puertas de entrelazamiento como máximo. Si apostaste por tres, acertaste. [[nota]]Subir de nivel no siempre cambia algo, pero aquí sí.",
    "scene": [
     {
      "type": "code",
@@ -473,6 +517,80 @@
      "En hardware ruidoso, aproximar puede dar mejores resultados.",
      null,
      "En un simulador ideal no tiene sentido aproximar: no hay ruido que ahorrar."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "3.3",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, cuenta las ECR de la unitaria con SWAP en cada nivel. [[n2]]Después, usa el grado de aproximación para quitar una ECR de más. [[n3]]Y por último, escribe una función que pruebe los cuatro niveles y te devuelva el más bajo que logre el menor número de puertas de dos qubits.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p3-niveles.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Cuenta las `ecr` de la unitaria con SWAP en los niveles 0 a 3."
+      },
+      {
+       "level": 2,
+       "text": "Ajusta `approximation_degree` para que baje a 2 `ecr`."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `mejor_nivel(qc, backend)`: el nivel más bajo con menos puertas de dos qubits."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "3.3",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Más esfuerzo del transpilador no siempre da un circuito mejor.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Hoy el nivel 3 fue el mejor en las ECR, pero no siempre lo es. ¿Cómo decidirías qué nivel usar en tu proyecto Ising?",
+     "`approximation_degree` cambia exactitud por menos puertas. ¿En qué condiciones del hardware aceptarías un 1 % de error de síntesis?"
     ]
    },
    "align": "top"

@@ -1,10 +1,14 @@
 """Parte III · Transpilación."""
+import math
+
 from lib import (T, M, L, Row, Box, A, shows, beat, choice, numeric, reveal, lesson,
-                 Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph)
+                 Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph, predict, reflect, Mission)
 from parte2 import resumen
 
 # Chip de juguete en forma de T (5 qubits) para explicar layout y routing.
 T5 = dict(nodes=[[0, 0], [1, 0], [2, 0], [1, 1], [1, 2]], edges=[[0, 1], [1, 2], [1, 3], [3, 4]], unit=110, r=24)
+ANILLO12 = dict(nodes=[[round(2 * math.cos(k * math.pi / 6), 2), round(2 * math.sin(k * math.pi / 6), 2)] for k in range(12)],
+                edges=[[k, (k + 1) % 12] for k in range(12)], unit=60, r=16)
 ETAPAS = [dict(t="init", s="puertas de 1 y 2 qubits", color="blue"), dict(t="layout", s="virtuales → físicos", color="teal"),
           dict(t="routing", s="insertar SWAP", color="teal"), dict(t="translation", s="puertas base", color="violet"),
           dict(t="optimization", s="reducir puertas", color="gold"), dict(t="scheduling", s="tiempos y esperas", color="red")]
@@ -65,10 +69,18 @@ transpilar = lesson(
                         wrong=["Init solo prepara puertas de 1 y 2 qubits.", None, "Translation cambia las puertas de base, no la conectividad.",
                                "Scheduling se ocupa de tiempos, no de conectividad."])),
 
+        beat("predice", ("", "Antes de ejecutar"),
+             """Vamos a transpilar el circuito del principio, una Hadamard y una Toffoli, para FakeFez, un simulador con las puertas base de un chip de IBM. [[apuesta]]Antes de verlo, apuesta: ¿qué puertas quedan en el resultado?""",
+             [Circ(3, [G("h", 0), G("ccx", 0, 1, 2)])],
+             ask=predict("Tras transpilar para `FakeFez`, ¿qué tipos de puerta aparecen en el circuito?",
+                         ["`h` y `ccx`, las mismas", "`cx`, `rz` y `sx`", "`cz`, `rz` y `sx`", "`ecr`, `rz` y `sx`"],
+                         "Anotado. Ahora lo comprobamos ejecutando el código.")),
+
         beat("como", ("", "Cómo transpilar"),
              """La forma recomendada es crear un pass manager por etapas con generate preset pass manager, que trae valores razonables, y llamar a su método run con el circuito.
              [[nivel]]El único argumento obligatorio es el nivel de optimización: cero, uno, dos o tres. Más alto, circuitos mejores, pero más tiempo de transpilación.
-             [[trans]]La alternativa más simple es la función transpile, que por dentro hace exactamente lo mismo. [[custom]]Y si necesitas más, puedes armar tus propios pass managers: un flujo a medida a menudo suprime errores mejor que el de serie.""",
+             [[trans]]La alternativa más simple es la función transpile, que por dentro hace exactamente lo mismo. [[custom]]Y si necesitas más, puedes armar tus propios pass managers: un flujo a medida a menudo suprime errores mejor que el de serie.
+             [[res]]Ahora el resultado de tu apuesta: solo cz, rz y sx, las puertas base de FakeFez. Si apostaste por la tercera opción, acertaste. La Hadamard y la Toffoli desaparecieron: ninguna es instrucción del chip.""",
              [Code('''from qiskit import QuantumCircuit, transpile
 from qiskit.transpiler import generate_preset_pass_manager
 from qiskit_ibm_runtime.fake_provider import FakeFez
@@ -84,7 +96,7 @@ isa = pm.run(qc)
 isa2 = transpile(qc, backend, optimization_level=2)
 print(sorted(isa.count_ops()))''', id="c", size=23),
               Out("['cz', 'rz', 'sx']", id="o", hidden=True, check=True)],
-             [A("hl", "c", at="como", range="10-11"), A("hl", "c", at="nivel", lines=[10]), A("hl", "c", at="trans", lines=[13]), A("show", "o", at="trans", t=1)]),
+             [A("hl", "c", at="como", range="10-11"), A("hl", "c", at="nivel", lines=[10]), A("hl", "c", at="trans", lines=[13]), A("hl", "c", at="res", lines=[14]), A("show", "o", at="res")]),
 
         beat("q2", ("", "Comprueba"),
              """Una pregunta sobre los niveles.""",
@@ -92,6 +104,21 @@ print(sorted(isa.count_ops()))''', id="c", size=23),
              ask=choice("¿Qué nivel eliges?", ["0 o 1", "3", "da igual"], 0,
                         "Correcto: niveles bajos transpilan rápido. El nivel 3 gana calidad a cambio de tiempo.",
                         wrong=[None, "El nivel 3 es el más lento.", "No da igual: el tiempo de transpilación crece con el nivel."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, transpila el circuito de la lección con los cuatro niveles y mira cuántas puertas cz sobreviven; apuesta antes de ejecutar. [[n2]]Después, arregla un pass manager al que le falta el backend, y por eso no produce un circuito ISA.
+             [[n3]]Y por último, escribe tú mismo la función que decide si un circuito es ISA, consultando el Target.""",
+             [Mission("practica/p3-transpilar.py", [
+                 (1, "Transpila `h` + `ccx` para `FakeFez` con los niveles 0 a 3 y compara las `cz`."),
+                 (2, "Arregla un pass manager sin `backend` para que el circuito salga ISA."),
+                 (3, "Escribe `es_isa(circuito, target)` con `target.instruction_supported`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Un circuito ISA es el contrato entre tú y el chip.", "subtitle")],
+             ask=reflect("¿Por qué crees que IBM **exige** circuitos ISA en lugar de transpilarlos por ti en todos los casos?",
+                         "Tu proyecto Ising usa `rzz`. `FakeFez` no tiene esa puerta. ¿En qué crees que se convertirá y cómo afectará a la profundidad?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Transpilar adapta el circuito a un chip y lo optimiza. [[r2]]El resultado debe ser ISA. [[r3]]Los pases se organizan en pass managers y estos en seis etapas.
@@ -184,9 +211,17 @@ print(qc.decompose().count_ops())''', id="c", hidden=True),
                  ["3", "`Collect2qBlocks` · `ConsolidateBlocks` · `UnitarySynthesis` + los anteriores"]], id="t", stagger=True, size=25)],
              [A("item", "t", at="n1", i=0), A("item", "t", at="n2", i=1), A("item", "t", at="n3", i=2)]),
 
+        beat("apuesta", ("", "Antes de ejecutar"),
+             """Un ejemplo con números reales: un estado GHZ de quince qubits, con la CNOT siempre desde el qubit cero, sobre un chip donde los qubits están en línea. El circuito original tiene catorce CNOT.
+             El qubit cero tiene que interactuar con todos, así que el routing sufre. Apuesta: con el nivel cero, ¿cuántas CNOT tendrá el resultado?""",
+             [Row(Box("idea", "Circuito", T("GHZ de 15 qubits · 14 CNOT desde el qubit 0", "body")),
+                  Box("def", "Chip", T("15 qubits en línea: cada uno solo ve a sus 2 vecinos", "body")), gap=24)],
+             ask=predict("Con el nivel 0, ¿cuántas CNOT tiene el circuito transpilado?",
+                         ["14, las mismas", "unas 30", "unas 60", "más de 200"],
+                         "Anotado. Ahora lo medimos.")),
+
         beat("ejemplo", ("", "Los niveles en acción"),
-             """Un ejemplo con números reales: un estado GHZ de quince qubits, con la CNOT siempre desde el qubit cero, sobre un chip donde los qubits están en línea. El qubit cero tiene que interactuar con todos, así que el routing sufre.
-             [[n0]]Con el nivel cero salen sesenta y dos CNOT; [[n1]]con el uno, cincuenta; [[n23]]y con los niveles dos y tres, veintiséis, menos de la mitad.
+             """Ejecutemos el mismo ejemplo. [[n0]]Con el nivel cero salen sesenta y dos CNOT: cuatro veces las que escribiste; si apostaste por unas sesenta, acertaste. [[n1]]Con el uno, cincuenta; [[n23]]y con los niveles dos y tres, veintiséis, menos de la mitad.
              [[var]]Como el routing es estocástico, estos números cambian con la semilla. Para resultados reproducibles, fija seed transpiler.""",
              [Code('''from qiskit.providers.fake_provider import GenericBackendV2
 from qiskit.transpiler import CouplingMap, generate_preset_pass_manager
@@ -223,6 +258,21 @@ print(pm.run(ghz).count_ops())''', id="c"),
                         "Correcto: SabreLayout y SabreSwap usan aleatoriedad. Fija `seed_transpiler` para reproducir, o transpila varias veces y elige el mejor.",
                         wrong=["Es el comportamiento esperado.", None, "La traducción es determinista; la aleatoriedad viene del layout y el routing."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, reproduce el GHZ de quince qubits en línea y compara las CNOT de cada nivel. [[n2]]Después, elige tú el layout inicial de un chip en forma de T para que el circuito no necesite ningún SWAP.
+             [[n3]]Y por último, escribe una función que transpila varias veces con distintas semillas y devuelve el mejor resultado.""",
+             [Mission("practica/p3-etapas.py", [
+                 (1, "Cuenta las CNOT del GHZ de 15 qubits en línea con cada nivel."),
+                 (2, "Elige `initial_layout` para el chip en T y evita los SWAP."),
+                 (3, "Escribe `mejor_de(qc, semillas)`: transpila con varias semillas y quédate con el mejor.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Cada SWAP cuesta tres CNOT; cada intento de transpilación cuesta tiempo.", "subtitle")],
+             ask=reflect("Probaste varias semillas. ¿Cuántas te parece que merece la pena probar antes de dejar de buscar, y por qué?",
+                         "Tu cadena Ising tiene vecinos en línea, y el chip también. ¿Qué layout esperas que encuentre el transpilador, y cuántos SWAP crees que necesitará?")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Init prepara y layout elige qubits físicos. [[r2]]Routing inserta SWAP con una heurística estocástica. [[r3]]Translation baja a puertas base y optimization recupera lo perdido, más cuanto mayor el nivel.
              [[r4]]Y scheduling, si lo pides, añade los tiempos de espera.""",
@@ -257,9 +307,15 @@ niveles = lesson(
                    id="t", stagger=True, size=23)],
              [A("item", "t", at="n0", i=0), A("item", "t", at="n1", i=1), A("item", "t", at="n2", i=2), A("item", "t", at="n3", i=3)]),
 
-        beat("accion", ("", "Los niveles en acción"),
+        beat("apuesta", ("", "Antes de ejecutar"),
              """Como las puertas de dos qubits son la mayor fuente de error, una buena medida de calidad es contarlas. Probemos con una unitaria aleatoria de dos qubits seguida de un SWAP, sobre el backend falso Sherbrooke, cuya puerta de dos qubits es la ECR.
-             [[n01]]Con los niveles cero y uno salen seis ECR. [[n23]]Con los niveles dos y tres, solo tres: la unitaria y el SWAP se fusionan en un solo bloque de dos qubits, y cualquier unitaria de dos qubits se puede hacer con tres puertas de entrelazamiento como máximo.
+             [[reto]]Un SWAP cuesta tres CNOT, y una unitaria aleatoria de dos qubits, hasta tres. Apuesta: con el nivel tres, ¿cuántas ECR quedan?""",
+             [Circ(2, [G("box", 0, 1, label="U"), G("swap", 0, 1)])],
+             ask=predict("Con `optimization_level=3` en `FakeSherbrooke`, ¿cuántas `ecr` tiene el resultado?",
+                         ["1", "3", "6", "9"], "Anotado. Veamos qué hace cada nivel.")),
+
+        beat("accion", ("", "Los niveles en acción"),
+             """Ejecutemos el código con los cuatro niveles. [[n01]]Con los niveles cero y uno salen seis ECR: la unitaria y el SWAP se traducen por separado, a tres cada uno. [[n23]]Con los niveles dos y tres, solo tres: la unitaria y el SWAP se fusionan en un solo bloque de dos qubits, y cualquier unitaria de dos qubits se puede hacer con tres puertas de entrelazamiento como máximo. Si apostaste por tres, acertaste.
              [[nota]]Subir de nivel no siempre cambia algo, pero aquí sí.""",
              [Code('''from qiskit import QuantumCircuit
 from qiskit.circuit.library import UnitaryGate
@@ -399,6 +455,21 @@ for res in result:
                         "Correcto: si quitar una puerta ruidosa ahorra más error del que introduce la aproximación, el resultado neto mejora.",
                         wrong=["En hardware ruidoso, aproximar puede dar mejores resultados.", None, "En un simulador ideal no tiene sentido aproximar: no hay ruido que ahorrar."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, cuenta las ECR de la unitaria con SWAP en cada nivel. [[n2]]Después, usa el grado de aproximación para quitar una ECR de más.
+             [[n3]]Y por último, escribe una función que pruebe los cuatro niveles y te devuelva el más bajo que logre el menor número de puertas de dos qubits.""",
+             [Mission("practica/p3-niveles.py", [
+                 (1, "Cuenta las `ecr` de la unitaria con SWAP en los niveles 0 a 3."),
+                 (2, "Ajusta `approximation_degree` para que baje a 2 `ecr`."),
+                 (3, "Escribe `mejor_nivel(qc, backend)`: el nivel más bajo con menos puertas de dos qubits.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Más esfuerzo del transpilador no siempre da un circuito mejor.", "subtitle")],
+             ask=reflect("Hoy el nivel 3 fue el mejor en las ECR, pero no siempre lo es. ¿Cómo decidirías qué nivel usar en tu proyecto Ising?",
+                         "`approximation_degree` cambia exactitud por menos puertas. ¿En qué condiciones del hardware aceptarías un 1 % de error de síntesis?")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]El nivel de optimización va de cero, para caracterizar, a tres, con re-síntesis. [[r2]]approximation degree cambia exactitud por menos puertas. [[r3]]seed, initial layout y los métodos de etapa afinan el proceso.
              [[r4]]Y para elegir, compara con la distribución ideal usando la fidelidad de Hellinger.""",
@@ -428,9 +499,16 @@ target = lesson(
                   Box("idea", "Backend", L(["un `Target`", "`run()`: enviar trabajos", "opciones"], size=27), id="b", hidden=True), gap=30)],
              [A("show", "t", at="target"), A("show", "b", at="backend")]),
 
-        beat("cm", ("", "El mapa de acoplamiento"),
+        beat("anillo", ("", "Un anillo en un chip"),
              """El mapa de acoplamiento es un grafo: dice qué qubits están conectados y pueden hacer puertas de dos qubits entre sí. A veces es dirigido, pero el transpilador siempre puede invertir una puerta añadiendo puertas de un qubit.
-             [[ej]]Tomemos un circuito efficient su2 de doce qubits, con entrelazamiento circular: necesita un anillo. [[n0]]Con el nivel cero y solo el mapa de acoplamiento de Sherbrooke, el layout trivial pone los qubits en línea y hacen falta veintidós SWAP.
+             [[ej]]Tomemos un circuito efficient su2 de doce qubits, con entrelazamiento circular: cada qubit habla con el siguiente, y el último con el primero. Necesita un anillo. Con el nivel cero, el layout trivial pone los qubits uno, dos, tres... en línea sobre el chip. Apuesta: ¿cuántos SWAP hacen falta?""",
+             [Graph(**ANILLO12, id="g")],
+             ask=predict("Con el nivel 0 y el mapa de `FakeSherbrooke`, ¿cuántos `swap` inserta el routing?",
+                         ["0, el chip tiene anillos", "unos 2", "unos 22", "más de 100"],
+                         "Anotado. Ahora lo medimos con y sin optimización.")),
+
+        beat("cm", ("", "El mapa de acoplamiento"),
+             """Ejecutemos el ejemplo. [[ej]]El circuito efficient su2 de doce qubits, con entrelazamiento circular, necesita un anillo. [[n0]]Con el nivel cero y solo el mapa de acoplamiento de Sherbrooke, el layout trivial pone los qubits en línea y hacen falta veintidós SWAP; si apostaste por unos veintidós, acertaste.
              [[n1]]Con el nivel uno, VF2 y Sabre encuentran un layout casi en anillo: solo dos SWAP.""",
              [Code('''from qiskit import QuantumCircuit, transpile
 from qiskit.circuit.library import efficient_su2
@@ -534,6 +612,21 @@ print(sorted(transpile(qc, MiBackend()).count_ops()))''', id="c", size=17),
                         "Correcto: si la instrucción no está en el `Target` para ese par, el transpilador nunca la usará allí.",
                         wrong=[None, "`run` envía trabajos; no influye en la transpilación.", "`max_circuits` solo limita cuántos circuitos van en un trabajo."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, construye el backend de tres qubits de la lección y mira en qué puertas traduce una CX entre los extremos. [[n2]]Después, en un anillo de cuatro qubits, quita del Target el par averiado para que el transpilador lo esquive.
+             [[n3]]Y por último, escribe una función que construye un Target para una cadena de cualquier tamaño.""",
+             [Mission("practica/p3-target.py", [
+                 (1, "Crea `MiBackend` y transpila una CX entre los qubits 0 y 2."),
+                 (2, "Quita del `Target` el par averiado de un anillo de 4 qubits."),
+                 (3, "Escribe `cadena(n)`: un `Target` con `cz` solo entre vecinos.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("El transpilador solo sabe lo que dice el Target.", "subtitle")],
+             ask=reflect("Un qubit de tu chip se vuelve ruidoso a mitad del día. ¿Qué cambiarías en el `Target` para que el transpilador lo evite, y qué perderías?",
+                         "Tu cadena Ising tiene vecinos en línea. ¿Qué tendría que tener un `Target` para que el transpilador no necesite ningún SWAP con ella?")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Un backend es un Target más la forma de ejecutar. [[r2]]El Target describe instrucciones, conectividad, errores y tiempos. [[r3]]El mapa de acoplamiento decide cuántos SWAP harán falta.
              [[r4]]Y con add instruction puedes describir cualquier dispositivo, real o imaginario.""",
@@ -591,8 +684,15 @@ staged_pm = StagedPassManager(
              [A("hl", "c", at="ej", range="5-6"), A("show", "f", at="ej"), A("hl", "c", at="init", lines=[4]), A("step", "f", at="init", i=0),
               A("step", "f", at="trans", i=1)]),
 
+        beat("huecos", ("", "Antes de ejecutar"),
+             """Otra forma muy útil: partir de uno prediseñado y cambiar algunas etapas. [[sub]]Cada una de las seis etapas tiene además una etapa previa, pre, y otra posterior, post, vacías por defecto. Apuesta: ¿cuántas etapas verá el pass manager en total?""",
+             [Flow([dict(t="pre_layout", s="vacía por defecto"), dict(t="layout", s="la etapa", color="teal"),
+                    dict(t="post_layout", s="vacía por defecto")], id="f")],
+             ask=predict("Para un pass manager prediseñado, ¿cuánto vale `len(pm.expanded_stages)`?",
+                         ["6", "12", "18", "24"], "Anotado. Lo comprobamos en el código.")),
+
         beat("modificar", ("", "Modificar un pass manager prediseñado"),
-             """Otra forma muy útil: partir de uno prediseñado y cambiar algunas etapas. [[sub]]Cada etapa tiene además una etapa previa y otra posterior, pre y post, vacías por defecto: hay dieciocho huecos en total.
+             """Ahora el código. [[sub]]Seis etapas, cada una con su pre y su post: seis por tres, dieciocho. Si apostaste por dieciocho, acertaste.
              [[ej]]Aquí añadimos una etapa pre layout con InverseCancellation, que elimina pares de puertas inversas, como T seguida de T daga, antes de elegir el layout.
              [[gen]]Las funciones generadoras de etapas, como generate embed passmanager, ayudan a construir etapas comunes.""",
              [Code('''import numpy as np
@@ -662,6 +762,21 @@ print("delay" in qc_dd.count_ops(), "y" in qc_dd.count_ops())''', id="c", size=1
              ask=choice("¿Qué problema hay?", ["ninguno", "aún no se sabe cuánto esperará cada qubit: falta transpilar y programar tiempos", "el DD solo funciona en simuladores"], 1,
                         "Correcto: las esperas dependen del layout, del routing y de la duración real de cada puerta; por eso el DD va al final.",
                         wrong=["Sin tiempos no hay esperas que llenar.", None, "El DD se usa precisamente en hardware real."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, arma un pass manager que traduce a las puertas de un computador de iones atrapados. [[n2]]Después, mete un pase de cancelación en la etapa pre layout de uno prediseñado.
+             [[n3]]Y por último, construye tú el pass manager de desacoplamiento dinámico sobre un circuito ya programado, y comprueba que no cambia el operador.""",
+             [Mission("practica/p3-pass-managers.py", [
+                 (1, "Arma un `PassManager` que traduce a `rx`, `ry` y `rxx`."),
+                 (2, "Asigna `pm.pre_layout` con `InverseCancellation` en el nivel 0."),
+                 (3, "Construye `dd_pm` con `ALAPScheduleAnalysis` y `PadDynamicalDecoupling`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Cada etapa es un punto donde puedes meter tu propio pase.", "subtitle")],
+             ask=reflect("`PadDynamicalDecoupling` necesita las duraciones de las puertas. ¿Qué información del `Target` le haría falta a un chip inventado para poder usarlo?",
+                         "En tu cadena Ising, los qubits de los extremos esperan mientras los del centro trabajan. ¿En qué etapa del pass manager pondrías un pase para aprovechar eso, y por qué ahí?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Un PassManager es una lista de pases. [[r2]]Un StagedPassManager organiza pass managers por etapas. [[r3]]Puedes sustituir cualquier etapa de uno prediseñado, incluidas las pre y post.
@@ -789,10 +904,18 @@ print(all(Operator(t).equiv(qc) for t in twirled))''', id="c"),
                          "Correcto: para cada $P_L$ hay exactamente un $P_R=\\mathrm{CX}^\\dagger P_L\\mathrm{CX}$, que es otro Pauli porque la CX es de Clifford. 16 pares.",
                          tol=0.001, hint="La CX lleva Paulis a Paulis (es una puerta de Clifford).")),
 
+        beat("apuesta", ("", "Antes de ejecutar"),
+             """Segundo ejemplo: un pase de routing muy simple, BasicSwap. Si los qubits de una puerta no son vecinos, inserta SWAP a lo largo del camino más corto, y el layout se actualiza con cada uno.
+             [[reto]]Tenemos una línea de siete qubits, y un circuito con una CX entre los qubits cero y cuatro, y otra entre el seis y el uno. Apuesta: ¿cuántos SWAP inserta en total?""",
+             [Graph(nodes=[[k, 0] for k in range(7)], edges=[[k, k + 1] for k in range(6)], unit=56, r=18, id="g"),
+              Circ(7, [G("h", 0), G("cx", 0, 4), G("cx", 6, 1)], id="q", scale=.55)],
+             ask=predict("¿Cuántos `swap` inserta `BasicSwap` en la línea de 7 qubits?",
+                         ["3", "5", "8", "12"], "Anotado. Veamos el pase y su resultado.")),
+
         beat("basicswap", ("", "Un mapeador básico"),
-             """Segundo ejemplo: un pase de routing muy simple, BasicSwap. [[capas]]Recorre el DAG capa por capa; en cada capa, las operaciones actúan sobre qubits distintos.
+             """Aquí está el pase. [[capas]]Recorre el DAG capa por capa; en cada capa, las operaciones actúan sobre qubits distintos.
              [[chk]]Para cada puerta de dos qubits mira si sus qubits físicos están a distancia uno en el mapa de acoplamiento. [[swap]]Si no, busca el camino más corto e inserta SWAP a lo largo de él, actualizando el layout.
-             [[prueba]]Con una línea de siete qubits y CX entre qubits lejanos, el pase inserta los SWAP necesarios.""",
+             [[prueba]]Y el resultado: ocho SWAP. La primera CX necesita tres, porque entre el cero y el cuatro hay cuatro saltos; la segunda necesita cinco, porque el primer grupo de SWAP ya movió los estados. Si apostaste por ocho, acertaste.""",
              [Code('''from qiskit.transpiler import Layout, CouplingMap
 from qiskit.circuit.library import SwapGate
 
@@ -823,7 +946,22 @@ circ.cx(6, 1)
 out = PassManager([BasicSwap(CouplingMap.from_line(7))]).run(circ)
 print(out.count_ops()["swap"])''', id="c", size=16),
               Out("8", id="o", hidden=True, check=True)],
-             [A("hl", "c", at="capas", range="11-12"), A("hl", "c", at="chk", range="13-15"), A("hl", "c", at="swap", range="16-19"), A("hl", "c", at="prueba", range="23-28")]),
+             [A("hl", "c", at="capas", range="11-12"), A("hl", "c", at="chk", range="13-15"), A("hl", "c", at="swap", range="16-19"), A("hl", "c", at="prueba", range="23-28"), A("show", "o", at="prueba")]),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, convierte un circuito en DAG, añade puertas al principio y al final, y vuelve al circuito; apuesta antes cuántas H tendrá. [[n2]]Después, completa un pase de transformación que sustituye cada SWAP por tres CNOT.
+             [[n3]]Y por último, escribe tú un pase de análisis que cuenta las puertas de dos qubits y las guarda en el property set.""",
+             [Mission("practica/p3-pases-propios.py", [
+                 (1, "Añade puertas con `apply_operation_back` y `apply_operation_front`."),
+                 (2, "Completa un `TransformationPass` que sustituye cada `swap` por 3 `cx`."),
+                 (3, "Escribe `ContarDosQubits`, un `AnalysisPass` que guarda `n2q`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Primero se mide, después se cambia.", "subtitle")],
+             ask=reflect("Qiskit separa los pases de análisis de los de transformación. ¿Qué problemas te evita esa separación al encadenar muchos pases?",
+                         "En tu cadena Ising, cada `rzz` cuesta dos `cz`. ¿Qué pase escribirías, de análisis o de transformación, para ahorrar alguna?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]El transpilador trabaja sobre un DAG. [[r2]]Los pases de análisis escriben en el property set; los de transformación cambian el DAG. [[r3]]Las operaciones básicas son op nodes, apply operation, substitute node with dag y dag to circuit.
@@ -860,7 +998,7 @@ plugins = lesson(
 
         beat("listar", ("", "Ver qué plugins hay"),
              """Para cada tipo hay una función que lista lo instalado. [[stage]]list stage plugins, con el nombre de la etapa. [[unit]]unitary synthesis plugin names: aquí aparecen aqc, clifford, gridsynth y sk, el algoritmo de Solovay Kitaev.
-             [[hl]]Y high level synthesis plugin names, con el tipo de objeto: para Clifford, siete métodos distintos.""",
+             [[hl]]Y high level synthesis plugin names, con el tipo de objeto: para Clifford, seis nombres, contando default.""",
              [Code('''from qiskit.transpiler.passes.synthesis import (
     unitary_synthesis_plugin_names, high_level_synthesis_plugin_names)
 
@@ -924,6 +1062,37 @@ class MyCliffordSynthesisPlugin(HighLevelSynthesisPlugin):
 "clifford.my_clifford_synthesis" = "my_qiskit_plugin:MyCliffordSynthesisPlugin"''', "text", title="pyproject.toml", id="t", hidden=True)],
              [A("hl", "c", at="hl", range="4-8"), A("show", "t", at="ep")]),
 
+        beat("apuesta", ("", "Antes de ejecutar"),
+             """Pongamos a prueba ese plugin. [[lista]]Lo pasamos a un HLSConfig seguido de greedy, un método que ya trae Qiskit: se prueban en orden, y el primero que devuelve un circuito gana.
+             [[reto]]Y le damos un Clifford de cinco qubits. Apuesta: ¿quién lo sintetiza?""",
+             [Flow([dict(t="MyCliffordSynthesisPlugin", s="solo hasta 3 qubits", color="blue"), dict(t="greedy", s="método de Qiskit", color="teal")], id="f", stagger=True),
+              T("Clifford aleatorio de 5 qubits", "note")],
+             [A("item", "f", at="lista", i=0), A("item", "f", at="lista", t=1, i=1)],
+             ask=predict("Con `clifford=[MyCliffordSynthesisPlugin(), \"greedy\"]` y un Clifford de 5 qubits, ¿quién lo sintetiza?",
+                         ["mi plugin", "`greedy`", "nadie: queda un `clifford` sin sintetizar", "da error"],
+                         "Anotado. Lo comprobamos con y sin el método de respaldo.")),
+
+        beat("respaldo", ("", "Un método de respaldo"),
+             """Probamos con dos Clifford, de tres y de cinco qubits, y dos configuraciones. [[solo]]Con mi plugin solo, el de tres qubits se sintetiza, pero el de cinco queda como un Clifford sin tocar: mi plugin devolvió None. [[resp]]Con greedy detrás, se sintetizan los dos.
+             [[res]]Si apostaste por greedy, acertaste: devolver None no es un error, es la señal de pasar al siguiente método.""",
+             [Code('''from qiskit import QuantumCircuit
+from qiskit.quantum_info import random_clifford
+from qiskit.transpiler import PassManager
+from qiskit.transpiler.passes import HLSConfig, HighLevelSynthesis
+
+def sin_sintetizar(n, metodos):
+    qc = QuantumCircuit(n)
+    qc.append(random_clifford(n, seed=1), range(n))
+    out = PassManager([HighLevelSynthesis(hls_config=HLSConfig(clifford=metodos))]).run(qc)
+    return "clifford" in out.count_ops()
+
+solo = [(MyCliffordSynthesisPlugin(), {})]
+con_respaldo = [(MyCliffordSynthesisPlugin(), {}), "greedy"]
+for n in (3, 5):
+    print(n, sin_sintetizar(n, solo), sin_sintetizar(n, con_respaldo))''', id="c", size=19),
+              Out("3 False False\n5 True False", id="o", hidden=True, check=True)],
+             [A("hl", "c", at="solo", lines=[14]), A("hl", "c", at="resp", lines=[15]), A("show", "o", at="solo")]),
+
         beat("q1", ("", "Comprueba"),
              """Una pregunta sobre plugins.""",
              [T("Tu algoritmo recibe un operador de Clifford y devuelve un circuito corto.", "body")],
@@ -970,6 +1139,32 @@ hybrid = generate_ai_pass_manager(coupling_map=backend.coupling_map,
              ask=choice("¿Qué `layout_mode` usas en `AIRouting`?", ["`keep`", "`improve`", "`optimize`"], 0,
                         "Correcto: `keep` respeta el layout dado. Suele dar peores resultados porque tiene menos libertad, pero es lo que necesitas.",
                         wrong=[None, "`improve` puede mover los qubits.", "`optimize` ignora tu layout."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca. [[n1]]Primero, lista los métodos que Qiskit ya trae para Clifford, unitarias y routing. [[n2]]Después, cambia el método de routing de una cuadrícula para quitar CNOT.
+             [[n3]]Y por último, escribe tu propio plugin de síntesis de Clifford, que se rinde con más de tres qubits y deja pasar al siguiente método.""",
+             [Mission("practica/p3-plugins.py", [
+                 (1, "Lista los plugins de Clifford, de unitarias y de routing."),
+                 (2, "Cambia `routing_method` para bajar a 55 CNOT o menos."),
+                 (3, "Escribe `MiClifford.run`: sintetiza hasta 3 qubits y devuelve `None` si no.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("proyecto", ("", "Tu proyecto: transpilar la cadena"),
+             """Con esto termina la transpilación, y el hito tres de tu proyecto. [[circuito]]Ya tienes el circuito de varios pasos de Trotter de la cadena de espines. [[fez]]Transpílalo para FakeFez, [[niveles]]compara los cuatro niveles de optimización [[prof]]y mide cuánta profundidad añade cada paso. Esa profundidad decidirá cuántos pasos caben cuando ejecutes en hardware real.""",
+             [Flow([dict(t="Trotter", s="N pasos · rzz + rx", color="blue"), dict(t="FakeFez", s="cz, rz, sx, x", color="teal"),
+                    dict(t="niveles 0-3", s="profundidad", color="gold")], id="f", stagger=True),
+              Mission("practica/proyecto/hito3.py", [
+                  (1, "Transpila el circuito de Trotter para `FakeFez` y cuenta las `cz`."),
+                  (2, "Compara la profundidad en los niveles 0 a 3."),
+                  (3, "Mide la profundidad frente al número de pasos y calcula cuántos caben.")],
+                  title="Proyecto Ising · Hito III", id="m", hidden=True)],
+             [A("item", "f", at="circuito", i=0), A("item", "f", at="fez", i=1), A("item", "f", at="niveles", i=2), A("show", "m", at="prof")]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Un plugin convierte tu idea en una opción más del transpilador.", "subtitle")],
+             ask=reflect("¿Qué ventaja tiene publicar un plugin frente a pasar tu pase suelto a cada colega? ¿Y qué cuesta mantenerlo?",
+                         "Los pases de IA reducen CNOT, pero son una caja negra. ¿En qué casos los usarías en tu proyecto Ising, y qué comprobarías antes de fiarte?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Hay plugins de etapa, de síntesis unitaria y de alto nivel. [[r2]]Se usan con los argumentos method y hls config. [[r3]]Se crean con una subclase y un entry point.

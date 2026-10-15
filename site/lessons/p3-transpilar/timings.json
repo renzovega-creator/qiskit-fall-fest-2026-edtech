@@ -137,12 +137,29 @@
    ]
   ]
  },
+ "predice": {
+  "dur": 16.464,
+  "marks": {
+   "apuesta": 11.195
+  },
+  "cues": [
+   [
+    0.107,
+    "Vamos a transpilar el circuito del principio, una Hadamard y una Toffoli, para FakeFez, un simulador con las puertas base de un chip de IBM."
+   ],
+   [
+    11.195,
+    "Antes de verlo, apuesta: ¿qué puertas quedan en el resultado?"
+   ]
+  ]
+ },
  "como": {
-  "dur": 40.776,
+  "dur": 59.304,
   "marks": {
    "nivel": 11.747,
    "trans": 24.485,
-   "custom": 31.42
+   "custom": 31.42,
+   "res": 40.775
   },
   "cues": [
    [
@@ -164,6 +181,18 @@
    [
     31.42,
     "Y si necesitas más, puedes armar tus propios pass managers: un flujo a medida a menudo suprime errores mejor que el de serie."
+   ],
+   [
+    40.775,
+    "Ahora el resultado de tu apuesta: solo cz, rz y sx, las puertas base de FakeFez."
+   ],
+   [
+    49.394,
+    "Si apostaste por la tercera opción, acertaste."
+   ],
+   [
+    53.626,
+    "La Hadamard y la Toffoli desaparecieron: ninguna es instrucción del chip."
    ]
   ]
  },
@@ -174,6 +203,42 @@
    [
     0.107,
     "Una pregunta sobre los niveles."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 28.152,
+  "marks": {
+   "n1": 2.137,
+   "n2": 11.945,
+   "n3": 19.97
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, transpila el circuito de la lección con los cuatro niveles y mira cuántas puertas cz sobreviven; apuesta antes de ejecutar."
+   ],
+   [
+    11.945,
+    "Después, arregla un pass manager al que le falta el backend, y por eso no produce un circuito ISA."
+   ],
+   [
+    19.97,
+    "Y por último, escribe tú mismo la función que decide si un circuito es ISA, consultando el Target."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },

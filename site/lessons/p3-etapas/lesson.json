@@ -652,12 +652,65 @@
    ]
   },
   {
+   "id": "apuesta",
+   "tag": [
+    "3.2",
+    "Antes de ejecutar"
+   ],
+   "say": "Un ejemplo con números reales: un estado GHZ de quince qubits, con la CNOT siempre desde el qubit cero, sobre un chip donde los qubits están en línea. El circuito original tiene catorce CNOT. El qubit cero tiene que interactuar con todos, así que el routing sufre. Apuesta: con el nivel cero, ¿cuántas CNOT tendrá el resultado?",
+   "scene": [
+    {
+     "type": "row",
+     "items": [
+      {
+       "type": "box",
+       "kind": "idea",
+       "title": "Circuito",
+       "body": [
+        {
+         "type": "text",
+         "text": "GHZ de 15 qubits · 14 CNOT desde el qubit 0",
+         "style": "body"
+        }
+       ]
+      },
+      {
+       "type": "box",
+       "kind": "def",
+       "title": "Chip",
+       "body": [
+        {
+         "type": "text",
+         "text": "15 qubits en línea: cada uno solo ve a sus 2 vecinos",
+         "style": "body"
+        }
+       ]
+      }
+     ],
+     "gap": 24
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Con el nivel 0, ¿cuántas CNOT tiene el circuito transpilado?",
+    "options": [
+     "14, las mismas",
+     "unas 30",
+     "unas 60",
+     "más de 200"
+    ],
+    "after": "Anotado. Ahora lo medimos."
+   },
+   "align": "top"
+  },
+  {
    "id": "ejemplo",
    "tag": [
     "3.2",
     "Los niveles en acción"
    ],
-   "say": "Un ejemplo con números reales: un estado GHZ de quince qubits, con la CNOT siempre desde el qubit cero, sobre un chip donde los qubits están en línea. El qubit cero tiene que interactuar con todos, así que el routing sufre. [[n0]]Con el nivel cero salen sesenta y dos CNOT; [[n1]]con el uno, cincuenta; [[n23]]y con los niveles dos y tres, veintiséis, menos de la mitad. [[var]]Como el routing es estocástico, estos números cambian con la semilla. Para resultados reproducibles, fija seed transpiler.",
+   "say": "Ejecutemos el mismo ejemplo. [[n0]]Con el nivel cero salen sesenta y dos CNOT: cuatro veces las que escribiste; si apostaste por unas sesenta, acertaste. [[n1]]Con el uno, cincuenta; [[n23]]y con los niveles dos y tres, veintiséis, menos de la mitad. [[var]]Como el routing es estocástico, estos números cambian con la semilla. Para resultados reproducibles, fija seed transpiler.",
    "scene": [
     {
      "type": "code",
@@ -789,6 +842,80 @@
      "Es el comportamiento esperado.",
      null,
      "La traducción es determinista; la aleatoriedad viene del layout y el routing."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "3.2",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. [[n1]]Primero, reproduce el GHZ de quince qubits en línea y compara las CNOT de cada nivel. [[n2]]Después, elige tú el layout inicial de un chip en forma de T para que el circuito no necesite ningún SWAP. [[n3]]Y por último, escribe una función que transpila varias veces con distintas semillas y devuelve el mejor resultado.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p3-etapas.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Cuenta las CNOT del GHZ de 15 qubits en línea con cada nivel."
+      },
+      {
+       "level": 2,
+       "text": "Elige `initial_layout` para el chip en T y evita los SWAP."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `mejor_de(qc, semillas)`: transpila con varias semillas y quédate con el mejor."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "3.2",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Cada SWAP cuesta tres CNOT; cada intento de transpilación cuesta tiempo.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Probaste varias semillas. ¿Cuántas te parece que merece la pena probar antes de dejar de buscar, y por qué?",
+     "Tu cadena Ising tiene vecinos en línea, y el chip también. ¿Qué layout esperas que encuentre el transpilador, y cuántos SWAP crees que necesitará?"
     ]
    },
    "align": "top"

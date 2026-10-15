@@ -29,12 +29,10 @@
    ]
   ]
  },
- "cm": {
-  "dur": 40.776,
+ "anillo": {
+  "dur": 40.2,
   "marks": {
-   "ej": 16.007,
-   "n0": 23.975,
-   "n1": 33.684
+   "ej": 16.007
   },
   "cues": [
    [
@@ -47,14 +45,48 @@
    ],
    [
     16.007,
-    "Tomemos un circuito efficient su2 de doce qubits, con entrelazamiento circular: necesita un anillo."
+    "Tomemos un circuito efficient su2 de doce qubits, con entrelazamiento circular: cada qubit habla con el siguiente, y el último con el primero."
    ],
    [
-    23.975,
-    "Con el nivel cero y solo el mapa de acoplamiento de Sherbrooke, el layout trivial pone los qubits en línea y hacen falta veintidós SWAP."
+    26.452,
+    "Necesita un anillo."
    ],
    [
-    33.684,
+    28.83,
+    "Con el nivel cero, el layout trivial pone los qubits uno, dos, tres..."
+   ],
+   [
+    34.321,
+    "en línea sobre el chip."
+   ],
+   [
+    36.756,
+    "Apuesta: ¿cuántos SWAP hacen falta?"
+   ]
+  ]
+ },
+ "cm": {
+  "dur": 30.312,
+  "marks": {
+   "ej": 2.661,
+   "n0": 10.19,
+   "n1": 23.211
+  },
+  "cues": [
+   [
+    0.107,
+    "Ejecutemos el ejemplo."
+   ],
+   [
+    2.661,
+    "El circuito efficient su2 de doce qubits, con entrelazamiento circular, necesita un anillo."
+   ],
+   [
+    10.19,
+    "Con el nivel cero y solo el mapa de acoplamiento de Sherbrooke, el layout trivial pone los qubits en línea y hacen falta veintidós SWAP; si apostaste por unos veintidós, acertaste."
+   ],
+   [
+    23.211,
     "Con el nivel uno, VF2 y Sabre encuentran un layout casi en anillo: solo dos SWAP."
    ]
   ]
@@ -214,6 +246,42 @@
    [
     0.107,
     "Una pregunta sobre backends."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 26.016,
+  "marks": {
+   "n1": 2.137,
+   "n2": 10.983,
+   "n3": 18.937
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Primero, construye el backend de tres qubits de la lección y mira en qué puertas traduce una CX entre los extremos."
+   ],
+   [
+    10.983,
+    "Después, en un anillo de cuatro qubits, quita del Target el par averiado para que el transpilador lo esquive."
+   ],
+   [
+    18.937,
+    "Y por último, escribe una función que construye un Target para una cadena de cualquier tamaño."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },
