@@ -35,7 +35,8 @@ def Plane(**k):
 
 def Code(src, lang="python", **k):
     """Código con resaltado. reveal=True oculta las líneas hasta la acción 'lines'.
-    norun=True excluye un bloque de Python de tools/verify.py (por ejemplo, si necesita una cuenta de IBM)."""
+    norun=True excluye un bloque de Python de tools/verify.py cuando necesita una cuenta de IBM.
+    setup="…" aporta el contexto de un fragmento. tools/verify.py lo ejecuta antes del bloque y la página no lo muestra."""
     return dict(type="code", src=src.strip(chr(10)), lang=lang, **k)
 
 
