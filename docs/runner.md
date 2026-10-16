@@ -113,6 +113,11 @@ corredor protege el anfitrión y la corrección, no la clave de respuestas.
 | `runner/local.py`                  | Construye la imagen y la ejecuta con Docker y las banderas de aislamiento.       |
 | `runner/bench.py`                  | Mide la latencia fría y templada.                                                |
 | `runner/worker/`                   | El Worker de Cloudflare que arranca la imagen como Container.                    |
+| `runner/worker/src/index.ts`       | Las comprobaciones de [Protección del Worker](#protección-del-worker).           |
+| `runner/worker/src/meters.ts`      | Los Durable Objects `RateLimiter` y `Budget`.                                    |
+| `runner/worker/src/session.ts`     | La cookie de sesión y la llamada a `siteverify`.                                 |
+| `runner/worker/src/log.ts`         | La única línea que el Worker escribe en su registro.                             |
+| `runner/worker/test/`              | Las pruebas del Worker con un contenedor falso.                                  |
 | `exercises/<lección>/<ejercicio>/` | La imagen solo lleva `check.py` de cada uno.                                     |
 
 ## Ejecutarlo con Docker
@@ -144,6 +149,17 @@ HTTP. Cubre el contrato, que el resultado de cada ejercicio sea el de
 `qgcheck.grade`, los intentos de falsear un resultado y cada límite. Se salta si
 Docker no responde.
 
+```sh
+mise run worker
+```
+
+Las pruebas del Worker (`runner/worker/test/`) arrancan el Worker real en el
+runtime local de Cloudflare (Miniflare) con un contenedor falso que anota cada
+llamada. No necesitan Docker ni cuenta. Comprueban cada límite de
+[Protección del Worker](#protección-del-worker) por su respuesta y, con el
+contenedor falso, que una petición rechazada no lo alcanza. Dos pruebas llaman
+al `siteverify` real con las claves de prueba y se saltan si no hay red.
+
 ## Cloudflare Containers
 
 `runner/worker/` es un Worker con una clase `Runner` que extiende `Container`
@@ -160,3 +176,230 @@ bunx cf deploy
 ```
 
 `cf deploy` necesita Docker en el `PATH`.
+
+El Worker tiene que servirse en el mismo origen que la página, en `/run`: el
+editor llama a la ruta relativa `/run` y la cookie de sesión es
+`SameSite=Strict`.
+
+## Protección del Worker
+
+El Worker comprueba cada `POST /run` antes de arrancar el contenedor. Las
+comprobaciones van en este orden, y la primera que falla responde sin que el
+contenedor reciba nada:
+
+1. El límite por IP.
+2. El tamaño del cuerpo y del código.
+3. El presupuesto del mes.
+4. Turnstile, si la petición no trae una sesión válida.
+
+Una negativa lleva `{"error": "...", "reason": "..."}`. El editor muestra el
+texto de `error` tal cual. Todos los valores salen de `env` en
+[`cloudflare.config.ts`](../runner/worker/cloudflare.config.ts); cambiarlos es
+editar ese archivo y desplegar. Un valor ausente o que no es un número positivo
+hace que el Worker responda 500 con `internal_error` y registre qué variable
+falló.
+
+`GET /health` lo responde el Worker con 200 sin tocar un contenedor, para que
+una petición sin límite no pueda mantener una instancia encendida.
+
+### Límite por IP
+
+| Variable          | Valor | Significa                                   |
+| ----------------- | ----- | ------------------------------------------- |
+| `RATE_PER_MINUTE` | 30    | Peticiones por IP en cada minuto del reloj. |
+| `RATE_PER_DAY`    | 1000  | Peticiones por IP en cada día UTC.          |
+
+Cuenta toda petición a `/run` desde que llega, también las que luego se rechazan
+por tamaño o por Turnstile. Pasado el límite responde 429 con `Retry-After` en
+segundos y `reason` `rate_minute` o `rate_day`. El alumno ve:
+
+- «Estás ejecutando demasiado seguido. Espera 12 s y vuelve a intentarlo.»
+- «Llegaste al límite de ejecuciones de hoy. Puedes volver a ejecutar en 5 h.»
+
+La IP es `CF-Connecting-IP`. Sin esa cabecera (en local) todas las peticiones
+comparten un solo contador. Una clase entera detrás de una misma IP comparte el
+límite.
+
+El contador de una IP vive en un Durable Object `RateLimiter` que se nombra con
+un HMAC de la IP y del día. La clave del HMAC sale de `TURNSTILE_SECRET`, así
+que el nombre no se puede volver a una IP sin ese secreto. El objeto guarda dos
+contadores y borra su estado cuando termina el día.
+
+### Tamaño del código
+
+| Variable         | Valor  | Significa                     |
+| ---------------- | ------ | ----------------------------- |
+| `MAX_CODE_BYTES` | 20 000 | Bytes UTF-8 del campo `code`. |
+
+Un código mayor responde 413 con `reason` `too_large` y el alumno ve «El código
+ocupa 20001 bytes y el máximo son 20000.». Un cuerpo mayor que seis veces el
+máximo más 1024 bytes responde 413 sin leerse entero. Un cuerpo que no es JSON o
+no trae `code` como texto responde 400 (`bad_request`). El contenedor repite la
+comprobación con `MAX_CODE` de `qgcheck/runner.py`; para cambiar el tope hay que
+cambiar los dos.
+
+### Presupuesto mensual
+
+| Variable                | Valor     | Significa                                                           |
+| ----------------------- | --------- | ------------------------------------------------------------------- |
+| `MONTHLY_BUDGET_USD`    | 20        | Gasto estimado del mes UTC que no se supera.                        |
+| `USD_PER_BUSY_SECOND`   | 0.0000075 | Coste de un segundo con una instancia ocupada.                      |
+| `RESERVED_BUSY_SECONDS` | 30        | Segundos que una ejecución aparta del presupuesto antes de empezar. |
+
+Antes de arrancar el contenedor, el Worker aparta en el Durable Object `Budget`
+`RESERVED_BUSY_SECONDS` por `USD_PER_BUSY_SECOND`. Si con esa reserva el total
+del mes pasaría de `MONTHLY_BUDGET_USD`, no ejecuta: responde 503 con
+`Retry-After` hasta el día 1 del mes siguiente y `reason` `budget`. Comprobar y
+apartar es una sola operación del objeto, así que varias peticiones simultáneas
+no pueden apartar a la vez lo que solo cabe una vez. Al terminar, cambia la
+reserva por el coste medido: el tiempo que esperó al contenedor (el arranque
+incluido), en pasos de 10 ms y con un mínimo de un paso, por
+`USD_PER_BUSY_SECOND`, y nunca más de lo apartado. Una petición que se rechaza
+después de apartar (por Turnstile) devuelve la reserva entera. El total del mes
+anterior se descarta. El alumno ve «El corredor alcanzó su presupuesto de este
+mes y no ejecuta más código hasta que empiece el siguiente. Los cuadernos de
+marimo siguen funcionando en tu equipo.»
+
+`RESERVED_BUSY_SECONDS` es un tope y no una estimación. Cubre los 10 s de
+trabajo de [Límites](#límites), el arranque de una instancia y el reintento tras
+un 503. Si la ejecución, con su reintento, llega a ese tiempo, el Worker detiene
+la instancia que aún no había respondido, cobra exactamente lo apartado y
+responde 504 con `reason` `run_too_long`. Una instancia que respondió 503
+atiende el trabajo de otro alumno y no se detiene. El alumno ve «La ejecución
+tardó más de lo que el corredor permite y se detuvo. Revisa si el código tiene
+un bucle sin fin.» Como cada ejecución cuesta como mucho lo que apartó y solo se
+aparta si cabe, el gasto medido del mes no pasa de `MONTHLY_BUDGET_USD`. Si el
+Worker se interrumpe entre apartar y terminar, o falla el almacenamiento al
+terminar (se registra con `where: "settle"` y la respuesta no cambia), la
+reserva se queda y el mes cuenta de más, nunca de menos.
+
+El valor por defecto de `USD_PER_BUSY_SECOND` es el de la instancia `basic` (¼
+vCPU y 1 GiB) con la CPU siempre activa: 0,25 × 0,00002 + 1 × 0,0000025. Es una
+cota superior, porque la CPU solo se factura mientras trabaja. Con otro tipo de
+instancia hay que cambiar este valor. Los precios son los de
+[Cloudflare Containers](https://developers.cloudflare.com/containers/pricing/).
+
+Lo que la estimación no cuenta:
+
+- La memoria de una instancia encendida sin trabajo (`sleepAfter`, 5 minutos
+  tras la última petición). Con tres instancias encendidas todo el mes son unos
+  20 USD (3 × 0,0000025 × 2 592 000 s). La factura de Containers puede llegar al
+  presupuesto más esa cifra.
+- Una instancia que el Worker no logra detener al llegar al tope (se registra
+  con `where: "stop"`). Cloudflare la factura hasta que se apague sola.
+- Una instancia que sigue arrancando cuando se llega al tope no ha respondido
+  aún, así que el Worker la detiene aunque otro alumno haya llegado a ella
+  durante el arranque.
+
+La suma de `cost_nano_usd` en el registro da el gasto estimado del mes.
+
+### Turnstile
+
+Cloudflare Turnstile se verifica en la primera ejecución de una sesión. El
+navegador manda el token del widget en la cabecera `X-Turnstile-Token`. El
+Worker lo comprueba con `siteverify`, al que envía solo el secreto y el token, y
+si vale responde con la cookie `qg_session` además del resultado:
+
+```text
+qg_session=<caducidad>.<mac>; Max-Age=28800; Path=/run; HttpOnly; Secure; SameSite=Strict
+```
+
+La cookie lleva la hora de caducidad y un MAC que cubre esa hora y la IP. No
+lleva ningún identificador, y no sirve desde otra IP ni pasada su caducidad. Las
+siguientes ejecuciones la mandan solas y no vuelven a llamar a Turnstile.
+
+| Respuesta | `reason`                | El alumno ve                                                                                           |
+| --------- | ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| 403       | `turnstile_missing`     | «Antes de ejecutar código hay que comprobar que eres una persona.»                                     |
+| 403       | `turnstile_failed`      | «No pasó la comprobación de que eres una persona. Recarga la página e inténtalo de nuevo.»             |
+| 503       | `turnstile_unavailable` | «No se pudo comprobar que eres una persona. Vuelve a intentarlo en unos segundos.» (`Retry-After: 10`) |
+
+| Variable        | Valor | Significa                         |
+| --------------- | ----- | --------------------------------- |
+| `SESSION_HOURS` | 8     | Duración de la sesión verificada. |
+
+`TURNSTILE_SECRET` es un secreto del Worker (`bindings.secret()`), no un valor
+del repositorio. La clave del sitio va en la página, no en el Worker. Cloudflare
+documenta claves de prueba que no necesitan cuenta:
+
+| Clave                                 | Tipo    | Comportamiento                                                |
+| ------------------------------------- | ------- | ------------------------------------------------------------- |
+| `1x00000000000000000000AA`            | sitio   | Siempre pasa. El token que genera es `XXXX.DUMMY.TOKEN.XXXX`. |
+| `1x0000000000000000000000000000000AA` | secreto | Siempre pasa.                                                 |
+| `2x0000000000000000000000000000000AA` | secreto | Siempre falla.                                                |
+| `3x0000000000000000000000000000000AA` | secreto | Responde que el token ya se usó.                              |
+
+Las pruebas del Worker usan los tres secretos. `site/blocks.js` todavía no
+dibuja el widget ni manda el token; hasta que lo haga, un Worker desplegado
+responde 403 a todo el que no lo manda.
+
+### Qué recibe el contenedor y qué se registra
+
+El contenedor recibe el cuerpo de la petición y `Content-Type`. No recibe la
+cookie, el token ni la IP.
+
+El Worker escribe estos registros y ningún otro. Todos tienen campos fijos, que
+`src/log.ts` define.
+
+1. Una línea `run` por cada petición a `/run` que el Worker contesta, con
+   cualquier resultado menos un error interno:
+
+   ```json
+   {
+     "event": "run",
+     "outcome": "ok",
+     "status": 200,
+     "mode": "check",
+     "exercise": "p1-quickstart/ghz",
+     "code_bytes": 212,
+     "busy_ms": 930,
+     "cost_nano_usd": 6975
+   }
+   ```
+
+   `outcome` es `ok`, `rate_minute`, `rate_day`, `bad_request`, `too_large`,
+   `budget`, `turnstile_missing`, `turnstile_failed`, `turnstile_unavailable` o
+   `run_too_long`. `mode` y `exercise` se copian solo si tienen la forma de un
+   valor del contrato.
+
+2. Una línea de error, en lugar de la anterior, cuando la petición falla por un
+   error del Worker o de la configuración y responde 500 `internal_error`:
+
+   ```json
+   {
+     "event": "run",
+     "outcome": "internal_error",
+     "status": 500,
+     "error": "Error"
+   }
+   ```
+
+   `error` es el nombre de la clase del error. `detail` lleva el texto solo si
+   es un error de configuración, que nombra una variable y no datos.
+
+3. Una línea de error aparte, además de la línea de la propia petición, cuando
+   un paso posterior falla y la petición sigue su camino. Lleva `where` y no
+   lleva `status`:
+   - `"settle"`: falló el ajuste del presupuesto.
+   - `"stop"`: falló detener una instancia al llegar al tope de la reserva.
+
+Ningún registro lleva el código, la IP, el token, la cookie ni el texto de un
+error. `cloudflare.config.ts` activa Workers Logs con el registro de
+invocaciones apagado, que es el que lleva la petición. Lo que Cloudflare guarda
+de su red no depende del Worker.
+
+### Por qué estos valores
+
+Los valores salen de las tarifas de Containers con la instancia `basic` y de
+tres instancias que atienden un trabajo cada una:
+
+- Un segundo de instancia ocupada cuesta como mucho 0,0000075 USD. Una ejecución
+  que agota los 10 s de [Límites](#límites) cuesta 0,000075 USD.
+- 30 por minuto es una ejecución cada 2 s. Con ejecuciones de 1 s una IP ocupa
+  30 s de los 180 s de instancia que hay cada minuto.
+- 1000 por día, todas de 10 s, cuestan 0,075 USD a una IP; de 1 s, 0,0075 USD.
+- 20 USD son 2,7 millones de segundos de instancia ocupada, o 1,3 millones de
+  ejecuciones de 2 s. Un atacante con muchas IPs llega antes al presupuesto que
+  a una factura sin tope.
+
+Son cálculos con esas tarifas, no medidas del Worker desplegado.
