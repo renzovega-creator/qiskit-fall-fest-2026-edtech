@@ -1,6 +1,6 @@
 """Parte VII · Ejecución avanzada y gestión de trabajos."""
 from lib import (T, M, L, Row, Box, A, beat, choice, numeric, lesson,
-                 Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph)
+                 Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph, predict, reflect, Mission)
 from parte2 import resumen
 
 # ------------------------------------------------------------------ 7.1 Circuitos dinámicos en hardware
@@ -82,6 +82,35 @@ with circuit.if_test((cr, 0b11)):
                         "Correcto: es la forma válida de expresar «si los dos bits valen 1» sin anidar dos `if`.",
                         wrong=[None, "Sí se puede, mientras el registro tenga ≤ 32 bits.", "El `else` es opcional."])),
 
+        beat("pred_correccion", ("", "Antes de ejecutar"),
+             """Un circuito dinámico clásico: la corrección. Ponemos un qubit en superposición con una Hadamard y lo medimos, y el resultado va al bit cero. [[if]]Si salió uno, aplicamos una X para devolverlo a cero. [[otra]]Y medimos otra vez, ahora en el bit uno.
+             [[apuesta]]Apuesta: ¿qué vas a ver en esa segunda medición, la que viene después de la corrección?""",
+             [Circ(1, [G("h", 0), G("measure", 0, c=0), dict(g="if", q=[0], label="c₀ = 1 ? X", inner="X"), G("measure", 0, c=1)], clbits=2, creg="c", id="q")],
+             ask=predict("¿Qué sale en la segunda medición, tras 1000 disparos?",
+                         ["`0` siempre", "`1` siempre", "`0` y `1`, cerca de 500 cada uno", "depende de lo que salió en la primera medición"],
+                         "Anotado. Ejecutémoslo con el simulador Aer, que admite el if, y miremos solo el bit uno.")),
+
+        beat("correccion", ("", "El resultado"),
+             """Esto es lo que imprime. [[crudo]]La primera línea tiene los dos bits de cada disparo; el de la derecha es la primera medición. Es aleatoria: la mitad de las veces cero cero y la mitad cero uno.
+             [[marg]]La segunda línea, con marginal counts, se queda solo con el bit uno, la segunda medición: mil veces cero. Si apostaste por cero siempre, acertaste.
+             [[porque]]Cuando la primera medición dio uno, la X devolvió el qubit a cero; cuando dio cero, ya estaba en cero. Es lo que el hardware calcula en tiempo real, y la razón de ser de los circuitos dinámicos.""",
+             [Code('''from qiskit import QuantumCircuit
+from qiskit.result import marginal_counts
+from qiskit_aer import AerSimulator
+
+qc = QuantumCircuit(1, 2)
+qc.h(0)
+qc.measure(0, 0)
+with qc.if_test((qc.clbits[0], 1)):
+    qc.x(0)
+qc.measure(0, 1)
+counts = AerSimulator(seed_simulator=7).run(qc, shots=1000).result().get_counts()
+print(counts)
+print(marginal_counts(counts, [1]))''', id="c", size=21),
+              Out("{'00': 499, '01': 501}\n{'0': 1000}", id="o", hidden=True, check=True)],
+             [A("show", "o", at="crudo"), A("hl", "c", at="crudo", lines=[12]), A("hl", "c", at="marg", lines=[13]),
+              A("hl", "c", at="porque", range="8-9")]),
+
         beat("estimator", ("", "Valores esperados con circuitos dinámicos"),
              """Estimator no admite circuitos dinámicos. Para obtener valores esperados, usa Sampler y haz tú el trabajo de Estimator.
              [[agrupar]]Primero, agrupa los términos de los observables en conjuntos que conmutan qubit a qubit, por ejemplo con PauliList punto group qubit wise commuting.
@@ -89,6 +118,21 @@ with circuit.if_test((cr, 0b11)):
              [Flow([dict(t="agrupar observables", s="`group_qubit_wise_commuting`"), dict(t="cambio de base", s="un circuito por grupo"),
                     dict(t="Sampler"), dict(t="sumar", s="`BitArray.expectation_values`")], id="f", stagger=True)],
              [A("item", "f", at="agrupar", i=0), A("item", "f", at="bases", i=1), A("item", "f", at="bases", t=1.5, i=2), A("item", "f", at="sumar", i=3)]),
+
+        beat("mision", ("", "Tu turno"),
+             """Abre el cuaderno de práctica de esta lección. [[n1]]Primero reproduces la corrección que acabamos de ver y compruebas que la segunda medición es siempre cero. [[n2]]Después reemplazas dos if anidados por uno solo sobre un registro de dos bits. [[n3]]Y por último escribes una función que decide si un circuito cumple los límites del hardware.
+             [[check]]Busca la marca verde en cada misión.""",
+             [Mission("practica/p7-dinamicos.py", [
+                 (1, "Mide, corrige con un `if` y comprueba que la segunda medición es siempre `0`."),
+                 (2, "Reemplaza dos `if` anidados por un único `if_test((cr, 0b11))`."),
+                 (3, "Escribe `es_valido(qc)`: rechaza bucles, `switch`, `if` anidados, mediciones dentro de un `if` y operandos de más de 32 bits.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("La corrección `H · medir · if X` deja el qubit en cero. ¿Qué habría que hacer sin circuitos dinámicos, y qué costo tendría?",
+                         "Tienes un circuito con tres `if` anidados. ¿Cómo lo reescribirías para que el hardware lo acepte?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]En hardware de IBM, solo if y else. [[r2]]MidCircuitMeasure mide a mitad de circuito con menos sobrecarga. [[r3]]Hay límites de difusiones, de bits por operando y de anidamiento.
@@ -144,19 +188,28 @@ fraccionales = lesson(
 
         beat("activar", ("", "Activarlas"),
              """Aunque RX y RZZ están en la biblioteca estándar de Qiskit, solo se ejecutan directamente en ciertos procesadores, y hay que pedir el backend con use fractional gates igual a True. Así el Target las incluye y el transpilador puede usarlas.
-             [[lista]]service punto backends con use fractional gates lista los que las admiten; desde la cero punto cuarenta y ocho, least busy acepta fractional gates.
+             [[lista]]service punto backends con use fractional gates lista los que las admiten; desde la cero punto cuarenta y ocho, least busy acepta use fractional gates.
              [[fake]]Los backends falsos las tienen desactivadas por defecto; se activan refrescando su configuración con el servicio.
              [[error]]Un detalle: el error que reporta el Target para las fraccionales es una copia del de la puerta convencional equivalente, porque todavía no se miden por separado.""",
              [Code('''backend = service.backend("ibm_kingston", use_fractional_gates=True)
 service.backends(use_fractional_gates=True)
-service.least_busy(fractional_gates=True)          # desde 0.48
+service.least_busy(use_fractional_gates=True)      # desde 0.48
 fake_backend.refresh(service=service, use_fractional_gates=True)''', id="c", norun=True)],
              [A("hl", "c", at="activar", lines=[1]), A("hl", "c", at="lista", range="2-3"), A("hl", "c", at="fake", lines=[4])]),
+
+        beat("pred_ising", ("", "Antes de transpilar"),
+             """Vamos a simular la dinámica de una cadena de Ising con cinco qubits y tres pasos de tiempo. [[paso]]Cada paso aplica una capa de RX y dos capas de RZZ, que en total son cuatro RZZ, una por cada par de vecinos.
+             [[cuenta]]Recuerda que, sin puertas fraccionales, cada RZZ se descompone en dos CZ. [[apuesta]]Haz la cuenta y apuesta: ¿cuántas CZ crees que necesitará el backend convencional?""",
+             [Table(["Cadena de Ising", ""], [["qubits", "5"], ["pasos", "3"], ["`rx` por paso", "5"], ["`rzz` por paso", "4"]], id="t", stagger=True, size=26)],
+             [A("item", "t", at="paso", i=0), A("item", "t", at="paso", t=1, i=1), A("item", "t", at="paso", t=2, i=2), A("item", "t", at="paso", t=3, i=3)],
+             ask=predict("¿Cuántas `cz` necesita el backend convencional?",
+                         ["12", "24", "36", "ninguna"],
+                         "Anotado. Transpilemos para los dos backends y miremos.")),
 
         beat("ising", ("", "Ejemplo: una cadena de Ising"),
              """El ejemplo de la guía simula la dinámica de una cadena de Ising: capas de RX seguidas de capas de RZZ, tres pasos de tiempo, cinco qubits.
              [[comp]]Lo transpilamos para dos backends genéricos, uno sin y otro con puertas fraccionales, y programamos los tiempos para medir la duración.
-             [[res]]Sin fraccionales: veinticuatro CZ y casi nueve microsegundos. Con fraccionales: doce RZZ, ninguna CZ, y un coma dos microsegundos. Siete veces más corto.""",
+             [[res]]Sin fraccionales: veinticuatro CZ, dos por cada una de las doce RZZ, y casi nueve microsegundos. Si apostaste por veinticuatro, acertaste. Con fraccionales: doce RZZ, ninguna CZ, y un coma dos microsegundos. Siete veces más corto.""",
              [Code(ISING, id="c", size=18),
               Out("convencional 24 0 8.98 µs\nfraccional 0 12 1.24 µs", id="o", hidden=True, check=True),
               Hist([["convencional", 8.98], ["fraccional", 1.24]], id="h", hidden=True, h=120, ymax=10.5, digits=2, ylabel="µs", color="teal")],
@@ -191,6 +244,21 @@ fake_backend.refresh(service=service, use_fractional_gates=True)''', id="c", nor
              ask=choice("¿Qué haces con las puertas fraccionales?", ["las activas: siempre convienen", "no las activas: PEC es incompatible con ellas", "las activas solo para las RZZ"], 1,
                         "Correcto: hay que elegir. O puertas fraccionales (circuito más corto) o PEC; o usar otra mitigación compatible, como TREX.",
                         wrong=["No siempre: PEC no se combina con ellas.", None, "La opción se activa para el backend entero, no por tipo de puerta."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Abre el cuaderno de práctica. [[n1]]Primero reproduces la comparación de la cadena de Ising y ves cuánto acortan las fraccionales. [[n2]]Después cambias el ángulo de las RZZ para que el backend convencional necesite menos CZ. [[n3]]Y por último escribes una función que construye la cadena de Ising con los parámetros que quieras.
+             [[check]]Cada misión tiene su comprobación: busca la marca verde.""",
+             [Mission("practica/p7-fraccionales.py", [
+                 (1, "Transpila la cadena de Ising para los dos backends y cuenta las `cz` y las `rzz`."),
+                 (2, r"Cambia `theta_zz` por un múltiplo de $\pi/2$ y mira cuántas `cz` necesita el convencional."),
+                 (3, "Escribe `cadena_ising(n, pasos, theta_x, theta_zz)`; la comprobación cuenta sus puertas.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("¿Por qué una cadena de Ising se beneficia tanto de `rzz` y `rx` nativas, y qué tipo de circuito casi no ganaría nada?",
+                         "Quieres mitigar con PEC un circuito de evolución temporal. ¿Qué decisión tomas entre las puertas fraccionales y la mitigación, y por qué?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Heron ejecuta RX y RZZ directamente. [[r2]]Se activan al pedir el backend con use fractional gates. [[r3]]Acortan mucho los circuitos con rotaciones arbitrarias.
@@ -232,8 +300,16 @@ result = sampler.run([isa_circuit]).result()
 timing = result[0].metadata["compilation"]["scheduler_timing"]["timing"]''', id="c", norun=True)],
              [A("hl", "c", at="activar", lines=[4]), A("hl", "c", at="leer", lines=[6])]),
 
+        beat("pred_datos", ("", "Antes de leerlos"),
+             """Vamos a leer los datos de un circuito pequeño: una RZ, una raíz de X y una medición, todas sobre el qubit cero. [[sx]]La raíz de X dura nueve unidades dt. [[m]]La medición, sesenta y cuatro en el canal del qubit. [[rz]]¿Y la RZ? Apuesta antes de verlo.""",
+             [Table(["Instrucción", "Duración"], [["`sx`", "9 dt"], ["`measure`", "64 dt"], ["`rz`", "?"]], id="t", stagger=True, size=26)],
+             [A("item", "t", at="sx", i=0), A("item", "t", at="m", i=1), A("item", "t", at="rz", i=2)],
+             ask=predict("¿Cuánto dura la `rz`?",
+                         ["0 dt", "9 dt, igual que la `sx`", "64 dt, igual que la medición", "depende del ángulo"],
+                         "Anotado. Veamos qué dicen los datos.")),
+
         beat("datos", ("", "Los datos en bruto"),
-             """Cada línea describe una instrucción en un canal, con seis campos separados por comas. [[rama]]La rama: main, o la rama then o else de un if. [[instr]]La instrucción y su qubit. [[canal]]El canal: Qubit x, el canal de control del qubit x, o AWGR, el generador de formas de onda de lectura.
+             """Cada línea describe una instrucción en un canal, con seis campos separados por comas. [[rz]]La primera línea responde la apuesta: la RZ dura cero, porque es un cambio de fase. [[rama]]La rama: main, o la rama then o else de un if. [[instr]]La instrucción y su qubit. [[canal]]El canal: Qubit x, el canal de control del qubit x, o AWGR, el generador de formas de onda de lectura.
              [[t0]]El instante de inicio [[dur]]y la duración, ambos en unidades dt, ciclos de programación; backend punto dt te da su valor en segundos. [[pulso]]Y el tipo de pulso: play aplica un pulso de control; capture registra el estado; shift phase cambia la fase, sin duración, como en las RZ virtuales.""",
              [Code('''main,rz_0,Qubit 0,1393,0,shift_phase
 main,sx_0,Qubit 0,1393,9,play
@@ -241,7 +317,7 @@ main,measure_0,Qubit 0,1402,64,play
 main,measure_0,AWGR0_0,1523,325,capture''', "out", id="c"),
               Table(["Campo", "Ejemplo"], [["rama", "`main`"], ["instrucción", "`sx_0`"], ["canal", "`Qubit 0` · `AWGR0_0`"], ["inicio", "`1393` dt"],
                                            ["duración", "`9` dt"], ["pulso", "`play` · `capture` · `shift_phase`"]], id="t", stagger=True, size=22)],
-             [A("item", "t", at="rama", i=0), A("item", "t", at="instr", i=1), A("item", "t", at="canal", i=2), A("item", "t", at="t0", i=3), A("item", "t", at="dur", i=4),
+             [A("hl", "c", at="rz", lines=[1]), A("item", "t", at="rama", i=0), A("item", "t", at="instr", i=1), A("item", "t", at="canal", i=2), A("item", "t", at="t0", i=3), A("item", "t", at="dur", i=4),
               A("item", "t", at="pulso", i=5)]),
 
         beat("dibujar", ("", "Visualizarlos"),
@@ -266,6 +342,21 @@ fig.write_html("scheduler_timing.html")''', id="c", norun=True, size=22),
              ask=numeric("¿En qué instante (en dt) termina esa puerta SX?", 1402,
                          "Correcto: empieza en 1393 y dura 9 dt, así que termina en 1402, justo cuando empieza la siguiente instrucción del ejemplo.",
                          tol=0.0001, hint="Inicio + duración.")),
+
+        beat("mision", ("", "Tu turno"),
+             """Abre el cuaderno de práctica. [[n1]]Primero escribes un analizador de las líneas de temporización. [[n2]]Después calculas cuándo termina cada instrucción y cuánto dura todo, en nanosegundos. [[n3]]Y por último construyes la programación de un circuito con Qiskit, sin necesidad de un QPU.
+             [[check]]Busca la marca verde en cada misión.""",
+             [Mission("practica/p7-temporizacion.py", [
+                 (1, "Lee las líneas de temporización y conviértelas en tuplas."),
+                 (2, "Calcula el fin de cada instrucción y el total en nanosegundos con `backend.dt`."),
+                 (3, "Escribe `programacion(isa, backend)` con `op_start_times` y las duraciones del `target`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("Un colega suma las duraciones del dibujo de tiempos y dice que ese es su costo en QPU. ¿Qué le explicas?",
+                         "¿Por qué la RZ dura cero y qué otras puertas esperarías que sean «virtuales»?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Para circuitos dinámicos, pide los tiempos al servicio. [[r2]]Se activan con scheduler timing en las opciones de ejecución del Sampler. [[r3]]Cada línea tiene rama, instrucción, canal, inicio, duración y pulso.
@@ -315,8 +406,17 @@ service.backend("ibm_fez")
 service.least_busy(operational=True, min_num_qubits=100)''', id="c", norun=True)],
              [A("hl", "c", at="backends", lines=[1]), A("hl", "c", at="uno", lines=[2]), A("hl", "c", at="least", lines=[3])]),
 
+        beat("pred_estatica", ("", "Antes de mirar"),
+             """En un procesador, no todas las operaciones duran lo mismo. [[cz]]Una puerta de dos qubits, la CZ, es de lo más rápido que hace. [[med]]Medir un qubit es más lento, porque hay que leer la señal. [[apuesta]]Vamos a consultar Fez. Antes, apuesta: ¿cuántas veces más dura una medición que una CZ?""",
+             [Flow([dict(t="CZ", s="puerta de dos qubits"), dict(t="measure", s="lectura de un qubit")], id="f", stagger=True)],
+             [A("item", "f", at="cz", i=0), A("item", "f", at="med", i=1)],
+             ask=predict("¿Cuántas veces más dura `measure` que `cz`?",
+                         ["unas 2 veces", "unas 5 veces", "unas 20 veces", "unas 200 veces"],
+                         "Anotado. Consultemos el target de Fez.")),
+
         beat("estatica", ("", "Información estática"),
              """Hay información que casi no cambia: nombre, número de qubits, tipo de procesador y versión. [[ej]]Con el backend falso Fez lo vemos sin cuenta: ciento cincuenta y seis qubits, familia Heron, revisión dos.
+             [[dur]]Y en las dos últimas líneas está la respuesta a tu apuesta: medir dura uno coma cincuenta y seis microsegundos y la CZ, ochenta y cuatro nanosegundos. Son unas dieciocho veces y media más; si apostaste por veinte, estuviste cerca.
              [[version]]La versión tiene la forma mayor punto menor punto revisión. Un circuito compilado para una versión siempre corre en ella; si cambia solo la revisión, sigue corriendo; si cambia la mayor o la menor, ya no está garantizado.
              [[instr]]Y supported instructions lista las instrucciones nativas: cz, rz, sx, x, id, delay, measure, measure dos, reset, if else y store.""",
              [Code(PROPS, id="c", size=21),
@@ -387,6 +487,21 @@ jobs = service.jobs(backend_name="ibm_sherbrooke")''', id="c", hidden=True, noru
                         "Correcto: con menos espera, el reset tiene menos tiempo para dejar el qubit en $|0\\rangle$.",
                         wrong=["Siempre hay un compromiso.", None, "Afecta a la preparación, no a las puertas."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Abre el cuaderno de práctica. [[n1]]Primero lees las propiedades de Fez y calculas cuántas veces más dura medir que una CZ. [[n2]]Después buscas el qubit con el T uno más largo. [[n3]]Y por último escribes una función que elige la mejor cadena de qubits, la de menor error total de CZ, para el proyecto de espines.
+             [[check]]Busca la marca verde en cada misión.""",
+             [Mission("practica/p7-procesadores.py", [
+                 (1, "Lee las propiedades de `FakeFez` y calcula la razón entre medir y una `cz`."),
+                 (2, "Encuentra el qubit con mayor $T_1$."),
+                 (3, "Escribe `mejor_cadena(backend, k)`: $k$ qubits acoplados con el menor error total de `cz`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("Para tu cadena de espines, ¿qué pesa más al elegir los qubits: el error de las `cz`, el de lectura o el $T_1$? Justifica.",
+                         "Los datos de calibración cambian cada día. ¿Qué harías para que tu experimento sea comparable entre dos días?")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Nighthawk y Heron son las familias actuales. [[r2]]La información estática incluye versión e instrucciones soportadas. [[r3]]Las propiedades dinámicas, T uno, T dos y errores, están en el Target y en properties.
              [[r4]]Y el equipo se monitorea, calibra y mide cada día; rep delay intercambia tiempo por calidad de preparación.""",
@@ -429,10 +544,24 @@ colas = lesson(
         beat("estimar", ("", "Estimar el uso"),
              """Antes de enviar, puedes aproximar el uso con una fórmula. [[formula]]Unos dos segundos de sobrecarga por subtrabajo, más el rep delay sumado a la duración del circuito, multiplicado por el número de ejecuciones: circuitos por disparos, contando los que genera el broadcasting.
              [[rapido]]Sin mitigación avanzada ni rep delay propio, una regla rápida es dos más cero coma cero cero cero tres cinco por el número de ejecuciones.
-             [[ej]]Un estado de Bell con cuatro mil noventa y seis disparos en Fez: algo más de tres segundos, que redondeamos hacia arriba a cuatro. Lo calculamos con la duración del circuito programado y la del reset.
              [[ojo]]La mitigación añade circuitos: PEA y PEC, muchos más, por el aprendizaje de ruido.""",
              [M(r"\text{uso}\approx 2\,\text{s}+(\text{rep\_delay}+\text{circuito})\times N_{\text{ejecuciones}}", size=34),
-              Code('''import math
+              Box("warn", "La mitigación añade circuitos", T("PEA y PEC: muchos más, por el aprendizaje de ruido", "body"), id="b", hidden=True)],
+             [A("show", "b", at="ojo")]),
+
+        beat("pred_bell", ("", "Antes de calcular"),
+             """Pongamos la fórmula a prueba con el circuito más pequeño que conocemos: un estado de Bell, con una Hadamard, una CNOT y la medición. [[disp]]Lo ejecutamos con cuatro mil noventa y seis disparos en Fez, que es un procesador rápido. [[apuesta]]¿Cuántos segundos de QPU crees que usará?""",
+             [Circ(2, [G("h", 0), G("cx", 0, 1), G("barrier"), G("measure", 0, c=0), G("measure", 1, c=1)], clbits=2, creg="meas", id="q"),
+              T("4096 disparos · FakeFez", "note", id="n", hidden=True)],
+             [A("show", "n", at="disp")],
+             ask=predict("¿Cuánto uso de QPU estimas para este Bell?",
+                         ["menos de 1 segundo", "unos 4 segundos", "unos 40 segundos", "unos 4 minutos"],
+                         "Anotado. Apliquemos la fórmula.")),
+
+        beat("estimar_ej", ("", "Estimar el uso: el cálculo"),
+             """[[ej]]Un estado de Bell con cuatro mil noventa y seis disparos en Fez: algo más de tres segundos, que redondeamos hacia arriba a cuatro. Si apostaste por unos cuatro segundos, acertaste. Lo calculamos con la duración del circuito programado y la del reset.
+             [[porque]]La sobrecarga de dos segundos pesa el doble que las cuatro mil ejecuciones juntas, que duran cerca de un cuarto de milisegundo cada una.""",
+             [Code('''import math
 from qiskit import QuantumCircuit
 from qiskit.transpiler import generate_preset_pass_manager
 from qiskit_ibm_runtime.fake_provider import FakeFez
@@ -445,9 +574,9 @@ qc.measure_all()
 pm = generate_preset_pass_manager(target=backend.target, optimization_level=0, scheduling_method="alap")
 circuit_duration = pm.run(qc).estimate_duration(backend.target, unit="s")
 circuit_duration += backend.target["reset"][(0,)].duration + backend.default_rep_delay
-print(f"{math.ceil(2 + circuit_duration * 4096)} s")''', id="c", hidden=True, size=20),
+print(f"{math.ceil(2 + circuit_duration * 4096)} s")''', id="c", size=20),
               Out("4 s", id="o", hidden=True, check=True)],
-             [A("show", "c", at="ej"), A("show", "o", at="ej", t=3)]),
+             [A("hl", "c", at="ej", range="12-13"), A("show", "o", at="ej", t=3)]),
 
         beat("minimizar", ("", "Reducir el uso"),
              """Cómo gastar menos. [[shots]]Ejecuta solo los disparos que necesitas: el costo crece con ellos; en Estimator, más precisión significa más disparos.
@@ -488,6 +617,21 @@ print(job.metrics()["usage"]["quantum_seconds"])''', id="c", norun=True),
              [Table(["Plan", "«Instance usage» muestra"], [["Open · Premium", "últimos 28 días"], ["Pay-As-You-Go", "desde la creación de la instancia"], ["Flex", "desde el inicio del contrato"]],
                     id="t", stagger=True, size=25)],
              [A("item", "t", at="planes", i=0), A("item", "t", at="planes", t=2, i=1), A("item", "t", at="planes", t=4, i=2)]),
+
+        beat("mision", ("", "Tu turno"),
+             """Abre el cuaderno de práctica. [[n1]]Primero reproduces la estimación del estado de Bell. [[n2]]Después corriges el conteo de ejecuciones de un PUB con varios valores de parámetro. [[n3]]Y por último conviertes la cuenta en una función, estimar uso, que sirva para cualquier circuito.
+             [[check]]Busca la marca verde en cada misión.""",
+             [Mission("practica/p7-colas-costos.py", [
+                 (1, "Estima el uso de un Bell con 4096 disparos en `FakeFez`."),
+                 (2, "Corrige `ejecuciones` para que cuente circuitos × disparos de un PUB."),
+                 (3, "Escribe `estimar_uso(backend, qc, ejecuciones)` y comprueba varios circuitos.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("Tu plan Open tiene 10 minutos y un experimento se estima en 30 segundos. ¿Qué otros costos tendrías en cuenta antes de enviarlo?",
+                         "¿Qué reducirías primero para gastar menos: disparos, circuitos o profundidad? Justifica con la fórmula.")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]El reparto justo ordena la cola por instancia. [[r2]]El uso es tiempo de QPU bloqueado, salvo en sesiones, que cuentan el tiempo activo. [[r3]]Se estima con una fórmula sencilla.
@@ -557,9 +701,18 @@ job.update_tags(["c"])''', norun=True)],
                         "Correcto: `update_tags` sobrescribe. Para añadir, pasa la lista completa: `[\"a\", \"b\", \"c\"]`.",
                         wrong=["No se acumulan: se reemplazan.", None, "Sí cambian: se reemplazan por la nueva lista."])),
 
+        beat("pred_guardar", ("", "Antes de guardar"),
+             """Vamos a guardar un resultado en disco y a leerlo de vuelta. [[ida]]Para escribirlo, json punto dump con el codificador RuntimeEncoder. [[vuelta]]Para leerlo, json punto load con el decodificador RuntimeDecoder. [[apuesta]]¿Qué objeto crees que obtendremos al final, y qué pasará con los conteos?""",
+             [Flow([dict(t="resultado", s="de un trabajo"), dict(t="json.dump", s="`cls=RuntimeEncoder`"), dict(t="result.json"),
+                    dict(t="json.load", s="`cls=RuntimeDecoder`"), dict(t="¿?", color="gold")], id="f", stagger=True)],
+             [A("item", "f", at="ida", i=0), A("item", "f", at="ida", t=1, i=1), A("item", "f", at="ida", t=2, i=2), A("item", "f", at="vuelta", i=3), A("item", "f", at="apuesta", i=4)],
+             ask=predict("¿Qué devuelve `json.load(file, cls=RuntimeDecoder)`?",
+                         ["un diccionario con los conteos", "un `PrimitiveResult` con los mismos conteos", "el texto JSON sin interpretar", "un error: hace falta el servicio"],
+                         "Anotado. Lo probamos con un resultado local.")),
+
         beat("guardar", ("", "Recuperar y guardar resultados"),
              """IBM guarda los resultados de todos tus trabajos, así que puedes recuperarlos tras reiniciar Python. [[buscar]]service punto jobs filtra por fecha, backend, estado o sesión, y service punto job recupera uno por su identificador.
-             [[disco]]Para guardarlos en disco, usa el módulo json de Python con el codificador RuntimeEncoder, [[leer]]y léelos con RuntimeDecoder. Aquí lo probamos con un resultado local: vuelve a ser un PrimitiveResult con los mismos conteos.""",
+             [[disco]]Para guardarlos en disco, usa el módulo json de Python con el codificador RuntimeEncoder, [[leer]]y léelos con RuntimeDecoder. Aquí lo probamos con un resultado local: vuelve a ser un PrimitiveResult con los mismos conteos. Si apostaste por esa opción, acertaste; no hace falta el servicio para leerlo.""",
              [Code('''import json
 from qiskit import QuantumCircuit
 from qiskit.primitives import StatevectorSampler
@@ -578,6 +731,21 @@ with open("result.json") as file:
 print(type(loaded).__name__, loaded[0].data.meas.get_counts())''', id="c", size=21),
               Out("PrimitiveResult {'00': 515, '11': 509}", id="o", hidden=True, check=True)],
              [A("hl", "c", at="buscar", lines=[10]), A("hl", "c", at="disco", range="12-13"), A("hl", "c", at="leer", range="14-16"), A("show", "o", at="leer", t=2)]),
+
+        beat("mision", ("", "Tu turno"),
+             """Abre el cuaderno de práctica. [[n1]]Primero guardas un resultado y lo lees de vuelta. [[n2]]Después añades una etiqueta a un trabajo sin perder las que ya tenía. [[n3]]Y por último escribes dos funciones: una que guarda todos los trabajos de una etiqueta, y otra que los carga.
+             [[check]]Busca la marca verde en cada misión.""",
+             [Mission("practica/p7-trabajos.py", [
+                 (1, "Guarda un resultado con `RuntimeEncoder` y léelo con `RuntimeDecoder`."),
+                 (2, "Añade la etiqueta `c` a un trabajo sin perder `a` y `b`."),
+                 (3, "Escribe `guardar_por_etiqueta` y `cargar`, y comprueba que los conteos coinciden.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("Dentro de un mes quieres encontrar «la ejecución con TREX y 8 pasos de Trotter». ¿Qué etiquetas pondrías hoy?",
+                         "¿Qué guardarías junto al resultado además de los conteos, para poder repetir el experimento?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]status, result, wait for final state y cancel controlan un trabajo. [[r2]]En curso no es lo mismo que uso: incluye preprocesamiento y espera. [[r3]]Las etiquetas organizan experimentos.
@@ -650,10 +818,18 @@ modos = lesson(
                         "Correcto: son trabajos independientes con todas las entradas listas: un lote los programa juntos, con una sola espera en la cola y poca deriva entre ellos.",
                         wrong=["Una sesión cuesta más y no aporta nada si no hay iteración.", None, "Cada uno haría su propia cola y podrían correr con calibraciones muy distintas."])),
 
+        beat("pred_batch", ("", "Antes de ejecutar"),
+             """Vamos a abrir un lote y a pedirle sus detalles. [[local]]Pero con un backend simulado, en el modo de prueba local, no hay servicio detrás. [[apuesta]]Apuesta: al llamar a details en el lote, ¿qué crees que imprime?""",
+             [Flow([dict(t="Batch(backend=...)", s="backend simulado"), dict(t="batch.details()", s="¿qué devuelve?", color="gold")], id="f", stagger=True)],
+             [A("item", "f", at="local", i=0), A("item", "f", at="apuesta", i=1)],
+             ask=predict("¿Qué imprime `print(batch.details())` en modo local?",
+                         ["un diccionario con el estado y el modo", "`None`", "un error: no hay servicio", "`'batch'`"],
+                         "Anotado. Ejecutémoslo con `FakeFez`.")),
+
         beat("batch", ("", "Usar un lote"),
              """Un lote se abre con el gestor de contexto with Batch, pasando el backend; dentro, las primitivas se crean sin modo y lo heredan. [[clase]]O creando un objeto Batch y pasándolo como mode; entonces hay que cerrarlo con close.
              [[cerrar]]Al cerrar, el lote deja de aceptar trabajos, pero los enviados terminan. Si lo dejas abierto y envías más tarde, puede alcanzarse el TTL antes de que corran.
-             [[particion]]Un patrón útil: partir una lista larga de circuitos en varios trabajos dentro de un lote, para aprovechar el preprocesamiento en paralelo. [[local]]En el modo de prueba local la sintaxis funciona, pero los modos se ignoran.""",
+             [[particion]]Un patrón útil: partir una lista larga de circuitos en varios trabajos dentro de un lote, para aprovechar el preprocesamiento en paralelo. [[local]]En el modo de prueba local la sintaxis funciona, pero los modos se ignoran: details imprime None. Si apostaste por eso, acertaste.""",
              [Code('''from qiskit_ibm_runtime import Batch
 from qiskit_ibm_runtime.executor_estimator import Estimator
 from qiskit_ibm_runtime.executor_sampler import Sampler
@@ -706,6 +882,32 @@ with Session(backend=backend) as session:
              ask=choice("¿Qué pasa con los trabajos que siguen en cola?", ["se cancelan", "se ejecutan con prioridad hasta terminar", "pasan a modo job"], 1,
                         "Correcto: `close()` deja de aceptar trabajos nuevos, pero los pendientes se ejecutan. `cancel()` sí los cancelaría.",
                         wrong=["Eso hace `cancel()`.", None, "Siguen siendo de la sesión."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Abre el cuaderno de práctica. [[n1]]Primero abres un lote, envías tres trabajos y compruebas los conteos. [[n2]]Después partes una lista de veinte circuitos en cinco trabajos. [[n3]]Y por último escribes una función que elige el modo, job, batch o session, según la carga y el plan.
+             [[check]]Busca la marca verde en cada misión.""",
+             [Mission("practica/p7-modos.py", [
+                 (1, "Abre un `Batch`, envía tres trabajos y lee `details()` en modo local."),
+                 (2, "Reparte 20 circuitos en 5 trabajos de 4, sin perder ni repetir ninguno."),
+                 (3, "Escribe `elegir_modo(...)` con las recomendaciones de la lección.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("proyecto", ("", "Tu proyecto: hito VII"),
+             """El hito siete del proyecto de espines junta lo de esta parte. [[frac]]Primero comparas la cadena de Ising con y sin puertas fraccionales: tus pasos de Trotter son justo rx y rzz.
+             [[lote]]Después mides varios pasos de tiempo en un lote, cada uno en su trabajo. [[real]]Y preparas la segunda ejecución real: una guardia estima el uso con la fórmula de la lección siete punto cinco, y solo si el interruptor está encendido y cabe en lo que queda de tu plan Open, deja enviar.
+             [[ojo]]El notebook recalcula los resultados de los hitos anteriores, así que no depende de ellos.""",
+             [Mission("practica/proyecto/hito7.py", [
+                 (1, "Compara la cadena de Trotter en un backend con y sin `rx`/`rzz` nativas."),
+                 (2, "Mide los pasos 1 a 4 en un `Batch` sobre un backend simulado."),
+                 (3, "Escribe la guardia que estima el uso y respeta el presupuesto restante del plan Open.")],
+                 title="Proyecto Ising · Hito VII", id="m", hidden=True)],
+             [A("show", "m", at="frac")]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("Para tu proyecto Ising, ¿qué parte pondrías en un lote y cuál en un trabajo suelto? ¿Y si tuvieras un plan de pago?",
+                         "Antes de gastar minutos del plan Open, ¿qué tres cosas comprobarías?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Job, batch y session. [[r2]]Batch por defecto; session para cargas iterativas; job para una petición. [[r3]]Lotes y sesiones tienen un TTL máximo y otro interactivo.

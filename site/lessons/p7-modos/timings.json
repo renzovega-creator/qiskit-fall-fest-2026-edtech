@@ -129,8 +129,29 @@
    ]
   ]
  },
+ "pred_batch": {
+  "dur": 16.032,
+  "marks": {
+   "local": 4.161,
+   "apuesta": 10.615
+  },
+  "cues": [
+   [
+    0.107,
+    "Vamos a abrir un lote y a pedirle sus detalles."
+   ],
+   [
+    4.161,
+    "Pero con un backend simulado, en el modo de prueba local, no hay servicio detrás."
+   ],
+   [
+    10.615,
+    "Apuesta: al llamar a details en el lote, ¿qué crees que imprime?"
+   ]
+  ]
+ },
  "batch": {
-  "dur": 44.808,
+  "dur": 50.088,
   "marks": {
    "clase": 9.483,
    "cerrar": 16.05,
@@ -160,7 +181,11 @@
    ],
    [
     38.921,
-    "En el modo de prueba local la sintaxis funciona, pero los modos se ignoran."
+    "En el modo de prueba local la sintaxis funciona, pero los modos se ignoran: details imprime None."
+   ],
+   [
+    46.55,
+    "Si apostaste por eso, acertaste."
    ]
   ]
  },
@@ -256,6 +281,82 @@
    [
     0.107,
     "Sobre el cierre."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 24.816,
+  "marks": {
+   "n1": 2.916,
+   "n2": 8.704,
+   "n3": 13.757,
+   "check": 21.527
+  },
+  "cues": [
+   [
+    0.107,
+    "Abre el cuaderno de práctica."
+   ],
+   [
+    2.916,
+    "Primero abres un lote, envías tres trabajos y compruebas los conteos."
+   ],
+   [
+    8.704,
+    "Después partes una lista de veinte circuitos en cinco trabajos."
+   ],
+   [
+    13.757,
+    "Y por último escribes una función que elige el modo, job, batch o session, según la carga y el plan."
+   ],
+   [
+    21.527,
+    "Busca la marca verde en cada misión."
+   ]
+  ]
+ },
+ "proyecto": {
+  "dur": 40.488,
+  "marks": {
+   "frac": 4.883,
+   "lote": 13.842,
+   "real": 19.418,
+   "ojo": 33.104
+  },
+  "cues": [
+   [
+    0.107,
+    "El hito siete del proyecto de espines junta lo de esta parte."
+   ],
+   [
+    4.883,
+    "Primero comparas la cadena de Ising con y sin puertas fraccionales: tus pasos de Trotter son justo rx y rzz."
+   ],
+   [
+    13.842,
+    "Después mides varios pasos de tiempo en un lote, cada uno en su trabajo."
+   ],
+   [
+    19.418,
+    "Y preparas la segunda ejecución real: una guardia estima el uso con la fórmula de la lección siete punto cinco, y solo si el interruptor está encendido y cabe en lo que queda de tu plan Open, deja enviar."
+   ],
+   [
+    33.104,
+    "El notebook recalcula los resultados de los hitos anteriores, así que no depende de ellos."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 7.992,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda en tu navegador."
    ]
   ]
  },

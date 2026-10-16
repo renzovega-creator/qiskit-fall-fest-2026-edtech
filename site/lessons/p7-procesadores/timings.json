@@ -51,12 +51,43 @@
    ]
   ]
  },
+ "pred_estatica": {
+  "dur": 24.6,
+  "marks": {
+   "cz": 4.968,
+   "med": 10.969,
+   "apuesta": 15.696
+  },
+  "cues": [
+   [
+    0.107,
+    "En un procesador, no todas las operaciones duran lo mismo."
+   ],
+   [
+    4.968,
+    "Una puerta de dos qubits, la CZ, es de lo más rápido que hace."
+   ],
+   [
+    10.969,
+    "Medir un qubit es más lento, porque hay que leer la señal."
+   ],
+   [
+    15.696,
+    "Vamos a consultar Fez."
+   ],
+   [
+    18.371,
+    "Antes, apuesta: ¿cuántas veces más dura una medición que una CZ?"
+   ]
+  ]
+ },
  "estatica": {
-  "dur": 46.224,
+  "dur": 64.176,
   "marks": {
    "ej": 7.6,
-   "version": 16.064,
-   "instr": 32.439
+   "dur": 16.064,
+   "version": 34.024,
+   "instr": 50.399
   },
   "cues": [
    [
@@ -69,14 +100,22 @@
    ],
    [
     16.064,
+    "Y en las dos últimas líneas está la respuesta a tu apuesta: medir dura uno coma cincuenta y seis microsegundos y la CZ, ochenta y cuatro nanosegundos."
+   ],
+   [
+    27.429,
+    "Son unas dieciocho veces y media más; si apostaste por veinte, estuviste cerca."
+   ],
+   [
+    34.024,
     "La versión tiene la forma mayor punto menor punto revisión."
    ],
    [
-    20.876,
+    38.836,
     "Un circuito compilado para una versión siempre corre en ella; si cambia solo la revisión, sigue corriendo; si cambia la mayor o la menor, ya no está garantizado."
    ],
    [
-    32.439,
+    50.399,
     "Y supported instructions lista las instrucciones nativas: cz, rz, sx, x, id, delay, measure, measure dos, reset, if else y store."
    ]
   ]
@@ -226,6 +265,51 @@
    [
     0.107,
     "Sobre la inicialización."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 27.216,
+  "marks": {
+   "n1": 2.916,
+   "n2": 9.879,
+   "n3": 13.941,
+   "check": 23.933
+  },
+  "cues": [
+   [
+    0.107,
+    "Abre el cuaderno de práctica."
+   ],
+   [
+    2.916,
+    "Primero lees las propiedades de Fez y calculas cuántas veces más dura medir que una CZ."
+   ],
+   [
+    9.879,
+    "Después buscas el qubit con el T uno más largo."
+   ],
+   [
+    13.941,
+    "Y por último escribes una función que elige la mejor cadena de qubits, la de menor error total de CZ, para el proyecto de espines."
+   ],
+   [
+    23.933,
+    "Busca la marca verde en cada misión."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 7.992,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda en tu navegador."
    ]
   ]
  },

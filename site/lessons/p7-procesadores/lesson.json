@@ -112,12 +112,63 @@
    ]
   },
   {
+   "id": "pred_estatica",
+   "tag": [
+    "7.4",
+    "Antes de mirar"
+   ],
+   "say": "En un procesador, no todas las operaciones duran lo mismo. [[cz]]Una puerta de dos qubits, la CZ, es de lo más rápido que hace. [[med]]Medir un qubit es más lento, porque hay que leer la señal. [[apuesta]]Vamos a consultar Fez. Antes, apuesta: ¿cuántas veces más dura una medición que una CZ?",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "CZ",
+       "s": "puerta de dos qubits"
+      },
+      {
+       "t": "measure",
+       "s": "lectura de un qubit"
+      }
+     ],
+     "id": "f",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "f",
+     "at": "cz"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "f",
+     "at": "med"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuántas veces más dura `measure` que `cz`?",
+    "options": [
+     "unas 2 veces",
+     "unas 5 veces",
+     "unas 20 veces",
+     "unas 200 veces"
+    ],
+    "after": "Anotado. Consultemos el target de Fez."
+   },
+   "align": "top"
+  },
+  {
    "id": "estatica",
    "tag": [
     "7.4",
     "Información estática"
    ],
-   "say": "Hay información que casi no cambia: nombre, número de qubits, tipo de procesador y versión. [[ej]]Con el backend falso Fez lo vemos sin cuenta: ciento cincuenta y seis qubits, familia Heron, revisión dos. [[version]]La versión tiene la forma mayor punto menor punto revisión. Un circuito compilado para una versión siempre corre en ella; si cambia solo la revisión, sigue corriendo; si cambia la mayor o la menor, ya no está garantizado. [[instr]]Y supported instructions lista las instrucciones nativas: cz, rz, sx, x, id, delay, measure, measure dos, reset, if else y store.",
+   "say": "Hay información que casi no cambia: nombre, número de qubits, tipo de procesador y versión. [[ej]]Con el backend falso Fez lo vemos sin cuenta: ciento cincuenta y seis qubits, familia Heron, revisión dos. [[dur]]Y en las dos últimas líneas está la respuesta a tu apuesta: medir dura uno coma cincuenta y seis microsegundos y la CZ, ochenta y cuatro nanosegundos. Son unas dieciocho veces y media más; si apostaste por veinte, estuviste cerca. [[version]]La versión tiene la forma mayor punto menor punto revisión. Un circuito compilado para una versión siempre corre en ella; si cambia solo la revisión, sigue corriendo; si cambia la mayor o la menor, ya no está garantizado. [[instr]]Y supported instructions lista las instrucciones nativas: cz, rz, sx, x, id, delay, measure, measure dos, reset, if else y store.",
    "scene": [
     {
      "type": "code",
@@ -507,6 +558,80 @@
      "Siempre hay un compromiso.",
      null,
      "Afecta a la preparación, no a las puertas."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "7.4",
+    "Tu turno"
+   ],
+   "say": "Abre el cuaderno de práctica. [[n1]]Primero lees las propiedades de Fez y calculas cuántas veces más dura medir que una CZ. [[n2]]Después buscas el qubit con el T uno más largo. [[n3]]Y por último escribes una función que elige la mejor cadena de qubits, la de menor error total de CZ, para el proyecto de espines. [[check]]Busca la marca verde en cada misión.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p7-procesadores.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Lee las propiedades de `FakeFez` y calcula la razón entre medir y una `cz`."
+      },
+      {
+       "level": 2,
+       "text": "Encuentra el qubit con mayor $T_1$."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `mejor_cadena(backend, k)`: $k$ qubits acoplados con el menor error total de `cz`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "7.4",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Para tu cadena de espines, ¿qué pesa más al elegir los qubits: el error de las `cz`, el de lectura o el $T_1$? Justifica.",
+     "Los datos de calibración cambian cada día. ¿Qué harías para que tu experimento sea comparable entre dos días?"
     ]
    },
    "align": "top"

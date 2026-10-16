@@ -107,12 +107,78 @@
    ]
   },
   {
+   "id": "pred_datos",
+   "tag": [
+    "7.3",
+    "Antes de leerlos"
+   ],
+   "say": "Vamos a leer los datos de un circuito pequeño: una RZ, una raíz de X y una medición, todas sobre el qubit cero. [[sx]]La raíz de X dura nueve unidades dt. [[m]]La medición, sesenta y cuatro en el canal del qubit. [[rz]]¿Y la RZ? Apuesta antes de verlo.",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "Instrucción",
+      "Duración"
+     ],
+     "rows": [
+      [
+       "`sx`",
+       "9 dt"
+      ],
+      [
+       "`measure`",
+       "64 dt"
+      ],
+      [
+       "`rz`",
+       "?"
+      ]
+     ],
+     "id": "t",
+     "stagger": true,
+     "size": 26
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "t",
+     "at": "sx"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "t",
+     "at": "m"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "t",
+     "at": "rz"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuánto dura la `rz`?",
+    "options": [
+     "0 dt",
+     "9 dt, igual que la `sx`",
+     "64 dt, igual que la medición",
+     "depende del ángulo"
+    ],
+    "after": "Anotado. Veamos qué dicen los datos."
+   },
+   "align": "top"
+  },
+  {
    "id": "datos",
    "tag": [
     "7.3",
     "Los datos en bruto"
    ],
-   "say": "Cada línea describe una instrucción en un canal, con seis campos separados por comas. [[rama]]La rama: main, o la rama then o else de un if. [[instr]]La instrucción y su qubit. [[canal]]El canal: Qubit x, el canal de control del qubit x, o AWGR, el generador de formas de onda de lectura. [[t0]]El instante de inicio [[dur]]y la duración, ambos en unidades dt, ciclos de programación; backend punto dt te da su valor en segundos. [[pulso]]Y el tipo de pulso: play aplica un pulso de control; capture registra el estado; shift phase cambia la fase, sin duración, como en las RZ virtuales.",
+   "say": "Cada línea describe una instrucción en un canal, con seis campos separados por comas. [[rz]]La primera línea responde la apuesta: la RZ dura cero, porque es un cambio de fase. [[rama]]La rama: main, o la rama then o else de un if. [[instr]]La instrucción y su qubit. [[canal]]El canal: Qubit x, el canal de control del qubit x, o AWGR, el generador de formas de onda de lectura. [[t0]]El instante de inicio [[dur]]y la duración, ambos en unidades dt, ciclos de programación; backend punto dt te da su valor en segundos. [[pulso]]Y el tipo de pulso: play aplica un pulso de control; capture registra el estado; shift phase cambia la fase, sin duración, como en las RZ virtuales.",
    "scene": [
     {
      "type": "code",
@@ -158,6 +224,14 @@
     }
    ],
    "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      1
+     ],
+     "id": "c",
+     "at": "rz"
+    },
     {
      "do": "item",
      "i": 0,
@@ -255,6 +329,80 @@
     "why": "Correcto: empieza en 1393 y dura 9 dt, así que termina en 1402, justo cuando empieza la siguiente instrucción del ejemplo.",
     "tol": 0.0001,
     "hint": "Inicio + duración."
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "7.3",
+    "Tu turno"
+   ],
+   "say": "Abre el cuaderno de práctica. [[n1]]Primero escribes un analizador de las líneas de temporización. [[n2]]Después calculas cuándo termina cada instrucción y cuánto dura todo, en nanosegundos. [[n3]]Y por último construyes la programación de un circuito con Qiskit, sin necesidad de un QPU. [[check]]Busca la marca verde en cada misión.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p7-temporizacion.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Lee las líneas de temporización y conviértelas en tuplas."
+      },
+      {
+       "level": 2,
+       "text": "Calcula el fin de cada instrucción y el total en nanosegundos con `backend.dt`."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `programacion(isa, backend)` con `op_start_times` y las duraciones del `target`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "7.3",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Un colega suma las duraciones del dibujo de tiempos y dice que ese es su costo en QPU. ¿Qué le explicas?",
+     "¿Por qué la RZ dura cero y qué otras puertas esperarías que sean «virtuales»?"
+    ]
    },
    "align": "top"
   },

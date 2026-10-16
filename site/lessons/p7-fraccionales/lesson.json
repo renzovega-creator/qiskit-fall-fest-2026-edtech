@@ -137,11 +137,11 @@
     "7.2",
     "Activarlas"
    ],
-   "say": "Aunque RX y RZZ están en la biblioteca estándar de Qiskit, solo se ejecutan directamente en ciertos procesadores, y hay que pedir el backend con use fractional gates igual a True. Así el Target las incluye y el transpilador puede usarlas. [[lista]]service punto backends con use fractional gates lista los que las admiten; desde la cero punto cuarenta y ocho, least busy acepta fractional gates. [[fake]]Los backends falsos las tienen desactivadas por defecto; se activan refrescando su configuración con el servicio. [[error]]Un detalle: el error que reporta el Target para las fraccionales es una copia del de la puerta convencional equivalente, porque todavía no se miden por separado.",
+   "say": "Aunque RX y RZZ están en la biblioteca estándar de Qiskit, solo se ejecutan directamente en ciertos procesadores, y hay que pedir el backend con use fractional gates igual a True. Así el Target las incluye y el transpilador puede usarlas. [[lista]]service punto backends con use fractional gates lista los que las admiten; desde la cero punto cuarenta y ocho, least busy acepta use fractional gates. [[fake]]Los backends falsos las tienen desactivadas por defecto; se activan refrescando su configuración con el servicio. [[error]]Un detalle: el error que reporta el Target para las fraccionales es una copia del de la puerta convencional equivalente, porque todavía no se miden por separado.",
    "scene": [
     {
      "type": "code",
-     "src": "backend = service.backend(\"ibm_kingston\", use_fractional_gates=True)\nservice.backends(use_fractional_gates=True)\nservice.least_busy(fractional_gates=True)          # desde 0.48\nfake_backend.refresh(service=service, use_fractional_gates=True)",
+     "src": "backend = service.backend(\"ibm_kingston\", use_fractional_gates=True)\nservice.backends(use_fractional_gates=True)\nservice.least_busy(use_fractional_gates=True)      # desde 0.48\nfake_backend.refresh(service=service, use_fractional_gates=True)",
      "lang": "python",
      "id": "c",
      "norun": true
@@ -172,12 +172,91 @@
    ]
   },
   {
+   "id": "pred_ising",
+   "tag": [
+    "7.2",
+    "Antes de transpilar"
+   ],
+   "say": "Vamos a simular la dinámica de una cadena de Ising con cinco qubits y tres pasos de tiempo. [[paso]]Cada paso aplica una capa de RX y dos capas de RZZ, que en total son cuatro RZZ, una por cada par de vecinos. [[cuenta]]Recuerda que, sin puertas fraccionales, cada RZZ se descompone en dos CZ. [[apuesta]]Haz la cuenta y apuesta: ¿cuántas CZ crees que necesitará el backend convencional?",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "Cadena de Ising",
+      ""
+     ],
+     "rows": [
+      [
+       "qubits",
+       "5"
+      ],
+      [
+       "pasos",
+       "3"
+      ],
+      [
+       "`rx` por paso",
+       "5"
+      ],
+      [
+       "`rzz` por paso",
+       "4"
+      ]
+     ],
+     "id": "t",
+     "stagger": true,
+     "size": 26
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "t",
+     "at": "paso"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "t",
+     "at": "paso",
+     "t": 1
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "t",
+     "at": "paso",
+     "t": 2
+    },
+    {
+     "do": "item",
+     "i": 3,
+     "id": "t",
+     "at": "paso",
+     "t": 3
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuántas `cz` necesita el backend convencional?",
+    "options": [
+     "12",
+     "24",
+     "36",
+     "ninguna"
+    ],
+    "after": "Anotado. Transpilemos para los dos backends y miremos."
+   },
+   "align": "top"
+  },
+  {
    "id": "ising",
    "tag": [
     "7.2",
     "Ejemplo: una cadena de Ising"
    ],
-   "say": "El ejemplo de la guía simula la dinámica de una cadena de Ising: capas de RX seguidas de capas de RZZ, tres pasos de tiempo, cinco qubits. [[comp]]Lo transpilamos para dos backends genéricos, uno sin y otro con puertas fraccionales, y programamos los tiempos para medir la duración. [[res]]Sin fraccionales: veinticuatro CZ y casi nueve microsegundos. Con fraccionales: doce RZZ, ninguna CZ, y un coma dos microsegundos. Siete veces más corto.",
+   "say": "El ejemplo de la guía simula la dinámica de una cadena de Ising: capas de RX seguidas de capas de RZZ, tres pasos de tiempo, cinco qubits. [[comp]]Lo transpilamos para dos backends genéricos, uno sin y otro con puertas fraccionales, y programamos los tiempos para medir la duración. [[res]]Sin fraccionales: veinticuatro CZ, dos por cada una de las doce RZZ, y casi nueve microsegundos. Si apostaste por veinticuatro, acertaste. Con fraccionales: doce RZZ, ninguna CZ, y un coma dos microsegundos. Siete veces más corto.",
    "scene": [
     {
      "type": "code",
@@ -429,6 +508,80 @@
      "No siempre: PEC no se combina con ellas.",
      null,
      "La opción se activa para el backend entero, no por tipo de puerta."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "7.2",
+    "Tu turno"
+   ],
+   "say": "Abre el cuaderno de práctica. [[n1]]Primero reproduces la comparación de la cadena de Ising y ves cuánto acortan las fraccionales. [[n2]]Después cambias el ángulo de las RZZ para que el backend convencional necesite menos CZ. [[n3]]Y por último escribes una función que construye la cadena de Ising con los parámetros que quieras. [[check]]Cada misión tiene su comprobación: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p7-fraccionales.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Transpila la cadena de Ising para los dos backends y cuenta las `cz` y las `rzz`."
+      },
+      {
+       "level": 2,
+       "text": "Cambia `theta_zz` por un múltiplo de $\\pi/2$ y mira cuántas `cz` necesita el convencional."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `cadena_ising(n, pasos, theta_x, theta_zz)`; la comprobación cuenta sus puertas."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "7.2",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Por qué una cadena de Ising se beneficia tanto de `rzz` y `rx` nativas, y qué tipo de circuito casi no ganaría nada?",
+     "Quieres mitigar con PEC un circuito de evolución temporal. ¿Qué decisión tomas entre las puertas fraccionales y la mitigación, y por qué?"
     ]
    },
    "align": "top"
