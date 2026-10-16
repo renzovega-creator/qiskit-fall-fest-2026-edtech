@@ -1,6 +1,6 @@
 import { Container, getRandom } from "@cloudflare/containers";
 
-import { type Env, type Limits, loadLimits } from "./limits.ts";
+import { ConfigError, type Env, type Limits, loadLimits } from "./limits.ts";
 import { type Entry, logFailure, logRun } from "./log.ts";
 import { Budget, RateLimiter } from "./meters.ts";
 import { hasSession, issueSession, mac, verifyTurnstile } from "./session.ts";
@@ -32,6 +32,7 @@ class Refusal extends Error {
     readonly reason: string,
     readonly message: string,
     readonly headers: Record<string, string> = {},
+    readonly extra: Record<string, string> = {},
   ) {
     super(message);
   }
@@ -39,7 +40,7 @@ class Refusal extends Error {
 
 function refuse(response: Refusal): Response {
   return Response.json(
-    { error: response.message, reason: response.reason },
+    { error: response.message, reason: response.reason, ...response.extra },
     {
       status: response.entry.status,
       headers: { "Cache-Control": "no-store", ...response.headers },
@@ -190,10 +191,14 @@ async function run(request: Request, env: Env, exports: Exports): Promise<Respon
     if (!(await hasSession(env.TURNSTILE_SECRET, ip, now, request.headers.get("cookie")))) {
       const token = request.headers.get("x-turnstile-token");
       if (!token) {
+        if (!env.TURNSTILE_SITE_KEY)
+          throw new ConfigError("TURNSTILE_SITE_KEY debe estar definida");
         throw new Refusal(
           { ...entry, outcome: "turnstile_missing", status: 403 },
           "turnstile_missing",
           "Antes de ejecutar código hay que comprobar que eres una persona.",
+          {},
+          { sitekey: env.TURNSTILE_SITE_KEY },
         );
       }
       const verification = await verifyTurnstile(env.TURNSTILE_SECRET, token);
