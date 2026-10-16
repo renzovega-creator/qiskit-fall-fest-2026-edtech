@@ -224,4 +224,14 @@ textarea.reflect:focus { outline: 2px solid var(--blue); }
 .mcmd code { font-size: 18px; padding: 8px 12px; }
 .mhow { flex-basis: 100%; margin: 0; font-size: 18px; color: var(--muted); }
 .mhow a { text-decoration: underline; text-underline-offset: 2px; }
+.xcode { display: block; width: 100%; margin-top: 12px; font: 18px/1.5 var(--mono); tab-size: 4; padding: 12px 14px; border-radius: 12px;
+  border: 1px solid var(--opt-line); background: var(--code-bg); color: inherit; resize: vertical; white-space: pre; overflow: auto; }
+.xcode:focus { outline: 2px solid var(--blue); }
+.xout { margin-top: 12px; font-size: 19px; }
+.xout:empty { display: none; }
+.xline { padding: 3px 0; overflow-wrap: anywhere; }
+.xline.ok { color: var(--green); } .xline.bad { color: var(--red); } .xline.warn { color: var(--muted); }
+.xstdout { margin: 0 0 6px; font: 17px/1.4 var(--mono); white-space: pre-wrap; color: var(--fg-soft); }
+.xhint { margin-top: 10px; padding-left: 12px; border-left: 3px solid var(--teal); font-size: 20px; }
+.xhints:empty { display: none; }
 @media (orientation: portrait) { .mtask { flex-direction: column; gap: 4px; } }
