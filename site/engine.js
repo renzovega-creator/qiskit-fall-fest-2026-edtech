@@ -79,14 +79,26 @@
 
   // ---------- escenario escalable ----------
   const tall = matchMedia('(max-aspect-ratio: 1/1)');
+  // Un paso con ejercicio no se escala. El editor necesita texto de tamaño real y una columna desplazable.
+  let work = false;
+  function setWork(on) {
+    work = on;
+    stage.classList.toggle('work', on);
+    fit();
+  }
   function fit() {
     const cw = viewport.clientWidth, ch = viewport.clientHeight;
     if (!cw || !ch) return;
     const p = tall.matches;
-    const LW = p ? 720 : 1280, LH = p ? 1080 : 720;
-    const s = Math.min(cw / LW, ch / LH);
-    stage.style.width = LW + 'px'; stage.style.height = LH + 'px';
-    stage.style.transform = `translate(${(cw - LW * s) / 2}px, ${(ch - LH * s) / 2}px) scale(${s})`;
+    if (work) {
+      stage.style.width = cw + 'px'; stage.style.height = ch + 'px';
+      stage.style.transform = 'none';
+    } else {
+      const LW = p ? 720 : 1280, LH = p ? 1080 : 720;
+      const s = Math.min(cw / LW, ch / LH);
+      stage.style.width = LW + 'px'; stage.style.height = LH + 'px';
+      stage.style.transform = `translate(${(cw - LW * s) / 2}px, ${(ch - LH * s) / 2}px) scale(${s})`;
+    }
     if (p !== portrait) {
       portrait = p;
       stage.classList.toggle('portrait', p);
@@ -96,7 +108,7 @@
   }
   // Fórmulas más anchas que el escenario se reducen hasta caber (sobre todo en vertical).
   function fitMath() {
-    const avail = (portrait ? 720 : 1280) - 2 * 48;
+    const avail = (work ? stage.clientWidth : portrait ? 720 : 1280) - 2 * 48;
     sceneEl.querySelectorAll('.math').forEach(m => {
       const base = +(m.dataset.size || parseFloat(getComputedStyle(m).fontSize));
       m.dataset.size = base;
@@ -109,6 +121,7 @@
   // Si los bloques no caben en el escenario, la escena entera se reduce (zoom) hasta caber.
   function autoZoom() {
     sceneEl.style.zoom = '';
+    if (work) return;
     const kids = [...sceneEl.children].filter(k => k.offsetHeight);
     if (!kids.length) return;
     const cs = getComputedStyle(sceneEl), sr = sceneEl.getBoundingClientRect();
@@ -443,6 +456,13 @@
     sceneEl.className = 'scene' + (beat.align === 'top' ? ' top' : '');
     objs = {};
     (beat.scene || []).forEach(s => build(s, sceneEl));
+    setWork(!!sceneEl.querySelector('.xpanel'));
+    if (work) {
+      stage.scrollTop = 0;
+      const go = el('button', 'abtn primary xnext', sceneEl);
+      go.textContent = 'Continuar →';
+      go.onclick = () => { setPlaying(true); goto(idx + 1); };
+    }
     afterBuild.splice(0).forEach(f => f());
     fitMath(); autoZoom();
     const my = token;
@@ -556,6 +576,7 @@
       paintTimeline(1);
       if (beat.ask) return showAsk(beat, my);
       markHeard(i);
+      if (work) return;  // El ejercicio avanza con «Continuar».
       setTimeout(() => { if (my === token && playing) goto(idx + 1); }, (beat.hold ?? .9) * 1000);
     };
     const start = () => {
@@ -801,8 +822,8 @@
     $('#mute').onclick = () => { SFX.toggle(); muteLabel(); };
     muteLabel();
     addEventListener('keydown', e => {
-      if (e.target.tagName === 'INPUT') return;
-      if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+      if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+      if (e.code === 'Space') { if (e.target.closest('button, a')) return; e.preventDefault(); togglePlay(); }
       else if (e.code === 'ArrowRight' && e.shiftKey) seekRel(5);
       else if (e.code === 'ArrowLeft' && e.shiftKey) seekRel(-5);
       else if (e.code === 'ArrowRight') $('#next').click();

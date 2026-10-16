@@ -224,14 +224,63 @@ textarea.reflect:focus { outline: 2px solid var(--blue); }
 .mcmd code { font-size: 18px; padding: 8px 12px; }
 .mhow { flex-basis: 100%; margin: 0; font-size: 18px; color: var(--muted); }
 .mhow a { text-decoration: underline; text-underline-offset: 2px; }
-.xcode { display: block; width: 100%; margin-top: 12px; font: 18px/1.5 var(--mono); tab-size: 4; padding: 12px 14px; border-radius: 12px;
-  border: 1px solid var(--opt-line); background: var(--code-bg); color: inherit; resize: vertical; white-space: pre; overflow: auto; }
-.xcode:focus { outline: 2px solid var(--blue); }
-.xout { margin-top: 12px; font-size: 19px; }
-.xout:empty { display: none; }
-.xline { padding: 3px 0; overflow-wrap: anywhere; }
-.xline.ok { color: var(--green); } .xline.bad { color: var(--red); } .xline.warn { color: var(--muted); }
-.xstdout { margin: 0 0 6px; font: 17px/1.4 var(--mono); white-space: pre-wrap; color: var(--fg-soft); }
-.xhint { margin-top: 10px; padding-left: 12px; border-left: 3px solid var(--teal); font-size: 20px; }
-.xhints:empty { display: none; }
 @media (orientation: portrait) { .mtask { flex-direction: column; gap: 4px; } }
+
+/* Ejercicio de código */
+div#stage.work { overflow-y: auto; background-image: none; }
+div#stage.work .scene { position: relative; inset: auto; min-height: 100%; justify-content: flex-start; padding: 56px clamp(12px, 3vw, 40px) 28px; gap: 18px; }
+div#stage.work .blk.hid { display: none; }
+div#stage.work .mcard { max-width: 1120px; padding: 16px 20px; }
+div#stage.work .mtitle { font-size: 18px; margin: 0; }
+div#stage.work .mtask { font-size: 18px; }
+div#stage.work .mtask .mlv { width: 110px; font-size: 15px; }
+div#stage.work .mcmd code { font-size: 15px; }
+div#stage.work .mcmd .abtn { height: auto; min-height: 40px; padding: 0 16px; font-size: 16px; }
+.xnext { align-self: flex-end; height: auto; min-height: 44px; padding: 0 22px; font-size: 18px; }
+.xpanel { width: 100%; max-width: 1120px; }
+.xhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.xlevel { font: 600 15px var(--sans); color: var(--muted); }
+.xsolved { margin-left: auto; font: 600 15px var(--sans); color: var(--green); }
+.xprompt { font-size: 19px; line-height: 1.45; margin: 10px 0 14px; }
+.xgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+@media (min-width: 960px) { .xgrid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; } }
+.xleft, .xright { min-width: 0; }
+.xeditor { border: 1px solid var(--opt-line); border-radius: 12px; background: var(--code-bg); overflow: hidden; }
+.xeditor .cm-editor { max-height: min(60vh, 460px); }
+.xplaceholder { margin: 0; padding: 10px 12px 10px 18px; min-height: 9.5em; font: 16px/1.55 var(--mono); white-space: pre-wrap; color: var(--fg-soft); }
+.xbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.xbar .xspace { flex: 1; }
+.xbtn { height: auto; min-height: 40px; padding: 0 16px; font-size: 16px; }
+.xbtn:disabled { opacity: .5; cursor: not-allowed; }
+.xkeys, div#stage.work .mhow { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+.xstatus { font: 600 17px var(--sans); min-height: 1.5em; }
+.xstatus.ok { color: var(--green); } .xstatus.bad { color: var(--red); } .xstatus.warn, .xstatus.idle, .xstatus.busy { color: var(--muted); font-weight: 500; }
+.xstatus.busy::before { content: ""; display: inline-block; width: 12px; height: 12px; margin-right: 8px; vertical-align: -1px;
+  border: 2px solid var(--line-strong); border-top-color: var(--acc); border-radius: 50%; animation: xspin .8s linear infinite; }
+@keyframes xspin { to { transform: rotate(360deg); } }
+.xout { margin-top: 8px; font-size: 16px; }
+.xout:empty { display: none; }
+.xhelp { margin: 8px 0 0; color: var(--fg-soft); }
+.xlabel { margin: 8px 0 4px; font-size: 14px; color: var(--muted); }
+.xerr { margin: 8px 0; padding: 8px 12px; border-left: 3px solid var(--bad); color: var(--red); font: 15px/1.45 var(--mono); overflow-wrap: anywhere; white-space: pre-wrap; }
+.xstdout { margin: 0 0 6px; padding: 8px 12px; max-height: 220px; overflow: auto; border-radius: 8px; background: var(--bg2); font: 15px/1.4 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--fg-soft); }
+.xtests { list-style: none; margin: 8px 0 0; padding: 0; }
+.xtests li { display: flex; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.xtests .xmark { flex: none; width: 1.2em; font-weight: 700; }
+.xtests .ok .xmark { color: var(--green); } .xtests .bad .xmark { color: var(--red); }
+.xmsg { margin-top: 2px; color: var(--fg-soft); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.xhints:empty { display: none; }
+.xhints { margin-top: 12px; }
+.xhint { margin-top: 8px; padding-left: 12px; border-left: 3px solid var(--teal); font-size: 16px; line-height: 1.45; }
+.xhint b { display: block; font-size: 13px; color: var(--teal); letter-spacing: .03em; text-transform: uppercase; }
+@media (pointer: coarse) { .xkeys { display: none; } }
+@media (max-width: 640px) {
+  div#stage.work .scene { padding: 44px 10px 20px; }
+  div#stage.work .mcard { padding: 12px; }
+  .xprompt { font-size: 17px; }
+  .xbtn { flex: 1 1 40%; min-height: 44px; }
+  .xbar .xspace { display: none; }
+  .xnext { align-self: stretch; }
+}
+@media (prefers-reduced-motion: reduce) { .xstatus.busy::before { animation-duration: 2.4s; } }
