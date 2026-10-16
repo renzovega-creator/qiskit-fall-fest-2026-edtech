@@ -214,7 +214,7 @@ async function renderRepaso(course, doneSet) {
   const nx = $('#next');
   if (pendMis) {
     const cmd = `uv run marimo edit ${pendMis.m.notebook}`;
-    nx.innerHTML = `<div class="k">Tu turno · misión pendiente</div><div class="t"></div><div class="s">${pendMis.m.tasks} misiones en el cuaderno de práctica. Busca las ✅.</div>
+    nx.innerHTML = `<div class="k">Tu turno · misión pendiente</div><div class="t"></div><div class="s">${pendMis.m.tasks === 1 ? '1 misión' : pendMis.m.tasks + ' misiones'} en el cuaderno de práctica. Busca ${pendMis.m.tasks === 1 ? 'la ✅' : 'las ✅'}.</div>
       <div class="cmd"><code></code><button>Copiar</button><button class="chk">Ya la hice</button></div>`;
     nx.querySelector('.t').textContent = `${pendMis.l.section} · ${pendMis.l.title}`;
     nx.querySelector('code').textContent = cmd;
