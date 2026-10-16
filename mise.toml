@@ -11,7 +11,7 @@ description = "Rebuild site/lessons/*/lesson.json and site/course.json and check
 run = "uv run python lessons_src/build.py"
 
 [tasks.test]
-description = "Run the practice notebooks with and without their solutions, and the project panel in a browser"
+description = "Run practice notebooks with solutions and controls at both bounds, then run the project panel in a browser"
 run = [
   "uv run python tools/practica.py",
   "uv run --group tools python tests/proyecto_test.py",
