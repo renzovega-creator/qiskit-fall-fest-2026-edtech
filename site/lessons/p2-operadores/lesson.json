@@ -362,12 +362,12 @@
    "scene": [
     {
      "type": "code",
-     "src": "A = Operator(Pauli(\"X\"))\nB = Operator(Pauli(\"Z\"))\nA.compose(B)",
+     "src": "A = Operator(Pauli(\"Y\"))\nB = Operator(Pauli(\"X\"))\nA.compose(B)",
      "lang": "python"
     },
     {
      "type": "math",
-     "tex": "X=\\begin{pmatrix}0&1\\\\1&0\\end{pmatrix},\\quad Z=\\begin{pmatrix}1&0\\\\0&-1\\end{pmatrix}",
+     "tex": "Y=\\begin{pmatrix}0&-i\\\\i&0\\end{pmatrix},\\quad X=\\begin{pmatrix}0&1\\\\1&0\\end{pmatrix}",
      "size": 36
     }
    ],
@@ -376,17 +376,17 @@
     "kind": "choice",
     "prompt": "¿Qué matriz devuelve?",
     "options": [
-     "$\\begin{pmatrix}0&1\\\\-1&0\\end{pmatrix}$",
-     "$\\begin{pmatrix}0&-1\\\\1&0\\end{pmatrix}$",
-     "$\\begin{pmatrix}1&0\\\\0&-1\\end{pmatrix}$",
+     "$\\begin{pmatrix}i&0\\\\0&-i\\end{pmatrix}$",
+     "$\\begin{pmatrix}-i&0\\\\0&i\\end{pmatrix}$",
+     "$\\begin{pmatrix}0&-i\\\\i&0\\end{pmatrix}$",
      "$\\begin{pmatrix}0&1\\\\1&0\\end{pmatrix}$"
     ],
     "right": 0,
-    "why": "Correcto: `A.compose(B)` es $B\\cdot A=ZX=\\begin{pmatrix}0&1\\\\-1&0\\end{pmatrix}$.",
+    "why": "Correcto: `A.compose(B)` es $B\\cdot A=XY=\\begin{pmatrix}i&0\\\\0&-i\\end{pmatrix}$.",
     "wrong": [
      null,
-     "Ese es $XZ$, es decir `A.compose(B, front=True)`.",
-     "Ese es $Z$ solo.",
+     "Ese es $YX$, es decir `A.compose(B, front=True)`.",
+     "Ese es $Y$ solo.",
      "Ese es $X$ solo."
     ]
    },
@@ -563,43 +563,75 @@
    "say": "Ahora te toca. [[n1]]Primero, predice el resultado de componer una X y una Z en cada orden. [[n2]]Después, usa el argumento qargs para colocar un operador sobre los qubits que tú elijas. [[n3]]Y por último, escribe una función que construya la cadena de Heisenberg para cualquier número de espines.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p2-operadores.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Predice el resultado de `compose` con $Z$ y $X$ y compruébalo."
-      },
-      {
-       "level": 2,
-       "text": "Usa `qargs` para colocar $XZ$ sobre los qubits 1 y 2 de un operador de 3 qubits."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `heisenberg(n)`: $\\sum_i X_iX_{i+1}+Y_iY_{i+1}+Z_iZ_{i+1}$ con `SparsePauliOp`."
-      }
+     "type": "exercise",
+     "exercise": "p2-operadores/orden-compose",
+     "prompt": "Predice el resultado de `A.compose(B)` con $A=X$ y $B=Z$: escribe en `orden` `\"XZ\"` o `\"ZX\"`, según el producto de matrices que sea.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "Piensa en un circuito: lo que se aplica primero queda a la derecha del producto.",
+      "Imprime `resultado.data` y compáralo con `Operator(Pauli(\"XZ\")).data` y con `Operator(Pauli(\"ZX\")).data`.",
+      "Escribe a mano el producto de matrices que significa «primero `A`, después `B`» y busca cuál de las dos matrices impresas coincide."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit.quantum_info import Operator, Pauli\n\nA = Operator(Pauli(\"X\"))\nB = Operator(Pauli(\"Z\"))\nresultado = A.compose(B)\n\norden = \"\"   # ✏️ \"XZ\" o \"ZX\": ¿resultado es el producto X·Z o Z·X?\n# compruébalo con print(resultado.data)",
+     "cases": [
+      "tu apuesta es el producto que calcula compose"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-operadores/compose-qargs",
+     "prompt": "Cambia `qargs` para colocar $XZ$ sobre los qubits 1 y 2 de un operador de 3 qubits: el resultado debe ser `ZXI`.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "`XZ` tiene dos qubits: $Z$ actúa en su qubit 0 y $X$ en su qubit 1.",
+      "El primer elemento de `qargs` es el qubit del operador grande donde cae el qubit 0 de `XZ`.",
+      "Mira en `ZXI` qué letra queda en cada qubit (el qubit 0 es la última) y ordena `qargs` para que cada una caiga en su sitio."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "import numpy as np\nfrom qiskit.quantum_info import Operator, Pauli\n\ngrande = Operator(np.eye(8))\ncolocado = grande.compose(Operator(Pauli(\"XZ\")), qargs=[0, 2])   # ✏️ cambia qargs\n\nprint(colocado.to_matrix().shape)",
+     "cases": [
+      "el resultado es ZXI"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-operadores/heisenberg",
+     "prompt": "Escribe `heisenberg(n)`, con `n` el número de espines de la cadena (al menos 2): devuelve el `SparsePauliOp` de `n` qubits $\\sum_i X_iX_{i+1}+Y_iY_{i+1}+Z_iZ_{i+1}$, con coeficiente 1 en cada término. Ojo: una cadena de `n` espines tiene `n - 1` pares de vecinos, y el operador debe tener `n` qubits.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "Piensa en los pares de vecinos: cada uno aporta los mismos tres términos, cada uno sobre sus dos qubits.",
+      "`from_sparse_list` recibe tripletas: la cadena de Pauli, los qubits donde actúa y el coeficiente.",
+      "Un bucle sobre los pares y otro sobre las tres cadenas llenan la lista."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "import numpy as np\nfrom qiskit.quantum_info import SparsePauliOp\n\n\ndef heisenberg(n):\n    terminos = []\n    # ✏️ llena `terminos` con las tripletas que pide from_sparse_list\n    return SparsePauliOp.from_sparse_list(terminos, num_qubits=n)\n\n\nprint(np.sort(np.linalg.eigvalsh(heisenberg(2).to_matrix())))",
+     "cases": [
+      "2 qubits: autovalores −3, 1, 1, 1",
+      "50 qubits: 3 · 49 términos"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]

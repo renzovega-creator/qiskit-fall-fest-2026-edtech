@@ -633,7 +633,7 @@
    "scene": [
     {
      "type": "code",
-     "src": "n_local(4, \"ry\", \"cz\", reps=2)",
+     "src": "n_local(5, \"ry\", \"cz\", reps=2)",
      "lang": "python"
     }
    ],
@@ -641,12 +641,12 @@
    "ask": {
     "kind": "numeric",
     "prompt": "¿Cuántos parámetros tiene? (una rotación por qubit en cada capa de rotaciones)",
-    "answer": 12,
-    "why": "Correcto: con `reps=2` hay 3 capas de rotaciones (una más que repeticiones), de 4 ángulos cada una: 12.",
+    "answer": 15,
+    "why": "Correcto: con `reps=2` hay 3 capas de rotaciones (una más que repeticiones), de 5 ángulos cada una: 15.",
     "tol": 0.001,
-    "hint": "Con `reps=3` y 3 qubits había 4 capas de 3 ángulos.",
+    "hint": "Con `reps=1` y 2 qubits había 2 capas de 2 ángulos.",
     "solution": [
-     "Capas de rotación = reps + 1 = 3; 3 × 4 = 12."
+     "Capas de rotación = reps + 1 = 3; 3 × 5 = 15."
     ]
    },
    "align": "top"
@@ -693,43 +693,76 @@
    "say": "Ahora te toca. [[n1]]Primero, predice cuántos parámetros tiene un circuito N-local y compruébalo. [[n2]]Después, cambia sus argumentos para que sea más barato: ocho parámetros y solo tres puertas de dos qubits. [[n3]]Y por último, escribe una función que sume dos números con el sumador de la biblioteca.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p2-biblioteca.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Predice cuántos parámetros tiene `n_local(3, \"rx\", \"cz\")`."
-      },
-      {
-       "level": 2,
-       "text": "Cambia `n_local` para tener 8 parámetros y solo 3 puertas de dos qubits."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `sumar(x, y)` con `FullAdderGate` y pruébala con 5 + 6."
-      }
+     "type": "exercise",
+     "exercise": "p2-biblioteca/parametros-nlocal",
+     "prompt": "`n_local(3, \"rx\", \"cz\")` alterna capas de rotaciones RX con capas de CZ. Apuesta en `prediccion` cuántos parámetros tiene.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "Cada capa de rotaciones lleva un ángulo por qubit.",
+      "Por defecto `reps` vale 3, y hay una capa de rotaciones más que repeticiones.",
+      "Multiplica el número de capas de rotaciones por los ángulos de cada una."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit.circuit.library import n_local\n\nansatz = n_local(3, \"rx\", \"cz\")\n\nprediccion = None   # ✏️ tu apuesta: ¿cuántos parámetros tiene ansatz?\n# compruébalo con print(ansatz.num_parameters); ansatz.decompose().draw(\"mpl\") lo dibuja",
+     "cases": [
+      "tu apuesta es el número de parámetros de ansatz"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-biblioteca/nlocal-barato",
+     "prompt": "Cambia los argumentos de `n_local` para tener 8 parámetros y solo 3 puertas de dos qubits.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "Dos argumentos de `n_local` controlan el coste: uno fija cuántas veces se repite el bloque y otro, qué pares de qubits se conectan.",
+      "Los parámetros dependen solo de las repeticiones (hay una capa de rotaciones más que repeticiones); las puertas de dos qubits, de las repeticiones y de los pares conectados.",
+      "Cuenta cuántos pares de vecinos tiene una línea de 4 qubits."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit.circuit.library import n_local\n\nbarato = n_local(4, \"ry\", \"cz\")   # ✏️ añade los argumentos que faltan\nprint(barato.num_parameters, \"parámetros\")\nprint(barato.num_nonlocal_gates(), \"puertas de dos qubits\")",
+     "cases": [
+      "tiene 8 parámetros",
+      "tiene solo 3 puertas de dos qubits"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-biblioteca/sumar",
+     "prompt": "Escribe `sumar(x, y)`: `x` e `y` son enteros de 0 a 15. Devuelve un circuito con el sumador `FullAdderGate(4)` que prepara `x` en el registro `a`, `y` en el registro `b` y mide la suma completa en `res`, de 5 bits. Ojo: el sumador deja los cuatro bits bajos de la suma en `b`, no en `a`, y el quinto, el acarreo, en `cout`; sin él, `15 + 1` mediría 0. El sumador espera los qubits en el orden `cin`, `a`, `b`, `cout`.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "Hay tres pasos: preparar los dos números, añadir el sumador y medir los qubits donde queda la suma.",
+      "El circuito ya tiene los registros creados; el orden en que los pasas al sumador es el de `qc.qubits`.",
+      "`initialize` acepta un entero y los qubits donde escribirlo; `append` coloca una puerta sobre una lista de qubits, y `measure` acepta una lista de qubits para llenar un registro."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister\nfrom qiskit.circuit.library import FullAdderGate\nfrom qiskit.primitives import StatevectorSampler\n\n\ndef sumar(x, y):\n    a = QuantumRegister(4, \"a\")\n    b = QuantumRegister(4, \"b\")\n    cout = QuantumRegister(1, \"cout\")\n    qregs = [QuantumRegister(1, \"cin\"), a, b, cout]\n    res = ClassicalRegister(5, \"res\")\n    qc = QuantumCircuit(*qregs, res)\n    # ✏️ prepara x e y, añade el sumador y mide la suma completa en res\n    return qc\n\n\nprint(StatevectorSampler(seed=5).run([sumar(5, 6)], shots=64).result()[0].data.res.get_int_counts())",
+     "cases": [
+      "5 + 6 = 11",
+      "1 + 2 = 3, 7 + 8 = 15 y 0 + 9 = 9"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]

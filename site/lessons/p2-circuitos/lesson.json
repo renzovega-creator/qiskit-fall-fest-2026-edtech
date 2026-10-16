@@ -682,43 +682,76 @@
    "say": "Ahora te toca. [[n1]]Primero, inspecciona la lista de instrucciones de un circuito y predice su profundidad antes de calcularla. [[n2]]Después, reordena un estado GHZ de seis qubits para que tenga menos capas sin cambiar el estado: la escalera de CNOTs tiene profundidad seis, y se puede bajar a cuatro. [[n3]]Y por último, construye una familia de veintiún circuitos a partir de uno solo con un parámetro, y comprueba que siguen la curva teórica.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p2-circuitos.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Recorre `qc.data` y predice `qc.depth()` antes de ejecutar."
-      },
-      {
-       "level": 2,
-       "text": "Prepara el mismo GHZ de 6 qubits con profundidad ≤ 4."
-      },
-      {
-       "level": 3,
-       "text": "Una sola plantilla con `Parameter` → 21 circuitos que siguen $\\sin^2(\\theta/2)$."
-      }
+     "type": "exercise",
+     "exercise": "p2-circuitos/profundidad",
+     "prompt": "Recorre `qc.data` y apuesta cuánto vale `qc.depth()`: escribe tu apuesta en `prediccion` y compruébala después.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "La profundidad cuenta capas, no puertas: una puerta espera a que sus qubits queden libres.",
+      "Recorre la lista y anota en qué capa cae cada puerta; las de qubits distintos comparten capa.",
+      "Dibuja el circuito con `qc.draw()` y cuenta las columnas."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\n\nqc = QuantumCircuit(3)\nqc.h(0)\nqc.x(1)\nqc.cx(0, 1)\nqc.z(2)\nqc.h(1)\n\nfor inst in qc.data:\n    print(inst.operation.name, [qc.find_bit(q).index for q in inst.qubits])\n\nprediccion = None   # ✏️ tu apuesta: ¿cuánto vale qc.depth()? Compruébalo después con print(qc.depth())",
+     "cases": [
+      "tu apuesta es la profundidad de qc"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-circuitos/ghz-menos-profundo",
+     "prompt": "Prepara el mismo GHZ de 6 qubits con profundidad 4 o menos, usando solo puertas de uno y dos qubits.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "La escalera de CNOTs tiene profundidad seis porque cada `cx` espera a la anterior.",
+      "Un qubit que ya está entrelazado con el 0 también puede hacer de control: busca CNOTs que puedan ir en la misma capa.",
+      "Cada capa de CNOTs puede duplicar el número de qubits ya entrelazados."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\n\nghz6 = QuantumCircuit(6)\nghz6.h(0)\n# ✏️ cambia esta escalera por algo más rápido\nfor k in range(5):\n    ghz6.cx(k, k + 1)\n\nprint(\"profundidad:\", ghz6.depth())",
+     "cases": [
+      "prepara el mismo estado GHZ de 6 qubits",
+      "profundidad 4 o menos"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-circuitos/familia-theta",
+     "prompt": "Completa `base` una sola vez: una RX con el parámetro `theta` en el qubit 0, una CX de 0 a 1 y la medición de todo. Después llena `familia` con 21 circuitos derivados de `base`, con $\\theta$ de 0 a $\\pi$ (los dos extremos incluidos), para que $P(11)=\\sin^2(\\theta/2)$. Trampa: ningún circuito de `familia` conserva `theta` libre, pero `base` sí lo conserva.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "Construye `base` una vez y deriva de ella las 21 variantes, sin repetir el circuito.",
+      "El método `assign_parameters` fija el parámetro y devuelve un circuito nuevo.",
+      "Necesitas 21 valores equiespaciados entre 0 y $\\pi$ y un circuito por cada valor."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "import numpy as np\nfrom qiskit import QuantumCircuit\nfrom qiskit.circuit import Parameter\n\ntheta = Parameter(\"θ\")\nbase = QuantumCircuit(2)\n# ✏️ completa base, una sola vez, con el parámetro theta\n\nfamilia = []   # ✏️ 21 circuitos derivados de base\nprint(len(familia), \"circuitos\")",
+     "cases": [
+      "hay 21 circuitos sin parámetros libres",
+      "la probabilidad de 11 sigue sin²(θ/2)"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]

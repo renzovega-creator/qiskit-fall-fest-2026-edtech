@@ -665,7 +665,7 @@
    "scene": [
     {
      "type": "code",
-     "src": "circuit.draw(reverse_bits=True)",
+     "src": "circuit.draw(fold=40)",
      "lang": "python"
     }
    ],
@@ -674,16 +674,16 @@
     "kind": "choice",
     "prompt": "¿Qué cambia?",
     "options": [
-     "el circuito: la X pasa al otro qubit",
-     "solo el dibujo: el qubit 0 queda abajo",
-     "el orden de los bits en los conteos"
+     "el circuito: se descartan las puertas a partir de la 40",
+     "solo el dibujo: el ancho máximo de línea",
+     "los conteos: se simulan 40 disparos"
     ],
     "right": 1,
-    "why": "Correcto: la opción de `draw` solo cambia el dibujo. El método `circuit.reverse_bits()` sí crea un circuito nuevo.",
+    "why": "Correcto: `fold` solo cambia el dibujo; en texto son los caracteres por línea. El circuito no cambia.",
     "wrong": [
-     "Eso hace el método `reverse_bits()`, no la opción de `draw`.",
+     "`draw` nunca modifica el circuito.",
      null,
-     "Los conteos no dependen de cómo dibujes el circuito."
+     "Los disparos los fija el Sampler, no el dibujo."
     ]
    },
    "align": "top"
@@ -694,46 +694,79 @@
     "2.9",
     "Tu turno"
    ],
-   "say": "Ahora te toca. [[n1]]Primero, predice la probabilidad de medir cero cero en el estado de la lección y mírala en la gráfica de Pauli. [[n2]]Después, personaliza un dibujo de texto: el qubit cero abajo y sin barreras. [[n3]]Y por último, escribe una función que grafique con barras los valores esperados que calcula un Estimator.",
+   "say": "Ahora te toca. [[n1]]Primero, predice la probabilidad de medir cero cero en el estado de la lección y compruébala con sus probabilidades. [[n2]]Después, personaliza un dibujo de texto: el qubit cero abajo y sin barreras. [[n3]]Y por último, escribe una función que grafique con barras los valores esperados que calcula un Estimator.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p2-visualizar.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Predice la probabilidad de medir `00` en el estado de la lección."
-      },
-      {
-       "level": 2,
-       "text": "Dibuja un circuito en texto con el qubit 0 abajo y sin barreras."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `valores_esperados(circuito, etiquetas)` con Estimator y grafícalos con barras."
-      }
+     "type": "exercise",
+     "exercise": "p2-visualizar/probabilidad-00",
+     "prompt": "El estado de la lección es una Hadamard y una RX controlada de $\\pi/2$. Apuesta en `prediccion` la probabilidad de medir `00`.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "Mira primero qué hace la `H` sobre el qubit 0.",
+      "Si el qubit 0 vale 0, la RX controlada no actúa.",
+      "Suma solo las ramas que terminan en `00`; las demás no cuentan."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from math import pi\n\nfrom qiskit import QuantumCircuit\nfrom qiskit.quantum_info import Statevector\n\nestado = QuantumCircuit(2)\nestado.h(0)\nestado.crx(pi / 2, 0, 1)\npsi = Statevector(estado)\n\nprediccion = None   # ✏️ tu apuesta: P(00), un número entre 0 y 1\n# compruébalo con print(psi.probabilities().round(2)): el índice es la cadena en binario",
+     "cases": [
+      "tu apuesta es P(00)"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-visualizar/dibujo-texto",
+     "prompt": "Dibuja el circuito en texto con el qubit 0 abajo y sin barreras: añade a `draw` las dos opciones que lo consiguen.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "`draw` tiene una opción que invierte el orden de los qubits y otra que decide si se dibujan las barreras.",
+      "La lección tiene una tabla con las opciones comunes de `draw`; busca ahí las dos que sirven.",
+      "Se pasan por nombre, después del formato; fíjate en el valor que debe tomar cada una."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\n\ncircuito = QuantumCircuit(3, 3)\ncircuito.x(1)\ncircuito.h(range(3))\ncircuito.cx(0, 1)\ncircuito.barrier()\ncircuito.measure(range(3), range(3))\n\ndibujo = circuito.draw(\"text\")   # ✏️ añade las opciones de draw\nprint(dibujo)",
+     "cases": [
+      "el dibujo no tiene barreras",
+      "el qubit 0 está abajo"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-visualizar/barras-esperados",
+     "prompt": "Completa dos funciones. `valores_esperados(circuito, etiquetas)` recibe un circuito sin mediciones y una lista de etiquetas de Pauli, como `[\"ZZ\", \"XX\"]`, y devuelve un arreglo con el valor esperado de cada una, calculado con un `StatevectorEstimator`. `graficar(circuito, etiquetas)` dibuja en `ejes` una barra por etiqueta con esos valores. Ojo: pide todos los observables en una sola llamada a `run`, y el arreglo de observables que le pasas tiene forma $(k, 1)$.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "Necesitas un observable por etiqueta y una sola ejecución del Estimator para todos.",
+      "El Estimator devuelve los valores en un arreglo con la misma forma que el de observables; las barras necesitan una lista plana.",
+      "`graficar` puede reutilizar `valores_esperados` y dibujar con el método de barras de `ejes`."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "import matplotlib.pyplot as plt\nimport numpy as np\nfrom qiskit import QuantumCircuit\nfrom qiskit.primitives import StatevectorEstimator\nfrom qiskit.quantum_info import SparsePauliOp\n\n\ndef valores_esperados(circuito, etiquetas):\n    # ✏️ calcula con el Estimator el valor esperado de cada etiqueta\n    return np.zeros(len(etiquetas))\n\n\ndef graficar(circuito, etiquetas):\n    \"\"\"Dibuja una barra por etiqueta con su valor esperado y devuelve los ejes.\"\"\"\n    figura, ejes = plt.subplots()\n    # ✏️ dibuja las barras en `ejes`\n    return ejes\n\n\nbell = QuantumCircuit(2)\nbell.h(0)\nbell.cx(0, 1)\nprint(valores_esperados(bell, [\"ZZ\", \"XX\", \"YY\", \"ZI\", \"IZ\"]))",
+     "cases": [
+      "Bell: ⟨ZZ⟩ = ⟨XX⟩ = 1, ⟨YY⟩ = −1 y los de un solo qubit valen 0",
+      "la gráfica tiene una barra por etiqueta, con su valor"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]

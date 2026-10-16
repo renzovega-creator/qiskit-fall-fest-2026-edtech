@@ -287,11 +287,11 @@
   ]
  },
  "mision": {
-  "dur": 24.552,
+  "dur": 24.96,
   "marks": {
    "n1": 2.137,
-   "n2": 9.935,
-   "n3": 16.602
+   "n2": 10.346,
+   "n3": 17.012
   },
   "cues": [
    [
@@ -300,14 +300,14 @@
    ],
    [
     2.137,
-    "Primero, predice la probabilidad de medir cero cero en el estado de la lección y mírala en la gráfica de Pauli."
+    "Primero, predice la probabilidad de medir cero cero en el estado de la lección y compruébala con sus probabilidades."
    ],
    [
-    9.935,
+    10.346,
     "Después, personaliza un dibujo de texto: el qubit cero abajo y sin barreras."
    ],
    [
-    16.602,
+    17.012,
     "Y por último, escribe una función que grafique con barras los valores esperados que calcula un Estimator."
    ]
   ]
