@@ -127,6 +127,7 @@ corredor protege el anfitrión y la corrección, no la clave de respuestas.
 | `runner/worker/src/attempts.ts`      | Lo que se anota de cada ejecución.                                               |
 | `runner/worker/src/purge.ts`         | La limpieza diaria.                                                              |
 | `runner/worker/src/schema.sql`       | El esquema de la base D1.                                                        |
+| `tools/dashboard.py`                 | El panel del operador: lee D1 y muestra dónde se atascan los alumnos.            |
 | `runner/worker/src/http.ts`          | Las respuestas y la comprobación de origen que comparten `/auth` y `/api`.       |
 | `runner/worker/src/contract.ts`      | La forma de un id de ejercicio.                                                  |
 | `runner/worker/src/log.ts`           | Las únicas líneas que el Worker escribe en su registro.                          |
@@ -372,6 +373,21 @@ Un cron diario (`17 3 * * *`, UTC) llama al manejador `scheduled` del Worker,
 que borra en un solo lote los intentos vencidos, las sesiones caducadas y las
 cuentas inactivas. Borrar una cuenta arrastra todo lo suyo. Una visita es una
 petición con sesión de cuenta, y se anota a lo sumo una vez al día.
+
+### Dónde se atascan los alumnos
+
+`tools/dashboard.py` lee la base con `wrangler d1 execute` y no escribe nada.
+`uv run python tools/dashboard.py --database-id <uuid>` lee la base remota, con
+la sesión de `bunx wrangler login` (en `runner/worker`) o `CLOUDFLARE_API_TOKEN`,
+y `--local` lee la copia local de `--persist-to`. Imprime, para el periodo de
+`--since` a `--until` (días UTC, por defecto los últimos 30), los usuarios
+nuevos, los que intentaron algo y los intentos con y sin cuenta; las lecciones
+terminadas por lección; los ejercicios con más comprobaciones fallidas y los
+casos que más fallan; y los ejercicios aprobados con más pistas abiertas. Una
+comprobación fallida es un intento `check` que no acabó en `pass`, y cuenta
+también sin cuenta. Las lecciones terminadas y las pistas salen de las tablas de
+una cuenta, así que no cuentan a nadie anónimo. `--json` imprime lo mismo como
+JSON y `--limit` fija las filas de cada ranking (10 por defecto).
 
 ### Variables y secretos
 

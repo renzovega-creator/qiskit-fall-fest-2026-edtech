@@ -16,6 +16,7 @@ run = [
   "uv run python tools/practica.py",
   "uv run python tools/exercises.py",
   "uv run pytest tests/exercises_test.py",
+  "uv run pytest tests/dashboard_test.py",
   "uv run --group tools python tests/exercise_ui_test.py",
   "uv run --group tools python tests/proyecto_test.py",
 ]
