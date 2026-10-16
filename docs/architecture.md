@@ -32,15 +32,15 @@ carpeta y por dónde pasa una lección.
 
 ### `tools/`
 
-| Programa                                             | Función                                                                                                       |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `fetch_docs.py`                                      | Descarga `docs/guides` de Qiskit/documentation a `.cache/qiskit-docs`, en la versión de `qiskit-docs.commit`. |
-| `extract.py`                                         | Convierte esas guías en texto plano en `.cache/qiskit-docs/text`.                                             |
-| `tts.py`                                             | Sintetiza la narración de una lección y escribe `timings.json`.                                               |
-| `pronunciacion.py`                                   | Diccionario que reescribe siglas y nombres en inglés para que la voz los lea bien.                            |
-| `verify.py`                                          | Ejecuta el Python de las lecciones, salvo `norun`, y compara los `Out(…, check=True)`.                        |
-| `practica.py`                                        | Ejecuta cada cuaderno de `practica/` sin y con sus soluciones.                                                |
-| `playtest.py`, `seektest.py`, `shot.py`, `review.py` | Pruebas y capturas con Playwright sobre `site/` servido en el puerto 8810.                                    |
+| Programa                                             | Función                                                                                                                             |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `fetch_docs.py`                                      | Descarga `docs/guides` de Qiskit/documentation a `.cache/qiskit-docs`, en la versión de `qiskit-docs.commit`.                       |
+| `extract.py`                                         | Convierte esas guías en texto plano en `.cache/qiskit-docs/text`.                                                                   |
+| `tts.py`                                             | Sintetiza la narración de una lección y escribe `timings.json`.                                                                     |
+| `pronunciacion.py`                                   | Diccionario que reescribe siglas y nombres en inglés para que la voz los lea bien.                                                  |
+| `verify.py`                                          | Ejecuta el Python de las lecciones, salvo `norun`, y compara los `Out(…, check=True)`.                                              |
+| `practica.py`                                        | Ejecuta cada cuaderno con y sin soluciones. También prueba `mo.ui.slider`/`number` en mínimo y máximo. Un error de ejecución falla. |
+| `playtest.py`, `seektest.py`, `shot.py`, `review.py` | Pruebas y capturas con Playwright sobre `site/` servido en el puerto 8810.                                                          |
 
 `qiskit-docs.commit` guarda el hash de Qiskit/documentation contra el que se
 comprueba la cobertura. Para actualizar las guías se cambia ese hash, se ejecuta
@@ -63,8 +63,10 @@ comprueba la cobertura. Para actualizar las guías se cambia ese hash, se ejecut
 
 ### `practica/`
 
-Cada `.py` de esta carpeta, y de `proyecto/`, es un cuaderno marimo. Cada misión
-de una lección nombra su cuaderno con `Mission(...)`.
+Los cuadernos marimo son los `.py` de estas carpetas que contienen
+`marimo.App(`. Un cuaderno puede importar un módulo de su carpeta
+(`proyecto/ising.py`), porque `tools/practica.py` pone esa carpeta en
+`sys.path`. Cada misión de una lección nombra su cuaderno con `Mission(...)`.
 `soluciones/<cuaderno>.json` (con `__` en lugar de `/` para los cuadernos de
 subcarpetas) guarda los pares (texto, reemplazo) que `tools/practica.py` aplica
 para comprobar que todas las verificaciones dan ✅.
