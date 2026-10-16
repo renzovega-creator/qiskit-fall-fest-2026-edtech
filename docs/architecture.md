@@ -7,16 +7,17 @@ carpeta y por dónde pasa una lección.
 
 ## Quién posee qué
 
-| Carpeta        | Contenido                                                                                                                |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `lessons_src/` | Las lecciones como código Python y el programa que las convierte en JSON.                                                |
-| `tools/`       | Programas auxiliares: guías originales, narración, comprobaciones y pruebas de navegador.                                |
-| `site/`        | La página estática: portada, reproductor de lecciones y los datos que lee.                                               |
-| `tests/`       | Pruebas de navegador (`theme_test.py`, `proyecto_test.py`, `exercise_ui_test.py`) y de ejercicios (`exercises_test.py`). |
-| `practica/`    | Los cuadernos marimo de las misiones y sus soluciones.                                                                   |
-| `exercises/`   | Los ejercicios de código: código inicial, solución y casos de cada uno.                                                  |
-| `qgcheck/`     | El corrector de ejercicios: lee `exercises/`, ejecuta el código de un alumno y devuelve el resultado de cada caso.       |
-| `content/`     | La caché de la síntesis de voz.                                                                                          |
+| Carpeta        | Contenido                                                                                                                                                |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lessons_src/` | Las lecciones como código Python y el programa que las convierte en JSON.                                                                                |
+| `tools/`       | Programas auxiliares: guías originales, narración, comprobaciones y pruebas de navegador.                                                                |
+| `site/`        | La página estática: portada, reproductor de lecciones y los datos que lee.                                                                               |
+| `tests/`       | Pruebas de navegador (`theme_test.py`, `proyecto_test.py`, `exercise_ui_test.py`) de ejercicios (`exercises_test.py`) y del corredor (`runner_test.py`). |
+| `practica/`    | Los cuadernos marimo de las misiones y sus soluciones.                                                                                                   |
+| `exercises/`   | Los ejercicios de código: código inicial, solución y casos de cada uno.                                                                                  |
+| `qgcheck/`     | El corrector de ejercicios: lee `exercises/`, ejecuta el código de un alumno y devuelve el resultado de cada caso.                                       |
+| `content/`     | La caché de la síntesis de voz.                                                                                                                          |
+| `runner/`      | El corredor de código del alumno: imagen, servidor `/run` y Worker. [runner.md](runner.md)                                                               |
 
 ### `lessons_src/`
 
@@ -92,6 +93,29 @@ de cada ejercicio y llama a `POST /run` de `tools/serve.py`.
 `<id>.cache.json` guarda, por cada clip de una lección, el hash de lo que se
 dijo y los tiempos de cada palabra. `tts.py` lo consulta para no volver a
 sintetizar un clip que no cambió.
+
+### `runner/`
+
+El servidor del corredor ([runner.md](runner.md)) ejecuta los trabajos en
+_ranuras_. Hay `QG_JOBS` ranuras, numeradas desde 0, y la ranura `n` usa siempre
+el uid `20000 + n`. El estado compartido es la cola `FREE_SLOTS` de ranuras
+libres, en `server.py`.
+
+| Estado  | Significa                                     | Quién lo deja y cuándo                                                                                            |
+| ------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| libre   | Su número está en `FREE_SLOTS`.               | El hilo de una petición, en el `finally` de `do_POST`, cuando `run_job` ya volvió.                                |
+| ocupada | Un hilo de petición tiene su número y la usa. | El mismo hilo, tras validar la petición, con `get_nowait()`. Si la cola está vacía responde 503 y no espera nada. |
+
+- Solo el hilo que tomó una ranura la devuelve, y solo después de que `run_job`
+  matara los procesos de ese uid y borrara su directorio y sus archivos de
+  `/scratch`, `/tmp`, `/var/tmp` y `/dev/shm`. Ese borrado es lo que aísla a un
+  trabajo del anterior, porque el uid se reutiliza.
+- `run_job` lanza un hilo (`_Scan`) que mide memoria y disco. Solo ese hilo
+  escribe `peak` y `killed` (`killed` antes de `tripped`); `run_job` los lee
+  tras `tripped` o tras unir el hilo.
+- Las instancias de Cloudflare no comparten nada: cada una tiene su cola. El
+  Worker elige una de tres y, si responde 503, repite la petición una vez, que
+  puede llegar a la misma instancia.
 
 ## Camino de los datos
 
