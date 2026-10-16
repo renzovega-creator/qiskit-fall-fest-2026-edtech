@@ -467,43 +467,75 @@
    "say": "Ahora te toca. [[n1]]Primero, predice cuántos bits clásicos tiene un circuito después de measure all y compruébalo. [[n2]]Después, cambia los argumentos de measure para que el qubit dos se guarde en el bit cero. [[n3]]Y por último, entrelaza los qubits uno y tres de un circuito de cinco, mídelos con measure active, y prepara su copia sin mediciones para Estimator.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p2-medir.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Predice cuántos bits clásicos tiene un circuito tras `measure_all()`."
-      },
-      {
-       "level": 2,
-       "text": "Cambia `measure` para que el qubit 2 vaya al bit 0."
-      },
-      {
-       "level": 3,
-       "text": "Un Bell entre los qubits 1 y 3 con `measure_active()`, y su copia sin mediciones para Estimator."
-      }
+     "type": "exercise",
+     "exercise": "p2-medir/bits-clasicos",
+     "prompt": "Este circuito ya tenía un bit clásico. Apuesta en `prediccion` cuántos bits clásicos tiene después de `measure_all()`.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "`measure_all()` mide todos los qubits.",
+      "No reutiliza el registro que ya existía: crea uno nuevo.",
+      "Cuenta el bit que ya estaba y un bit más por cada qubit medido."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.primitives import StatevectorSampler\n\nqc = QuantumCircuit(3, 1)\nqc.x([0, 2])\nqc.measure_all()\n\nprediccion = None   # ✏️ tu apuesta: ¿cuántos bits clásicos tiene qc después de measure_all()?\n\nconteos = StatevectorSampler(seed=7).run([qc], shots=256).result()[0].data.meas.get_counts()\n# compruébalo con print(qc.num_clbits) y print(conteos)",
+     "cases": [
+      "tu apuesta es el número de bits clásicos de qc"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-medir/qubit-al-bit",
+     "prompt": "Cambia los argumentos de `measure` para que el qubit 2 se guarde en el bit 0 y el resultado sea `'01'`.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "El primer argumento de `measure` son los qubits y el segundo, los bits: el qubit de cada posición va al bit de la misma posición.",
+      "En la cadena de bits clásicos, el bit 0 va a la derecha. Para `'01'`, el bit 0 vale 1 y el bit 1 vale 0.",
+      "Fíjate en qué qubit vale 1 y en qué bit debe quedar ese valor; el otro qubit ocupa el bit que sobra."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.primitives import StatevectorSampler\n\nemparejado = QuantumCircuit(3, 2)\nemparejado.x(2)\nemparejado.measure([0, 2], [0, 1])   # ✏️ qubits y bits en el orden que pide el enunciado\n\nconteos = StatevectorSampler(seed=7).run([emparejado], shots=256).result()[0].data.c.get_counts()\nprint(conteos)",
+     "cases": [
+      "solo aparece la cadena '01'"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-medir/bell-1-3",
+     "prompt": "`bell13` tiene 5 qubits, pero solo el 1 y el 3 deben quedar entrelazados y medidos, con `measure_active()`. Deja en `para_estimator` el mismo circuito sin mediciones; `bell13` conserva las suyas.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "Un Bell se prepara con una `H` y una `cx`; aquí actúan sobre los qubits 1 y 3.",
+      "`measure_active()` mide solo los qubits que usaste: el circuito queda con dos bits clásicos.",
+      "Estimator no admite mediciones, y `QuantumCircuit` tiene un método `remove_final_measurements` que las quita; elige si lo aplicas al original o a una copia."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\n\nbell13 = QuantumCircuit(5)\n# ✏️ entrelaza los qubits 1 y 3 y mídelos con measure_active()\n\npara_estimator = bell13   # ✏️ el mismo circuito, sin mediciones\nprint(bell13.num_clbits, \"bits clásicos\")",
+     "cases": [
+      "bell13 mide solo los qubits 1 y 3 y da 00 y 11",
+      "para_estimator no tiene mediciones y los qubits 1 y 3 forman un Bell"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]

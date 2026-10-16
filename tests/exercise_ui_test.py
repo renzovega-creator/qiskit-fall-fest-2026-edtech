@@ -46,7 +46,9 @@ print(resultado[0].data.meas.get_counts())
 EXERCISES = [
     ("p1-quickstart", 1, "ghz", GHZ_WITHOUT_CHAIN, "n = 2, 3 y 4"),
     ("p1-quickstart", 0, "bell-distinto", BELL_WITH_Z, "Salen ['00', '11']"),
-    ("p2-control-clasico", 0, "siempre-uno", None, "el resultado final es siempre 1"),
+    ("p2-control-clasico", 1, "siempre-uno", None, "el resultado final es siempre 1"),
+    ("p2-circuitos", 0, "profundidad", None, "tu apuesta es la profundidad de qc"),
+    ("p2-visualizar", 2, "barras-esperados", None, "Bell: ⟨ZZ⟩ = ⟨XX⟩ = 1"),
 ]
 
 failures = []

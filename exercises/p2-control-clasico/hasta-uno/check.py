@@ -21,4 +21,4 @@ def test_always_one():
 
 def test_other_seed():
     got = dict(aer_counts(learner.hasta_uno(), shots=2000, seed=3))
-    assert set(got) == {"1"}, "Con otra semilla no sale siempre 1."
+    assert set(got) == {"1"}, f"Con seed = 3 y 2000 repeticiones salen {got}."

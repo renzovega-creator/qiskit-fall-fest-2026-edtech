@@ -25,10 +25,11 @@ def test_small():
 def test_larger():
     for n in (5, 7):
         got = sorted(counts(learner.ghz(n)))
-        assert got == ["0" * n, "1" * n], "Con otros tamaños de n no salen solo 00…0 y 11…1."
+        assert got == ["0" * n, "1" * n], f"Con n = {n} salen {got}."
 
 
 def test_state():
     ghz5 = np.zeros(2**5)
     ghz5[0] = ghz5[-1] = 1 / np.sqrt(2)
-    assert state(learner.ghz(5)).equiv(ghz5), "Con otros tamaños de n el estado antes de medir no es GHZ."
+    probs = {str(k): round(float(v), 2) for k, v in state(learner.ghz(5)).probabilities_dict().items() if round(float(v), 2)}
+    assert state(learner.ghz(5)).equiv(ghz5), f"Con n = 5, antes de medir, las probabilidades son {probs}."

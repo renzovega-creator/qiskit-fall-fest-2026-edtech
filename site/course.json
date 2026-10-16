@@ -90,112 +90,56 @@
      "section": "2.1",
      "title": "Construir circuitos",
      "summary": "QuantumCircuit por dentro: qubits, registros, instrucciones, composición, puertas controladas, profundidad y circuitos con parámetros.",
-     "minutes": 8,
-     "missions": [
-      {
-       "notebook": "practica/p2-circuitos.py",
-       "title": "Tu turno",
-       "tasks": 3
-      }
-     ]
+     "minutes": 8
     },
     {
      "id": "p2-medir",
      "section": "2.2",
      "title": "Medir qubits",
      "summary": "La medición en la base computacional y las cuatro formas de añadirla a un circuito: measure, Measure, measure_all y measure_active.",
-     "minutes": 7,
-     "missions": [
-      {
-       "notebook": "practica/p2-medir.py",
-       "title": "Tu turno",
-       "tasks": 3
-      }
-     ]
+     "minutes": 7
     },
     {
      "id": "p2-orden-bits",
      "section": "2.3",
      "title": "El orden de los bits",
      "summary": "Little-endian en Qiskit: cómo se ordenan los qubits en diagramas, enteros, cadenas, vectores de estado y matrices de puertas.",
-     "minutes": 7,
-     "missions": [
-      {
-       "notebook": "practica/p2-orden-bits.py",
-       "title": "Tu turno",
-       "tasks": 3
-      }
-     ]
+     "minutes": 7
     },
     {
      "id": "p2-biblioteca",
      "section": "2.4",
      "title": "La biblioteca de circuitos",
      "summary": "Puertas estándar, circuitos N-local, codificación de datos, evolución temporal, circuitos de referencia y aritmética.",
-     "minutes": 9,
-     "missions": [
-      {
-       "notebook": "practica/p2-biblioteca.py",
-       "title": "Tu turno",
-       "tasks": 3
-      }
-     ]
+     "minutes": 9
     },
     {
      "id": "p2-operadores",
      "section": "2.5",
      "title": "Operadores: Operator, Pauli y SparsePauliOp",
      "summary": "Las tres clases de operadores de quantum_info: cómo construirlas, combinarlas, compararlas y usarlas en circuitos.",
-     "minutes": 9,
-     "missions": [
-      {
-       "notebook": "practica/p2-operadores.py",
-       "title": "Tu turno",
-       "tasks": 3
-      }
-     ]
+     "minutes": 9
     },
     {
      "id": "p2-observables",
      "section": "2.6",
      "title": "Observables en la base de Pauli y síntesis de unitarios",
      "summary": "Escribir observables como sumas de Pauli, descomponer matrices, medir en otras bases y sintetizar matrices unitarias en puertas.",
-     "minutes": 9,
-     "missions": [
-      {
-       "notebook": "practica/p2-observables.py",
-       "title": "Tu turno",
-       "tasks": 3
-      }
-     ]
+     "minutes": 9
     },
     {
      "id": "p2-control-clasico",
      "section": "2.7",
      "title": "Control clásico, feedforward y stretch",
      "summary": "Circuitos dinámicos: if, switch, for y while dentro del circuito, expresiones clásicas, store y tiempos relativos con stretch.",
-     "minutes": 10,
-     "missions": [
-      {
-       "notebook": "practica/p2-control-clasico.py",
-       "title": "Tu turno",
-       "tasks": 1
-      }
-     ]
+     "minutes": 10
     },
     {
      "id": "p2-qasm",
      "section": "2.8",
      "title": "OpenQASM y guardar circuitos",
      "summary": "El lenguaje OpenQASM 2 y 3, cómo importar y exportar circuitos, qué funciones admite el hardware, y cómo guardarlos con QPY.",
-     "minutes": 10,
-     "missions": [
-      {
-       "notebook": "practica/p2-qasm.py",
-       "title": "Tu turno",
-       "tasks": 3
-      }
-     ]
+     "minutes": 10
     },
     {
      "id": "p2-visualizar",
@@ -204,11 +148,6 @@
      "summary": "Dibujar circuitos, graficar estados (city, hinton, Pauli, q-esfera, Bloch), histogramas, valores esperados y líneas de tiempo.",
      "minutes": 10,
      "missions": [
-      {
-       "notebook": "practica/p2-visualizar.py",
-       "title": "Tu turno",
-       "tasks": 3
-      },
       {
        "notebook": "practica/proyecto/hito2.py",
        "title": "Proyecto Ising · Hito II",

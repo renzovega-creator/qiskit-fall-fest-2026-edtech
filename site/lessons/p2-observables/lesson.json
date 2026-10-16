@@ -680,7 +680,7 @@
    "scene": [
     {
      "type": "text",
-     "text": "Quieres medir $\\langle Y_0\\rangle$ con un Sampler, sin Estimator.",
+     "text": "Quieres medir $\\langle X_0\\rangle$ con un Sampler, sin Estimator.",
      "style": "body"
     }
    ],
@@ -692,15 +692,15 @@
      "H",
      "S y luego H",
      "S† y luego H",
-     "H y luego S†"
+     "Ninguna: se mide directamente"
     ],
-    "right": 2,
-    "why": "Correcto: $HS^\\dagger$ lleva los autoestados de $Y$ a los de $Z$; luego mides normalmente.",
+    "right": 0,
+    "why": "Correcto: $HXH=Z$, así que la H lleva los autoestados de $X$ a los de $Z$; luego mides normalmente.",
     "wrong": [
-     "Con H mides $X$, no $Y$.",
-     "Con S en vez de S† mides $-Y$: los resultados quedan invertidos.",
      null,
-     "El orden importa: primero S†, después H."
+     "Esas puertas llevan los autoestados de $Y$ (con el signo cambiado) a los de $Z$, no los de $X$.",
+     "Esas puertas son el cambio de base de $Y$, no el de $X$.",
+     "Sin cambio de base, el Sampler mide siempre en la base $Z$."
     ]
    },
    "align": "top"
@@ -714,43 +714,76 @@
    "say": "Ahora te toca. [[n1]]Primero, predice cuántos términos tiene un hamiltoniano de Ising. [[n2]]Después, añade el cambio de base que permite medir Y con un Sampler. [[n3]]Y por último, escribe una función que construya el observable de magnetización de una cadena, en el eje que le pidas.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p2-observables.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Predice cuántos términos tiene el hamiltoniano de Ising de 4 espines y compruébalo."
-      },
-      {
-       "level": 2,
-       "text": "Añade las puertas que cambian de base para medir $Y$ con un Sampler."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `magnetizacion(n, eje)`: el promedio de $\\sigma_i$ sobre los $n$ espines."
-      }
+     "type": "exercise",
+     "exercise": "p2-observables/terminos-ising",
+     "prompt": "Cuatro espines en línea: $H=\\sum_i Z_iZ_{i+1}-\\sum_i X_i$. Apuesta en `prediccion` cuántos términos tiene `hamiltoniano`.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "Hay un término por cada par de vecinos y otro por cada espín.",
+      "Es una línea abierta: el último espín no se une al primero.",
+      "Cuenta por separado los términos de dos espines y los de un espín, y súmalos."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit.quantum_info import SparsePauliOp\n\nn = 4\ninteracciones = [(\"ZZ\", [i, i + 1], 1) for i in range(n - 1)]\ncampo = [(\"X\", [i], -1) for i in range(n)]\nhamiltoniano = SparsePauliOp.from_sparse_list(interacciones + campo, num_qubits=n)\n\nprediccion = None   # ✏️ tu apuesta: ¿cuántos términos tiene hamiltoniano?\n# compruébalo con print(len(hamiltoniano)) o print(hamiltoniano)",
+     "cases": [
+      "tu apuesta es el número de términos de hamiltoniano"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-observables/medir-y",
+     "prompt": "Añade a `medir_en_y` el cambio de base que permite medir $Y$ con un Sampler: con $|{+i}\\rangle$ el bit debe salir siempre `0`.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "Un Sampler solo mide en la base $Z$: antes de medir hay que llevar $Y$ a $Z$.",
+      "El cambio de base de $Y$ usa dos puertas de la lección, en un orden concreto.",
+      "Van entre la preparación del estado y `measure_all()`; la primera que escribes es la primera que se aplica."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.primitives import StatevectorSampler\n\n\ndef medir_en_y(preparacion):\n    \"\"\"Devuelve una copia de `preparacion` que mide el qubit 0 en la base Y.\"\"\"\n    qc = preparacion.copy()\n    # ✏️ cambio de base para medir Y\n    qc.measure_all()\n    return qc\n\n\nmas_i = QuantumCircuit(1)\nmas_i.h(0)\nmas_i.s(0)       # prepara |+i⟩, el autoestado de Y con valor +1\n\nconteos_y = StatevectorSampler(seed=7).run([medir_en_y(mas_i)], shots=512).result()[0].data.meas.get_counts()\nprint(conteos_y)",
+     "cases": [
+      "|+i⟩ (valor +1 de Y) siempre da 0",
+      "|−i⟩ (valor −1 de Y) siempre da 1"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-observables/magnetizacion",
+     "prompt": "Escribe `magnetizacion(n, eje=\\\"Z\\\")`: `n` es el número de espines y `eje` la letra del Pauli (`\\\"X\\\"`, `\\\"Y\\\"` o `\\\"Z\\\"`, y `\\\"Z\\\"` si no se indica). Devuelve el `SparsePauliOp` de `n` qubits $\\frac1n\\sum_i\\sigma_i$. Ojo: es un promedio, no una suma, así que cada término lleva el coeficiente $1/n$.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "Es una suma de términos de un solo qubit, uno por espín, todos con la misma letra.",
+      "`from_sparse_list` recibe tripletas: la cadena de Pauli, los qubits donde actúa y el coeficiente; aquí todos los coeficientes son iguales.",
+      "Un solo bucle sobre los espines llena la lista."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "from qiskit.quantum_info import SparsePauliOp\n\n\ndef magnetizacion(n, eje=\"Z\"):\n    terminos = []\n    # ✏️ llena `terminos` con las tripletas que pide from_sparse_list\n    return SparsePauliOp.from_sparse_list(terminos, num_qubits=n)\n\n\nprint(magnetizacion(4))",
+     "cases": [
+      "M_Z vale 1 con todos los espines en |0⟩ y 0,5 con uno volteado",
+      "M_X vale 1 con todos en |+⟩ y M_Z vale 0"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]

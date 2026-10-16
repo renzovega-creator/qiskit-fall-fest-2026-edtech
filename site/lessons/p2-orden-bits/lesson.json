@@ -423,12 +423,6 @@
       {
        "g": "x",
        "q": [
-        0
-       ]
-      },
-      {
-       "g": "x",
-       "q": [
         2
        ]
       },
@@ -466,8 +460,8 @@
    "ask": {
     "kind": "numeric",
     "prompt": "¿Qué entero devuelve `get_int_counts()`?",
-    "answer": 5,
-    "why": "Correcto: $q_0=1$ y $q_2=1$, así que $2^0+2^2=5$ (la cadena es `'101'`).",
+    "answer": 4,
+    "why": "Correcto: solo $q_2=1$, así que $2^2=4$ (la cadena es `'100'`).",
     "tol": 0.001,
     "hint": "Cada qubit $k$ con valor 1 aporta $2^k$."
    },
@@ -482,43 +476,75 @@
    "say": "Ahora te toca. [[n1]]Primero, predice la cadena de bits de un circuito con X en los qubits cero y dos. [[n2]]Después, cambia las X de un circuito para preparar el estado cero uno uno. [[n3]]Y por último, escribe una función que prepare el estado de la base con el índice que le pidas, para cualquier número de qubits.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p2-orden-bits.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Predice la cadena de bits de un circuito con X en los qubits 0 y 2."
-      },
-      {
-       "level": 2,
-       "text": "Cambia las X para preparar $|q_2q_1q_0\\rangle=|011\\rangle$."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `preparar(k, n)`: el estado de la base con índice `k` en el vector de estado."
-      }
+     "type": "exercise",
+     "exercise": "p2-orden-bits/cadena-de-bits",
+     "prompt": "Este circuito pone una X en los qubits 0 y 2. Escribe en `prediccion`, entre comillas, la cadena de bits que devuelve Qiskit.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "El qubit 0 es el bit menos significativo.",
+      "En una cadena de bits, el bit 0 va a la derecha.",
+      "Escribe, de izquierda a derecha, el valor de $q_2$, de $q_1$ y de $q_0$."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.primitives import StatevectorSampler\n\ncircuito = QuantumCircuit(3)\ncircuito.x([0, 2])\ncircuito.measure_all()\n\nprediccion = \"\"   # ✏️ tu apuesta, entre comillas: ¿qué cadena de bits devuelve Qiskit?\n\nmedido = StatevectorSampler(seed=7).run([circuito], shots=128).result()[0].data.meas.get_counts()\n# compruébalo con print(medido)",
+     "cases": [
+      "tu apuesta es la cadena que mide Qiskit"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-orden-bits/preparar-011",
+     "prompt": "Cambia las X para preparar $|q_2q_1q_0\\rangle=|011\\rangle$.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "Hoy la X está en el qubit equivocado.",
+      "Lee el estado de derecha a izquierda: el último dígito es el qubit 0. Los dígitos que valen 1 piden una X.",
+      "Puede que necesites más de una X, cada una en su qubit."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import Statevector\n\npreparado = QuantumCircuit(3)\npreparado.x(2)   # ✏️ ¿en qué qubits va la X?\n\nprint(Statevector(preparado).probabilities().round(2))",
+     "cases": [
+      "el estado es |011⟩"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-orden-bits/preparar",
+     "prompt": "Escribe `preparar(k, n)`: devuelve un circuito de `n` qubits, sin mediciones, cuyo vector de estado tiene toda la amplitud en el índice `k` (`k` es el índice de la base, de 0 a $2^n-1$). Ojo: el qubit 0 es el bit menos significativo de `k`, no el primero que escribes. Por ejemplo, `preparar(5, 4)` deja la amplitud en el índice 5, que es $0101_2$.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "Piensa en `k` escrito en binario: cada bit de `k` decide si su qubit empieza en 0 o en 1.",
+      "Recorre los `n` qubits con un `for` y decide, qubit a qubit, si necesita una X.",
+      "Un desplazamiento y una máscara de bits te dan el bit `j` de `k`."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import Statevector\n\n\ndef preparar(k, n):\n    qc = QuantumCircuit(n)\n    # ✏️ añade las X que correspondan a los bits de k\n    return qc\n\n\nprint(Statevector(preparar(5, 4)).probabilities().round(2))",
+     "cases": [
+      "preparar(5, 4) deja la amplitud en el índice 5",
+      "los 16 valores de k con n = 4"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]

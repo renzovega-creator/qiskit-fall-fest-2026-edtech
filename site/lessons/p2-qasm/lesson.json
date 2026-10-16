@@ -495,43 +495,75 @@
    "say": "Ahora te toca. [[n1]]Primero, predice cuántas instrucciones tiene un programa OpenQASM al importarlo. [[n2]]Después, relee un archivo antiguo que usa la puerta r x x, con las instrucciones heredadas. [[n3]]Y por último, escribe dos funciones, una que guarde un circuito con QPY y otra que lo cargue de vuelta.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p2-qasm.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Predice cuántas instrucciones tiene el circuito que sale de importar un programa OpenQASM 2."
-      },
-      {
-       "level": 2,
-       "text": "Relee un programa que usa `rxx` pasando `LEGACY_CUSTOM_INSTRUCTIONS`."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `guardar(circuito)` y `cargar(datos)` con QPY, sin tocar el disco."
-      }
+     "type": "exercise",
+     "exercise": "p2-qasm/instrucciones-qasm",
+     "prompt": "Este programa OpenQASM 2 crea un estado de Bell y lo mide. Apuesta en `prediccion` cuántas instrucciones tiene el circuito que sale de importarlo.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "Cuenta la `h`, la `cx` y las mediciones.",
+      "`measure q -> c` mide un registro entero.",
+      "Fíjate en cuántas mediciones produce la sola línea `measure q -> c`."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit import qasm2\n\nprograma = \"\"\"\nOPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c[2];\nh q[0];\ncx q[0], q[1];\nmeasure q -> c;\n\"\"\"\nimportado = qasm2.loads(programa)\n\nprediccion = None   # ✏️ tu apuesta: ¿cuántas instrucciones tiene importado.data?\n# compruébalo con print(len(importado.data)) y print(importado.count_ops())",
+     "cases": [
+      "tu apuesta es el número de instrucciones de importado"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-qasm/qasm-antiguo",
+     "prompt": "Relee el programa que usa `rxx` pasando a `qasm2.loads` el argumento que lo reconoce.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "El exportador antiguo supone que `qelib1.inc` trae `rxx`, pero no la trae.",
+      "`qasm2.loads` tiene un argumento `custom_instructions` para declarar las puertas que el programa no define.",
+      "El propio módulo `qasm2` trae ya hecha la lista de puertas de los exportadores antiguos; búscala con `dir(qasm2)`."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import qasm2\n\nprograma_antiguo = \"\"\"\nOPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\nrxx(0.5) q[0], q[1];\n\"\"\"\n\ntry:\n    antiguo = qasm2.loads(programa_antiguo)   # ✏️ añade el argumento que falta\nexcept qasm2.QASM2ParseError as error:\n    antiguo = None\n    print(\"Error al importar:\", str(error).splitlines()[0])\n\nprint(antiguo)",
+     "cases": [
+      "el circuito importado tiene una puerta rxx"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-qasm/qpy",
+     "prompt": "Escribe dos funciones, sin tocar el disco. `guardar(circuito)` recibe un `QuantumCircuit` y devuelve los `bytes` de su archivo QPY. `cargar(datos)` recibe esos `bytes` y devuelve el `QuantumCircuit` que contienen. Ojo: `qpy.load` devuelve una lista de circuitos, no un circuito.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "`qpy.dump` y `qpy.load` trabajan con archivos; necesitas un archivo que viva en memoria.",
+      "El módulo `io` trae un archivo en memoria de bytes; de él puedes sacar los bytes, y a él puedes darle los bytes.",
+      "Un archivo QPY puede contener varios circuitos; decide cuál devuelves."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "import io\n\nfrom qiskit import QuantumCircuit, qpy\nfrom qiskit.circuit import Parameter\n\ntheta = Parameter(\"θ\")\nprueba = QuantumCircuit(1, 1)\nprueba.rx(theta, 0)\nprueba.measure(0, 0)\nwith prueba.if_test((prueba.clbits[0], 1)):\n    prueba.x(0)\n\n\ndef guardar(circuito):\n    # ✏️ devuelve los bytes del circuito en formato QPY\n    return b\"\"\n\n\ndef cargar(datos):\n    # ✏️ devuelve el circuito que esos bytes contienen\n    return None\n\n\nprint(cargar(guardar(prueba)) == prueba)",
+     "cases": [
+      "guardar devuelve bytes",
+      "cargar devuelve el mismo circuito, con parámetro y if_test"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]
