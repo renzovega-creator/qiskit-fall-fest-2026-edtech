@@ -348,12 +348,13 @@
 
   // ---------------------------------------------------------------- misión «Tu turno»
   // notebook: ruta del cuaderno marimo · tasks: [{level: 1|2|3, text}]
+  const LV = { 1: ['🟢', 'Reproduce'], 2: ['🟡', 'Modifica'], 3: ['🔴', 'Crea'] };
+
   B.mission = (box, s, A) => {
     const o = { spec: s };
     box.classList.remove('fig');
     const card = A.el('div', 'mcard', box);
     A.el('div', 'mtitle', card).textContent = s.title || 'Tu turno';
-    const LV = { 1: ['🟢', 'Reproduce'], 2: ['🟡', 'Modifica'], 3: ['🔴', 'Crea'] };
     o.items = s.tasks.map(t => {
       const r = A.el('div', 'mtask' + (s.stagger ? ' hid' : ''), card);
       const [dot, name] = LV[t.level] || LV[1];
@@ -367,6 +368,83 @@
     const b = A.el('button', 'abtn', row); b.textContent = 'Copiar';
     b.onclick = e => { e.stopPropagation(); navigator.clipboard?.writeText(cmd).then(() => { b.textContent = 'Copiado ✓'; }); };
     window.notebookHelp(row);
+    return o;
+  };
+
+  // ejercicio de código · exercise: id · prompt · level · hints · starter · cases (nombres de los casos visibles)
+  // Ejecutar y Comprobar envían el código a POST /run (tools/serve.py). El código del alumno se guarda en el navegador.
+  const RUN_HELP = 'No hay corrector en esta página. Abre el curso con `uv run python tools/serve.py` para ejecutar los ejercicios.';
+
+  B.exercise = (box, s, A) => {
+    const o = { spec: s };
+    box.classList.remove('fig');
+    const card = A.el('div', 'mcard', box);
+    A.el('div', 'mtitle', card).textContent = 'Ejercicio';
+    const r = A.el('div', 'mtask', card);
+    const [dot, name] = LV[s.level] || LV[1];
+    A.el('span', 'mlv', r).textContent = `${dot} ${name}`;
+    A.rich(A.el('span', 'mtx', r), s.prompt);
+
+    const key = `qiskit:code:${s.exercise}`;
+    const ta = A.el('textarea', 'xcode', card);
+    ta.spellcheck = false;
+    ta.rows = Math.max(6, s.starter.split('\n').length + 1);
+    try { ta.value = localStorage.getItem(key) ?? s.starter; } catch (e) { ta.value = s.starter; }
+    ta.oninput = () => { try { localStorage.setItem(key, ta.value); } catch (e) {} };
+    // Tab sangra en vez de cambiar el foco; las teclas del editor no deben mover la lección.
+    ta.onkeydown = e => {
+      e.stopPropagation();
+      if (e.key === 'Tab' && !e.shiftKey) { e.preventDefault(); document.execCommand('insertText', false, '    '); }
+    };
+
+    const row = A.el('div', 'mcmd', card);
+    const out = A.el('div', 'xout', card);
+    out.setAttribute('aria-live', 'polite');
+    const btn = (label, cls, fn) => {
+      const b = A.el('button', 'abtn ' + cls, row);
+      b.textContent = label;
+      b.onclick = e => { e.stopPropagation(); fn(b); };
+      return b;
+    };
+    const line = (cls, text) => { const d = A.el('div', 'xline ' + cls, out); d.textContent = text; };
+    const show = res => {
+      if (res.stdout) A.el('pre', 'xstdout', out).textContent = res.stdout;
+      if (res.error) line('bad', res.error);
+      res.tests.forEach(t => line(t.passed ? 'ok' : 'bad', `${t.passed ? '✓' : '✗'} ${t.name}${t.passed ? '' : ': ' + t.message}`));
+      if (res.tests.length) line(res.passed ? 'ok' : 'warn', res.passed ? '¡Pasa todos los casos!' : 'Aún falla algún caso.');
+      else if (!res.error && !res.stdout) line('warn', 'Se ejecutó sin salida.');
+    };
+    const send = async (mode, b) => {
+      const label = b.textContent;
+      const all = row.querySelectorAll('button');
+      all.forEach(x => { x.disabled = true; });
+      b.textContent = 'Ejecutando…';
+      out.textContent = '';
+      try {
+        const resp = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ exercise: s.exercise, code: ta.value, mode }) });
+        const body = await resp.json().catch(() => null);
+        if (resp.status === 404 || resp.status === 405 || resp.status === 501) line('warn', RUN_HELP);
+        else if (!resp.ok) line('bad', body?.error || `El corrector respondió ${resp.status}.`);
+        else show(body);
+      } catch (e) {
+        line('warn', RUN_HELP);
+      }
+      b.textContent = label;
+      all.forEach(x => { x.disabled = false; });
+    };
+    btn('Ejecutar', '', b => send('run', b));
+    btn('Comprobar', 'primary', b => send('check', b));
+    btn('Empezar de nuevo', '', () => { ta.value = s.starter; ta.oninput(); out.textContent = ''; });
+
+    if (s.cases?.length) A.el('p', 'mhow', card).textContent = `Casos visibles: ${s.cases.join(' · ')}. Hay además casos ocultos.`;
+    if (s.hints?.length) {
+      const hints = A.el('div', 'xhints', card);
+      const more = btn('Pista', '', () => {
+        A.rich(A.el('div', 'xhint', hints), s.hints[hints.children.length]);
+        if (hints.children.length === s.hints.length) more.remove();
+      });
+    }
     return o;
   };
 

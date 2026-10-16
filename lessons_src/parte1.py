@@ -1,6 +1,6 @@
 """Parte I · Primeros pasos: qué es Qiskit, patrones, instalación, quickstart y Composer."""
 from lib import (T, M, L, Row, Box, A, shows, beat, choice, numeric, reveal, lesson,
-                 Code, Out, Sh, Circ, G, Hist, Table, Flow, predict, reflect, Mission)
+                 Code, Out, Sh, Circ, G, Hist, Table, Flow, predict, reflect, Mission, Exercise)
 
 # ------------------------------------------------------------------ 1.1 Qué es Qiskit
 que_es = lesson(
@@ -611,11 +611,19 @@ print(StatevectorSampler().run([qc]).result()[0].data.meas.get_counts())""", id=
         beat("mision", ("", "Tu turno"),
              """Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero reproduces el estado de Bell. [[n2]]Después lo modificas para que los qubits salgan siempre distintos. [[n3]]Y por último creas una función que prepara un estado GHZ de cualquier tamaño.
              [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.""",
-             [Mission("practica/p1-quickstart.py", [
-                 (1, "Ejecuta el estado de Bell y lee sus conteos."),
-                 (2, r"Prepara $\tfrac{1}{\sqrt2}(|01\rangle+|10\rangle)$ añadiendo una sola puerta."),
-                 (3, "Escribe `ghz(n)` con un bucle y explora el histograma hasta $n=10$.")], id="m", stagger=True)],
-             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+             [Mission("practica/p1-quickstart.py", [(1, "Ejecuta el estado de Bell y lee sus conteos.")], id="m", stagger=True),
+              Exercise("p1-quickstart/bell-distinto",
+                       r"Prepara $\tfrac{1}{\sqrt2}(|01\rangle+|10\rangle)$ añadiendo una sola puerta al circuito.",
+                       level=2, id="e2", hidden=True,
+                       hints=["Hoy los dos qubits salen iguales. Necesitas que uno de ellos se invierta.",
+                              "La puerta `X` invierte un qubit. Pon `anti.x(...)` antes de medir."]),
+              Exercise("p1-quickstart/ghz",
+                       "Escribe `ghz(n)`: un circuito de `n` qubits, medido con `measure_all()`, que solo da `00…0` o `11…1`.",
+                       level=3, id="e3", hidden=True,
+                       hints=["Empieza con una Hadamard en el qubit 0.",
+                              "Un bucle `for` encadena CNOTs de `k` a `k + 1`.",
+                              "Cada CNOT toma como control el qubit `k` y como objetivo el `k + 1`."])],
+             [A("item", "m", at="n1", i=0), A("show", "e2", at="n2"), A("show", "e3", at="n3")]),
 
         beat("proyecto", ("", "Tu proyecto: una cadena de espines"),
              """Además de las misiones de cada lección, a lo largo del curso vas a construir un solo proyecto: simular una cadena de espines, el modelo de Ising con campo transversal, y terminar ejecutándolo en un computador cuántico real.

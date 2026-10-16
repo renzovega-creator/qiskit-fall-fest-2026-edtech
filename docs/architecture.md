@@ -7,14 +7,16 @@ carpeta y por dónde pasa una lección.
 
 ## Quién posee qué
 
-| Carpeta        | Contenido                                                                                 |
-| -------------- | ----------------------------------------------------------------------------------------- |
-| `lessons_src/` | Las lecciones como código Python y el programa que las convierte en JSON.                 |
-| `tools/`       | Programas auxiliares: guías originales, narración, comprobaciones y pruebas de navegador. |
-| `site/`        | La página estática: portada, reproductor de lecciones y los datos que lee.                |
-| `tests/`       | Pruebas de navegador del tema (`theme_test.py`).                                          |
-| `practica/`    | Los cuadernos marimo de las misiones y sus soluciones.                                    |
-| `content/`     | La caché de la síntesis de voz.                                                           |
+| Carpeta        | Contenido                                                                                                                |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `lessons_src/` | Las lecciones como código Python y el programa que las convierte en JSON.                                                |
+| `tools/`       | Programas auxiliares: guías originales, narración, comprobaciones y pruebas de navegador.                                |
+| `site/`        | La página estática: portada, reproductor de lecciones y los datos que lee.                                               |
+| `tests/`       | Pruebas de navegador (`theme_test.py`, `proyecto_test.py`, `exercise_ui_test.py`) y de ejercicios (`exercises_test.py`). |
+| `practica/`    | Los cuadernos marimo de las misiones y sus soluciones.                                                                   |
+| `exercises/`   | Los ejercicios de código: código inicial, solución y casos de cada uno.                                                  |
+| `qgcheck/`     | El corrector de ejercicios: lee `exercises/`, ejecuta el código de un alumno y devuelve el resultado de cada caso.       |
+| `content/`     | La caché de la síntesis de voz.                                                                                          |
 
 ### `lessons_src/`
 
@@ -29,6 +31,8 @@ carpeta y por dónde pasa una lección.
   que no haya marcas `[[nombre]]` repetidas en una narración y que cada acción
   apunte a una marca y a un objeto que existan. Falla si una lección del plan no
   tiene módulo o si un módulo define una lección que el plan no menciona.
+  También completa cada bloque `Exercise` con lo que el sitio puede mostrar de
+  `exercises/` (ver [exercises.md](exercises.md)).
 
 ### `tools/`
 
@@ -40,6 +44,8 @@ carpeta y por dónde pasa una lección.
 | `pronunciacion.py`                                   | Diccionario que reescribe siglas y nombres en inglés para que la voz los lea bien.                                                  |
 | `verify.py`                                          | Ejecuta el Python de las lecciones, salvo `norun`, y compara los `Out(…, check=True)`.                                              |
 | `practica.py`                                        | Ejecuta cada cuaderno con y sin soluciones. También prueba `mo.ui.slider`/`number` en mínimo y máximo. Un error de ejecución falla. |
+| `exercises.py`                                       | Corre la solución y el código inicial de cada ejercicio con `qgcheck` y comprueba su `needs`.                                       |
+| `serve.py`                                           | Sirve `site/` en 127.0.0.1:8810 y añade `POST /run`, que corrige el código de un ejercicio con `qgcheck`.                           |
 | `playtest.py`, `seektest.py`, `shot.py`, `review.py` | Pruebas y capturas con Playwright sobre `site/` servido en el puerto 8810.                                                          |
 
 `qiskit-docs.commit` guarda el hash de Qiskit/documentation contra el que se
@@ -70,6 +76,16 @@ Los cuadernos marimo son los `.py` de estas carpetas que contienen
 `soluciones/<cuaderno>.json` (con `__` en lugar de `/` para los cuadernos de
 subcarpetas) guarda los pares (texto, reemplazo) que `tools/practica.py` aplica
 para comprobar que todas las verificaciones dan ✅.
+
+### `exercises/` y `qgcheck/`
+
+`exercises/<lección>/<ejercicio>/` guarda `starter.py`, `solution.py` y
+`check.py`. `qgcheck/spec.py` los localiza, `qgcheck/runner.py` lanza
+`qgcheck/worker.py` en un proceso aparte con el código del alumno, y
+`qgcheck/__init__.py` ofrece a `check.py` sus ayudantes. El formato, el
+resultado de `grade()` y las comprobaciones están en
+[exercises.md](exercises.md). `B.exercise` de `site/blocks.js` dibuja el editor
+de cada ejercicio y llama a `POST /run` de `tools/serve.py`.
 
 ### `content/`
 

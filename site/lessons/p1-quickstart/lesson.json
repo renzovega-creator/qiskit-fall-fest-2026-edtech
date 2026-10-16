@@ -807,18 +807,48 @@
       {
        "level": 1,
        "text": "Ejecuta el estado de Bell y lee sus conteos."
-      },
-      {
-       "level": 2,
-       "text": "Prepara $\\tfrac{1}{\\sqrt2}(|01\\rangle+|10\\rangle)$ añadiendo una sola puerta."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `ghz(n)` con un bucle y explora el histograma hasta $n=10$."
       }
      ],
      "id": "m",
      "stagger": true
+    },
+    {
+     "type": "exercise",
+     "exercise": "p1-quickstart/bell-distinto",
+     "prompt": "Prepara $\\tfrac{1}{\\sqrt2}(|01\\rangle+|10\\rangle)$ añadiendo una sola puerta al circuito.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "Hoy los dos qubits salen iguales. Necesitas que uno de ellos se invierta.",
+      "La puerta `X` invierte un qubit. Pon `anti.x(...)` antes de medir."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.primitives import StatevectorSampler\n\nanti = QuantumCircuit(2)\nanti.h(0)\nanti.cx(0, 1)\n# ✏️ añade aquí tu puerta\nanti.measure_all()\n\nresultado = StatevectorSampler(seed=7).run([anti], shots=1024).result()\nprint(resultado[0].data.meas.get_counts())",
+     "cases": [
+      "los qubits salen siempre distintos",
+      "el estado es (|01⟩ + |10⟩)/√2",
+      "añades una sola puerta al estado de Bell"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p1-quickstart/ghz",
+     "prompt": "Escribe `ghz(n)`: un circuito de `n` qubits, medido con `measure_all()`, que solo da `00…0` o `11…1`.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "Empieza con una Hadamard en el qubit 0.",
+      "Un bucle `for` encadena CNOTs de `k` a `k + 1`.",
+      "Cada CNOT toma como control el qubit `k` y como objetivo el `k + 1`."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.primitives import StatevectorSampler\n\n\ndef ghz(n):\n    qc = QuantumCircuit(n)\n    # ✏️ tu código aquí\n    qc.measure_all()\n    return qc\n\n\nresultado = StatevectorSampler(seed=7).run([ghz(3)], shots=1024).result()\nprint(resultado[0].data.meas.get_counts())",
+     "cases": [
+      "el circuito tiene n qubits y los mide",
+      "n = 2, 3 y 4"
+     ]
     }
    ],
    "actions": [
@@ -829,15 +859,13 @@
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]

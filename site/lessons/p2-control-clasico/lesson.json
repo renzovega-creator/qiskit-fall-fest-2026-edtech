@@ -628,18 +628,48 @@
       {
        "level": 1,
        "text": "Predice el resultado final del circuito que corrige la moneda con `if_test`."
-      },
-      {
-       "level": 2,
-       "text": "Cambia la condición del `if_test` para que el resultado final sea siempre 1."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `hasta_uno()`: un circuito que repite con `while_loop` hasta medir 1."
       }
      ],
      "id": "m",
      "stagger": true
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-control-clasico/siempre-uno",
+     "prompt": "Cambia solo la condición del `if_test` para que el resultado final sea siempre 1.",
+     "level": 2,
+     "needs": "aer",
+     "hints": [
+      "Hoy la X se aplica cuando la moneda sale 1, y así el bit termina en 0.",
+      "Para terminar en 1, la X debe aplicarse en la otra rama: cambia el valor con que se compara el bit."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister\nfrom qiskit_aer.primitives import SamplerV2\n\nq = QuantumRegister(1, \"q\")\nc = ClassicalRegister(1, \"c\")\nsiempre_uno = QuantumCircuit(q, c)\nsiempre_uno.h(q[0])\nsiempre_uno.measure(q[0], c[0])\nwith siempre_uno.if_test((c[0], 1)):   # ✏️ ¿con qué valor del bit hay que aplicar la X?\n    siempre_uno.x(q[0])\nsiempre_uno.measure(q[0], c[0])\n\nresultado = SamplerV2(seed=11).run([siempre_uno], shots=512).result()\nprint(resultado[0].data.c.get_counts())",
+     "cases": [
+      "el resultado final es siempre 1",
+      "sigue siendo la moneda: una H y la X dentro del if_test"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p2-control-clasico/hasta-uno",
+     "prompt": "Escribe `hasta_uno()`: un circuito que repite con `while_loop` hasta medir 1, sin usar ninguna puerta X.",
+     "level": 3,
+     "needs": "aer",
+     "hints": [
+      "Lanza la moneda una vez fuera del bucle: una `H` y una medición.",
+      "`with qc.while_loop((c, 0)):` repite mientras el bit valga 0. Dentro, lanza la moneda otra vez.",
+      "Dentro del bucle repites lo mismo que fuera: una `H` y una medición."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister\nfrom qiskit_aer.primitives import SamplerV2\n\n\ndef hasta_uno():\n    q = QuantumRegister(1, \"q\")\n    c = ClassicalRegister(1, \"c\")\n    qc = QuantumCircuit(q, c)\n    # ✏️ H y medir una vez; después, while_loop mientras c valga 0: H y medir otra vez\n    return qc\n\n\nresultado = SamplerV2(seed=11).run([hasta_uno()], shots=500).result()\nprint(resultado[0].data.c.get_counts())",
+     "cases": [
+      "el circuito tiene un while_loop y un bit clásico",
+      "el 1 sale del bucle, sin ninguna puerta X",
+      "el resultado final es siempre 1"
+     ]
     }
    ],
    "actions": [
@@ -650,15 +680,13 @@
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]
