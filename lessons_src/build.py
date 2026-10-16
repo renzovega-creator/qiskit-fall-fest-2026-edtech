@@ -2,6 +2,7 @@
 
     python lessons_src/build.py              # escribe los JSON y comprueba la cobertura de las guías
     python lessons_src/build.py --tts        # además genera la narración (necesita uv, red y ffprobe)
+    QG_RUNNER_URL=https://… python lessons_src/build.py   # el sitio ejecuta los ejercicios en ese corredor
 
 La cobertura se comprueba contra .cache/qiskit-docs.
 tools/fetch_docs.py descarga esa caché.
@@ -12,6 +13,7 @@ cada lección de un módulo debe estar en el plan.
 """
 import importlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -103,6 +105,17 @@ def publish_exercises(lesson, seen):
                     ERRORS.append(f"{where} no tiene ningún caso @visible en check.py")
 
 
+def write_config():
+    """Escribe site/config.json. QG_RUNNER_URL es la URL del POST /run que llaman los ejercicios.
+
+    Sin ella, `runner` queda en null y la página no hace ninguna petición al ejecutar.
+    """
+    url = os.environ.get("QG_RUNNER_URL") or None
+    if url and not re.fullmatch(r"https?://[^\s]+|/[^\s]*", url):
+        raise SystemExit(f"QG_RUNNER_URL debe ser una URL http(s) o una ruta que empiece por /, no {url!r}")
+    (SITE / "config.json").write_text(json.dumps(dict(runner=url), indent=1) + "\n", encoding="utf-8")
+
+
 def check(lesson):
     """Errores de autoría que conviene detectar antes de generar audio (se acumulan en ERRORS)."""
     def fail(msg):
@@ -176,6 +189,7 @@ def main():
         a["next"] = b["id"] if b else None
         (SITE / "lessons" / a["id"] / "lesson.json").write_text(json.dumps(a, ensure_ascii=False, indent=1), encoding="utf-8")
     (SITE / "course.json").write_text(json.dumps(course, ensure_ascii=False, indent=1), encoding="utf-8")
+    write_config()
     total = sum(len(p["lessons"]) for p in PARTS)
     print(f"{len(ordered)} de {total} lecciones escritas, {sum(len(l['beats']) for l in ordered)} pasos; "
           f"cobertura de las {len(toc_pages())} guías: completa")
