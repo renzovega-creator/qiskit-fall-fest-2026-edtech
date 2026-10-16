@@ -329,28 +329,3 @@ def test_server_serves_the_site_and_rejects_bad_requests(server):
     assert post(server, {"exercise": "../x", "code": ""})[0] == 400
     assert post(server, {"exercise": "p1-quickstart/ghz", "code": ""}, content_type="text/plain")[0] == 403
     assert post(server, {"exercise": "p1-quickstart/ghz", "code": ""}, host="evil.example")[0] == 403
-
-
-def test_server_points_the_page_at_its_own_runner(server):
-    import urllib.request
-
-    with urllib.request.urlopen(server + "/config.json?x=1") as resp:
-        assert json.load(resp) == {"runner": "/run"}
-
-
-def test_build_writes_the_runner_url_it_is_given(tmp_path, monkeypatch):
-    monkeypatch.setattr(build, "SITE", tmp_path)
-    monkeypatch.delenv("QG_RUNNER_URL", raising=False)
-    build.write_config()
-    assert json.loads((tmp_path / "config.json").read_text()) == {"runner": None}
-    monkeypatch.setenv("QG_RUNNER_URL", "https://runner.example/run")
-    build.write_config()
-    assert json.loads((tmp_path / "config.json").read_text()) == {"runner": "https://runner.example/run"}
-
-
-@pytest.mark.parametrize("url", ["runner.example/run", "javascript:alert(1)", "https://a b"])
-def test_build_rejects_a_runner_url_that_is_not_http(tmp_path, monkeypatch, url):
-    monkeypatch.setattr(build, "SITE", tmp_path)
-    monkeypatch.setenv("QG_RUNNER_URL", url)
-    with pytest.raises(SystemExit):
-        build.write_config()

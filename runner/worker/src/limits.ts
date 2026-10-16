@@ -1,5 +1,7 @@
 export interface Env {
   TURNSTILE_SECRET: string;
+  // La página recibe la clave pública en la respuesta `turnstile_missing`.
+  TURNSTILE_SITE_KEY: string;
   RATE_PER_MINUTE: string;
   RATE_PER_DAY: string;
   MAX_CODE_BYTES: string;

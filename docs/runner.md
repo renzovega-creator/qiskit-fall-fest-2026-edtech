@@ -102,23 +102,26 @@ corredor protege el anfitrión y la corrección, no la clave de respuestas.
 
 ## Archivos
 
-| Archivo                            | Función                                                                          |
-| ---------------------------------- | -------------------------------------------------------------------------------- |
-| `runner/server.py`                 | El servidor HTTP y la validación de la petición.                                 |
-| `runner/sandbox.py`                | Lanza el trabajo y vigila tiempo, memoria, disco y salida.                       |
-| `runner/launcher.py`               | Fija los rlimits, baja de uid e instala el filtro seccomp antes del `exec`.      |
-| `runner/grader/`                   | El comprobador (`job.py`), el intermediario del alumno y su formato de mensajes. |
-| `qgcheck/`                         | El corrector de [exercises.md](exercises.md). La imagen lo copia sin cambios.    |
-| `runner/Dockerfile`                | La imagen. Sus versiones salen del grupo `runner` de `uv.lock`.                  |
-| `runner/local.py`                  | Construye la imagen y la ejecuta con Docker y las banderas de aislamiento.       |
-| `runner/bench.py`                  | Mide la latencia fría y templada.                                                |
-| `runner/worker/`                   | El Worker de Cloudflare que arranca la imagen como Container.                    |
-| `runner/worker/src/index.ts`       | Las comprobaciones de [Protección del Worker](#protección-del-worker).           |
-| `runner/worker/src/meters.ts`      | Los Durable Objects `RateLimiter` y `Budget`.                                    |
-| `runner/worker/src/session.ts`     | La cookie de sesión y la llamada a `siteverify`.                                 |
-| `runner/worker/src/log.ts`         | La única línea que el Worker escribe en su registro.                             |
-| `runner/worker/test/`              | Las pruebas del Worker con un contenedor falso.                                  |
-| `exercises/<lección>/<ejercicio>/` | La imagen solo lleva `check.py` de cada uno.                                     |
+| Archivo                              | Función                                                                          |
+| ------------------------------------ | -------------------------------------------------------------------------------- |
+| `runner/server.py`                   | El servidor HTTP y la validación de la petición.                                 |
+| `runner/sandbox.py`                  | Lanza el trabajo y vigila tiempo, memoria, disco y salida.                       |
+| `runner/launcher.py`                 | Fija los rlimits, baja de uid e instala el filtro seccomp antes del `exec`.      |
+| `runner/grader/`                     | El comprobador (`job.py`), el intermediario del alumno y su formato de mensajes. |
+| `qgcheck/`                           | El corrector de [exercises.md](exercises.md). La imagen lo copia sin cambios.    |
+| `runner/Dockerfile`                  | La imagen. Sus versiones salen del grupo `runner` de `uv.lock`.                  |
+| `runner/local.py`                    | Construye la imagen y la ejecuta con Docker y las banderas de aislamiento.       |
+| `runner/bench.py`                    | Mide la latencia fría y templada.                                                |
+| `runner/worker/`                     | El Worker de Cloudflare: sirve `site/` y arranca la imagen como Container.       |
+| `runner/worker/cloudflare.config.ts` | El Worker, el Container, los Durable Objects, las variables y las rutas.         |
+| `runner/worker/wrangler.config.ts`   | El directorio de `site/` que el Worker publica como archivos estáticos.          |
+| `runner/worker/src/routes.ts`        | Las rutas que entran al Worker antes que a los archivos.                         |
+| `runner/worker/src/index.ts`         | Las comprobaciones de [Protección del Worker](#protección-del-worker).           |
+| `runner/worker/src/meters.ts`        | Los Durable Objects `RateLimiter` y `Budget`.                                    |
+| `runner/worker/src/session.ts`       | La cookie de sesión y la llamada a `siteverify`.                                 |
+| `runner/worker/src/log.ts`           | La única línea que el Worker escribe en su registro.                             |
+| `runner/worker/test/`                | Las pruebas del Worker con un contenedor falso.                                  |
+| `exercises/<lección>/<ejercicio>/`   | La imagen solo lleva `check.py` de cada uno.                                     |
 
 ## Ejecutarlo con Docker
 
@@ -154,32 +157,61 @@ mise run worker
 ```
 
 Las pruebas del Worker (`runner/worker/test/`) arrancan el Worker real en el
-runtime local de Cloudflare (Miniflare) con un contenedor falso que anota cada
-llamada. No necesitan Docker ni cuenta. Comprueban cada límite de
+runtime local de Cloudflare (Miniflare), con `site/` como archivos estáticos y
+las mismas rutas de entrada que el despliegue, y con un contenedor falso que
+anota cada llamada. No necesitan Docker ni cuenta. Comprueban que `GET /` sirve
+`index.html`, que `POST /run` devuelve el JSON del corredor y cada límite de
 [Protección del Worker](#protección-del-worker) por su respuesta y, con el
 contenedor falso, que una petición rechazada no lo alcanza. Dos pruebas llaman
 al `siteverify` real con las claves de prueba y se saltan si no hay red.
 
 ## Cloudflare Containers
 
-`runner/worker/` es un Worker con una clase `Runner` que extiende `Container`
-(`@cloudflare/containers`) y reparte las peticiones entre tres instancias. Si la
-instancia elegida responde 503, repite la petición una vez. Los Containers
-requieren el plan Workers Paid. La instancia no tiene salida a internet
-(`enableInternet = false`) y se apaga a los 5 minutos sin peticiones.
+`runner/worker/` es un solo Worker que sirve el sitio y el corredor en el mismo
+origen: el editor llama a `/run` y la cookie de sesión es `SameSite=Strict`.
+
+- Los archivos de `site/` son sus archivos estáticos. El directorio lo fija
+  [`wrangler.config.ts`](../runner/worker/wrangler.config.ts).
+- `/run`, `/health`, `/auth/*` y `/api/*` entran al código del Worker antes que
+  a los archivos (`run_worker_first`). La lista está en
+  [`src/routes.ts`](../runner/worker/src/routes.ts), que usan también el
+  despliegue y las pruebas. Cualquier otra ruta la responde el servicio de
+  archivos sin ejecutar el Worker, y una ruta que no es un archivo responde 404.
+  Hoy el Worker responde 404 en `/auth/*` y `/api/*`.
+- Una clase `Runner` que extiende `Container` (`@cloudflare/containers`) reparte
+  las peticiones de `/run` entre tres instancias. Si la instancia elegida
+  responde 503, repite la petición una vez. La instancia no tiene salida a
+  internet (`enableInternet = false`) y se apaga a los 5 minutos sin peticiones.
+
+Un solo `cf deploy` construye la imagen, empaqueta el Worker y sube `site/` como
+una versión. Para publicar un cambio de las lecciones hay que volver a
+desplegar.
+
+### Lo que fija el operador
+
+- El plan Workers Paid, que los Containers requieren.
+- Docker en el `PATH` y accesible para quien despliega: `cf deploy` construye la
+  imagen en su equipo.
+- Un widget de Cloudflare Turnstile cuyos nombres de host incluyan el del sitio.
+  Su clave del sitio es pública y va en `TURNSTILE_SITE_KEY` de
+  [`cloudflare.config.ts`](../runner/worker/cloudflare.config.ts). Su secreto es
+  `TURNSTILE_SECRET` y no se escribe en el repositorio. Con `TURNSTILE_SITE_KEY`
+  vacía, un `POST /run` sin sesión responde 500 `internal_error` y registra la
+  variable que falta.
+- Para servir el sitio en un dominio propio, el campo `domains` de `worker` en
+  `cloudflare.config.ts`. Hoy no lo declara.
 
 ```sh
 cd runner/worker
 bun install
 bunx cf deploy --dry-run   # construye la imagen y el Worker, no sube nada
-bunx cf deploy
+umask 077
+read -rs -p 'Secreto de Turnstile: ' secret && printf 'TURNSTILE_SECRET=%s\n' "$secret" > "$TMPDIR/secrets.env"
+bunx cf deploy --secrets-file "$TMPDIR/secrets.env"
+rm "$TMPDIR/secrets.env"
 ```
 
-`cf deploy` necesita Docker en el `PATH`.
-
-El Worker tiene que servirse en el mismo origen que la página, en `/run`: el
-editor llama a la ruta relativa `/run` y la cookie de sesión es
-`SameSite=Strict`.
+`--secrets-file` sube `TURNSTILE_SECRET` con la versión (JSON o `.env`).
 
 ## Protección del Worker
 
@@ -295,10 +327,12 @@ La suma de `cost_nano_usd` en el registro da el gasto estimado del mes.
 
 ### Turnstile
 
-Cloudflare Turnstile se verifica en la primera ejecución de una sesión. El
-navegador manda el token del widget en la cabecera `X-Turnstile-Token`. El
-Worker lo comprueba con `siteverify`, al que envía solo el secreto y el token, y
-si vale responde con la cookie `qg_session` además del resultado:
+Cloudflare Turnstile se verifica en la primera ejecución de una sesión. Una
+petición sin sesión y sin token recibe 403 `turnstile_missing` con la clave del
+sitio en el campo `sitekey`. Con ella, `site/exercise.js` carga el widget, y
+repite la petición con el token del widget en la cabecera `X-Turnstile-Token`.
+El Worker lo comprueba con `siteverify`, al que envía solo el secreto y el
+token, y si vale responde con la cookie `qg_session` además del resultado:
 
 ```text
 qg_session=<caducidad>.<mac>; Max-Age=28800; Path=/run; HttpOnly; Secure; SameSite=Strict
@@ -314,13 +348,15 @@ siguientes ejecuciones la mandan solas y no vuelven a llamar a Turnstile.
 | 403       | `turnstile_failed`      | «No pasó la comprobación de que eres una persona. Recarga la página e inténtalo de nuevo.»             |
 | 503       | `turnstile_unavailable` | «No se pudo comprobar que eres una persona. Vuelve a intentarlo en unos segundos.» (`Retry-After: 10`) |
 
-| Variable        | Valor | Significa                         |
-| --------------- | ----- | --------------------------------- |
-| `SESSION_HOURS` | 8     | Duración de la sesión verificada. |
+| Variable             | Valor | Significa                               |
+| -------------------- | ----- | --------------------------------------- |
+| `SESSION_HOURS`      | 8     | Duración de la sesión verificada.       |
+| `TURNSTILE_SITE_KEY` | —     | La clave pública del widget. Sin valor. |
 
 `TURNSTILE_SECRET` es un secreto del Worker (`bindings.secret()`), no un valor
-del repositorio. La clave del sitio va en la página, no en el Worker. Cloudflare
-documenta claves de prueba que no necesitan cuenta:
+del repositorio. La clave del sitio no es secreta: el Worker se la da a la
+página en la respuesta `turnstile_missing`. Cloudflare documenta claves de
+prueba que no necesitan cuenta:
 
 | Clave                                 | Tipo    | Comportamiento                                                |
 | ------------------------------------- | ------- | ------------------------------------------------------------- |
@@ -329,9 +365,7 @@ documenta claves de prueba que no necesitan cuenta:
 | `2x0000000000000000000000000000000AA` | secreto | Siempre falla.                                                |
 | `3x0000000000000000000000000000000AA` | secreto | Responde que el token ya se usó.                              |
 
-Las pruebas del Worker usan los tres secretos. `site/blocks.js` todavía no
-dibuja el widget ni manda el token; hasta que lo haga, un Worker desplegado
-responde 403 a todo el que no lo manda.
+Las pruebas del Worker usan los tres secretos.
 
 ### Qué recibe el contenedor y qué se registra
 

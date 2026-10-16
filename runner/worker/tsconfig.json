@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "test", "cloudflare.config.ts", "vitest.config.ts"]
+  "include": ["src", "test", "cloudflare.config.ts", "wrangler.config.ts", "vitest.config.ts"]
 }

@@ -1,6 +1,7 @@
 import { bindings, defineConfig, defineContainer, exports } from "cf/config";
 
 import * as entrypoint from "./src/index.ts" with { type: "cf-worker" };
+import { WORKER_FIRST } from "./src/routes.ts";
 
 const runner = defineContainer({
   name: "qg-runner",
@@ -17,9 +18,14 @@ export default defineConfig({
     // Workers Logs guarda solo lo que escribe src/log.ts. El registro de
     // invocaciones lleva la petición, así que está apagado.
     observability: { enabled: true, logs: { enabled: true, invocationLogs: false } },
+    // site/ (wrangler.config.ts) se sirve desde este mismo Worker.
+    // Solo las rutas de WORKER_FIRST lo invocan.
+    assets: { runWorkerFirst: WORKER_FIRST },
     env: {
       // El secreto del widget de Turnstile no se escribe aquí: se crea en la cuenta.
       TURNSTILE_SECRET: bindings.secret(),
+      // La clave del sitio es pública y se copia desde el widget de Turnstile.
+      TURNSTILE_SITE_KEY: bindings.text(""),
       RATE_PER_MINUTE: bindings.text("30"),
       RATE_PER_DAY: bindings.text("1000"),
       MAX_CODE_BYTES: bindings.text("20000"),

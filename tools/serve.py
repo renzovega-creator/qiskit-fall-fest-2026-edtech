@@ -4,7 +4,6 @@
 
 Es `python -m http.server` más `POST /run`, que el editor de los ejercicios llama con
 {"exercise": id, "code": texto, "mode": "run"|"check"} y recibe el resultado de qgcheck.grade.
-Responde `/config.json` con este corredor, en lugar del archivo de site/.
 Escucha solo en 127.0.0.1 y ejecuta el código en un proceso de tu usuario, sin más aislamiento:
 sirve para practicar en tu equipo, no para exponerlo en red.
 """
@@ -31,12 +30,6 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
-
-    def do_GET(self):
-        # Este servidor ejecuta los ejercicios, así que la página usa su propia ruta /run.
-        if self.path.split("?")[0] == "/config.json":
-            return self.reply(200, {"runner": "/run"})
-        super().do_GET()
 
     def do_POST(self):
         if self.path != "/run":

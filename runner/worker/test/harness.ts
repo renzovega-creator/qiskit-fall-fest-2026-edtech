@@ -3,6 +3,8 @@ import path from "node:path";
 import { build } from "esbuild";
 import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 
+import { WORKER_FIRST } from "../src/routes.ts";
+
 // Secretos de prueba documentados por Cloudflare para Turnstile.
 export const PASS_SECRET = "1x0000000000000000000000000000000AA";
 export const FAIL_SECRET = "2x0000000000000000000000000000000AA";
@@ -10,6 +12,7 @@ export const SPENT_SECRET = "3x0000000000000000000000000000000AA";
 
 export const VARS = {
   TURNSTILE_SECRET: PASS_SECRET,
+  TURNSTILE_SITE_KEY: "1x00000000000000000000AA",
   RATE_PER_MINUTE: "1000",
   RATE_PER_DAY: "100000",
   MAX_CODE_BYTES: "20000",
@@ -97,6 +100,14 @@ export async function start(options: Options = {}): Promise<Harness> {
       scriptPath: path.join(process.cwd(), "worker.mjs"),
       compatibilityDate: "2026-10-01",
       bindings: { ...VARS, ...options.vars },
+      // Sirve site/ sin invocar el Worker, salvo en las rutas de WORKER_FIRST.
+      assets: {
+        directory: path.join(import.meta.dirname, "../../../site"),
+        routerConfig: {
+          has_user_worker: true,
+          static_routing: { user_worker: WORKER_FIRST },
+        },
+      },
       durableObjects: {
         Runner: { className: "Runner", useSQLite: true },
         RateLimiter: { className: "RateLimiter", useSQLite: true },

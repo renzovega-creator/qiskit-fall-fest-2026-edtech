@@ -4,14 +4,14 @@
 
 Abre el paso de misión de cada lección con ejercicios, prueba el editor en escritorio y móvil,
 y comprueba que el progreso se conserva. También prueba el teclado, el tema, los estados de carga
-y error, y que un servidor sin corrector no recibe peticiones. `--shots` guarda capturas.
+y error, y la comprobación de Turnstile. `--shots` guarda capturas.
 """
 import importlib.util
 import json
 import sys
 import threading
 from functools import partial
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from http.server import ThreadingHTTPServer
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -66,19 +66,6 @@ def serve(handler):
 
 def quiet(base):
     return type("Quiet", (base,), {"log_message": lambda *a: None})
-
-
-class Static(quiet(SimpleHTTPRequestHandler)):
-    """Un servidor sin corrector, que anota cada petición."""
-    seen = []
-
-    def do_GET(self):
-        Static.seen.append(("GET", self.path))
-        super().do_GET()
-
-    def do_POST(self):
-        Static.seen.append(("POST", self.path))
-        self.send_error(501)
 
 
 def mission_url(lesson):
@@ -280,21 +267,57 @@ def states(browser, base):
     page.context.close()
 
 
-def without_runner(browser, shots):
-    base = serve(Static)
+# Sustituye el widget de Turnstile y entrega un token de prueba.
+FAKE_TURNSTILE = """window.turnstile = {
+  render(slot, o) { slot.dataset.sitekey = o.sitekey; setTimeout(() => o.callback('XXXX.DUMMY.TOKEN.XXXX'), 20); return 'w1'; },
+  remove() { window.turnstileRemoved = (window.turnstileRemoved || 0) + 1; },
+};"""
+
+
+def turnstile(browser, base):
+    """Comprueba la petición inicial de Turnstile y la sesión que deja abierta."""
     page = browser.new_context(**DESKTOP).new_page()
+    sent, scripts, session = [], [], []
+    refusal = {"error": "Antes de ejecutar código hay que comprobar que eres una persona.", "reason": "turnstile_missing",
+               "sitekey": "1x00000000000000000000AA"}
+
+    def run(route):
+        token = route.request.headers.get("x-turnstile-token")
+        sent.append(token)
+        if token:
+            session.append(token)
+        if token or session:
+            return route.continue_()
+        route.fulfill(status=403, content_type="application/json", body=json.dumps(refusal))
+
+    def widget(route):
+        scripts.append(route.request.url)
+        route.fulfill(content_type="text/javascript", body=FAKE_TURNSTILE)
+
+    page.route("**/run", run)
+    page.route("https://challenges.cloudflare.com/turnstile/v0/api.js*", widget)
     panel = open_panel(page, base, "p1-quickstart", 1)
-    check("Todavía no se puede ejecutar" in panel.locator(".xstatus").inner_text(), "sin corredor: la tarjeta avisa de que ejecutar aún no está disponible")
-    check(panel.get_by_role("button", name="Ejecutar").is_disabled() and panel.get_by_role("button", name="Comprobar").is_disabled(), "sin corredor: Ejecutar y Comprobar no se pueden pulsar")
     write(page, panel, "print(1)")
-    page.keyboard.press("ControlOrMeta+Enter")
-    page.keyboard.press("ControlOrMeta+Shift+Enter")
-    check(not [r for r in Static.seen if r[0] == "POST" or r[1].startswith("/run")], f"sin corredor: ninguna petición a /run ({Static.seen[-3:]})")
-    page.reload()
-    panel = page.locator(".xpanel").nth(1)
-    panel.locator(".cm-editor").wait_for()
-    check(editor_text(panel) == "print(1)", "sin corredor: el código se escribe y se conserva")
-    shot(page, shots, "escritorio-sin-corredor", panel)
+    press(panel, "Ejecutar")
+    wait_result(panel)
+    check(sent == [None, "XXXX.DUMMY.TOKEN.XXXX"] and "Se ejecutó sin errores" in panel.locator(".xstatus").inner_text(),
+          f"turnstile: la primera ejecución repite la petición con el token ({sent})")
+    check(len(scripts) == 1 and page.evaluate("window.turnstileRemoved") == 1 and page.locator(".xturnstile").count() == 0,
+          "turnstile: el widget se carga una vez y se retira al terminar")
+    press(panel, "Ejecutar")
+    wait_result(panel)
+    check(sent == [None, "XXXX.DUMMY.TOKEN.XXXX", None] and len(scripts) == 1,
+          f"turnstile: con la sesión abierta no se vuelve a pedir ({sent})")
+
+    page.context.close()
+
+    page = browser.new_context(**DESKTOP).new_page()
+    page.route("**/run", lambda r: r.fulfill(status=403, content_type="application/json", body=json.dumps(refusal)))
+    page.route("https://challenges.cloudflare.com/turnstile/v0/api.js*", lambda r: r.abort())
+    panel = open_panel(page, base, "p1-quickstart", 1)
+    press(panel, "Ejecutar")
+    panel.locator(".xstatus", has_text="comprobación de que eres una persona").wait_for()
+    check(panel.get_by_role("button", name="Ejecutar").is_enabled(), "turnstile: si el widget no carga se dice y se puede reintentar")
     page.context.close()
 
 
@@ -317,7 +340,7 @@ def main():
         hints(browser, base)
         theme(browser, base)
         states(browser, base)
-        without_runner(browser, shots)
+        turnstile(browser, base)
         browser.close()
     print(f"\n{len(failures)} fallos" if failures else "\ntodo bien")
     sys.exit(1 if failures else 0)

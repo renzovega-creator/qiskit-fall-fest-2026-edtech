@@ -47,7 +47,7 @@ carpeta y por dónde pasa una lección.
 | `verify.py`                                          | Ejecuta el Python de las lecciones, salvo `norun`, y compara los `Out(…, check=True)`.                                              |
 | `practica.py`                                        | Ejecuta cada cuaderno con y sin soluciones. También prueba `mo.ui.slider`/`number` en mínimo y máximo. Un error de ejecución falla. |
 | `exercises.py`                                       | Corre la solución y el código inicial de cada ejercicio con `qgcheck` y comprueba su `needs`.                                       |
-| `serve.py`                                           | Sirve `site/` en 127.0.0.1:8810 y añade `POST /run`, que corrige un ejercicio con `qgcheck`, y `/config.json`.                      |
+| `serve.py`                                           | Sirve `site/` en 127.0.0.1:8810 y añade `POST /run`, que corrige un ejercicio con `qgcheck`.                                        |
 | `playtest.py`, `seektest.py`, `shot.py`, `review.py` | Pruebas y capturas con Playwright sobre `site/` servido en el puerto 8810.                                                          |
 
 `qiskit-docs.commit` guarda el hash de Qiskit/documentation contra el que se
@@ -64,8 +64,7 @@ comprueba la cobertura. Para actualizar las guías se cambia ese hash, se ejecut
   ejercicio y `sfx.js` los sonidos. Las fórmulas las dibuja KaTeX, que se
   descarga de un CDN.
 - `editor.js` es el editor CodeMirror 6 de los ejercicios, empaquetado desde
-  `editor/`. `config.json` trae la URL del corredor que escribe `build.py`.
-  Ambos se describen en [exercises.md](exercises.md#editor-en-la-lección).
+  `editor/`. Se describe en [exercises.md](exercises.md#editor-en-la-lección).
 - `theme.css` y `theme.js` son el tema de las dos páginas: colores, fuentes, y
   la paleta y el modo que elige el lector. [design.md](design.md) los describe.
   `notebooks.js` escribe la línea «cómo ejecutar los cuadernos» que acompaña a
@@ -91,7 +90,7 @@ para comprobar que todas las verificaciones dan ✅.
 `qgcheck/__init__.py` ofrece a `check.py` sus ayudantes. El formato, el
 resultado de `grade()` y las comprobaciones están en
 [exercises.md](exercises.md). `site/exercise.js` dibuja el editor de cada
-ejercicio y llama a `POST /run` en la URL de `site/config.json`.
+ejercicio y llama a `POST /run` en su propio origen.
 
 ### `content/`
 

@@ -6,6 +6,7 @@ import {
   FAIL_SECRET,
   SPENT_SECRET,
   TOKEN,
+  VARS,
   clearOfMinuteEnd,
   start,
 } from "./harness.ts";
@@ -31,6 +32,51 @@ describe("GET /health", () => {
     const reply = await h.get("/health");
     expect(reply.status).toBe(200);
     expect(h.runnerCalls()).toHaveLength(0);
+  });
+});
+
+describe("el sitio y /run en un solo Worker", () => {
+  it("sirve index.html en / sin llamar al contenedor", async () => {
+    const h = await worker();
+    const reply = await h.get("/");
+    expect(reply.status).toBe(200);
+    expect(reply.headers.get("content-type")).toContain("text/html");
+    expect(reply.body).toContain("<title>");
+    expect(h.runnerCalls()).toHaveLength(0);
+  });
+
+  it("sirve las lecciones y responde 404 a lo que no es un archivo", async () => {
+    const h = await worker();
+    expect((await h.get("/lesson.html")).status).toBe(200);
+    expect((await h.get("/course.json")).body.parts).toBeDefined();
+    expect((await h.get("/no-existe.html")).status).toBe(404);
+  });
+
+  it("ejecuta el código y devuelve el JSON del corredor con el token de prueba", async () => {
+    const h = await worker();
+    const reply = await h.post(run, verified);
+    expect(reply.status).toBe(200);
+    expect(reply.body).toMatchObject({ passed: true, error: null, tests: [], killed: null });
+    expect(reply.body.stdout).toBe("recibidos 12 caracteres\n");
+    expect(reply.headers.get("set-cookie")).toContain("qg_session=");
+    expect(h.runnerCalls()).toHaveLength(1);
+  });
+
+  it("responde 403 turnstile_missing con la clave del sitio cuando no hay token", async () => {
+    const h = await worker();
+    const reply = await h.post(run);
+    expect(reply.status).toBe(403);
+    expect(reply.body.reason).toBe("turnstile_missing");
+    expect(reply.body.sitekey).toBe(VARS.TURNSTILE_SITE_KEY);
+    expect(h.runnerCalls()).toHaveLength(0);
+  });
+
+  it("responde 500 si falta la clave del sitio, porque la página no podría pasar Turnstile", async () => {
+    const h = await worker({ vars: { TURNSTILE_SITE_KEY: "" } });
+    const reply = await h.post(run);
+    expect(reply.status).toBe(500);
+    expect(reply.body.reason).toBe("internal_error");
+    expect(reply.body.sitekey).toBeUndefined();
   });
 });
 
