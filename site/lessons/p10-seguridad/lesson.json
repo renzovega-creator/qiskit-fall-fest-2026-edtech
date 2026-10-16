@@ -176,6 +176,69 @@
    ]
   },
   {
+   "id": "red_pred",
+   "tag": [
+    "10.3",
+    "Antes de la red privada"
+   ],
+   "say": "Antes de verlo, apuesta. Has creado un punto de acceso privado virtual, VPE, desde tu nube privada virtual. [[cual]]Ahora abres la consola web en el navegador, ejecutas un script con el SDK de Python y haces una llamada a la API REST. ¿Cuáles de las tres van por la red privada?",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "sitio web",
+       "s": "navegador"
+      },
+      {
+       "t": "SDK de Python",
+       "s": "qiskit-ibm-runtime"
+      },
+      {
+       "t": "API REST",
+       "s": "curl"
+      }
+     ],
+     "id": "f",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "f",
+     "at": "cual"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "f",
+     "at": "cual",
+     "t": 2
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "f",
+     "at": "cual",
+     "t": 4
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuáles de las tres conexiones van por el VPE?",
+    "options": [
+     "las tres",
+     "el SDK y la API, no el sitio web",
+     "solo la API REST",
+     "ninguna: el tráfico siempre sale a internet"
+    ],
+    "after": "Anotado. Veamos qué dice la guía."
+   },
+   "align": "top"
+  },
+  {
    "id": "red",
    "tag": [
     "10.3",
@@ -405,6 +468,80 @@
      "Proteger las claves es responsabilidad del cliente.",
      null,
      "Justamente por eso hay que revocarla."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "10.3",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero lees una auditoría: conviertes eventos de actividad en los permisos que se ejercieron. [[n2]]Después amplías un detector de claves de API escritas en el código, sin marcar las que vienen del entorno. [[n3]]Y por último escribes qué hacer ante una caída regional, según tu plan, tus qubits y la residencia de tus datos. Todo con datos de ejemplo, sin cuenta. Busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p10-seguridad.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Cuenta qué permisos ejercen los eventos de una auditoría."
+      },
+      {
+       "level": 2,
+       "text": "Amplía el patrón que detecta claves de API en el código."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `ante_desastre`: esperar o crear una instancia en la otra región."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "10.3",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma. Lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "La seguridad es compartida: saber qué te toca a ti es la mitad del trabajo.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Una clave de API de tu equipo apareció en un repositorio público. Describe con tus palabras qué haces en los primeros diez minutos y por qué.",
+     "En tu proyecto Ising, ¿qué parte dependería de qubits concretos de una región y cuál podrías reenviar sin cambios a otra?"
     ]
    },
    "align": "top"

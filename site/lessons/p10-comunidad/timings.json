@@ -105,6 +105,26 @@
    ]
   ]
  },
+ "citar_pred": {
+  "dur": 13.08,
+  "marks": {
+   "cual": 9.355
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de verlo, apuesta."
+   ],
+   [
+    3.0,
+    "Escribes un artículo y ejecutaste tu experimento en el QPU ibm fez."
+   ],
+   [
+    9.355,
+    "¿Qué datos del QPU debe llevar la cita?"
+   ]
+  ]
+ },
  "citar": {
   "dur": 24.408,
   "marks": {
@@ -178,6 +198,92 @@
    [
     0.107,
     "¿Dónde pides ayuda?"
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 37.224,
+  "marks": {
+   "n1": 7.062,
+   "n2": 13.644,
+   "n3": 21.725
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Abre el cuaderno de práctica de esta lección con el comando de abajo."
+   ],
+   [
+    7.062,
+    "Primero escribes la cita de un programa de IBM Quantum con la versión que tienes instalada."
+   ],
+   [
+    13.644,
+    "Después haces que la cita de un QPU sirva para cualquier backend, con su nombre, su versión y su familia."
+   ],
+   [
+    21.725,
+    "Y por último armas la sección de citas de un artículo: el agradecimiento, una frase por QPU y la referencia con el año."
+   ],
+   [
+    31.292,
+    "Usas backends simulados, sin cuenta."
+   ],
+   [
+    34.859,
+    "Busca la marca verde."
+   ]
+  ]
+ },
+ "proyecto": {
+  "dur": 38.088,
+  "marks": {
+   "recalcula": 3.057,
+   "pasos": 16.474,
+   "informe": 23.452
+  },
+  "cues": [
+   [
+    0.107,
+    "Y el proyecto llega a su final."
+   ],
+   [
+    3.057,
+    "El hito diez es un informe reproducible."
+   ],
+   [
+    6.553,
+    "Recalculas la magnetización de tu cadena de espines: la curva exacta, los pasos de Trotter y la simulación con el ruido de Fake Fez."
+   ],
+   [
+    16.474,
+    "Eliges cuántos pasos usar, equilibrando el error con la profundidad del circuito transpilado."
+   ],
+   [
+    23.452,
+    "Y escribes el informe: parámetros, tabla de resultados, versiones de software, y la cita de Qiskit y del QPU."
+   ],
+   [
+    33.076,
+    "Con las mismas semillas, cualquiera obtiene los mismos números."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 6.696,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para cerrar el curso."
+   ],
+   [
+    3.326,
+    "Lo que escribas se guarda en tu navegador."
    ]
   ]
  },

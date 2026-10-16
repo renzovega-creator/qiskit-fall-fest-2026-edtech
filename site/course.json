@@ -934,28 +934,61 @@
      "section": "10.1",
      "title": "Organizaciones e instancias",
      "summary": "Planificar IBM Quantum Platform para una organización: instancias, planes, regiones, asignaciones y límites, la API de gestión y los registros de plataforma.",
-     "minutes": 6
+     "minutes": 8,
+     "missions": [
+      {
+       "notebook": "practica/p10-organizaciones.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     },
     {
      "id": "p10-acceso",
      "section": "10.2",
      "title": "Cuentas, grupos de acceso y usuarios",
      "summary": "La estructura de una cuenta de IBM Cloud, los roles de plataforma y de servicio, los grupos de acceso, los roles personalizados y la gestión de usuarios.",
-     "minutes": 4
+     "minutes": 7,
+     "missions": [
+      {
+       "notebook": "practica/p10-acceso.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     },
     {
      "id": "p10-seguridad",
      "section": "10.3",
      "title": "Seguridad y cumplimiento",
      "summary": "Protección y retención de datos, responsabilidades compartidas, conexiones privadas, restricciones por contexto, alta disponibilidad, auditoría y políticas de seguridad.",
-     "minutes": 4
+     "minutes": 7,
+     "missions": [
+      {
+       "notebook": "practica/p10-seguridad.py",
+       "title": "Tu turno",
+       "tasks": 3
+      }
+     ]
     },
     {
      "id": "p10-comunidad",
      "section": "10.4",
      "title": "Soporte, preguntas frecuentes y código abierto",
      "summary": "Dónde pedir ayuda, las preguntas frecuentes, cómo citar Qiskit y los QPUs, y cómo participar en la comunidad de código abierto.",
-     "minutes": 5
+     "minutes": 8,
+     "missions": [
+      {
+       "notebook": "practica/p10-comunidad.py",
+       "title": "Tu turno",
+       "tasks": 3
+      },
+      {
+       "notebook": "practica/proyecto/hito10.py",
+       "title": "Proyecto Ising · Hito X",
+       "tasks": 3
+      }
+     ]
     }
    ]
   }

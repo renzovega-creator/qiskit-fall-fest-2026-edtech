@@ -72,12 +72,36 @@
    ]
   ]
  },
+ "custom_pred": {
+  "dur": 22.128,
+  "marks": {
+   "cual": 17.861
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de verlos, apuesta."
+   ],
+   [
+    3.128,
+    "Un rol personalizado se compone de acciones concretas del servicio."
+   ],
+   [
+    8.237,
+    "Este tiene siete: leer dispositivos, crear, leer y cancelar trabajos, leer y borrar programas, y cerrar sesión."
+   ],
+   [
+    17.861,
+    "Un usuario con este rol, ¿podrá borrar un trabajo?"
+   ]
+  ]
+ },
  "custom": {
-  "dur": 35.424,
+  "dur": 42.024,
   "marks": {
    "trabajo": 8.364,
-   "analitica": 21.159,
-   "lector": 24.782
+   "analitica": 27.768,
+   "lector": 31.392
   },
   "cues": [
    [
@@ -86,14 +110,18 @@
    ],
    [
     8.364,
-    "Por ejemplo, un rol para trabajar con instancias: leer dispositivos, crear, leer y cancelar trabajos, leer y borrar programas, y opcionalmente borrar trabajos."
+    "Por ejemplo, un rol para trabajar con instancias: leer dispositivos, crear, leer y cancelar trabajos, leer y borrar programas, cerrar sesión, y opcionalmente borrar trabajos."
    ],
    [
-    21.159,
+    22.418,
+    "Borrar programas no es borrar trabajos: son acciones distintas."
+   ],
+   [
+    27.768,
     "O un rol que solo ve la analítica de uso."
    ],
    [
-    24.782,
+    31.392,
     "Un patrón útil: dos roles, uno lector sin acciones de cancelar, borrar ni actualizar, y otro escritor con todas, cada uno en su grupo."
    ]
   ]
@@ -140,6 +168,54 @@
    [
     0.107,
     "Roles mínimos."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 36.552,
+  "marks": {
+   "n1": 7.062,
+   "n2": 15.611,
+   "n3": 23.636
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca."
+   ],
+   [
+    2.137,
+    "Abre el cuaderno de práctica de esta lección con el comando de abajo."
+   ],
+   [
+    7.062,
+    "Primero compruebas qué llamadas de la API permite el rol de trabajar con instancias, y confirmas si puede borrar trabajos."
+   ],
+   [
+    15.611,
+    "Después derivas un rol lector a partir del escritor, quitando las acciones de cancelar, borrar y actualizar."
+   ],
+   [
+    23.636,
+    "Y por último escribes un detector de valores que son subcadenas de otros, para que una regla dinámica no dé más acceso del que pretendes."
+   ],
+   [
+    33.274,
+    "Busca la marca verde en cada misión."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 6.768,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma."
+   ],
+   [
+    3.397,
+    "Lo que escribas se guarda en tu navegador."
    ]
   ]
  },

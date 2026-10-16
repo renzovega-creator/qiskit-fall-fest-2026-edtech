@@ -287,6 +287,52 @@
    ]
   },
   {
+   "id": "limite_pred",
+   "tag": [
+    "10.1",
+    "Antes de ver el límite"
+   ],
+   "say": "Antes de ver la regla, apuesta. Una instancia Premium tiene un límite de uso, y lo alcanza cuando tiene un trabajo en ejecución y tres en cola. [[cual]]¿Qué crees que pasa con esos cuatro trabajos? No hace falta acertar: apostar primero hace que la regla se te quede.",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "Instancia Premium con límite",
+      ""
+     ],
+     "rows": [
+      [
+       "trabajos en ejecución",
+       "1"
+      ],
+      [
+       "trabajos en cola",
+       "3"
+      ],
+      [
+       "uso",
+       "alcanzó el límite"
+      ]
+     ],
+     "id": "t",
+     "size": 24
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Al alcanzar el límite, ¿qué pasa con esos cuatro trabajos?",
+    "options": [
+     "los cuatro se cancelan",
+     "el que se ejecuta continúa y los tres en cola esperan a que haya tiempo",
+     "el que se ejecuta se detiene y los tres en cola pasan con menor prioridad",
+     "todos siguen como si nada"
+    ],
+    "after": "Anotado. Veamos qué dice la regla."
+   },
+   "align": "top"
+  },
+  {
    "id": "asignacion",
    "tag": [
     "10.1",
@@ -427,29 +473,103 @@
     "10.1",
     "Comprueba"
    ],
-   "say": "Sobre límites.",
+   "say": "Ahora el caso contrario: una asignación que no es un límite.",
    "scene": [
     {
      "type": "text",
-     "text": "Una instancia Premium con límite alcanza su asignación mientras tiene 3 trabajos en cola.",
+     "text": "Una instancia Flex superó su tiempo asignado, pero la asignación no estaba marcada como límite.",
      "style": "body"
     }
    ],
    "actions": [],
    "ask": {
     "kind": "choice",
-    "prompt": "¿Qué les pasa a esos trabajos?",
+    "prompt": "¿Qué pasa con sus trabajos nuevos?",
     "options": [
      "se cancelan",
-     "siguen en cola hasta la siguiente ventana de uso",
-     "se ejecutan con menor prioridad"
+     "esperan hasta que suban el límite",
+     "siguen, con menor prioridad y colas más largas"
     ],
-    "right": 1,
-    "why": "Correcto: con límite, nada se cancela; los pendientes esperan hasta que haya tiempo disponible (en Premium, la siguiente ventana de 28 días).",
+    "right": 2,
+    "why": "Correcto: sin límite no se bloquea nada; la instancia pierde prioridad en el reparto justo y sus colas se alargan.",
     "wrong": [
-     "Nunca se cancelan trabajos al llegar al límite.",
-     null,
-     "Eso pasa cuando la asignación no está marcada como límite."
+     "Nunca se cancelan trabajos por superar la asignación.",
+     "Eso pasa cuando la asignación sí es un límite.",
+     null
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "10.1",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero lees una instancia con la API de gestión: el CRN va codificado en la ruta, y la respuesta trae los campos cuánticos. [[n2]]Después arreglas el cálculo de cuánto te queda en el plan Open: la ventana de veintiocho días se mueve, y los usos viejos dejan de contar. [[n3]]Y por último escribes qué pasa con los trabajos al llegar a un límite, con y sin límite, sin cancelar ninguno. Las comprobaciones se actualizan solas: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p10-organizaciones.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Codifica el CRN de una instancia y lee los campos de `extensions`."
+      },
+      {
+       "level": 2,
+       "text": "Corrige `restante` para que solo cuente la ventana móvil de 28 días del plan Open."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `tras_alcanzar`: qué pasa con cada trabajo con y sin límite."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "10.1",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma. Escribe con tus palabras: lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Un límite protege el presupuesto; una asignación solo reparte prioridad.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "¿Por qué crees que alcanzar un límite deja los trabajos en cola en lugar de cancelarlos? ¿Qué se perdería si se cancelaran?",
+     "Tu laboratorio tiene dos equipos y un proyecto compartido. ¿Cuántas instancias crearías, y cuáles tendrían un límite y cuáles solo una asignación?"
     ]
    },
    "align": "top"
