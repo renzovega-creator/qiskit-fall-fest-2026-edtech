@@ -55,12 +55,15 @@ def test_small():
 
 def test_larger():          # sin @visible: el caso es oculto
     for n in (5, 7):
-        assert sorted(counts(learner.ghz(n))) == ["0" * n, "1" * n], "Con otros tamaños de n falla."
+        got = sorted(counts(learner.ghz(n)))
+        assert got == ["0" * n, "1" * n], f"Con n = {n} salen {got}."
 ```
 
 - El mensaje del `assert` es el texto de error que ve el alumno. Un caso oculto
-  se muestra como `caso oculto 1`, `caso oculto 2`… con su mensaje, así que ese
-  mensaje no debe nombrar los datos del caso.
+  se muestra como `caso oculto 1`, `caso oculto 2`… con su mensaje. El mensaje
+  nombra la entrada que falló (`n = 7`, `seed = 3`) y lo que devolvió el código
+  del alumno, y nunca el valor esperado: así el alumno puede reproducir el fallo
+  sin leer la respuesta.
 - `learner.<nombre>` devuelve lo que el código del alumno definió. Si no lo
   definió, el caso falla con «Falta definir `<nombre>` en tu código.». Se lee
   dentro del caso, no al importar `check.py`: `build.py` importa el archivo para
@@ -70,6 +73,14 @@ def test_larger():          # sin @visible: el caso es oculto
 - Compara estados, no texto de circuitos: `state(circuito).equiv(...)` quita las
   mediciones finales. Para muestreos usa una semilla fija y una tolerancia de al
   menos cuatro desviaciones típicas.
+- Un ejercicio de predicción deja `prediccion` sin valor (`None` o `""`) en el
+  código inicial. El caso visible compara la apuesta con lo que calcula el
+  circuito del alumno, no con una constante, y un caso oculto comprueba que el
+  circuito de la lección sigue igual, para que no se pueda acertar cambiando el
+  circuito.
+- Un ejercicio que dibuja devuelve la figura o los ejes, y el caso lee lo que
+  hay detrás (por ejemplo `axes.patches` y las etiquetas del eje), no píxeles.
+  El corredor corre con `MPLBACKEND=Agg` y su imagen incluye `matplotlib`.
 
 Los ayudantes de [`qgcheck/__init__.py`](../qgcheck/__init__.py) importan Qiskit
 solo cuando se llaman:
@@ -111,7 +122,7 @@ además corre los casos. Devuelve:
       "name": "caso oculto 1",
       "visible": false,
       "passed": false,
-      "message": "Con otros tamaños de n no salen solo 00…0 y 11…1."
+      "message": "Con n = 5 salen ['00000', '00011']."
     }
   ]
 }
