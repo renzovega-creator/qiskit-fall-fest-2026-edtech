@@ -92,12 +92,16 @@ def _(FakeFez, N, generate_preset_pass_manager, trotter):
 
 
 @app.cell(hide_code=True)
-def _(N, fez, isa4, veredicto):
+def _(J, N, fez, isa4, veredicto):
     _permitidas = set(fez.target.operation_names)
     _usadas = set(isa4.count_ops())
-    veredicto(_usadas <= _permitidas and isa4.count_ops().get("cz") == 2 * (N - 1) * 4,
-              f"Solo quedan puertas del chip, y hay {isa4.count_ops()['cz']} `cz` = 2 × {N - 1} enlaces × 4 pasos.",
-              f"Salió {dict(isa4.count_ops())}. Debería ser solo puertas del chip y 2·(n−1)·pasos `cz`.")
+    _cz = isa4.count_ops().get("cz", 0)
+    _esperadas = 2 * (N - 1) * 4 if J.value != 0 else 0
+    _por_que = (f"2 × {N - 1} enlaces × 4 pasos" if J.value != 0
+                else "con J = 0 las `rzz` no hacen nada y el transpilador las quita")
+    veredicto(_usadas <= _permitidas and _cz == _esperadas,
+              f"Solo quedan puertas del chip, y hay {_cz} `cz`: {_por_que}.",
+              f"Salió {dict(isa4.count_ops())}. Debería ser solo puertas del chip y {_esperadas} `cz`: {_por_que}.")
     return
 
 
@@ -123,10 +127,14 @@ def _(circuito4, fez, generate_preset_pass_manager):
 
 
 @app.cell(hide_code=True)
-def _(profundidad_por_nivel, veredicto):
+def _(J, profundidad_por_nivel, veredicto):
     _d = profundidad_por_nivel
-    veredicto(sorted(_d) == [0, 1, 2, 3] and _d[0] > _d[1] > _d[2] >= _d[3],
-              f"Profundidad por nivel: {_d}. Cada nivel recorta más que el anterior, y del 2 al 3 casi no queda margen.",
+    _completo = sorted(_d) == [0, 1, 2, 3]
+    _baja = _completo and _d[0] > _d[1] >= _d[2] >= _d[3] and (J.value == 0 or _d[1] > _d[2])
+    veredicto(_baja,
+              f"Profundidad por nivel: {_d}. "
+              + ("Cada nivel recorta más que el anterior, y del 2 al 3 casi no queda margen." if J.value != 0
+                 else "Con J = 0 el nivel 1 ya quita todas las `rzz` (no hacen nada), así que desde ahí la profundidad no baja."),
               f"Tienes los niveles {sorted(_d)} con profundidades {_d}. Deben estar el 0, 1, 2 y 3, y la profundidad no debe subir con el nivel.")
     return
 
