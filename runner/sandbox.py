@@ -1,0 +1,289 @@
+"""Ejecuta un trabajo del alumno bajo límites y devuelve lo que produjo.
+
+El proceso que llama corre como root. Cada trabajo recibe el uid de su ranura
+(`slot_uid`), un directorio de trabajo nuevo y los límites de `launcher.py`. Aquí
+se vigilan los límites que el kernel no aplica solo: reloj, memoria total,
+tamaño del directorio y volumen de salida. Al terminar se matan todos los procesos de ese
+uid y se borran sus archivos, también los de /scratch, /tmp, /var/tmp y /dev/shm.
+"""
+import os
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+from dataclasses import dataclass
+from pathlib import Path
+
+APP = Path(__file__).resolve().parent
+SCRATCH_ROOT = Path(os.environ.get("QG_SCRATCH", "/scratch"))
+UID_BASE = 20000
+SHARED_DIRS = ("/scratch", "/tmp", "/var/tmp", "/dev/shm")
+PAGE = os.sysconf("SC_PAGE_SIZE")
+POLL_S = 0.02
+DISK_POLL_S = 0.1
+MAX_ENTRIES = 5000
+REPORT_CAP = 2**20
+
+
+@dataclass(frozen=True)
+class Limits:
+    wall_s: float = 10.0
+    mem_mb: int = 512
+    scratch_mb: int = 64
+    out_bytes: int = 64 * 1024
+    nproc: int = 64
+    file_mb: int = 16
+
+
+@dataclass
+class Outcome:
+    stdout: str
+    stderr: str
+    report: bytes
+    exit_code: int | None
+    timed_out: bool
+    killed: str | None
+    peak_mb: int
+    ms: int
+
+
+def _pids_of(uid):
+    for name in os.listdir("/proc"):
+        if not name.isdigit():
+            continue
+        try:
+            if os.stat(f"/proc/{name}").st_uid == uid:
+                yield int(name)
+        except OSError:
+            continue
+
+
+def _rss_bytes(uid):
+    """Memoria residente de los procesos de `uid`."""
+    total = 0
+    for pid in _pids_of(uid):
+        try:
+            with open(f"/proc/{pid}/statm") as f:
+                total += int(f.read().split()[1]) * PAGE
+        except (OSError, ValueError, IndexError):
+            continue
+    return total
+
+
+def kill_uid(uid):
+    """Mata todos los procesos de `uid`, también los que hicieron setsid."""
+    deadline = time.monotonic() + 3
+    while time.monotonic() < deadline:
+        pids = list(_pids_of(uid))
+        if not pids:
+            return
+        for pid in pids:
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except OSError:
+                pass
+        time.sleep(0.01)
+
+
+def _tree_bytes(root):
+    """Bytes en disco bajo `root`; None si hay demasiadas entradas."""
+    total = 0
+    seen = 0
+    stack = [root]
+    while stack:
+        try:
+            with os.scandir(stack.pop()) as it:
+                for e in it:
+                    seen += 1
+                    if seen > MAX_ENTRIES:
+                        return None
+                    st = e.stat(follow_symlinks=False)
+                    total += st.st_blocks * 512
+                    if e.is_dir(follow_symlinks=False):
+                        stack.append(e.path)
+        except OSError:
+            continue
+    return total
+
+
+def _remove_owned(uid, root):
+    """Borra de `root` lo que pertenece a `uid`, sin seguir enlaces."""
+    for dirpath, dirnames, filenames in os.walk(root, topdown=False, followlinks=False):
+        for name in filenames + dirnames:
+            path = os.path.join(dirpath, name)
+            try:
+                if os.lstat(path).st_uid != uid:
+                    continue
+                if os.path.isdir(path) and not os.path.islink(path):
+                    os.rmdir(path)
+                else:
+                    os.unlink(path)
+            except OSError:
+                continue
+
+
+def _drain(fd, cap, box, over):
+    while True:
+        try:
+            chunk = os.read(fd, 65536)
+        except OSError:
+            break
+        if not chunk:
+            break
+        room = cap - len(box)
+        box.extend(chunk[:room])
+        if len(chunk) > room:
+            over.set()
+
+
+class _Scan(threading.Thread):
+    """Vigila memoria y disco en su propio hilo.
+
+    Recorrer /proc puede tardar segundos mientras un fork bomb crea procesos; así
+    el reloj de `run_job` sigue su curso. `killed` se escribe antes de `tripped`.
+    """
+
+    def __init__(self, uid, work, limits):
+        super().__init__(daemon=True)
+        self.uid, self.work = uid, work
+        self.mem_cap = limits.mem_mb * 2**20
+        self.disk_cap = limits.scratch_mb * 2**20
+        self.peak = 0
+        self.killed = None
+        self.tripped = threading.Event()
+        self.stopped = threading.Event()
+
+    def run(self):
+        next_disk = 0.0
+        while not self.stopped.wait(POLL_S):
+            rss = _rss_bytes(self.uid)
+            self.peak = max(self.peak, rss)
+            reason = "memory" if rss > self.mem_cap else None
+            if reason is None and time.monotonic() >= next_disk:
+                next_disk = time.monotonic() + DISK_POLL_S
+                used = _tree_bytes(self.work)
+                if used is None or used > self.disk_cap:
+                    reason = "disk"
+            if reason:
+                self.killed = reason
+                self.tripped.set()
+                return
+
+
+def slot_uid(slot):
+    return UID_BASE + slot
+
+
+def run_job(slot, files, argv, limits, env, report=False):
+    """Ejecuta `argv` con `files` escritos en un directorio nuevo.
+
+    `argv` y los valores de `env` pueden usar `{dir}`, la ruta del directorio.
+    Con `report=True` el hijo hereda un pipe, cuyo número va en QG_REPORT_FD.
+    """
+    uid = slot_uid(slot)
+    start = time.monotonic()
+    SCRATCH_ROOT.mkdir(parents=True, exist_ok=True)
+    work = Path(tempfile.mkdtemp(dir=SCRATCH_ROOT))
+    try:
+        os.chown(work, uid, uid)
+        os.chmod(work, 0o700)
+        for name, text in files.items():
+            path = work / name
+            path.write_text(text, encoding="utf-8")
+            os.chown(path, uid, uid)
+
+        child_env = {
+            "PATH": "/usr/local/bin:/usr/bin:/bin",
+            "HOME": str(work),
+            "TMPDIR": str(work),
+            "MPLCONFIGDIR": str(work),
+            "LANG": "C.UTF-8",
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "PYTHONNOUSERSITE": "1",
+            "PYTHONUNBUFFERED": "1",
+            "PYTHONPATH": str(APP),
+            "MPLBACKEND": "Agg",
+            "OMP_NUM_THREADS": "2",
+            "OPENBLAS_NUM_THREADS": "2",
+            **{k: v.replace("{dir}", str(work)) for k, v in env.items()},
+        }
+        cmd = [a.replace("{dir}", str(work)) for a in argv]
+        launch = [
+            sys.executable, "-S", str(APP / "launcher.py"),
+            str(uid), str(int(limits.wall_s) + 2), str(limits.mem_mb * 2**20),
+            str(limits.file_mb * 2**20), str(limits.nproc), "--", *cmd,
+        ]
+        pass_fds = ()
+        rep_r = rep_w = None
+        if report:
+            rep_r, rep_w = os.pipe()
+            child_env["QG_REPORT_FD"] = str(rep_w)
+            pass_fds = (rep_w,)
+
+        proc = subprocess.Popen(
+            launch, cwd=work, env=child_env, stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            start_new_session=True, pass_fds=pass_fds,
+        )
+        if rep_w is not None:
+            os.close(rep_w)
+
+        over = threading.Event()
+        out, err, rep = bytearray(), bytearray(), bytearray()
+        readers = [
+            threading.Thread(target=_drain, args=(proc.stdout.fileno(), limits.out_bytes, out, over)),
+            threading.Thread(target=_drain, args=(proc.stderr.fileno(), limits.out_bytes, err, over)),
+        ]
+        if rep_r is not None:
+            readers.append(threading.Thread(target=_drain, args=(rep_r, REPORT_CAP, rep, over)))
+        for t in readers:
+            t.start()
+
+        scan = _Scan(uid, work, limits)
+        scan.start()
+        timed_out, killed = False, None
+        deadline = start + limits.wall_s
+        while proc.poll() is None:
+            if over.is_set():
+                killed = "output"
+            elif scan.tripped.is_set():
+                killed = scan.killed
+            elif time.monotonic() > deadline:
+                timed_out = True
+            if timed_out or killed:
+                break
+            time.sleep(POLL_S)
+
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except OSError:
+            pass
+        proc.wait()
+        scan.stopped.set()
+        kill_uid(uid)
+        scan.join(timeout=2)
+        for t in readers:
+            t.join(timeout=2)
+        proc.stdout.close()
+        proc.stderr.close()
+        if rep_r is not None:
+            os.close(rep_r)
+        code = proc.returncode
+        return Outcome(
+            stdout=out.decode("utf-8", "replace"),
+            stderr=err.decode("utf-8", "replace"),
+            report=bytes(rep),
+            exit_code=None if timed_out else code,
+            timed_out=timed_out,
+            killed=killed,
+            peak_mb=round(scan.peak / 2**20),
+            ms=round((time.monotonic() - start) * 1000),
+        )
+    finally:
+        kill_uid(uid)
+        shutil.rmtree(work, ignore_errors=True)
+        for d in SHARED_DIRS:
+            _remove_owned(uid, d)

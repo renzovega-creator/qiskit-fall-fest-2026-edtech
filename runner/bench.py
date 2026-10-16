@@ -1,0 +1,93 @@
+"""Mide la latencia fría y la templada de POST /run con Docker.
+
+    python runner/bench.py [--runs 50] [--runtime runc|runsc]
+
+Fría: desde `docker run` hasta la respuesta de la primera comprobación, en un
+contenedor nuevo. Templada: la misma petición en un contenedor que ya atendió
+una. Los tiempos son de cliente, en milisegundos. La imagen ya está en el
+disco, así que una fría no incluye bajarla.
+"""
+import argparse
+import json
+import statistics
+import sys
+import time
+import urllib.request
+
+import local
+
+EXERCISES = local.ROOT / "exercises"
+WORKLOADS = {
+    "run: print": {"code": "print('hola')"},
+    "check: ghz (qiskit)": {
+        "mode": "check", "exercise": "p1-quickstart/ghz",
+        "code": (EXERCISES / "p1-quickstart/ghz/solution.py").read_text(),
+    },
+    "check: hasta-uno (aer)": {
+        "mode": "check", "exercise": "p2-control-clasico/hasta-uno",
+        "code": (EXERCISES / "p2-control-clasico/hasta-uno/solution.py").read_text(),
+    },
+}
+
+
+def post(url, body):
+    req = urllib.request.Request(f"{url}/run", json.dumps(body).encode(), {"Content-Type": "application/json"})
+    start = time.monotonic()
+    with urllib.request.urlopen(req, timeout=60) as r:
+        out = json.load(r)
+    assert out["ok"], out
+    return (time.monotonic() - start) * 1000, out
+
+
+def summary(label, values):
+    values = sorted(values)
+    p95 = values[min(len(values) - 1, round(0.95 * len(values)) - 1)]
+    return (f"| {label} | {len(values)} | {values[0]:.0f} | {statistics.median(values):.0f} "
+            f"| {p95:.0f} | {values[-1]:.0f} |")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--runs", type=int, default=50)
+    parser.add_argument("--runtime", choices=("runc", "runsc"))
+    args = parser.parse_args()
+    runtime = args.runtime or local.default_runtime()
+
+    rows = []
+    for label, body in WORKLOADS.items():
+        started, first, total, server = [], [], [], []
+        for _ in range(args.runs):
+            t0 = time.monotonic()
+            container = local.start(runtime=runtime)
+            try:
+                started.append((time.monotonic() - t0) * 1000)
+                ms, out = post(container.url, body)
+                first.append(ms)
+                total.append((time.monotonic() - t0) * 1000)
+            finally:
+                container.stop()
+        rows += [summary(f"cold, {label}, container start", started),
+                 summary(f"cold, {label}, first request", first),
+                 summary(f"cold, {label}, start + first request", total)]
+
+        container = local.start(runtime=runtime)
+        try:
+            post(container.url, body)
+            warm = []
+            for _ in range(args.runs):
+                ms, out = post(container.url, body)
+                warm.append(ms)
+                server.append(out["ms"])
+        finally:
+            container.stop()
+        rows += [summary(f"warm, {label}", warm), summary(f"warm, {label}, server-side ms", server)]
+        print(f"done {label}", file=sys.stderr, flush=True)
+
+    print(f"runtime: {runtime}, {args.runs} runs each\n")
+    print("| case | n | min ms | median ms | p95 ms | max ms |")
+    print("| --- | --- | --- | --- | --- | --- |")
+    print("\n".join(rows))
+
+
+if __name__ == "__main__":
+    main()
