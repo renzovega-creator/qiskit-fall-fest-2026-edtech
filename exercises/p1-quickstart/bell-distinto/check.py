@@ -26,4 +26,4 @@ def test_one_gate():
 def test_balanced():
     got = counts(learner.anti, shots=4096, seed=99)
     low, high = 2048 - 256, 2048 + 256
-    assert low <= got.get("01", 0) <= high, "Los dos resultados no salen con la misma frecuencia."
+    assert low <= got.get("01", 0) <= high, f"Con seed = 99 y 4096 repeticiones salen {dict(sorted(got.items()))}."

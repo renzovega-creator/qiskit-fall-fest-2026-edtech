@@ -6,7 +6,7 @@ def hasta_uno():
     q = QuantumRegister(1, "q")
     c = ClassicalRegister(1, "c")
     qc = QuantumCircuit(q, c)
-    # ✏️ H y medir una vez; después, while_loop mientras c valga 0: H y medir otra vez
+    # ✏️ lanza la moneda y repítela mientras c valga 0
     return qc
 
 
