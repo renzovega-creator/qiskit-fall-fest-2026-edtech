@@ -24,20 +24,57 @@ interface TestEnv {
 
 let picked = false;
 
+// El corredor repite en `stdout`, en el `message` de los casos y en `error` lo que
+// recibió: así las pruebas ven si el Worker deja pasar algo de eso a la base.
+// La palabra que contiene el código decide el resultado.
+function answer(code: string) {
+  const base = {
+    stdout: code,
+    error: null,
+    tests: [] as unknown[],
+    ms: 42,
+    killed: null,
+    peak_mb: 1,
+  };
+  if (code.includes("FALLA")) {
+    return {
+      ...base,
+      passed: false,
+      tests: [
+        { name: "n = 2, 3 y 4", visible: true, passed: false, message: `salió ${code}` },
+        { name: "caso oculto 1", visible: false, passed: false, message: code },
+        { name: "otro caso", visible: true, passed: true, message: "" },
+      ],
+    };
+  }
+  if (code.includes("ERROR-RARO")) {
+    return { ...base, passed: false, error: `algo raro pasó con ${code}` };
+  }
+  if (code.includes("ERROR")) {
+    return {
+      ...base,
+      passed: false,
+      error: `NameError: name 'x' is not defined (línea 1: ${code})`,
+    };
+  }
+  if (code.includes("MATADO")) {
+    return { ...base, passed: false, error: `tiempo agotado: ${code}`, killed: "time" };
+  }
+  return { ...base, passed: true, stdout: `recibidos ${code.length} caracteres\n` };
+}
+
 export default {
   async fetch(request: Request, env: TestEnv, ctx: ExecutionContext): Promise<Response> {
     const runners = (ctx as unknown as { exports: { Runner: DurableObjectNamespace } }).exports
       .Runner;
     // Otro alumno que ya tiene un trabajo en la instancia 0, sin pasar por el Worker.
     if (new URL(request.url).pathname === "/other-learner") {
-      return runners
-        .get(runners.idFromName("instance-0"))
-        .fetch(
-          new Request("http://runner/run", {
-            method: "POST",
-            body: JSON.stringify({ code: "ajeno" }),
-          }),
-        );
+      return runners.get(runners.idFromName("instance-0")).fetch(
+        new Request("http://runner/run", {
+          method: "POST",
+          body: JSON.stringify({ code: "ajeno" }),
+        }),
+      );
     }
     if (env.FAKE_PICKS && !picked) {
       picked = true;
@@ -47,6 +84,7 @@ export default {
     }
     return real.fetch(request, env as never, ctx);
   },
+  scheduled: (controller: ScheduledController, env: never) => real.scheduled(controller, env),
 };
 
 export class Runner extends DurableObject {
@@ -74,15 +112,7 @@ export class Runner extends DurableObject {
       // Un trabajo que no termina a tiempo: solo el Worker puede cortarlo.
       await scheduler.wait(code === "colgar" ? 1500 : 15);
     }
-    return Response.json({
-      passed: true,
-      stdout: `recibidos ${code.length} caracteres\n`,
-      error: null,
-      tests: [],
-      ms: 15,
-      killed: null,
-      peak_mb: 1,
-    });
+    return Response.json(answer(code));
   }
 
   // Container.destroy() mata la instancia.

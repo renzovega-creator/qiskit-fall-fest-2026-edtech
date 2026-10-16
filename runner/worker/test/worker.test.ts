@@ -249,8 +249,12 @@ describe("tamaño del código", () => {
 
   it("responde 413 a un cuerpo enorme sin leerlo entero", async () => {
     const h = await worker();
-    const reply = await h.post(null, { ...verified, raw: "x".repeat(6 * limit + 1025) });
-    expect(reply.status).toBe(413);
+    // Solo el encabezado: el 413 llega sin que el cuerpo se haya enviado.
+    const status = await h.declare("POST", "/run", 6 * limit + 1025, {
+      ...verified.headers,
+      "content-type": "application/json",
+    });
+    expect(status).toBe(413);
     expect(h.runnerCalls()).toHaveLength(0);
   });
 
