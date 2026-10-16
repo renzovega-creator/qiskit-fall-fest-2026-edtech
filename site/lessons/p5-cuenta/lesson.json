@@ -208,12 +208,71 @@
    ]
   },
   {
+   "id": "pred_instancia",
+   "tag": [
+    "5.1",
+    "Antes de elegir instancia"
+   ],
+   "say": "Imagina que tienes dos instancias con la misma clave y no das ninguna al crear el servicio. [[una]]La primera es del plan Open, gratuita. [[otra]]La segunda es de pago, Pay As You Go. [[cual]]Pides un procesador al que solo la instancia de pago tiene acceso. Apuesta: ¿qué instancia elegirá el servicio?",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "Instancia",
+      "Plan",
+      "¿Puede usar el procesador pedido?"
+     ],
+     "rows": [
+      [
+       "instancia A",
+       "Open · gratis",
+       "no"
+      ],
+      [
+       "instancia B",
+       "Pay-As-You-Go",
+       "sí"
+      ]
+     ],
+     "id": "t",
+     "stagger": true,
+     "size": 26
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "t",
+     "at": "una"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "t",
+     "at": "otra"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Pides ese procesador sin indicar instancia. ¿Cuál se usa?",
+    "options": [
+     "la A, porque es gratuita",
+     "la B, la única que puede usarlo",
+     "ninguna: da error",
+     "el servicio te pregunta cuál"
+    ],
+    "after": "Anotado. Veamos el orden que sigue el servicio."
+   },
+   "align": "top"
+  },
+  {
    "id": "instancia",
    "tag": [
     "5.1",
     "Selección automática de instancia"
    ],
-   "say": "Si das la clave pero no la instancia, el servicio elige la más adecuada para lo que pides. [[orden]]El orden es este: si solo tienes acceso a una instancia, esa. [[guard]]Si las credenciales guardadas traen instancia, esa. [[varias]]Si varias instancias pueden usar el procesador pedido, decide tu preferencia de planes; por defecto, las gratuitas primero. [[una]]Y si solo una puede usarlo, se elige esa, aunque sea de pago: ojo, eso tiene costo. [[cual]]La instancia elegida aparece en un aviso, y active instance te la muestra.",
+   "say": "Si das la clave pero no la instancia, el servicio elige la más adecuada para lo que pides. [[orden]]El orden es este: si solo tienes acceso a una instancia, esa. [[guard]]Si las credenciales guardadas traen instancia, esa. [[varias]]Si varias instancias pueden usar el procesador pedido, decide tu preferencia de planes; por defecto, las gratuitas primero. [[una]]Y si solo una puede usarlo, se elige esa, aunque sea de pago: ojo, eso tiene costo. Esa es la respuesta de tu apuesta: la instancia B. [[cual]]La instancia elegida aparece en un aviso, y active instance te la muestra.",
    "scene": [
     {
      "type": "flow",
@@ -417,12 +476,71 @@
    ]
   },
   {
+   "id": "pred_limite",
+   "tag": [
+    "5.1",
+    "Antes de gastar"
+   ],
+   "say": "[[lim]]Supón que ya pagas por uso y fijaste un límite de costo en la instancia. [[corre]]Tienes un trabajo largo en ejecución. [[llega]]A mitad de camino, el gasto llega al límite. Apuesta: ¿qué pasa con ese trabajo?",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "límite de costo fijado"
+      },
+      {
+       "t": "trabajo largo en ejecución"
+      },
+      {
+       "t": "el gasto llega al límite",
+       "color": "red"
+      }
+     ],
+     "id": "f",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "f",
+     "at": "lim"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "f",
+     "at": "corre"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "f",
+     "at": "llega"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué ocurre cuando se alcanza el límite?",
+    "options": [
+     "el trabajo termina y después no se envía ninguno más",
+     "los trabajos en curso se cancelan y no empieza ninguno más",
+     "el servicio sube el límite solo, para no perder el trabajo",
+     "nada: el límite es solo un aviso"
+    ],
+    "after": "Anotado. Veamos qué hace el servicio."
+   },
+   "align": "top"
+  },
+  {
    "id": "costo",
    "tag": [
     "5.1",
     "Controlar el gasto"
    ],
-   "say": "Para pasar del plan Open a Pay As You Go, actualizas tu cuenta de IBM Cloud con una tarjeta y creas una instancia de ese plan. No se cobra nada hasta que envíes trabajos con ella. [[limite]]Lo primero que conviene hacer es fijar un límite de costo en la instancia: desde la página de instancias, la API o la línea de comandos de IBM Cloud. Se fija en dólares y se convierte a segundos de ejecución. [[alcanza]]Cuando se alcanza, los trabajos en curso se cancelan con el motivo ran too long, y no empieza ninguno más hasta subir el límite. Ojo: el uso se reporta cada cierto tiempo, así que un trabajo puede pasarse un poco, y eso también se factura. [[aulas]]Para docentes existen las cuentas Classroom: plan Open para cada estudiante, sin tarjeta, gestionadas por el profesor.",
+   "say": "Para pasar del plan Open a Pay As You Go, actualizas tu cuenta de IBM Cloud con una tarjeta y creas una instancia de ese plan. No se cobra nada hasta que envíes trabajos con ella. [[limite]]Lo primero que conviene hacer es fijar un límite de costo en la instancia: desde la página de instancias, la API o la línea de comandos de IBM Cloud. Se fija en dólares y se convierte a segundos de ejecución. [[alcanza]]Cuando se alcanza, los trabajos en curso se cancelan con el motivo ran too long, y no empieza ninguno más hasta subir el límite: esa es la respuesta correcta de tu apuesta. Ojo: el uso se reporta cada cierto tiempo, así que un trabajo puede pasarse un poco, y eso también se factura. [[aulas]]Para docentes existen las cuentas Classroom: plan Open para cada estudiante, sin tarjeta, gestionadas por el profesor.",
    "scene": [
     {
      "type": "flow",
@@ -510,6 +628,80 @@
      null,
      "Flex es de pago.",
      "Premium es una suscripción empresarial."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "5.1",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; no necesita cuenta, trabaja con un archivo temporal y una clave falsa. [[n1]]Primero guardas una cuenta con save account. [[n2]]Después guardas una segunda y la marcas como predeterminada. [[n3]]Y por último escribes una función que calcula cuántos minutos libres te quedan en la ventana móvil de veintiocho días. [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p5-cuenta.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Guarda una cuenta con `save_account` en un archivo temporal y lee `saved_accounts()`."
+      },
+      {
+       "level": 2,
+       "text": "Guarda una segunda cuenta, `clase`, y hazla la predeterminada."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `minutos_libres(usos, hoy)` para el plan Open: 10 min por ventana móvil de 28 días."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "5.1",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Un límite de gasto es una decisión de diseño, no un trámite.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Tu clave API se filtra en un repositorio público. Describe, paso a paso, qué harías y en qué orden.",
+     "En el hito V ejecutarás en un QPU real con un presupuesto de un minuto. ¿Qué plan usarías y qué límite fijarías antes de enviar nada?"
     ]
    },
    "align": "top"

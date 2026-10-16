@@ -121,12 +121,68 @@
    ]
   },
   {
+   "id": "pred_resultado",
+   "tag": [
+    "5.6",
+    "Antes de ver la forma"
+   ],
+   "say": "El programa ya corrió. Mira lo que pedimos. [[circ]]El CircuitItem lleva diez juegos de dos parámetros. [[shots]]El programa usa mil veinticuatro disparos, [[bits]]y el circuito mide tres bits. [[cual]]Apuesta: ¿qué forma tiene el arreglo de la primera tarea, result de cero, meas?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "import numpy as np\nfrom qiskit.circuit import QuantumCircuit, Parameter\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime import Executor\nfrom qiskit_ibm_runtime.quantum_program import QuantumProgram\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2\nfrom samplomatic import build\nfrom samplomatic.transpiler import generate_boxing_pass_manager\n\nbackend = FakeManilaV2()\ncircuit = QuantumCircuit(3)\ncircuit.h(0)\ncircuit.cx(0, 1)\ncircuit.cx(1, 2)\ncircuit.rz(Parameter(\"theta\"), 0)\ncircuit.rz(Parameter(\"phi\"), 1)\ncircuit.measure_all()\npm = generate_preset_pass_manager(backend=backend, optimization_level=0)\n\nprogram = QuantumProgram(shots=1024)\nprogram.append_circuit_item(pm.run(circuit), circuit_arguments=np.random.rand(10, 2))\n\npm.post_scheduling = generate_boxing_pass_manager(enable_gates=True, enable_measures=True)\ntemplate, samplex = build(pm.run(circuit))\nprogram.append_samplex_item(template, samplex=samplex,\n                            samplex_arguments={\"parameter_values\": np.random.rand(10, 2)},\n                            shape=(28, 10))\n\nresult = Executor(mode=backend).run(program).result()\nprint(result[0][\"meas\"].shape)\nprint(result[1][\"meas\"].shape, result[1][\"measurement_flips.meas\"].shape)",
+     "lang": "python",
+     "id": "c",
+     "size": 17,
+     "norun": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      21
+     ],
+     "id": "c",
+     "at": "circ"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      20
+     ],
+     "id": "c",
+     "at": "shots"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      17
+     ],
+     "id": "c",
+     "at": "bits"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué forma tiene `result[0][\"meas\"]`?",
+    "options": [
+     "`(10, 1024, 3)`",
+     "`(1024, 3)`",
+     "`(10, 3)`",
+     "`(3, 1024, 10)`"
+    ],
+    "after": "Anotado. Ahora los resultados."
+   },
+   "align": "top"
+  },
+  {
    "id": "resultado",
    "tag": [
     "5.6",
     "Los resultados"
    ],
-   "say": "La salida es un QuantumProgramResult, con una entrada por tarea, en el mismo orden. Cada entrada es un diccionario con el nombre del registro como clave y un arreglo NumPy de booleanos como valor. [[c0]]Para el CircuitItem: diez juegos de parámetros, mil veinticuatro disparos, tres bits. [[c1]]Para el SamplexItem: veintiocho aleatorizaciones por diez juegos por mil veinticuatro disparos por tres bits. [[flips]]Y measurement flips meas guarda las inversiones de bit que introdujo el twirling de mediciones: una por aleatorización. Se deshacen con un XOR clásico. Executor no corrige nada por ti.",
+   "say": "La salida es un QuantumProgramResult, con una entrada por tarea, en el mismo orden. Cada entrada es un diccionario con el nombre del registro como clave y un arreglo NumPy de booleanos como valor. [[c0]]Para el CircuitItem: diez juegos de parámetros, mil veinticuatro disparos, tres bits: la respuesta de tu apuesta. [[c1]]Para el SamplexItem: veintiocho aleatorizaciones por diez juegos por mil veinticuatro disparos por tres bits. [[flips]]Y measurement flips meas guarda las inversiones de bit que introdujo el twirling de mediciones: una por aleatorización. Se deshacen con un XOR clásico. Executor no corrige nada por ti.",
    "scene": [
     {
      "type": "code",
@@ -597,6 +653,80 @@
      "Los bits aleatoriamente invertidos arruinan los conteos.",
      null,
      "Sí lo admite, mediante anotaciones."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "5.6",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; corre con un procesador falso de cinco qubits, sin cuenta. [[n1]]Primero ejecutas un CircuitItem y lees la forma de sus resultados. [[n2]]Después pasas de dos a veinte aleatorizaciones con el parámetro shape. [[n3]]Y por último escribes la función que deshace el twirling de las mediciones con un XOR, y compruebas que el GHZ vuelve a dar solo cero cero cero y uno uno uno. [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p5-executor.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Ejecuta un `CircuitItem` y lee la forma de `result[0][\"meas\"]`."
+      },
+      {
+       "level": 2,
+       "text": "Cambia `shape` de `(2, 10)` a `(20, 10)` y comprueba la forma de salida."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `deshacer(item)` con un XOR y mide la fracción de disparos en `000` o `111`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "5.6",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Executor no decide por ti: todo lo que corrige, lo corriges tú.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Sampler deshace el twirling de mediciones por ti y Executor no. ¿Qué ganas a cambio de esa tarea extra?",
+     "¿Tu proyecto Ising del hito V necesita Executor, o le basta con Estimator? Justifica con lo que necesitas controlar."
     ]
    },
    "align": "top"

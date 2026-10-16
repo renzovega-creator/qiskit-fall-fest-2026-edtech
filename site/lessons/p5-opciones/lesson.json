@@ -94,12 +94,99 @@
    ]
   },
   {
+   "id": "pred_defecto",
+   "tag": [
+    "5.3",
+    "Antes de tocar nada"
+   ],
+   "say": "Creamos un Estimator local y no cambiamos ninguna opción. [[leer]]Solo imprimimos dos: el nivel de resiliencia y el número de disparos por defecto. [[cual]]Apuesta qué valor tiene cada una.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "estimator = Estimator(mode=FakeManilaV2())\nprint(estimator.options.resilience_level, estimator.options.default_shots)",
+     "lang": "python",
+     "id": "c",
+     "size": 26,
+     "setup": "from qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2"
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      2
+     ],
+     "id": "c",
+     "at": "leer"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué imprime?",
+    "options": [
+     "`0 None`",
+     "`1 None`",
+     "`1 4096`",
+     "`None None`"
+    ],
+    "after": "Anotado. Ejecutémoslo."
+   },
+   "align": "top"
+  },
+  {
+   "id": "defecto",
+   "tag": [
+    "5.3",
+    "Lo que valen sin fijar"
+   ],
+   "say": "Resultado: resilience level vale uno y default shots queda en None. [[vacio]]No todo lo que no fijas es None: algunas opciones traen ya un valor, como el nivel de resiliencia, y otras quedan vacías. [[prec]]Con los disparos vacíos manda la precisión por defecto, cero coma cero uno cinco seis dos cinco, que equivale a cuatro mil noventa y seis disparos.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "estimator = Estimator(mode=FakeManilaV2())\nprint(estimator.options.resilience_level, estimator.options.default_shots)",
+     "lang": "python",
+     "id": "c",
+     "size": 26,
+     "setup": "from qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2"
+    },
+    {
+     "type": "code",
+     "src": "1 None",
+     "lang": "out",
+     "id": "o",
+     "check": true
+    },
+    {
+     "type": "math",
+     "tex": "\\text{default\\_precision}=0{,}015625=\\frac{1}{\\sqrt{4096}}",
+     "id": "m",
+     "hidden": true,
+     "size": 34
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      2
+     ],
+     "id": "c",
+     "at": "vacio"
+    },
+    {
+     "do": "show",
+     "id": "m",
+     "at": "prec"
+    }
+   ]
+  },
+  {
    "id": "estructura",
    "tag": [
     "5.3",
     "Estructura de las opciones"
    ],
-   "say": "Las opciones tienen estructura de árbol. Las más usadas, como resilience level, están en el primer nivel; las demás se agrupan en categorías, como execution o dynamical decoupling. [[formato]]Se escriben así: options punto opción punto subopción igual a valor. [[unset]]Si no fijas una opción, queda en None, y se usa su valor por defecto, que a veces depende del nivel de resiliencia.",
+   "say": "Las opciones tienen estructura de árbol. Las más usadas, como resilience level, están en el primer nivel; las demás se agrupan en categorías, como execution o dynamical decoupling. [[formato]]Se escriben así: options punto opción punto subopción igual a valor. [[unset]]Una opción sin fijar puede valer None, y entonces se usa su valor por defecto, que a veces depende del nivel de resiliencia.",
    "scene": [
     {
      "type": "code",
@@ -329,6 +416,80 @@
      "Los niveles de resiliencia deciden por ti.",
      null,
      "Sampler no ofrece ese control fino."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "5.3",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; corre con un procesador falso, sin cuenta. [[n1]]Primero fijas la misma precisión de cuatro formas distintas. [[n2]]Después corriges un error típico: cambiar las opciones del objeto equivocado. [[n3]]Y por último escribes una función que crea un Estimator crudo o protegido, y comparas el valor de Z Z que da cada uno. [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p5-opciones.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Fija `default_precision = 0.02` con clase, diccionario, atributo y `update`."
+      },
+      {
+       "level": 2,
+       "text": "Arregla el código para que cambiar los disparos afecte al `Estimator` ya creado."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `crear_estimator(\"crudo\" | \"protegido\")` y compara su $\\langle ZZ\\rangle$."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "5.3",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Más control también es más responsabilidad.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Cuatro formas de fijar una opción parecen demasiadas. ¿Cuál usarías en un script largo y cuál en una exploración rápida? ¿Por qué?",
+     "En tu proyecto, ¿preferirías Estimator con un nivel de resiliencia o el modelo de ejecución dirigida? Justifica con lo que necesitas controlar."
     ]
    },
    "align": "top"

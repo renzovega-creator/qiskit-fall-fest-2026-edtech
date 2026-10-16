@@ -83,12 +83,43 @@
    ]
   ]
  },
+ "pred_resultado": {
+  "dur": 22.248,
+  "marks": {
+   "circ": 4.897,
+   "shots": 9.454,
+   "bits": 12.37,
+   "cual": 15.399
+  },
+  "cues": [
+   [
+    0.107,
+    "El programa ya corrió."
+   ],
+   [
+    2.576,
+    "Mira lo que pedimos."
+   ],
+   [
+    4.897,
+    "El CircuitItem lleva diez juegos de dos parámetros."
+   ],
+   [
+    9.454,
+    "El programa usa mil veinticuatro disparos, y el circuito mide tres bits."
+   ],
+   [
+    15.399,
+    "Apuesta: ¿qué forma tiene el arreglo de la primera tarea, result de cero, meas?"
+   ]
+  ]
+ },
  "resultado": {
-  "dur": 45.384,
+  "dur": 47.208,
   "marks": {
    "c0": 14.889,
-   "c1": 22.206,
-   "flips": 30.443
+   "c1": 24.032,
+   "flips": 32.269
   },
   "cues": [
    [
@@ -101,22 +132,22 @@
    ],
    [
     14.889,
-    "Para el CircuitItem: diez juegos de parámetros, mil veinticuatro disparos, tres bits."
+    "Para el CircuitItem: diez juegos de parámetros, mil veinticuatro disparos, tres bits: la respuesta de tu apuesta."
    ],
    [
-    22.206,
+    24.032,
     "Para el SamplexItem: veintiocho aleatorizaciones por diez juegos por mil veinticuatro disparos por tres bits."
    ],
    [
-    30.443,
+    32.269,
     "Y measurement flips meas guarda las inversiones de bit que introdujo el twirling de mediciones: una por aleatorización."
    ],
    [
-    38.511,
+    40.336,
     "Se deshacen con un XOR clásico."
    ],
    [
-    41.936,
+    43.761,
     "Executor no corrige nada por ti."
    ]
   ]
@@ -300,6 +331,51 @@
    [
     0.107,
     "Sobre la migración."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 40.104,
+  "marks": {
+   "n1": 10.714,
+   "n2": 16.262,
+   "n3": 21.456,
+   "check": 33.09
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo; corre con un procesador falso de cinco qubits, sin cuenta."
+   ],
+   [
+    10.714,
+    "Primero ejecutas un CircuitItem y lees la forma de sus resultados."
+   ],
+   [
+    16.262,
+    "Después pasas de dos a veinte aleatorizaciones con el parámetro shape."
+   ],
+   [
+    21.456,
+    "Y por último escribes la función que deshace el twirling de las mediciones con un XOR, y compruebas que el GHZ vuelve a dar solo cero cero cero y uno uno uno."
+   ],
+   [
+    33.09,
+    "Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },
