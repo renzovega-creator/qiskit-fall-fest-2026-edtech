@@ -45,15 +45,46 @@
    ]
   ]
  },
- "datos": {
-  "dur": 45.576,
+ "pred_datos": {
+  "dur": 22.632,
   "marks": {
-   "rama": 6.581,
-   "instr": 11.124,
-   "canal": 13.7,
-   "t0": 23.65,
-   "dur": 25.065,
-   "pulso": 33.585
+   "sx": 9.695,
+   "m": 13.53,
+   "rz": 17.89
+  },
+  "cues": [
+   [
+    0.107,
+    "Vamos a leer los datos de un circuito pequeño: una RZ, una raíz de X y una medición, todas sobre el qubit cero."
+   ],
+   [
+    9.695,
+    "La raíz de X dura nueve unidades dt."
+   ],
+   [
+    13.53,
+    "La medición, sesenta y cuatro en el canal del qubit."
+   ],
+   [
+    17.89,
+    "¿Y la RZ?"
+   ],
+   [
+    20.097,
+    "Apuesta antes de verlo."
+   ]
+  ]
+ },
+ "datos": {
+  "dur": 52.656,
+  "marks": {
+   "rz": 6.581,
+   "rama": 13.658,
+   "instr": 18.201,
+   "canal": 20.777,
+   "t0": 30.726,
+   "dur": 32.142,
+   "pulso": 40.662
   },
   "cues": [
    [
@@ -62,22 +93,26 @@
    ],
    [
     6.581,
+    "La primera línea responde la apuesta: la RZ dura cero, porque es un cambio de fase."
+   ],
+   [
+    13.658,
     "La rama: main, o la rama then o else de un if."
    ],
    [
-    11.124,
+    18.201,
     "La instrucción y su qubit."
    ],
    [
-    13.7,
+    20.777,
     "El canal: Qubit x, el canal de control del qubit x, o AWGR, el generador de formas de onda de lectura."
    ],
    [
-    23.65,
+    30.726,
     "El instante de inicio y la duración, ambos en unidades dt, ciclos de programación; backend punto dt te da su valor en segundos."
    ],
    [
-    33.585,
+    40.662,
     "Y el tipo de pulso: play aplica un pulso de control; capture registra el estado; shift phase cambia la fase, sin duración, como en las RZ virtuales."
    ]
   ]
@@ -113,6 +148,51 @@
    [
     0.107,
     "Interpreta una línea."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 24.888,
+  "marks": {
+   "n1": 2.916,
+   "n2": 7.685,
+   "n3": 14.139,
+   "check": 21.612
+  },
+  "cues": [
+   [
+    0.107,
+    "Abre el cuaderno de práctica."
+   ],
+   [
+    2.916,
+    "Primero escribes un analizador de las líneas de temporización."
+   ],
+   [
+    7.685,
+    "Después calculas cuándo termina cada instrucción y cuánto dura todo, en nanosegundos."
+   ],
+   [
+    14.139,
+    "Y por último construyes la programación de un circuito con Qiskit, sin necesidad de un QPU."
+   ],
+   [
+    21.612,
+    "Busca la marca verde en cada misión."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 7.992,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda en tu navegador."
    ]
   ]
  },

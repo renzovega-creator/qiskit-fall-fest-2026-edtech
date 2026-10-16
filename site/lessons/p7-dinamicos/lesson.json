@@ -314,6 +314,120 @@
    "align": "top"
   },
   {
+   "id": "pred_correccion",
+   "tag": [
+    "7.1",
+    "Antes de ejecutar"
+   ],
+   "say": "Un circuito dinámico clásico: la corrección. Ponemos un qubit en superposición con una Hadamard y lo medimos, y el resultado va al bit cero. [[if]]Si salió uno, aplicamos una X para devolverlo a cero. [[otra]]Y medimos otra vez, ahora en el bit uno. [[apuesta]]Apuesta: ¿qué vas a ver en esa segunda medición, la que viene después de la corrección?",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 1,
+     "ops": [
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "measure",
+       "q": [
+        0
+       ],
+       "c": 0
+      },
+      {
+       "g": "if",
+       "q": [
+        0
+       ],
+       "label": "c₀ = 1 ? X",
+       "inner": "X"
+      },
+      {
+       "g": "measure",
+       "q": [
+        0
+       ],
+       "c": 1
+      }
+     ],
+     "clbits": 2,
+     "creg": "c",
+     "id": "q"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué sale en la segunda medición, tras 1000 disparos?",
+    "options": [
+     "`0` siempre",
+     "`1` siempre",
+     "`0` y `1`, cerca de 500 cada uno",
+     "depende de lo que salió en la primera medición"
+    ],
+    "after": "Anotado. Ejecutémoslo con el simulador Aer, que admite el if, y miremos solo el bit uno."
+   },
+   "align": "top"
+  },
+  {
+   "id": "correccion",
+   "tag": [
+    "7.1",
+    "El resultado"
+   ],
+   "say": "Esto es lo que imprime. [[crudo]]La primera línea tiene los dos bits de cada disparo; el de la derecha es la primera medición. Es aleatoria: la mitad de las veces cero cero y la mitad cero uno. [[marg]]La segunda línea, con marginal counts, se queda solo con el bit uno, la segunda medición: mil veces cero. Si apostaste por cero siempre, acertaste. [[porque]]Cuando la primera medición dio uno, la X devolvió el qubit a cero; cuando dio cero, ya estaba en cero. Es lo que el hardware calcula en tiempo real, y la razón de ser de los circuitos dinámicos.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit import QuantumCircuit\nfrom qiskit.result import marginal_counts\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(1, 2)\nqc.h(0)\nqc.measure(0, 0)\nwith qc.if_test((qc.clbits[0], 1)):\n    qc.x(0)\nqc.measure(0, 1)\ncounts = AerSimulator(seed_simulator=7).run(qc, shots=1000).result().get_counts()\nprint(counts)\nprint(marginal_counts(counts, [1]))",
+     "lang": "python",
+     "id": "c",
+     "size": 21
+    },
+    {
+     "type": "code",
+     "src": "{'00': 499, '01': 501}\n{'0': 1000}",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "o",
+     "at": "crudo"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      12
+     ],
+     "id": "c",
+     "at": "crudo"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      13
+     ],
+     "id": "c",
+     "at": "marg"
+    },
+    {
+     "do": "hl",
+     "range": "8-9",
+     "id": "c",
+     "at": "porque"
+    }
+   ]
+  },
+  {
    "id": "estimator",
    "tag": [
     "7.1",
@@ -371,6 +485,80 @@
      "at": "sumar"
     }
    ]
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "7.1",
+    "Tu turno"
+   ],
+   "say": "Abre el cuaderno de práctica de esta lección. [[n1]]Primero reproduces la corrección que acabamos de ver y compruebas que la segunda medición es siempre cero. [[n2]]Después reemplazas dos if anidados por uno solo sobre un registro de dos bits. [[n3]]Y por último escribes una función que decide si un circuito cumple los límites del hardware. [[check]]Busca la marca verde en cada misión.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p7-dinamicos.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Mide, corrige con un `if` y comprueba que la segunda medición es siempre `0`."
+      },
+      {
+       "level": 2,
+       "text": "Reemplaza dos `if` anidados por un único `if_test((cr, 0b11))`."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `es_valido(qc)`: rechaza bucles, `switch`, `if` anidados, mediciones dentro de un `if` y operandos de más de 32 bits."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "7.1",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "La corrección `H · medir · if X` deja el qubit en cero. ¿Qué habría que hacer sin circuitos dinámicos, y qué costo tendría?",
+     "Tienes un circuito con tres `if` anidados. ¿Cómo lo reescribirías para que el hardware lo acepte?"
+    ]
+   },
+   "align": "top"
   },
   {
    "id": "cierre",

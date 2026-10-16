@@ -165,6 +165,74 @@
    ]
   ]
  },
+ "pred_correccion": {
+  "dur": 26.784,
+  "marks": {
+   "if": 11.308,
+   "otra": 16.488,
+   "apuesta": 20.31
+  },
+  "cues": [
+   [
+    0.107,
+    "Un circuito dinámico clásico: la corrección."
+   ],
+   [
+    4.203,
+    "Ponemos un qubit en superposición con una Hadamard y lo medimos, y el resultado va al bit cero."
+   ],
+   [
+    11.308,
+    "Si salió uno, aplicamos una X para devolverlo a cero."
+   ],
+   [
+    16.488,
+    "Y medimos otra vez, ahora en el bit uno."
+   ],
+   [
+    20.31,
+    "Apuesta: ¿qué vas a ver en esa segunda medición, la que viene después de la corrección?"
+   ]
+  ]
+ },
+ "correccion": {
+  "dur": 42.432,
+  "marks": {
+   "crudo": 2.505,
+   "marg": 15.045,
+   "porque": 27.556
+  },
+  "cues": [
+   [
+    0.107,
+    "Esto es lo que imprime."
+   ],
+   [
+    2.505,
+    "La primera línea tiene los dos bits de cada disparo; el de la derecha es la primera medición."
+   ],
+   [
+    9.483,
+    "Es aleatoria: la mitad de las veces cero cero y la mitad cero uno."
+   ],
+   [
+    15.045,
+    "La segunda línea, con marginal counts, se queda solo con el bit uno, la segunda medición: mil veces cero."
+   ],
+   [
+    23.607,
+    "Si apostaste por cero siempre, acertaste."
+   ],
+   [
+    27.556,
+    "Cuando la primera medición dio uno, la X devolvió el qubit a cero; cuando dio cero, ya estaba en cero."
+   ],
+   [
+    35.779,
+    "Es lo que el hardware calcula en tiempo real, y la razón de ser de los circuitos dinámicos."
+   ]
+  ]
+ },
  "estimator": {
   "dur": 34.272,
   "marks": {
@@ -192,6 +260,51 @@
    [
     25.702,
     "Tercero, calcula los valores esperados de cada grupo, con BitArray punto expectation values, y súmalos."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 26.712,
+  "marks": {
+   "n1": 3.807,
+   "n2": 10.756,
+   "n3": 16.856,
+   "check": 23.423
+  },
+  "cues": [
+   [
+    0.107,
+    "Abre el cuaderno de práctica de esta lección."
+   ],
+   [
+    3.807,
+    "Primero reproduces la corrección que acabamos de ver y compruebas que la segunda medición es siempre cero."
+   ],
+   [
+    10.756,
+    "Después reemplazas dos if anidados por uno solo sobre un registro de dos bits."
+   ],
+   [
+    16.856,
+    "Y por último escribes una función que decide si un circuito cumple los límites del hardware."
+   ],
+   [
+    23.423,
+    "Busca la marca verde en cada misión."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 7.992,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda en tu navegador."
    ]
   ]
  },

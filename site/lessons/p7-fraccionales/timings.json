@@ -26,11 +26,11 @@
   ]
  },
  "activar": {
-  "dur": 48.576,
+  "dur": 48.792,
   "marks": {
    "lista": 18.654,
-   "fake": 29.495,
-   "error": 37.506
+   "fake": 29.721,
+   "error": 37.732
   },
   "cues": [
    [
@@ -43,20 +43,46 @@
    ],
    [
     18.654,
-    "service punto backends con use fractional gates lista los que las admiten; desde la cero punto cuarenta y ocho, least busy acepta fractional gates."
+    "service punto backends con use fractional gates lista los que las admiten; desde la cero punto cuarenta y ocho, least busy acepta use fractional gates."
    ],
    [
-    29.495,
+    29.721,
     "Los backends falsos las tienen desactivadas por defecto; se activan refrescando su configuración con el servicio."
    ],
    [
-    37.506,
+    37.732,
     "Un detalle: el error que reporta el Target para las fraccionales es una copia del de la puerta convencional equivalente, porque todavía no se miden por separado."
    ]
   ]
  },
+ "pred_ising": {
+  "dur": 31.632,
+  "marks": {
+   "paso": 6.949,
+   "cuenta": 17.621,
+   "apuesta": 25.207
+  },
+  "cues": [
+   [
+    0.107,
+    "Vamos a simular la dinámica de una cadena de Ising con cinco qubits y tres pasos de tiempo."
+   ],
+   [
+    6.949,
+    "Cada paso aplica una capa de RX y dos capas de RZZ, que en total son cuatro RZZ, una por cada par de vecinos."
+   ],
+   [
+    17.621,
+    "Recuerda que, sin puertas fraccionales, cada RZZ se descompone en dos CZ."
+   ],
+   [
+    25.207,
+    "Haz la cuenta y apuesta: ¿cuántas CZ crees que necesitará el backend convencional?"
+   ]
+  ]
+ },
  "ising": {
-  "dur": 38.016,
+  "dur": 45.648,
   "marks": {
    "comp": 11.988,
    "res": 21.711
@@ -72,14 +98,18 @@
    ],
    [
     21.711,
-    "Sin fraccionales: veinticuatro CZ y casi nueve microsegundos."
+    "Sin fraccionales: veinticuatro CZ, dos por cada una de las doce RZZ, y casi nueve microsegundos."
    ],
    [
-    27.584,
+    31.25,
+    "Si apostaste por veinticuatro, acertaste."
+   ],
+   [
+    35.213,
     "Con fraccionales: doce RZZ, ninguna CZ, y un coma dos microsegundos."
    ],
    [
-    35.354,
+    42.983,
     "Siete veces más corto."
    ]
   ]
@@ -161,6 +191,51 @@
    [
     0.107,
     "Una pregunta práctica."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 28.44,
+  "marks": {
+   "n1": 2.916,
+   "n2": 9.483,
+   "n3": 17.04,
+   "check": 23.763
+  },
+  "cues": [
+   [
+    0.107,
+    "Abre el cuaderno de práctica."
+   ],
+   [
+    2.916,
+    "Primero reproduces la comparación de la cadena de Ising y ves cuánto acortan las fraccionales."
+   ],
+   [
+    9.483,
+    "Después cambias el ángulo de las RZZ para que el backend convencional necesite menos CZ."
+   ],
+   [
+    17.04,
+    "Y por último escribes una función que construye la cadena de Ising con los parámetros que quieras."
+   ],
+   [
+    23.763,
+    "Cada misión tiene su comprobación: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 7.992,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda en tu navegador."
    ]
   ]
  },

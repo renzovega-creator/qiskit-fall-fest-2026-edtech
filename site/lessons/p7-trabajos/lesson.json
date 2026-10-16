@@ -278,12 +278,94 @@
    "align": "top"
   },
   {
+   "id": "pred_guardar",
+   "tag": [
+    "7.6",
+    "Antes de guardar"
+   ],
+   "say": "Vamos a guardar un resultado en disco y a leerlo de vuelta. [[ida]]Para escribirlo, json punto dump con el codificador RuntimeEncoder. [[vuelta]]Para leerlo, json punto load con el decodificador RuntimeDecoder. [[apuesta]]¿Qué objeto crees que obtendremos al final, y qué pasará con los conteos?",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "resultado",
+       "s": "de un trabajo"
+      },
+      {
+       "t": "json.dump",
+       "s": "`cls=RuntimeEncoder`"
+      },
+      {
+       "t": "result.json"
+      },
+      {
+       "t": "json.load",
+       "s": "`cls=RuntimeDecoder`"
+      },
+      {
+       "t": "¿?",
+       "color": "gold"
+      }
+     ],
+     "id": "f",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "f",
+     "at": "ida"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "f",
+     "at": "ida",
+     "t": 1
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "f",
+     "at": "ida",
+     "t": 2
+    },
+    {
+     "do": "item",
+     "i": 3,
+     "id": "f",
+     "at": "vuelta"
+    },
+    {
+     "do": "item",
+     "i": 4,
+     "id": "f",
+     "at": "apuesta"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué devuelve `json.load(file, cls=RuntimeDecoder)`?",
+    "options": [
+     "un diccionario con los conteos",
+     "un `PrimitiveResult` con los mismos conteos",
+     "el texto JSON sin interpretar",
+     "un error: hace falta el servicio"
+    ],
+    "after": "Anotado. Lo probamos con un resultado local."
+   },
+   "align": "top"
+  },
+  {
    "id": "guardar",
    "tag": [
     "7.6",
     "Recuperar y guardar resultados"
    ],
-   "say": "IBM guarda los resultados de todos tus trabajos, así que puedes recuperarlos tras reiniciar Python. [[buscar]]service punto jobs filtra por fecha, backend, estado o sesión, y service punto job recupera uno por su identificador. [[disco]]Para guardarlos en disco, usa el módulo json de Python con el codificador RuntimeEncoder, [[leer]]y léelos con RuntimeDecoder. Aquí lo probamos con un resultado local: vuelve a ser un PrimitiveResult con los mismos conteos.",
+   "say": "IBM guarda los resultados de todos tus trabajos, así que puedes recuperarlos tras reiniciar Python. [[buscar]]service punto jobs filtra por fecha, backend, estado o sesión, y service punto job recupera uno por su identificador. [[disco]]Para guardarlos en disco, usa el módulo json de Python con el codificador RuntimeEncoder, [[leer]]y léelos con RuntimeDecoder. Aquí lo probamos con un resultado local: vuelve a ser un PrimitiveResult con los mismos conteos. Si apostaste por esa opción, acertaste; no hace falta el servicio para leerlo.",
    "scene": [
     {
      "type": "code",
@@ -329,6 +411,80 @@
      "t": 2
     }
    ]
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "7.6",
+    "Tu turno"
+   ],
+   "say": "Abre el cuaderno de práctica. [[n1]]Primero guardas un resultado y lo lees de vuelta. [[n2]]Después añades una etiqueta a un trabajo sin perder las que ya tenía. [[n3]]Y por último escribes dos funciones: una que guarda todos los trabajos de una etiqueta, y otra que los carga. [[check]]Busca la marca verde en cada misión.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p7-trabajos.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Guarda un resultado con `RuntimeEncoder` y léelo con `RuntimeDecoder`."
+      },
+      {
+       "level": 2,
+       "text": "Añade la etiqueta `c` a un trabajo sin perder `a` y `b`."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `guardar_por_etiqueta` y `cargar`, y comprueba que los conteos coinciden."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "7.6",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Dentro de un mes quieres encontrar «la ejecución con TREX y 8 pasos de Trotter». ¿Qué etiquetas pondrías hoy?",
+     "¿Qué guardarías junto al resultado además de los conteos, para poder repetir el experimento?"
+    ]
+   },
+   "align": "top"
   },
   {
    "id": "cierre",

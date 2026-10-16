@@ -116,8 +116,34 @@
    ]
   ]
  },
+ "pred_guardar": {
+  "dur": 21.744,
+  "marks": {
+   "ida": 4.685,
+   "vuelta": 10.53,
+   "apuesta": 16.29
+  },
+  "cues": [
+   [
+    0.107,
+    "Vamos a guardar un resultado en disco y a leerlo de vuelta."
+   ],
+   [
+    4.685,
+    "Para escribirlo, json punto dump con el codificador RuntimeEncoder."
+   ],
+   [
+    10.53,
+    "Para leerlo, json punto load con el decodificador RuntimeDecoder."
+   ],
+   [
+    16.29,
+    "¿Qué objeto crees que obtendremos al final, y qué pasará con los conteos?"
+   ]
+  ]
+ },
  "guardar": {
-  "dur": 34.32,
+  "dur": 40.728,
   "marks": {
    "buscar": 8.067,
    "disco": 17.635,
@@ -139,6 +165,55 @@
    [
     27.061,
     "Aquí lo probamos con un resultado local: vuelve a ser un PrimitiveResult con los mismos conteos."
+   ],
+   [
+    34.307,
+    "Si apostaste por esa opción, acertaste; no hace falta el servicio para leerlo."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 23.64,
+  "marks": {
+   "n1": 2.916,
+   "n2": 6.85,
+   "n3": 12.412,
+   "check": 20.366
+  },
+  "cues": [
+   [
+    0.107,
+    "Abre el cuaderno de práctica."
+   ],
+   [
+    2.916,
+    "Primero guardas un resultado y lo lees de vuelta."
+   ],
+   [
+    6.85,
+    "Después añades una etiqueta a un trabajo sin perder las que ya tenía."
+   ],
+   [
+    12.412,
+    "Y por último escribes dos funciones: una que guarda todos los trabajos de una etiqueta, y otra que los carga."
+   ],
+   [
+    20.366,
+    "Busca la marca verde en cada misión."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 7.992,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda en tu navegador."
    ]
   ]
  },

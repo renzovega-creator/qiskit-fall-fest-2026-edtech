@@ -69,12 +69,11 @@
   ]
  },
  "estimar": {
-  "dur": 52.008,
+  "dur": 37.848,
   "marks": {
    "formula": 4.883,
    "rapido": 19.347,
-   "ej": 29.665,
-   "ojo": 43.804
+   "ojo": 29.665
   },
   "cues": [
    [
@@ -91,15 +90,53 @@
    ],
    [
     29.665,
+    "La mitigación añade circuitos: PEA y PEC, muchos más, por el aprendizaje de ruido."
+   ]
+  ]
+ },
+ "pred_bell": {
+  "dur": 20.208,
+  "marks": {
+   "disp": 9.935,
+   "apuesta": 16.474
+  },
+  "cues": [
+   [
+    0.107,
+    "Pongamos la fórmula a prueba con el circuito más pequeño que conocemos: un estado de Bell, con una Hadamard, una CNOT y la medición."
+   ],
+   [
+    9.935,
+    "Lo ejecutamos con cuatro mil noventa y seis disparos en Fez, que es un procesador rápido."
+   ],
+   [
+    16.474,
+    "¿Cuántos segundos de QPU crees que usará?"
+   ]
+  ]
+ },
+ "estimar_ej": {
+  "dur": 28.104,
+  "marks": {
+   "ej": 0.107,
+   "porque": 18.739
+  },
+  "cues": [
+   [
+    0.107,
     "Un estado de Bell con cuatro mil noventa y seis disparos en Fez: algo más de tres segundos, que redondeamos hacia arriba a cuatro."
    ],
    [
-    38.794,
+    9.242,
+    "Si apostaste por unos cuatro segundos, acertaste."
+   ],
+   [
+    13.729,
     "Lo calculamos con la duración del circuito programado y la del reset."
    ],
    [
-    43.804,
-    "La mitigación añade circuitos: PEA y PEC, muchos más, por el aprendizaje de ruido."
+    18.739,
+    "La sobrecarga de dos segundos pesa el doble que las cuatro mil ejecuciones juntas, que duran cerca de un cuarto de milisegundo cada una."
    ]
   ]
  },
@@ -232,6 +269,51 @@
    [
     20.692,
     "Y en la página Workloads, la columna Usage muestra el consumo de cada trabajo."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 23.64,
+  "marks": {
+   "n1": 2.916,
+   "n2": 6.921,
+   "n3": 13.035,
+   "check": 20.352
+  },
+  "cues": [
+   [
+    0.107,
+    "Abre el cuaderno de práctica."
+   ],
+   [
+    2.916,
+    "Primero reproduces la estimación del estado de Bell."
+   ],
+   [
+    6.921,
+    "Después corriges el conteo de ejecuciones de un PUB con varios valores de parámetro."
+   ],
+   [
+    13.035,
+    "Y por último conviertes la cuenta en una función, estimar uso, que sirva para cualquier circuito."
+   ],
+   [
+    20.352,
+    "Busca la marca verde en cada misión."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 7.992,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda en tu navegador."
    ]
   ]
  },

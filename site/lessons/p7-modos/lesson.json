@@ -275,12 +275,64 @@
    "align": "top"
   },
   {
+   "id": "pred_batch",
+   "tag": [
+    "7.7",
+    "Antes de ejecutar"
+   ],
+   "say": "Vamos a abrir un lote y a pedirle sus detalles. [[local]]Pero con un backend simulado, en el modo de prueba local, no hay servicio detrás. [[apuesta]]Apuesta: al llamar a details en el lote, ¿qué crees que imprime?",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "Batch(backend=...)",
+       "s": "backend simulado"
+      },
+      {
+       "t": "batch.details()",
+       "s": "¿qué devuelve?",
+       "color": "gold"
+      }
+     ],
+     "id": "f",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "f",
+     "at": "local"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "f",
+     "at": "apuesta"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué imprime `print(batch.details())` en modo local?",
+    "options": [
+     "un diccionario con el estado y el modo",
+     "`None`",
+     "un error: no hay servicio",
+     "`'batch'`"
+    ],
+    "after": "Anotado. Ejecutémoslo con `FakeFez`."
+   },
+   "align": "top"
+  },
+  {
    "id": "batch",
    "tag": [
     "7.7",
     "Usar un lote"
    ],
-   "say": "Un lote se abre con el gestor de contexto with Batch, pasando el backend; dentro, las primitivas se crean sin modo y lo heredan. [[clase]]O creando un objeto Batch y pasándolo como mode; entonces hay que cerrarlo con close. [[cerrar]]Al cerrar, el lote deja de aceptar trabajos, pero los enviados terminan. Si lo dejas abierto y envías más tarde, puede alcanzarse el TTL antes de que corran. [[particion]]Un patrón útil: partir una lista larga de circuitos en varios trabajos dentro de un lote, para aprovechar el preprocesamiento en paralelo. [[local]]En el modo de prueba local la sintaxis funciona, pero los modos se ignoran.",
+   "say": "Un lote se abre con el gestor de contexto with Batch, pasando el backend; dentro, las primitivas se crean sin modo y lo heredan. [[clase]]O creando un objeto Batch y pasándolo como mode; entonces hay que cerrarlo con close. [[cerrar]]Al cerrar, el lote deja de aceptar trabajos, pero los enviados terminan. Si lo dejas abierto y envías más tarde, puede alcanzarse el TTL antes de que corran. [[particion]]Un patrón útil: partir una lista larga de circuitos en varios trabajos dentro de un lote, para aprovechar el preprocesamiento en paralelo. [[local]]En el modo de prueba local la sintaxis funciona, pero los modos se ignoran: details imprime None. Si apostaste por eso, acertaste.",
    "scene": [
     {
      "type": "code",
@@ -495,6 +547,118 @@
      "Eso hace `cancel()`.",
      null,
      "Siguen siendo de la sesión."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "7.7",
+    "Tu turno"
+   ],
+   "say": "Abre el cuaderno de práctica. [[n1]]Primero abres un lote, envías tres trabajos y compruebas los conteos. [[n2]]Después partes una lista de veinte circuitos en cinco trabajos. [[n3]]Y por último escribes una función que elige el modo, job, batch o session, según la carga y el plan. [[check]]Busca la marca verde en cada misión.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p7-modos.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Abre un `Batch`, envía tres trabajos y lee `details()` en modo local."
+      },
+      {
+       "level": 2,
+       "text": "Reparte 20 circuitos en 5 trabajos de 4, sin perder ni repetir ninguno."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `elegir_modo(...)` con las recomendaciones de la lección."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "proyecto",
+   "tag": [
+    "7.7",
+    "Tu proyecto: hito VII"
+   ],
+   "say": "El hito siete del proyecto de espines junta lo de esta parte. [[frac]]Primero comparas la cadena de Ising con y sin puertas fraccionales: tus pasos de Trotter son justo rx y rzz. [[lote]]Después mides varios pasos de tiempo en un lote, cada uno en su trabajo. [[real]]Y preparas la segunda ejecución real: una guardia estima el uso con la fórmula de la lección siete punto cinco, y solo si el interruptor está encendido y cabe en lo que queda de tu plan Open, deja enviar. [[ojo]]El notebook recalcula los resultados de los hitos anteriores, así que no depende de ellos.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/proyecto/hito7.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Compara la cadena de Trotter en un backend con y sin `rx`/`rzz` nativas."
+      },
+      {
+       "level": 2,
+       "text": "Mide los pasos 1 a 4 en un `Batch` sobre un backend simulado."
+      },
+      {
+       "level": 3,
+       "text": "Escribe la guardia que estima el uso y respeta el presupuesto restante del plan Open."
+      }
+     ],
+     "title": "Proyecto Ising · Hito VII",
+     "id": "m",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "m",
+     "at": "frac"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "7.7",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Para tu proyecto Ising, ¿qué parte pondrías en un lote y cuál en un trabajo suelto? ¿Y si tuvieras un plan de pago?",
+     "Antes de gastar minutos del plan Open, ¿qué tres cosas comprobarías?"
     ]
    },
    "align": "top"
