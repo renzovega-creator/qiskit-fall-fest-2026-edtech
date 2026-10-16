@@ -22,7 +22,7 @@ run = [
 
 [tasks.runner]
 description = "Build the runner image and test /run over HTTP against it (needs Docker)"
-run = "uv run --group runner-test pytest tests/runner_test.py"
+run = "uv run pytest tests/runner_test.py"
 
 [tasks.verify]
 description = "Run the Python code shown in every lesson and compare the checked outputs"

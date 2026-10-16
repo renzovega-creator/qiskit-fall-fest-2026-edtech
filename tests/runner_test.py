@@ -1,6 +1,6 @@
 """Prueba el corredor por HTTP contra la imagen real en Docker.
 
-    uv run --group runner-test pytest tests/runner_test.py
+    uv run pytest tests/runner_test.py
 
 Construye `qg-runner` con `runner/local.py`. Se salta si Docker no responde.
 `QG_DOCKER` y `QG_RUNTIME` eligen el comando y el runtime.
@@ -17,13 +17,12 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "runner"))
+sys.path[:0] = [str(ROOT), str(ROOT / "runner")]
 import local  # noqa: E402
+from qgcheck import grade, spec  # noqa: E402
 
 EXERCISES = ROOT / "exercises"
-EXERCISE_IDS = sorted(
-    str(p.parent.relative_to(EXERCISES)) for p in EXERCISES.glob("*/*/check.py")
-)
+EXERCISE_IDS = spec.all_ids()
 
 
 @pytest.fixture(scope="module")
@@ -72,80 +71,102 @@ def processes(container):
     return out["stdout"].split()
 
 
-def test_run_returns_stdout_and_exit_code(runner):
+def test_run_returns_the_output_of_both_streams(runner):
     out = run(runner, "import sys\nprint('hola')\nprint('aviso', file=sys.stderr)")
-    assert out["ok"] is True
-    assert out["stdout"] == "hola\n"
-    assert out["stderr"] == "aviso\n"
-    assert out["exit_code"] == 0
+    assert out["passed"] is True
+    assert out["stdout"] == "hola\naviso\n"
+    assert out["error"] is None
+    assert out["killed"] is None
     assert out["tests"] == []
     assert out["ms"] > 0
 
 
-def test_run_reports_the_traceback(runner):
+def test_run_reports_the_error_with_its_line(runner):
     out = run(runner, "def f():\n    return 1 / 0\nf()")
-    assert out["ok"] is False
-    assert out["exit_code"] == 1
-    assert "ZeroDivisionError" in out["stderr"]
+    assert out["passed"] is False
+    assert out["error"] == "ZeroDivisionError: division by zero (línea 2: return 1 / 0)"
 
 
 def test_image_has_qiskit_aer_and_runtime(runner):
     out = run(
         runner,
-        "import qiskit, qiskit_aer, qiskit_ibm_runtime, pytest\n"
+        "import qiskit, qiskit_aer, qiskit_ibm_runtime\n"
         "from qiskit_aer import AerSimulator\nprint(qiskit.__version__)",
     )
-    assert out["ok"], out["stderr"]
+    assert out["passed"], out
     assert out["stdout"].strip() == "2.5.2"
 
 
 @pytest.mark.parametrize("exercise", EXERCISE_IDS)
 def test_check_passes_the_solution(runner, exercise):
     out = check(runner, exercise, (EXERCISES / exercise / "solution.py").read_text())
-    assert out["ok"], out
+    assert out["passed"], out
     assert out["tests"] and all(t["passed"] for t in out["tests"])
+
+
+@pytest.mark.parametrize("exercise", EXERCISE_IDS)
+@pytest.mark.parametrize("file", ["solution.py", "starter.py"])
+def test_check_gives_the_result_of_qgcheck_grade(runner, exercise, file):
+    code = (EXERCISES / exercise / file).read_text()
+    local_result = grade(exercise, code)
+    out = check(runner, exercise, code)
+    assert {k: out[k] for k in ("passed", "stdout", "error", "tests")} == {
+        k: local_result[k] for k in ("passed", "stdout", "error", "tests")
+    }
 
 
 @pytest.mark.parametrize("exercise", EXERCISE_IDS)
 def test_check_fails_the_starter_with_messages(runner, exercise):
     out = check(runner, exercise, (EXERCISES / exercise / "starter.py").read_text())
-    assert out["ok"] is False
+    assert out["passed"] is False
     failed = [t for t in out["tests"] if not t["passed"]]
     assert failed and all(t["message"] for t in failed)
 
 
-def test_check_hides_the_name_of_hidden_cases(runner):
+def test_check_names_hidden_cases_by_number(runner):
     out = check(runner, "p1-quickstart/ghz", "from qiskit import QuantumCircuit\n"
                 "def ghz(n):\n    qc = QuantumCircuit(n)\n    qc.measure_all()\n    return qc\n")
-    by_visible = {t["visible"]: t for t in out["tests"]}
-    assert by_visible[True]["name"] == "n = 2, 3 y 4"
-    assert by_visible[True]["message"] == "con n = 2 salen ['00']"
-    assert by_visible[False]["name"] is None
+    by_name = {t["name"]: t for t in out["tests"]}
+    assert by_name["n = 2, 3 y 4"]["visible"] is True
+    assert by_name["n = 2, 3 y 4"]["message"].startswith("Con n = 2 salen ['00']")
+    assert by_name["caso oculto 1"]["visible"] is False
 
 
 def test_check_names_the_missing_function(runner):
     out = check(runner, "p1-quickstart/ghz", "x = 1\n")
-    assert out["ok"] is False
-    assert all("Falta `ghz`" in t["message"] for t in out["tests"])
+    assert out["passed"] is False
+    assert out["tests"] and all("Falta definir `ghz`" in t["message"] for t in out["tests"])
+
+
+def test_check_reports_an_exception_of_the_function(runner):
+    out = check(runner, "p1-quickstart/ghz", "def ghz(n):\n    return 1 / 0\n")
+    assert out["passed"] is False
+    assert out["tests"] and all(
+        t["message"] == "Tu código lanzó ZeroDivisionError: division by zero" for t in out["tests"]
+    )
 
 
 def test_check_survives_a_syntax_error(runner):
     out = check(runner, "p1-quickstart/ghz", "def ghz(n:\n")
-    assert out["ok"] is False
-    assert all("SyntaxError" in t["message"] for t in out["tests"])
-    assert "SyntaxError" in out["stderr"]
+    assert out["passed"] is False
+    assert out["tests"] == []
+    assert out["error"].startswith("SyntaxError") and "línea 1" in out["error"]
 
 
-def test_check_returns_what_the_code_prints(runner):
+def test_check_returns_what_the_code_prints_once(runner):
     code = (EXERCISES / "p1-quickstart/ghz/solution.py").read_text() + "\nprint('cargado')\n"
     out = check(runner, "p1-quickstart/ghz", code)
-    assert out["ok"] and out["stdout"] == "cargado\n"
+    assert out["passed"] and out["stdout"].count("cargado") == 1
+
+
+def failed_everything(out):
+    return out["passed"] is False and (out["error"] or out["tests"]) and not any(
+        t["passed"] for t in out["tests"]
+    )
 
 
 def test_check_cannot_pass_by_exiting_early(runner):
-    out = check(runner, "p1-quickstart/ghz", "import os\nos._exit(0)\n")
-    assert out["ok"] is False
-    assert out["tests"] and not any(t["passed"] for t in out["tests"])
+    assert failed_everything(check(runner, "p1-quickstart/ghz", "import os\nos._exit(0)\n"))
 
 
 GOOD_GHZ = """
@@ -160,10 +181,6 @@ def good(n):
 """
 
 
-def failed_everything(out):
-    return out["ok"] is False and out["tests"] and not any(t["passed"] for t in out["tests"])
-
-
 def test_check_grades_the_submitted_function_not_a_replaced_one(runner):
     code = GOOD_GHZ + """
 import qgcheck
@@ -173,16 +190,17 @@ def ghz(n):
     qc.measure_all()
     return qc
 """
-    assert failed_everything(check(runner, "p1-quickstart/ghz", code))
+    out = check(runner, "p1-quickstart/ghz", code)
+    assert out["passed"] is False
+    assert not {t["name"]: t for t in out["tests"]}["n = 2, 3 y 4"]["passed"]
 
 
 def test_check_cannot_be_passed_by_replacing_the_checker(runner):
     code = """
-import builtins, pytest, qgcheck, sys
+import builtins, qgcheck, sys
 qgcheck.learner.ghz = lambda n: None
 qgcheck.counts = lambda *a, **k: {"0": 1}
 sys.modules["qgcheck"] = None
-pytest.fail = pytest.skip = lambda *a, **k: None
 """
     assert failed_everything(check(runner, "p1-quickstart/ghz", code))
 
@@ -190,7 +208,7 @@ pytest.fail = pytest.skip = lambda *a, **k: None
 def test_check_cannot_pass_by_forging_the_report(runner):
     code = """
 import os
-forged = b'{"tests": [{"name": null, "visible": false, "passed": true, "message": null}]}'
+forged = b'{"error": null, "tests": [{"name": null, "visible": false, "passed": true, "message": null}]}'
 for fd in range(3, 64):
     try:
         os.write(fd, forged)
@@ -231,7 +249,7 @@ for pid in (broker, checker):
 ghz = good
 """
     out = check(runner, "p1-quickstart/ghz", code)
-    assert out["ok"], out
+    assert out["passed"], out
     assert out["stdout"] == "denegado\n" * 8
 
 
@@ -243,7 +261,7 @@ def ghz(n):
     return good(n)
 """
     out = check(runner, "p1-quickstart/ghz", code)
-    assert out["ok"], out
+    assert out["passed"], out
     assert set(out["stdout"].split()) == {"2"}
 
 
@@ -251,7 +269,7 @@ def test_check_cannot_pass_by_prewriting_replies(runner):
     code = """
 import os
 from qiskit import QuantumCircuit
-from qgcheck.wire import encode, send
+from grader.wire import encode, send
 def ghz(n):
     qc = QuantumCircuit(n)
     qc.h(0)
@@ -259,10 +277,11 @@ def ghz(n):
         qc.cx(k, k + 1)
     qc.measure_all()
     return qc
+replies = [{"ghz": True}] + [ghz(n) for n in (2, 5, 2, 3, 4, 5, 7, 5)]
 for fd in range(255, 2, -1):
-    for n in (2, 3, 4, 5, 7):
+    for reply in replies:
         try:
-            send(fd, {"value": encode(ghz(n))})
+            send(fd, {"value": encode(reply)})
         except Exception:
             pass
 del ghz
@@ -273,12 +292,12 @@ del ghz
 def test_check_does_not_import_what_the_learner_plants(runner):
     code = GOOD_GHZ + """
 import os
-for name in ("qiskit", "qiskit_aer", "numpy", "pytest", "qgcheck", "json"):
+for name in ("qiskit", "qiskit_aer", "numpy", "grader", "qgcheck", "json"):
     open(f"{name}.py", "w").write("print('PLANTADO')")
 ghz = good
 """
     out = check(runner, "p1-quickstart/ghz", code)
-    assert out["ok"], out
+    assert out["passed"], out
     assert "PLANTADO" not in out["stdout"]
 
 
@@ -329,9 +348,9 @@ def test_rejects_a_second_job_while_one_runs(runner):
 
 def test_timeout_kills_the_job(runner):
     out = run(runner, "while True: pass")
-    assert out["ok"] is False
-    assert out["timed_out"] is True
-    assert out["exit_code"] is None
+    assert out["passed"] is False
+    assert out["killed"] == "time"
+    assert out["error"] == "Tu código tardó más de 10 s y se detuvo."
     assert 9_000 < out["ms"] < 13_000
     assert health(runner) == 200
 
@@ -346,8 +365,8 @@ def test_timeout_kills_the_job(runner):
 )
 def test_memory_cap(runner, code):
     out = run(runner, code)
-    assert out["ok"] is False
-    assert out["killed"] == "memory" or "MemoryError" in out["stderr"]
+    assert out["passed"] is False
+    assert out["killed"] == "memory" or out["error"].startswith("MemoryError")
     assert out["peak_mb"] < 700
     assert out["ms"] < 5_000
     assert health(runner) == 200
@@ -401,7 +420,7 @@ def test_no_network_even_when_the_container_has_internet():
 def test_fork_bomb_is_contained(runner):
     before = len(processes(runner))
     out = run(runner, "import os\nwhile True: os.fork()")
-    assert out["ok"] is False
+    assert out["passed"] is False
     assert out["ms"] < 13_000
     assert health(runner) == 200
     assert len(processes(runner)) <= before
@@ -410,7 +429,7 @@ def test_fork_bomb_is_contained(runner):
 def test_fork_bomb_that_swallows_errors_is_contained(runner):
     before = len(processes(runner))
     out = run(runner, "import os\nwhile True:\n    try: os.fork()\n    except OSError: pass")
-    assert out["ok"] is False
+    assert out["passed"] is False
     assert out["ms"] < 13_000
     assert health(runner) == 200
     assert len(processes(runner)) <= before
@@ -419,7 +438,7 @@ def test_fork_bomb_that_swallows_errors_is_contained(runner):
 def test_detached_process_does_not_outlive_the_job(runner):
     before = len(processes(runner))
     out = run(runner, "import os, time\nif os.fork() == 0:\n    os.setsid()\n    time.sleep(300)\n    os._exit(0)")
-    assert out["ok"] is True
+    assert out["passed"] is True
     assert len(processes(runner)) <= before
 
 
@@ -430,8 +449,8 @@ def test_detached_process_does_not_outlive_the_job(runner):
 )
 def test_writes_outside_the_work_directory_fail(runner, path):
     out = run(runner, f"open({path!r}, 'w').write('x')")
-    assert out["ok"] is False
-    assert "Error" in out["stderr"]
+    assert out["passed"] is False
+    assert "Error" in out["error"]
 
 
 def test_writes_to_the_work_directory_work_and_do_not_persist(runner):
@@ -449,20 +468,20 @@ def test_a_job_cannot_read_the_files_of_the_previous_one(runner):
 
 def test_disk_fill_is_stopped(runner):
     out = run(runner, "for i in range(100):\n    open(f'f{i}', 'wb').write(b'x' * (8 << 20))")
-    assert out["ok"] is False
-    assert out["killed"] == "disk" or "No space left" in out["stderr"]
+    assert out["passed"] is False
+    assert out["killed"] == "disk" or "No space left" in out["error"]
     assert out["ms"] < 5_000
     assert health(runner) == 200
 
 
 def test_single_huge_file_is_refused(runner):
     out = run(runner, "open('grande', 'wb').write(b'x' * (64 << 20))")
-    assert out["ok"] is False
-    assert "File too large" in out["stderr"]
+    assert out["passed"] is False
+    assert "File too large" in out["error"]
 
 
 def test_output_flood_is_cut(runner):
     out = run(runner, "while True: print('x' * 1000)")
-    assert out["ok"] is False
+    assert out["passed"] is False
     assert out["killed"] == "output"
     assert len(out["stdout"]) <= 64 * 1024
