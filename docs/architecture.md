@@ -15,6 +15,7 @@ carpeta y por dónde pasa una lección.
 | `tests/`       | Pruebas de navegador (`theme_test.py`, `proyecto_test.py`, `exercise_ui_test.py`) de ejercicios (`exercises_test.py`) y del corredor (`runner_test.py`). |
 | `practica/`    | Los cuadernos marimo de las misiones y sus soluciones.                                                                                                   |
 | `exercises/`   | Los ejercicios de código: código inicial, solución y casos de cada uno.                                                                                  |
+| `editor/`      | El paquete que compila `site/editor.js`, el editor de los ejercicios.                                                                                    |
 | `qgcheck/`     | El corrector de ejercicios: lee `exercises/`, ejecuta el código de un alumno y devuelve el resultado de cada caso.                                       |
 | `content/`     | La caché de la síntesis de voz.                                                                                                                          |
 | `runner/`      | El corredor de código del alumno: imagen, servidor `/run` y Worker. [runner.md](runner.md)                                                               |
@@ -46,7 +47,7 @@ carpeta y por dónde pasa una lección.
 | `verify.py`                                          | Ejecuta el Python de las lecciones, salvo `norun`, y compara los `Out(…, check=True)`.                                              |
 | `practica.py`                                        | Ejecuta cada cuaderno con y sin soluciones. También prueba `mo.ui.slider`/`number` en mínimo y máximo. Un error de ejecución falla. |
 | `exercises.py`                                       | Corre la solución y el código inicial de cada ejercicio con `qgcheck` y comprueba su `needs`.                                       |
-| `serve.py`                                           | Sirve `site/` en 127.0.0.1:8810 y añade `POST /run`, que corrige el código de un ejercicio con `qgcheck`.                           |
+| `serve.py`                                           | Sirve `site/` en 127.0.0.1:8810 y añade `POST /run`, que corrige un ejercicio con `qgcheck`, y `/config.json`.                      |
 | `playtest.py`, `seektest.py`, `shot.py`, `review.py` | Pruebas y capturas con Playwright sobre `site/` servido en el puerto 8810.                                                          |
 
 `qiskit-docs.commit` guarda el hash de Qiskit/documentation contra el que se
@@ -59,8 +60,12 @@ comprueba la cobertura. Para actualizar las guías se cambia ese hash, se ejecut
   y pide en paralelo los `lesson.json` de las lecciones completadas para armar
   el repaso.
 - `lesson.html` carga `engine.js`, el reproductor, con los estilos de `app.css`.
-  `blocks.js` dibuja los bloques propios del curso y `sfx.js` los sonidos. Las
-  fórmulas las dibuja KaTeX, que se descarga de un CDN.
+  `blocks.js` dibuja los bloques propios del curso, `exercise.js` el bloque de
+  ejercicio y `sfx.js` los sonidos. Las fórmulas las dibuja KaTeX, que se
+  descarga de un CDN.
+- `editor.js` es el editor CodeMirror 6 de los ejercicios, empaquetado desde
+  `editor/`. `config.json` trae la URL del corredor que escribe `build.py`.
+  Ambos se describen en [exercises.md](exercises.md#editor-en-la-lección).
 - `theme.css` y `theme.js` son el tema de las dos páginas: colores, fuentes, y
   la paleta y el modo que elige el lector. [design.md](design.md) los describe.
   `notebooks.js` escribe la línea «cómo ejecutar los cuadernos» que acompaña a
@@ -85,8 +90,8 @@ para comprobar que todas las verificaciones dan ✅.
 `qgcheck/worker.py` en un proceso aparte con el código del alumno, y
 `qgcheck/__init__.py` ofrece a `check.py` sus ayudantes. El formato, el
 resultado de `grade()` y las comprobaciones están en
-[exercises.md](exercises.md). `B.exercise` de `site/blocks.js` dibuja el editor
-de cada ejercicio y llama a `POST /run` de `tools/serve.py`.
+[exercises.md](exercises.md). `site/exercise.js` dibuja el editor de cada
+ejercicio y llama a `POST /run` en la URL de `site/config.json`.
 
 ### `content/`
 

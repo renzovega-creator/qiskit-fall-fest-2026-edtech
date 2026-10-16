@@ -131,15 +131,51 @@ además corre los casos. Devuelve:
 
 ## Editor en la lección
 
-`B.exercise` de [`blocks.js`](../site/blocks.js) dibuja el ejercicio: el
+[`exercise.js`](../site/exercise.js) dibuja cada bloque `Exercise`: el
 enunciado, un editor con `starter.py` y los botones **Ejecutar** (solo corre el
-código), **Comprobar** (además corre los casos), **Empezar de nuevo** y
-**Pista** (una más por pulsación). Muestra la salida, el error con su línea y un
-✓ o ✗ por caso; los casos ocultos aparecen como `caso oculto N`. El código se
-guarda en el navegador, en `localStorage`, bajo `qiskit:code:<ejercicio>`.
+código), **Comprobar** (además corre los casos), **Pista** y **Empezar de
+nuevo**. Muestra la salida, el error con su línea marcada en el editor y un ✓ o
+✗ por caso; los casos ocultos aparecen como `caso oculto N`. Mientras espera al
+corredor, los botones quedan desactivados; si tarda, lo dice, y a los 30 s
+abandona. Cada fallo (timeout, corredor lleno, sin red, respuesta inválida)
+tiene su mensaje.
+
+- El editor es CodeMirror 6 con resaltado de Python, con los colores del tema de
+  la página ([design.md](design.md)). Lo carga `exercise.js` solo en las
+  lecciones que tienen ejercicio.
+- **Pista** muestra una pista de `hints` por pulsación. No hay botón para ver la
+  solución: `solution.py` no sale de `exercises/`.
+- Ctrl+Intro (⌘+Intro) ejecuta, Ctrl+Mayús+Intro comprueba, Tab sangra y Esc
+  seguido de Tab sale del editor. Las teclas de la lección (espacio, flechas,
+  `c`) no actúan mientras se escribe.
+- Un paso con ejercicio no se escala como el resto del escenario: ocupa la
+  pantalla y se desplaza, para que el editor se pueda usar en el móvil. No pasa
+  solo al paso siguiente al terminar la narración; el botón **Continuar** lo
+  hace.
+- El código, el número de pistas y de comprobaciones y si quedó resuelto se
+  guardan en `localStorage`, bajo `qiskit:exercise:<ejercicio>`.
+
+### Dónde corre el código
 
 El editor envía `POST /run` con `{"exercise", "code", "mode"}` y recibe el
-resultado de `grade()`. Lo responde [`tools/serve.py`](../tools/serve.py):
+resultado de `grade()`. La URL sale de `site/config.json`, que escribe
+`build.py`:
+
+```sh
+QG_RUNNER_URL=https://corredor.example/run uv run python lessons_src/build.py
+```
+
+Sin `QG_RUNNER_URL`, `config.json` trae `{"runner": null}`. Entonces el editor
+muestra el código y avisa de que todavía no se puede ejecutar en esa página; los
+botones **Ejecutar** y **Comprobar** no se activan y la página no hace ninguna
+petición al corredor. `QG_RUNNER_URL` es una URL `http(s)` o una ruta que
+empieza por `/`; `build.py` rechaza otra cosa. El corredor de
+[runner.md](runner.md) no responde las peticiones `OPTIONS` ni envía cabeceras
+CORS: la página y el corredor deben tener el mismo origen.
+
+En tu equipo, [`tools/serve.py`](../tools/serve.py) responde `POST /run` y
+también `/config.json`, con `{"runner": "/run"}` en lugar del archivo de
+`site/`:
 
 ```sh
 uv run python tools/serve.py [puerto]
@@ -147,9 +183,16 @@ uv run python tools/serve.py [puerto]
 
 Sirve `site/` en `127.0.0.1` (puerto 8810 por defecto) y rechaza un `POST` que
 no sea `application/json` o cuyo `Host` no sea `localhost` o `127.0.0.1`, para
-que otra web abierta en tu navegador no ejecute código en tu equipo. Con otro
-servidor estático, Ejecutar y Comprobar explican cómo abrir el curso con
-`serve.py`.
+que otra web abierta en tu navegador no ejecute código en tu equipo.
+
+### Reconstruir el editor
+
+`site/editor.js` es el resultado de empaquetar [`editor/`](../editor) con
+esbuild; se versiona porque `site/` es estático. Tras cambiar `editor/src/`:
+
+```sh
+cd editor && bun install && bun run build
+```
 
 ## Comprobar los ejercicios
 
@@ -172,5 +215,9 @@ después de `build.py`. Por cada ejercicio comprueba que:
 [`tests/exercises_test.py`](../tests/exercises_test.py) corre cada ejercicio con
 su solución y con una solución equivocada que debe fallar con un mensaje útil, y
 prueba el corrector, lo que publica `build.py`, las tres comprobaciones y
-`serve.py`. [`tests/exercise_ui_test.py`](../tests/exercise_ui_test.py) abre una
-lección en el navegador y usa el editor. `mise run test` ejecuta los tres.
+`serve.py` y `config.json`.
+[`tests/exercise_ui_test.py`](../tests/exercise_ui_test.py) abre las lecciones
+en el navegador contra `serve.py`: escribe código equivocado y ve fallar un
+caso, lo corrige y lo ve pasar, recarga y comprueba que el progreso sigue. Lo
+repite en un móvil, y prueba el teclado, las pistas, el timeout, los errores y
+una página sin corredor. `mise run test` ejecuta los tres.
