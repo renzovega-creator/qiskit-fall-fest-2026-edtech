@@ -20,7 +20,9 @@ from pathlib import Path
 HERE = Path(__file__).parent
 ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(ROOT))
 from plan import PARTS  # noqa: E402
+from qgcheck import spec  # noqa: E402
 
 SITE = ROOT / "site"
 GUIDE = "https://quantum.cloud.ibm.com/docs/en/guides/"
@@ -68,10 +70,37 @@ ERRORS = []
 
 
 def walk(blocks):
-    """Recorre bloques de escena, incluidos los anidados en filas."""
+    """Recorre bloques de escena, incluidos los anidados en filas y cajas."""
     for blk in blocks:
         yield blk
-        yield from walk(blk.get("items", []) if blk.get("type") == "row" else [])
+        children = blk.get("items", []) + blk.get("body", [])
+        yield from walk(x for x in children if isinstance(x, dict))
+
+
+def publish_exercises(lesson, seen):
+    """Añade a cada ejercicio el código inicial y los casos visibles."""
+    for b in lesson["beats"]:
+        for blk in walk(b["scene"]):
+            if blk.get("type") != "exercise":
+                continue
+            eid = blk["exercise"]
+            where = f"{lesson['id']}/{b['id']}: ejercicio {eid}"
+            try:
+                missing = spec.missing_files(eid)
+            except ValueError as exc:
+                ERRORS.append(f"{where}: {exc}")
+                continue
+            if not eid.startswith(lesson["id"] + "/"):
+                ERRORS.append(f"{where} debe estar en exercises/{lesson['id']}/")
+            elif eid in seen:
+                ERRORS.append(f"{where} está repetido")
+            elif missing:
+                ERRORS.append(f"{where} no tiene {', '.join(missing)}")
+            else:
+                seen.add(eid)
+                blk.update(spec.public(eid))
+                if not blk["cases"]:
+                    ERRORS.append(f"{where} no tiene ningún caso @visible en check.py")
 
 
 def check(lesson):
@@ -110,6 +139,7 @@ def main():
                          f"fuera del plan {sorted(set(lessons) - planned)}")
     course = dict(parts=[])
     ordered = []
+    exercises = set()
     for part in PARTS:
         entry = dict(title=part["title"], desc=part["desc"], lessons=[])
         for k, (lid, title, guides) in enumerate(part["lessons"], 1):
@@ -122,6 +152,7 @@ def main():
             les["practice"] = list(les["practice"]) + [
                 "Guías originales: " + " · ".join(f"[{g}]({GUIDE}{'' if g == 'index' else g})" for g in names)]
             check(les)
+            publish_exercises(les, exercises)
             ordered.append(les)
             out = SITE / "lessons" / lid
             out.mkdir(parents=True, exist_ok=True)
@@ -138,6 +169,7 @@ def main():
                 item["missions"] = [dict(notebook=m["notebook"], title=m.get("title", "Tu turno"), tasks=len(m["tasks"])) for m in missions]
             entry["lessons"].append(item)
         course["parts"].append(entry)
+    ERRORS.extend(f"exercises/{eid} no aparece en ninguna lección" for eid in sorted(set(spec.all_ids()) - exercises))
     if ERRORS:
         raise SystemExit("\n".join(ERRORS))
     for a, b in zip(ordered, ordered[1:] + [None]):

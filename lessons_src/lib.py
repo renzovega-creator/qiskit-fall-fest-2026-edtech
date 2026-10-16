@@ -142,6 +142,16 @@ def Mission(notebook, tasks, **k):
     return dict(type="mission", notebook=notebook, tasks=[dict(level=l, text=t) for l, t in tasks], **k)
 
 
+def Exercise(path, prompt, level, needs="qiskit", hints=(), **k):
+    """Declara un ejercicio y valida sus opciones antes de publicarlo."""
+    if level not in (1, 2, 3):
+        raise ValueError(f"{path}: level debe ser 1, 2 o 3, no {level!r}")
+    if needs not in ("qiskit", "aer"):
+        raise ValueError(f"{path}: needs debe ser 'qiskit' o 'aer', no {needs!r}")
+    return dict(type="exercise", exercise=path, prompt=prompt, level=level,
+                needs=needs, hints=list(hints), **k)
+
+
 def lesson(id, title, summary, goals, beats, sources=(), practice=()):
     """sources: nombres de las guías originales de Qiskit/documentation
     (docs/guides/<nombre>) que cubre la lección.
