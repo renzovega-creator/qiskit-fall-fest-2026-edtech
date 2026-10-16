@@ -21,13 +21,15 @@ uv sync
 ## Ver el curso
 
 ```sh
-uv run python -m http.server 8810 --directory site
+uv run python tools/serve.py
 ```
 
 Abre <http://localhost:8810/>. La portada muestra las lecciones por parte y tu
 progreso. Una lección se abre en `lesson.html?l=<id>`, por ejemplo
 <http://localhost:8810/lesson.html?l=p1-quickstart>. Las fórmulas se cargan de
-un CDN, así que la página necesita conexión a internet.
+un CDN, así que la página necesita conexión a internet. `tools/serve.py` sirve
+`site/` y además corrige los ejercicios de código de las lecciones; ver
+[docs/exercises.md](docs/exercises.md).
 
 ## Abrir un cuaderno de práctica
 
@@ -69,10 +71,13 @@ mise run check
 ```
 
 Descarga las guías si faltan, reconstruye las lecciones, ejecuta los cuadernos
-con y sin sus soluciones y ejecuta el código Python que muestran las lecciones.
-La definición de cada paso está en [`mise.toml`](mise.toml).
+con y sin sus soluciones, corrige los ejercicios de código y ejecuta el código
+Python que muestran las lecciones. La definición de cada paso está en
+[`mise.toml`](mise.toml).
 
 ## Más
 
 [`docs/architecture.md`](docs/architecture.md) explica qué contiene cada carpeta
 y cómo llega una lección desde su código fuente hasta el navegador.
+[`docs/exercises.md`](docs/exercises.md) describe cómo se escribe y se corrige
+un ejercicio de código.
