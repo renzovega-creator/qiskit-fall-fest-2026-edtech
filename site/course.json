@@ -56,7 +56,7 @@
       {
        "notebook": "practica/p1-quickstart.py",
        "title": "Tu turno",
-       "tasks": 3
+       "tasks": 1
       },
       {
        "notebook": "practica/proyecto/hito1.py",
@@ -179,7 +179,7 @@
       {
        "notebook": "practica/p2-control-clasico.py",
        "title": "Tu turno",
-       "tasks": 3
+       "tasks": 1
       }
      ]
     },

@@ -1,6 +1,6 @@
 """Parte II · Circuitos y operadores."""
 from lib import (T, M, L, Row, Box, A, shows, beat, choice, numeric, reveal, lesson,
-                 Code, Out, Sh, Circ, G, Hist, Table, Flow, predict, reflect, Mission)
+                 Code, Out, Sh, Circ, G, Hist, Table, Flow, predict, reflect, Mission, Exercise)
 
 
 def resumen(items, marks=("r1", "r2", "r3", "r4")):
@@ -1115,10 +1115,19 @@ circuit.barrier()''', id="c", setup=CONTROL_SETUP),
              """Ahora te toca. [[n1]]Primero, predice qué sale al corregir con if test una moneda al azar. [[n2]]Después, cambia la condición del if para que el resultado final sea siempre uno.
              [[n3]]Y por último, escribe una función que repita un experimento con while loop hasta que el bit clásico valga uno.""",
              [Mission("practica/p2-control-clasico.py", [
-                 (1, "Predice el resultado final del circuito que corrige la moneda con `if_test`."),
-                 (2, "Cambia la condición del `if_test` para que el resultado final sea siempre 1."),
-                 (3, "Escribe `hasta_uno()`: un circuito que repite con `while_loop` hasta medir 1.")], id="m", stagger=True)],
-             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+                 (1, "Predice el resultado final del circuito que corrige la moneda con `if_test`.")], id="m", stagger=True),
+              Exercise("p2-control-clasico/siempre-uno",
+                       "Cambia solo la condición del `if_test` para que el resultado final sea siempre 1.",
+                       level=2, needs="aer", id="e2", hidden=True,
+                       hints=["Hoy la X se aplica cuando la moneda sale 1, y así el bit termina en 0.",
+                              "Para terminar en 1, la X debe aplicarse en la otra rama: cambia el valor con que se compara el bit."]),
+              Exercise("p2-control-clasico/hasta-uno",
+                       "Escribe `hasta_uno()`: un circuito que repite con `while_loop` hasta medir 1, sin usar ninguna puerta X.",
+                       level=3, needs="aer", id="e3", hidden=True,
+                       hints=["Lanza la moneda una vez fuera del bucle: una `H` y una medición.",
+                              "`with qc.while_loop((c, 0)):` repite mientras el bit valga 0. Dentro, lanza la moneda otra vez.",
+                              "Dentro del bucle repites lo mismo que fuera: una `H` y una medición."])],
+             [A("item", "m", at="n1", i=0), A("show", "e2", at="n2"), A("show", "e3", at="n3")]),
 
         beat("reflexion", ("", "Reflexiona"),
              """Dos preguntas para pensar con calma. Escribe con tus palabras; lo que escribas se guarda en el navegador.""",
