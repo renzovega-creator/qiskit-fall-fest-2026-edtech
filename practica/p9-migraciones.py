@@ -81,7 +81,6 @@ def _(mo):
 def _(EstimatorOptions):
     opciones = EstimatorOptions()
     opciones.default_shots = 2000
-    # antes: opciones_dict = asdict(opciones)
     opciones_dict = None   # ✏️ usa el método de Pydantic
     return opciones, opciones_dict
 
