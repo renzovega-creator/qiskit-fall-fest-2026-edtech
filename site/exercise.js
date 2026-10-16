@@ -1,0 +1,195 @@
+// Bloque «exercise»: un editor de Python con Ejecutar, Comprobar, pistas y progreso (docs/exercises.md).
+//
+// spec: exercise (id) · prompt · level · hints · starter · cases (nombres de los casos visibles)
+// Ejecutar y Comprobar envían el código con POST a la URL `runner` de config.json; sin ella no envían nada.
+// El código, las pistas vistas y si está resuelto se guardan en el navegador, en qiskit:exercise:<id>.
+(() => {
+  'use strict';
+  const CALL_TIMEOUT_MS = 30000;
+  const SLOW_MS = 4000;
+  const MOD = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl';
+  const LEVELS = BLOCKS.mission.levels;
+  const HTTP_ERRORS = {
+    400: 'El corredor no entendió la petición.',
+    404: 'El corredor no conoce este ejercicio.',
+    413: 'El código es demasiado largo: el máximo es 20 000 bytes.',
+    429: 'Has ejecutado demasiadas veces seguidas. Espera un momento.',
+    503: 'El corredor está ocupado. Inténtalo de nuevo en unos segundos.',
+  };
+
+  // Carga editor.js solo en las lecciones con ejercicio para no descargarlo en las demás.
+  let editorLib = null, runner = null;
+  const loadEditor = () => editorLib ??= new Promise((ok, no) => {
+    const sc = document.createElement('script');
+    sc.src = 'editor.js';
+    sc.onload = () => ok(window.QGEditor);
+    sc.onerror = () => { editorLib = null; no(new Error('editor')); };
+    document.head.appendChild(sc);
+  });
+  const loadRunner = () => runner ??= fetch('config.json').then(r => r.ok ? r.json() : {}).then(c => c.runner || null).catch(() => null);
+
+  const progress = {
+    get(id) { try { return JSON.parse(localStorage.getItem(`qiskit:exercise:${id}`)) || {}; } catch (e) { return {}; } },
+    set(id, patch) { try { localStorage.setItem(`qiskit:exercise:${id}`, JSON.stringify({ ...progress.get(id), ...patch })); } catch (e) {} },
+  };
+  const seconds = ms => `${(ms / 1000).toFixed(1).replace('.', ',')} s`;
+
+  BLOCKS.exercise = (box, s, A) => {
+    const o = { spec: s };
+    box.classList.remove('fig');
+    box.classList.add('xpanel');
+    const card = A.el('div', 'mcard', box);
+    const saved = progress.get(s.exercise);
+
+    const head = A.el('div', 'xhead', card);
+    A.el('div', 'mtitle', head).textContent = 'Ejercicio';
+    const [dot, name] = LEVELS[s.level] || LEVELS[1];
+    A.el('span', 'xlevel', head).textContent = `${dot} ${name}`;
+    const solved = A.el('span', 'xsolved', head);
+    solved.textContent = '✓ Resuelto';
+    solved.hidden = !saved.passed;
+    A.rich(A.el('div', 'xprompt', card), s.prompt);
+
+    const grid = A.el('div', 'xgrid', card);
+    const left = A.el('div', 'xleft', grid), right = A.el('div', 'xright', grid);
+    const host = A.el('div', 'xeditor', left);
+    A.el('pre', 'xplaceholder', host).textContent = saved.code ?? s.starter;
+    let ed = null;
+
+    const bar = A.el('div', 'xbar', left);
+    const btn = (label, cls, fn, title) => {
+      const b = A.el('button', 'abtn xbtn ' + cls, bar);
+      b.type = 'button';
+      b.textContent = label;
+      b.title = title;
+      b.onclick = e => { e.stopPropagation(); fn(); };
+      return b;
+    };
+    const runBtn = btn('Ejecutar', '', () => send('run'), `Ejecuta el código (${MOD}+Intro)`);
+    const checkBtn = btn('Comprobar', 'primary', () => send('check'), `Ejecuta el código y prueba los casos (${MOD}+Mayús+Intro)`);
+    A.el('span', 'xspace', bar);
+    const hintBtn = s.hints?.length ? btn('Pista', '', () => nextHint(), 'Muestra la siguiente pista') : null;
+    btn('Empezar de nuevo', '', () => {
+      ed?.set(s.starter);
+      progress.set(s.exercise, { code: s.starter });
+      ed?.focus();
+    }, `Vuelve al código inicial. Se puede deshacer con ${MOD}+Z`);
+    A.el('p', 'xkeys', left).textContent = `${MOD}+Intro ejecuta · ${MOD}+Mayús+Intro comprueba · Esc y luego Tab sale del editor`;
+    if (s.cases?.length) A.el('p', 'mhow', left).textContent = `Casos visibles: ${s.cases.join(' · ')}. Hay además casos ocultos.`;
+
+    const status = A.el('div', 'xstatus', right);
+    status.setAttribute('role', 'status');
+    const out = A.el('div', 'xout', right);
+    const hints = A.el('div', 'xhints', right);
+    let busy = false, url = null;
+
+    const note = (cls, text) => { status.className = 'xstatus ' + cls; status.textContent = text; };
+    const text = (cls, content, parent = out) => { const d = A.el('div', cls, parent); d.textContent = content; return d; };
+    const setBusy = on => {
+      busy = on;
+      runBtn.disabled = checkBtn.disabled = on || !url;
+      card.setAttribute('aria-busy', on);
+    };
+
+    function showHints(n) {
+      hints.textContent = '';
+      s.hints.slice(0, n).forEach((h, k) => {
+        const d = A.el('div', 'xhint', hints);
+        A.el('b', '', d).textContent = `Pista ${k + 1}`;
+        A.rich(A.el('div', '', d), h);
+      });
+      hintBtn.textContent = n >= s.hints.length ? 'Sin más pistas' : `Pista (${n}/${s.hints.length})`;
+      hintBtn.disabled = n >= s.hints.length;
+    }
+    function nextHint() {
+      const n = Math.min((progress.get(s.exercise).hints || 0) + 1, s.hints.length);
+      progress.set(s.exercise, { hints: n });
+      showHints(n);
+    }
+    if (hintBtn) showHints(Math.min(saved.hints || 0, s.hints.length));
+
+    function render(res, mode) {
+      const tests = res.tests || [];
+      const failed = tests.filter(t => !t.passed).length;
+      let cls, msg;
+      if (res.error) [cls, msg] = ['bad', 'Tu código tiene un error.'];
+      else if (mode === 'run') [cls, msg] = ['ok', 'Se ejecutó sin errores.'];
+      else if (res.passed) [cls, msg] = ['ok', '¡Pasa todos los casos!'];
+      else [cls, msg] = ['bad', `Pasan ${tests.length - failed} de ${tests.length} casos.`];
+      note(cls, msg + (res.ms != null ? ` (${seconds(res.ms)})` : ''));
+      out.textContent = '';
+      if (res.error) {
+        text('xerr', res.error);
+        const at = /línea (\d+)/.exec(res.error);
+        if (at) ed.markError(+at[1]);
+      }
+      if (res.stdout) { text('xlabel', 'Salida'); A.el('pre', 'xstdout', out).textContent = res.stdout; }
+      else if (mode === 'run' && !res.error) text('xlabel', 'No imprimió nada. Usa print(…) para ver un valor.');
+      if (tests.length) {
+        const ul = A.el('ul', 'xtests', out);
+        tests.forEach(t => {
+          const li = A.el('li', t.passed ? 'ok' : 'bad', ul);
+          A.el('span', 'xmark', li).textContent = t.passed ? '✓' : '✗';
+          const body = A.el('div', '', li);
+          A.el('span', 'sr', body).textContent = t.passed ? 'Pasa: ' : 'Falla: ';
+          A.el('b', '', body).textContent = t.name;
+          if (!t.passed && t.message) text('xmsg', t.message, body);
+        });
+      }
+      if (mode === 'run' && !res.error) text('xlabel', 'Comprobar prueba tu código con los casos del ejercicio.');
+      if (mode === 'check') {
+        progress.set(s.exercise, { checks: (progress.get(s.exercise).checks || 0) + 1, ...(res.passed ? { passed: true } : {}) });
+        if (res.passed) solved.hidden = false;
+      }
+    }
+    const fail = msg => { out.textContent = ''; note('bad', msg); };
+
+    async function send(mode) {
+      if (busy || !ed || !url) return;
+      setBusy(true);
+      ed.markError(0);
+      out.textContent = '';
+      note('busy', mode === 'check' ? 'Comprobando…' : 'Ejecutando…');
+      const slow = setTimeout(() => note('busy', 'Esperando al corredor. La primera vez puede tardar unos segundos…'), SLOW_MS);
+      const ctl = new AbortController();
+      const cut = setTimeout(() => ctl.abort(), CALL_TIMEOUT_MS);
+      try {
+        const resp = await fetch(url, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
+          body: JSON.stringify({ exercise: s.exercise, code: ed.get(), mode }),
+        });
+        const body = await resp.json().catch(() => null);
+        if (!resp.ok) fail(HTTP_ERRORS[resp.status] || body?.error || `El corredor respondió ${resp.status}.`);
+        else if (typeof body?.passed !== 'boolean') fail('El corredor respondió algo que no se entiende.');
+        else render(body, mode);
+      } catch (e) {
+        fail(e.name === 'AbortError' ? `El corredor no respondió en ${CALL_TIMEOUT_MS / 1000} s. Inténtalo de nuevo.`
+          : 'No se pudo conectar con el corredor. Revisa tu conexión e inténtalo de nuevo.');
+      } finally {
+        clearTimeout(slow); clearTimeout(cut);
+        setBusy(false);
+      }
+    }
+
+    setBusy(true);
+    Promise.all([loadRunner(), loadEditor().catch(() => null)]).then(([runnerUrl, lib]) => {
+      if (!lib) { A.el('p', 'xerr', host).textContent = 'No se pudo cargar el editor. Recarga la página.'; return; }
+      url = runnerUrl;
+      host.textContent = '';
+      ed = lib.create(host, {
+        doc: saved.code ?? s.starter,
+        label: 'Editor de código del ejercicio',
+        onChange: code => progress.set(s.exercise, { code }),
+        onRun: () => send('run'),
+        onCheck: () => send('check'),
+      });
+      setBusy(false);
+      if (url) note('idle', 'Escribe tu código y pulsa Ejecutar o Comprobar.');
+      else {
+        note('warn', 'Todavía no se puede ejecutar código en esta página. Puedes escribir tu solución: se guarda en tu navegador.');
+        A.rich(A.el('p', 'xhelp', out), 'Para ejecutarlo en tu equipo, abre el curso con `uv run python tools/serve.py`.');
+      }
+    });
+    return o;
+  };
+})();
