@@ -1,4 +1,4 @@
-import { bindings, defineConfig, defineContainer, exports } from "cf/config";
+import { bindings, defineConfig, defineContainer, exports, triggers } from "cf/config";
 
 import * as entrypoint from "./src/index.ts" with { type: "cf-worker" };
 import { WORKER_FIRST } from "./src/routes.ts";
@@ -12,7 +12,7 @@ const runner = defineContainer({
 
 export default defineConfig({
   worker: {
-    name: "qg-runner",
+    name: "qiskit-guides",
     compatibilityDate: "2026-10-01",
     entrypoint,
     // Workers Logs guarda solo lo que escribe src/log.ts. El registro de
@@ -21,7 +21,21 @@ export default defineConfig({
     // site/ (wrangler.config.ts) se sirve desde este mismo Worker.
     // Solo las rutas de WORKER_FIRST lo invocan.
     assets: { runWorkerFirst: WORKER_FIRST },
+    triggers: [triggers.scheduled({ schedule: "17 3 * * *" })],
     env: {
+      // Las cuentas, el progreso y los intentos (src/schema.sql).
+      DB: bindings.d1({ name: "qiskit-guides" }),
+      // Los clientes OAuth se crean en las cuentas de Google y GitHub, y sus
+      // secretos no se escriben aquí.
+      GOOGLE_CLIENT_ID: bindings.secret(),
+      GOOGLE_CLIENT_SECRET: bindings.secret(),
+      GITHUB_CLIENT_ID: bindings.secret(),
+      GITHUB_CLIENT_SECRET: bindings.secret(),
+      AUTH_PER_MINUTE: bindings.text("10"),
+      AUTH_SESSION_DAYS: bindings.text("30"),
+      SIGNED_IN_IP_FACTOR: bindings.text("4"),
+      ATTEMPT_RETENTION_DAYS: bindings.text("180"),
+      ACCOUNT_RETENTION_DAYS: bindings.text("730"),
       // El secreto del widget de Turnstile no se escribe aquí: se crea en la cuenta.
       TURNSTILE_SECRET: bindings.secret(),
       // La clave del sitio es pública y se copia desde el widget de Turnstile.

@@ -9,7 +9,32 @@ export interface Env {
   USD_PER_BUSY_SECOND: string;
   RESERVED_BUSY_SECONDS: string;
   SESSION_HOURS: string;
+  AUTH_PER_MINUTE: string;
+  AUTH_SESSION_DAYS: string;
+  SIGNED_IN_IP_FACTOR: string;
+  ATTEMPT_RETENTION_DAYS: string;
+  ACCOUNT_RETENTION_DAYS: string;
+  DB: D1Database;
+  // Secretos de los clientes OAuth. Un proveedor sin ellos responde 503.
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  GITHUB_CLIENT_ID?: string;
+  GITHUB_CLIENT_SECRET?: string;
 }
+
+type NumericVar =
+  | "RATE_PER_MINUTE"
+  | "RATE_PER_DAY"
+  | "MAX_CODE_BYTES"
+  | "MONTHLY_BUDGET_USD"
+  | "USD_PER_BUSY_SECOND"
+  | "RESERVED_BUSY_SECONDS"
+  | "SESSION_HOURS"
+  | "AUTH_PER_MINUTE"
+  | "AUTH_SESSION_DAYS"
+  | "SIGNED_IN_IP_FACTOR"
+  | "ATTEMPT_RETENTION_DAYS"
+  | "ACCOUNT_RETENTION_DAYS";
 
 export interface Limits {
   perMinute: number;
@@ -26,15 +51,23 @@ export interface Limits {
   reserveNano: number;
   reserveMs: number;
   sessionMs: number;
+  // Peticiones por minuto y por IP a /auth/*.
+  authPerMinute: number;
+  authSessionMs: number;
+  // El tope por IP de quien tiene cuenta es este múltiplo del anónimo.
+  signedInIpFactor: number;
+  attemptRetentionMs: number;
+  accountRetentionMs: number;
 }
 
 const NANO = 1e9;
+const DAY_MS = 86_400_000;
 
 export class ConfigError extends Error {
   override name = "ConfigError";
 }
 
-function positive(env: Env, name: keyof Env, integer: boolean): number {
+function positive(env: Env, name: NumericVar, integer: boolean): number {
   const n = Number(env[name]);
   if (!Number.isFinite(n) || n <= 0 || (integer && !Number.isInteger(n))) {
     throw new ConfigError(`${name} debe ser un número positivo${integer ? " entero" : ""}`);
@@ -58,5 +91,10 @@ export function loadLimits(env: Env): Limits {
     reserveNano: Math.round(reserveSeconds * nanoPerBusySecond),
     reserveMs: reserveSeconds * 1000,
     sessionMs: positive(env, "SESSION_HOURS", false) * 3_600_000,
+    authPerMinute: positive(env, "AUTH_PER_MINUTE", true),
+    authSessionMs: positive(env, "AUTH_SESSION_DAYS", false) * DAY_MS,
+    signedInIpFactor: positive(env, "SIGNED_IN_IP_FACTOR", true),
+    attemptRetentionMs: positive(env, "ATTEMPT_RETENTION_DAYS", false) * DAY_MS,
+    accountRetentionMs: positive(env, "ACCOUNT_RETENTION_DAYS", false) * DAY_MS,
   };
 }

@@ -1,9 +1,12 @@
+import { readFileSync } from "node:fs";
+import http from "node:http";
 import path from "node:path";
 
 import { build } from "esbuild";
 import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 
 import { WORKER_FIRST } from "../src/routes.ts";
+import { CLIENTS, FakeProvider } from "./provider.ts";
 
 // Secretos de prueba documentados por Cloudflare para Turnstile.
 export const PASS_SECRET = "1x0000000000000000000000000000000AA";
@@ -20,6 +23,15 @@ export const VARS = {
   USD_PER_BUSY_SECOND: "0.0000075",
   RESERVED_BUSY_SECONDS: "30",
   SESSION_HOURS: "8",
+  AUTH_PER_MINUTE: "1000",
+  AUTH_SESSION_DAYS: "30",
+  SIGNED_IN_IP_FACTOR: "4",
+  ATTEMPT_RETENTION_DAYS: "180",
+  ACCOUNT_RETENTION_DAYS: "730",
+  GOOGLE_CLIENT_ID: CLIENTS.google.id,
+  GOOGLE_CLIENT_SECRET: CLIENTS.google.secret,
+  GITHUB_CLIENT_ID: CLIENTS.github.id,
+  GITHUB_CLIENT_SECRET: CLIENTS.github.secret,
 };
 
 export const TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
@@ -58,6 +70,22 @@ export interface Harness {
     options?: { ip?: string; headers?: Record<string, string>; raw?: string },
   ): Promise<Reply>;
   get(pathname: string): Promise<Reply>;
+  request(
+    method: string,
+    pathname: string,
+    options?: { ip?: string; headers?: Record<string, string>; body?: unknown },
+  ): Promise<Reply>;
+  // Manda solo los encabezados de una petición que declara `length` bytes de cuerpo
+  // y devuelve el estado de la respuesta, sin enviar el cuerpo.
+  declare(
+    method: string,
+    pathname: string,
+    length: number,
+    headers?: Record<string, string>,
+  ): Promise<number>;
+  provider: FakeProvider;
+  db: D1Database;
+  purge(at?: Date): Promise<void>;
   // Líneas escritas por el Worker en Workers Logs.
   workerLogs(): string[];
   runnerCalls(): { path: string; headers: string[] }[];
@@ -89,9 +117,17 @@ export interface Options {
   siteverify?: "fake" | "down" | "real";
 }
 
+const SCHEMA = readFileSync(path.join(import.meta.dirname, "../src/schema.sql"), "utf8")
+  .replace(/^--.*$/gm, "")
+  .split(";")
+  .map((statement) => statement.trim())
+  .filter(Boolean);
+
 export async function start(options: Options = {}): Promise<Harness> {
   const logs: string[] = [];
   const siteverify: Siteverify = { calls: [] };
+  const provider = new FakeProvider();
+  const verify = fakeSiteverify(siteverify, (options.siteverify ?? "fake") === "down");
   const mode = options.siteverify ?? "fake";
   const mf = new Miniflare(
     convertV4MiniflareOptions({
@@ -113,7 +149,13 @@ export async function start(options: Options = {}): Promise<Harness> {
         RateLimiter: { className: "RateLimiter", useSQLite: true },
         Budget: { className: "Budget", useSQLite: true },
       },
-      ...(mode === "real" ? {} : { outboundService: fakeSiteverify(siteverify, mode === "down") }),
+      d1Databases: { DB: "test-db" },
+      ...(mode === "real"
+        ? {}
+        : {
+            outboundService: (request: Request) =>
+              provider.owns(new URL(request.url)) ? provider.handle(request) : verify(request),
+          }),
       handleStructuredLogs: (log: { message: string }) => logs.push(log.message),
       logRequests: false,
     }),
@@ -128,8 +170,28 @@ export async function start(options: Options = {}): Promise<Harness> {
     } catch {}
     return { status: response.status, headers: response.headers as unknown as Headers, body };
   };
+  const db = await mf.getD1Database("DB");
+  for (const statement of SCHEMA) await db.prepare(statement).run();
   return {
     siteverify,
+    provider,
+    db,
+    purge: async (at = new Date()) => {
+      await (await mf.getWorker()).scheduled({ scheduledTime: at });
+    },
+    request: async (method, pathname, { ip = "198.51.100.7", headers = {}, body } = {}) =>
+      reply(
+        await mf.dispatchFetch(`http://runner.test${pathname}`, {
+          method,
+          redirect: "manual",
+          headers: {
+            "cf-connecting-ip": ip,
+            ...(body === undefined ? {} : { "content-type": "application/json" }),
+            ...headers,
+          },
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        }),
+      ),
     post: async (body, { ip = "198.51.100.7", headers = {}, raw } = {}) =>
       reply(
         await mf.dispatchFetch("http://runner.test/run", {
@@ -138,6 +200,32 @@ export async function start(options: Options = {}): Promise<Harness> {
           body: raw ?? JSON.stringify(body),
         }),
       ),
+    declare: async (method, pathname, length, headers = {}) => {
+      const url = await mf.ready;
+      return new Promise<number>((resolve, reject) => {
+        const req = http.request(
+          {
+            host: url.hostname,
+            port: url.port,
+            method,
+            path: pathname,
+            headers: {
+              host: "runner.test",
+              "cf-connecting-ip": "198.51.100.7",
+              ...headers,
+              "content-length": length,
+            },
+          },
+          (res) => {
+            res.resume();
+            resolve(res.statusCode ?? 0);
+            req.destroy();
+          },
+        );
+        req.on("error", reject);
+        req.flushHeaders();
+      });
+    },
     get: async (pathname) => reply(await mf.dispatchFetch(`http://runner.test${pathname}`)),
     workerLogs: () => logs.filter((line) => !line.startsWith("FAKE_RUNNER_")),
     runnerStops: () => logs.filter((line) => line === "FAKE_RUNNER_STOP").length,

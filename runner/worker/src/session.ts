@@ -43,17 +43,21 @@ export async function issueSession(
   return `${COOKIE}=${expires}.${tag}; Max-Age=${maxAge}; Path=/run; HttpOnly; Secure; SameSite=Strict`;
 }
 
+export function getCookie(cookieHeader: string | null, name: string): string | undefined {
+  return cookieHeader
+    ?.split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${name}=`))
+    ?.slice(name.length + 1);
+}
+
 export async function hasSession(
   secret: string,
   ip: string,
   now: number,
   cookieHeader: string | null,
 ): Promise<boolean> {
-  const value = cookieHeader
-    ?.split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(`${COOKIE}=`))
-    ?.slice(COOKIE.length + 1);
+  const value = getCookie(cookieHeader, COOKIE);
   const [expires, tag] = value?.split(".") ?? [];
   if (!expires || !tag || !/^\d+$/.test(expires) || Number(expires) <= now) return false;
   const expected = await mac(secret, "session", `${expires}|${ip}`);

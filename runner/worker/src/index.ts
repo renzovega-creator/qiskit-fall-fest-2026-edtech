@@ -1,14 +1,20 @@
 import { Container, getRandom } from "@cloudflare/containers";
 
+import { sessionUser } from "./account.ts";
+import { handleApi } from "./api.ts";
+import { recordAttempt, toAttempt } from "./attempts.ts";
+import { handleAuth } from "./auth.ts";
+import { fail } from "./http.ts";
 import { ConfigError, type Env, type Limits, loadLimits } from "./limits.ts";
 import { type Entry, logFailure, logRun } from "./log.ts";
-import { Budget, RateLimiter } from "./meters.ts";
-import { hasSession, issueSession, mac, verifyTurnstile } from "./session.ts";
+import { Budget, RateLimiter, type Verdict } from "./meters.ts";
+import { purge } from "./purge.ts";
+import { hasSession, issueSession, verifyTurnstile } from "./session.ts";
+import { take } from "./throttle.ts";
 
 export { Budget, RateLimiter };
 
 const INSTANCES = 3;
-const DAY_MS = 86_400_000;
 // Cloudflare cobra el tiempo del contenedor en pasos de 10 ms.
 const BILLING_STEP_MS = 10;
 
@@ -49,6 +55,19 @@ function refuse(response: Refusal): Response {
 }
 
 const utf8Length = (text: string) => new TextEncoder().encode(text).length;
+
+function throwIfLimited(verdict: Verdict): void {
+  if (verdict.ok) return;
+  const day = verdict.scope === "day";
+  throw new Refusal(
+    { outcome: day ? "rate_day" : "rate_minute", status: 429 },
+    day ? "rate_day" : "rate_minute",
+    day
+      ? `Llegaste al límite de ejecuciones de hoy. Puedes volver a ejecutar en ${wait(verdict.retryAfter)}.`
+      : `Estás ejecutando demasiado seguido. Espera ${wait(verdict.retryAfter)} y vuelve a intentarlo.`,
+    { "Retry-After": String(verdict.retryAfter) },
+  );
+}
 
 function wait(seconds: number): string {
   if (seconds < 90) return `${seconds} s`;
@@ -125,22 +144,33 @@ async function run(request: Request, env: Env, exports: Exports): Promise<Respon
   let holding = false;
 
   try {
-    const dayStart = Math.floor(now / DAY_MS) * DAY_MS;
-    const limiter = exports.RateLimiter.get(
-      exports.RateLimiter.idFromName(
-        await mac(env.TURNSTILE_SECRET, "limiter", `${dayStart}|${ip}`),
+    const userId = await sessionUser(env.DB, request.headers.get("cookie"), now);
+    // Quien tiene cuenta comparte la IP con su clase: su tope por IP es mayor y el
+    // que lo acota es el suyo propio.
+    const ipFactor = userId ? limits.signedInIpFactor : 1;
+    const secret = env.TURNSTILE_SECRET;
+    throwIfLimited(
+      await take(
+        exports.RateLimiter,
+        secret,
+        "limiter",
+        ip,
+        now,
+        limits.perMinute * ipFactor,
+        limits.perDay * ipFactor,
       ),
     );
-    const verdict = await limiter.take(now, limits.perMinute, limits.perDay, dayStart + DAY_MS);
-    if (!verdict.ok) {
-      const day = verdict.scope === "day";
-      throw new Refusal(
-        { outcome: day ? "rate_day" : "rate_minute", status: 429 },
-        day ? "rate_day" : "rate_minute",
-        day
-          ? `Llegaste al límite de ejecuciones de hoy. Puedes volver a ejecutar en ${wait(verdict.retryAfter)}.`
-          : `Estás ejecutando demasiado seguido. Espera ${wait(verdict.retryAfter)} y vuelve a intentarlo.`,
-        { "Retry-After": String(verdict.retryAfter) },
+    if (userId) {
+      throwIfLimited(
+        await take(
+          exports.RateLimiter,
+          secret,
+          "user",
+          userId,
+          now,
+          limits.perMinute,
+          limits.perDay,
+        ),
       );
     }
 
@@ -188,7 +218,11 @@ async function run(request: Request, env: Env, exports: Exports): Promise<Respon
     }
 
     let cookie: string | undefined;
-    if (!(await hasSession(env.TURNSTILE_SECRET, ip, now, request.headers.get("cookie")))) {
+    // Una cuenta ya pasó por Google o GitHub y tiene su propio limitador.
+    if (
+      !userId &&
+      !(await hasSession(env.TURNSTILE_SECRET, ip, now, request.headers.get("cookie")))
+    ) {
       const token = request.headers.get("x-turnstile-token");
       if (!token) {
         if (!env.TURNSTILE_SITE_KEY)
@@ -284,7 +318,22 @@ async function run(request: Request, env: Env, exports: Exports): Promise<Respon
       "Cache-Control": "no-store",
     });
     if (cookie) headers.set("Set-Cookie", cookie);
-    return new Response(result.body, { status: result.status, headers });
+    const text = await result.text();
+    if (result.status === 200) {
+      // Anotar el intento no debe quitarle al alumno su resultado.
+      try {
+        const attempt = toAttempt(
+          parsed,
+          entry.codeBytes ?? 0,
+          request.headers.get("x-hints"),
+          JSON.parse(text),
+        );
+        if (attempt) await recordAttempt(env.DB, userId, attempt, now);
+      } catch (error) {
+        logFailure(error, "attempt");
+      }
+    }
+    return new Response(text, { status: result.status, headers });
   } catch (error) {
     if (holding) await settle(budget, month, limits.reserveNano, 0);
     if (error instanceof Refusal) {
@@ -300,6 +349,22 @@ export default {
     const { pathname } = new URL(request.url);
     // Responder aquí evita arrancar un contenedor por una petición sin límite.
     if (pathname === "/health") return Response.json({ ok: true });
+    const account = pathname.startsWith("/auth/")
+      ? "auth"
+      : pathname.startsWith("/api/")
+        ? "api"
+        : null;
+    if (account) {
+      const { RateLimiter: limiters } = (ctx as unknown as { exports: Exports }).exports;
+      try {
+        const limits = loadLimits(env);
+        const handle = account === "auth" ? handleAuth : handleApi;
+        return await handle(request, env, limits, limiters, Date.now());
+      } catch (error) {
+        logFailure(error, account);
+        return fail(500, "internal_error", "Error interno.");
+      }
+    }
     if (pathname !== "/run") return Response.json({ error: "no existe" }, { status: 404 });
     if (request.method !== "POST") {
       return Response.json({ error: "usa POST" }, { status: 405, headers: { Allow: "POST" } });
@@ -312,6 +377,16 @@ export default {
         { error: "Error interno del corredor.", reason: "internal_error" },
         { status: 500 },
       );
+    }
+  },
+
+  // El cron diario de cloudflare.config.ts.
+  async scheduled(controller: ScheduledController, env: Env): Promise<void> {
+    try {
+      await purge(env.DB, loadLimits(env), controller.scheduledTime);
+    } catch (error) {
+      logFailure(error, "purge");
+      throw error;
     }
   },
 };

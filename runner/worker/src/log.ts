@@ -1,3 +1,4 @@
+import { EXERCISE } from "./contract.ts";
 import { ConfigError } from "./limits.ts";
 
 export type Outcome =
@@ -23,8 +24,6 @@ export interface Entry {
   costNano?: number;
 }
 
-const EXERCISE = /^[a-z0-9-]{1,40}\/[a-z0-9-]{1,40}$/;
-
 // Una línea por petición con campos fijos. Nunca recibe el código, la IP, el
 // token, la cookie ni el texto de un error: `mode` y `exercise` se copian solo si
 // tienen la forma de un valor del contrato, y lo demás son números y un nombre.
@@ -46,14 +45,18 @@ export function logRun(entry: Entry): void {
   );
 }
 
-// `where` nombra el paso que falló cuando la petición sigue su camino.
-export function logFailure(error: unknown, where?: "settle" | "stop"): void {
+export type Where = "settle" | "stop" | "attempt" | "auth" | "api" | "purge";
+
+// `where` nombra el paso que falló cuando la petición sigue su camino. `auth`,
+// `api` y `purge` no son pasos de /run: son su propio evento.
+export function logFailure(error: unknown, where?: Where): void {
+  const own = where === "auth" || where === "api" || where === "purge";
   console.error(
     JSON.stringify({
-      event: "run",
+      event: own ? where : "run",
       outcome: "internal_error",
-      status: where ? undefined : 500,
-      where,
+      status: where && !own ? undefined : 500,
+      where: own ? undefined : where,
       error: error instanceof Error ? error.name : "unknown",
       // Solo un error de configuración lleva texto: nombra una variable, no datos.
       detail: error instanceof ConfigError ? error.message : undefined,

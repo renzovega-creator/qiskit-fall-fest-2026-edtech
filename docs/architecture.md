@@ -126,13 +126,14 @@ libres, en `server.py`.
   solo esperan a su propio almacenamiento, así que leer y escribir dentro de un
   método es una operación.
 
-`RateLimiter` hay uno por IP y día, nombrado con un HMAC de ambos. Su estado es
-el registro `count` (minuto del reloj, peticiones de ese minuto y del día).
+`RateLimiter` hay uno por clave (una IP o un usuario), etiqueta y día, nombrado
+con un HMAC de los tres. Su estado es el registro `count` (minuto del reloj,
+peticiones de ese minuto y del día).
 
-| Estado   | Significa                                | Quién lo deja y cuándo                                                                                                                 |
-| -------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| vacío    | No hay `count`.                          | Al crearse el objeto, y la alarma `alarm` cuando termina el día más un minuto.                                                         |
-| contando | Hay `count` y una alarma al fin del día. | `take`, que el Worker llama primero en cada `POST /run`. Suma una petición si caben en el minuto y en el día, y si no, no cambia nada. |
+| Estado   | Significa                                | Quién lo deja y cuándo                                                                                                                                               |
+| -------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| vacío    | No hay `count`.                          | Al crearse el objeto, y la alarma `alarm` cuando termina el día más un minuto.                                                                                       |
+| contando | Hay `count` y una alarma al fin del día. | `take`, que el Worker llama en cada `POST /run` y en cada petición a `/auth` y `/api`. Suma una petición si caben en el minuto y en el día, y si no, no cambia nada. |
 
 - Al cambiar el minuto del reloj, `take` empieza el contador del minuto de cero
   sin esperar a ningún evento. El contador del día sigue hasta la alarma.
@@ -150,6 +151,79 @@ nanodólares).
 - Una petición tiene a lo sumo una reserva: la aparta una vez y la cambia una
   vez, o se interrumpe y la reserva se queda en el total.
 - Un `settle` que falla se registra y no cambia la respuesta de la petición.
+
+`DB` es la base D1 de las cuentas ([runner.md](runner.md#cuentas) da los
+endpoints y [`schema.sql`](../runner/worker/src/schema.sql) las tablas). Todo
+cuelga de `users` con `ON DELETE CASCADE`, y D1 hace cumplir las claves
+foráneas: borrar un usuario borra todo lo suyo en una sola sentencia. Las
+sentencias de un lote de D1 se ejecutan seguidas, sin que otra escritura se
+intercale.
+
+Usuario (`users`):
+
+| Estado    | Significa                                                    | Quién lo deja y cuándo                                                                                                                           |
+| --------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| no existe | No hay fila con ese id.                                      | El principio; y `DELETE /api/me` o la limpieza diaria, que borran la fila.                                                                       |
+| activo    | Hay fila y `seen_day` es el día de la última visita.         | `userForIdentity`, en la vuelta de OAuth de una identidad nueva, en un lote con su fila de `identities`. Cada visita con sesión sube `seen_day`. |
+| inactivo  | `seen_day` es anterior a hoy menos `ACCOUNT_RETENTION_DAYS`. | El paso del tiempo. No hay temporizador: la limpieza diaria lo borra.                                                                            |
+
+- Dos primeras entradas a la vez de la misma identidad crean un solo usuario: la
+  clave de `identities` es (proveedor, identificador), el lote de la segunda se
+  deshace entero y esa entrada usa el usuario de la primera.
+- Una visita es una petición con sesión a `/run` o a `/api`, o la vuelta de
+  OAuth. `seen_day` solo sube, a lo sumo una vez al día.
+
+Sesión (`sessions`):
+
+| Estado   | Significa                                     | Quién lo deja y cuándo                                                              |
+| -------- | --------------------------------------------- | ----------------------------------------------------------------------------------- |
+| vigente  | Hay fila y `expires_at` es posterior a ahora. | `openSession`, en la vuelta de OAuth. Cada inicio crea una y deja las anteriores.   |
+| caducada | Hay fila y `expires_at` ya pasó.              | El paso del tiempo. `sessionUser` ya no la acepta; la fila sigue hasta la limpieza. |
+| cerrada  | No hay fila.                                  | `POST /auth/logout`, la limpieza de las caducadas y el borrado del usuario.         |
+
+Una sesión nunca vuelve a vigente. Una cuenta tiene tantas a la vez como
+dispositivos con los que entró.
+
+Progreso (`lesson_done`, `exercise_state`, `kv` y `users.progress_version`):
+
+| Estado    | Significa                              | Quién lo deja y cuándo                                                  |
+| --------- | -------------------------------------- | ----------------------------------------------------------------------- |
+| vacío     | El usuario no tiene filas en las tres. | La creación del usuario, con `progress_version` 0.                      |
+| con datos | Tiene filas en alguna de las tres.     | `mergeProgress`, que sirve a `POST /api/merge` y a `PUT /api/progress`. |
+
+- Una escritura no quita nada: no borra una lección, `passed` no vuelve a falso,
+  `hints`, `checks` y `at` solo suben, y el código solo lo cambia una edición
+  con `at` mayor. Cada clave de `kv` se junta por la regla de su familia
+  ([runner.md](runner.md#el-progreso)). Lo que no cambia el resultado no
+  escribe.
+- `mergeProgress` lee las tres tablas y `progress_version` en un lote, calcula
+  el resultado y lo escribe en otro lote cuyas sentencias solo actúan si
+  `progress_version` sigue siendo la leída; la última la sube en uno. Si otra
+  escritura del mismo usuario se coló, esa última no cambia ninguna fila y la
+  petición vuelve a leer. Tras 10 intentos responde 503 `busy`. Ninguna
+  escritura pisa a otra.
+- Si el usuario se borra mientras la petición corre, la lectura no lo encuentra
+  y responde 401 `signed_out`.
+
+Intento (`attempts`):
+
+| Estado  | Significa                                                | Quién lo deja y cuándo                                                                                    |
+| ------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| anotado | Hay fila, con `user_id` o con `NULL`.                    | `recordAttempt`, tras cada respuesta 200 de `/run` cuyo JSON tiene la forma del contrato.                 |
+| vencido | `at` es anterior a ahora menos `ATTEMPT_RETENTION_DAYS`. | El paso del tiempo. La limpieza diaria lo borra.                                                          |
+| borrado | No hay fila.                                             | La limpieza diaria y, si tenía `user_id`, el borrado del usuario. Los anónimos solo salen en la limpieza. |
+
+Una fila no se modifica después de escribirse.
+
+Borrado y limpieza:
+
+- `DELETE /api/me` borra la fila de `users`. Con ella salen las identidades, las
+  sesiones, el progreso y los intentos del usuario. Las peticiones siguientes
+  con su cookie ya no encuentran la sesión.
+- El cron diario ejecuta `purge` en un lote, en este orden: intentos vencidos,
+  sesiones caducadas, usuarios inactivos. Un usuario inactivo que entra justo
+  mientras corre puede perder la sesión que abría (500); al reintentar se crea
+  una cuenta nueva.
 
 ## Camino de los datos
 
