@@ -3169,6 +3169,7 @@ dev = [
     { name = "pytest" },
 ]
 runner = [
+    { name = "matplotlib" },
     { name = "qiskit" },
     { name = "qiskit-aer" },
     { name = "qiskit-ibm-runtime" },
@@ -3198,6 +3199,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=9.1.1" }]
 runner = [
+    { name = "matplotlib" },
     { name = "qiskit" },
     { name = "qiskit-aer" },
     { name = "qiskit-ibm-runtime" },

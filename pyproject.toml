@@ -32,6 +32,7 @@ runner = [
     "qiskit",
     "qiskit-aer",
     "qiskit-ibm-runtime",
+    "matplotlib",
 ]
 
 [tool.uv]
