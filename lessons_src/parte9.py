@@ -1,14 +1,13 @@
 """Parte IX · Extender e integrar Qiskit."""
-from lib import (T, M, L, Row, Box, A, beat, choice, numeric, lesson,
+from lib import (T, M, L, Row, Box, A, beat, choice, numeric, lesson, predict, reflect, Mission,
                  Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph)
 from parte2 import resumen
 
 # ------------------------------------------------------------------ 9.1 Proveedores
-MIQPU = '''from qiskit import QuantumCircuit
-from qiskit.circuit import Parameter, Measure
+MIQPU = '''from qiskit.circuit import Parameter, Measure
 from qiskit.circuit.library import CZGate, RZGate, SXGate, XGate
 from qiskit.providers import BackendV2, Options
-from qiskit.transpiler import Target, InstructionProperties, generate_preset_pass_manager
+from qiskit.transpiler import Target, InstructionProperties
 
 class MiQPU(BackendV2):
     def __init__(self):
@@ -32,7 +31,10 @@ class MiQPU(BackendV2):
         raise NotImplementedError("aquí se enviaría el trabajo al servicio")
 
 backend = MiQPU()
-print(backend.num_qubits, backend.operation_names, backend.coupling_map.get_edges())
+print(backend.num_qubits, backend.operation_names, backend.coupling_map.get_edges())'''
+TRANSPILAR = '''from qiskit import QuantumCircuit
+from qiskit.transpiler import generate_preset_pass_manager
+
 qc = QuantumCircuit(3)
 qc.h(0)
 qc.cx(0, 2)
@@ -59,11 +61,25 @@ proveedores = lesson(
         beat("backend", ("", "Un BackendV2 mínimo"),
              """El núcleo de un BackendV2 es su Target. Construyamos uno para un QPU imaginario de tres qubits en línea. [[target]]Añadimos las puertas de un qubit, RZ, raíz de X y X, y la medición, en los tres qubits, con su error; y la CZ solo entre los pares cero uno y uno dos.
              [[metodos]]La clase debe ofrecer el target, el máximo de circuitos por trabajo, las opciones por defecto y run, que en un proveedor real enviaría el trabajo a su servicio.
-             [[usar]]Con eso, el transpilador de Qiskit ya funciona: el backend informa sus qubits, sus operaciones y su mapa de acoplamiento, [[res]]y la CNOT se traduce a una CZ y rotaciones de un qubit. El transpilador eligió qubits vecinos, así que no hizo falta ningún SWAP.""",
+             [[usar]]Con eso, el backend ya informa sus qubits, sus operaciones y su mapa de acoplamiento: tres qubits, cinco operaciones y solo dos pares conectados.""",
              [Code(MIQPU, id="c", size=17),
-              Out("3 ['rz', 'sx', 'x', 'measure', 'cz'] EdgeList[(0, 1), (1, 2)]\n{'rz': 6, 'sx': 3, 'cz': 1}", id="o", hidden=True, check=True)],
-             [A("hl", "c", at="target", range="10-15"), A("hl", "c", at="metodos", range="16-26"), A("hl", "c", at="usar", range="28-29"), A("show", "o", at="usar", t=3),
-              A("hl", "c", at="res", range="30-34")]),
+              Out("3 ['rz', 'sx', 'x', 'measure', 'cz'] EdgeList[(0, 1), (1, 2)]", id="o", hidden=True, check=True)],
+             [A("hl", "c", at="target", range="9-14"), A("hl", "c", at="metodos", range="15-25"), A("hl", "c", at="usar", range="27-28"), A("show", "o", at="usar", t=3)]),
+
+        beat("predice", ("", "Antes de transpilar"),
+             """Antes de transpilar, apuesta. Este circuito aplica una Hadamard al qubit cero y una CNOT entre el qubit cero y el dos. Pero en nuestro QPU esos dos qubits no están conectados: solo hay enlaces entre cero y uno, y entre uno y dos.
+             ¿Cuántas puertas CZ crees que tendrá el circuito transpilado? Piensa en lo que el transpilador tiene que hacer para llegar de un extremo al otro de la línea.""",
+             [Circ(3, [G("h", 0), G("cx", 0, 2)])],
+             ask=predict("¿Cuántas CZ tendrá el circuito transpilado?",
+                         ["ninguna: la CNOT se traduce a otra puerta", "una", "dos", "cuatro o más: hace falta un SWAP"],
+                         "Anotado. Veamos qué hace el transpilador.")),
+
+        beat("transpilar", ("", "Transpilar para MiQPU"),
+             """Transpilamos con el gestor de pases preestablecido, nivel uno, apuntando a nuestro backend. [[res]]Sale una sola CZ, junto con seis rotaciones RZ y tres raíces de X. No hizo falta ningún SWAP: el transpilador colocó los qubits lógicos cero y dos en los físicos uno y cero, que sí son vecinos.
+             [[cx]]La CNOT se tradujo a una CZ rodeada de puertas de un qubit, porque la CZ es la única de dos qubits que el Target declara.""",
+             [Code(TRANSPILAR, id="c", size=22),
+              Out("{'rz': 6, 'sx': 3, 'cz': 1}", id="o", hidden=True, check=True)],
+             [A("hl", "c", at="res", lines=[7]), A("show", "o", at="res", t=2), A("hl", "c", at="cx", lines=[6])]),
 
         beat("primitivas", ("", "Implementar las primitivas"),
              """Para ejecutar, el proveedor implementa las clases base de las primitivas. Un Estimator propio hereda de BaseEstimatorV2 y su run recibe PUBs y una precisión.
@@ -104,6 +120,21 @@ class EstimatorImplementation(BaseEstimatorV2):
                         "Correcto: el error de lectura es el error de la instrucción `measure` en ese qubit, dentro del Target.",
                         wrong=["Ese atributo no existe.", None, "`QubitProperties` solo tiene `t1`, `t2` y `frequency`."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero reproduces MiQPU y transpilas un circuito. [[n2]]Después le añades duraciones al Target y estimas cuánto dura un circuito. [[n3]]Y por último implementas run con un simulador local, para que MiQPU funcione con las primitivas.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes. Todo corre en tu equipo: no hace falta cuenta.""",
+             [Mission("practica/p9-proveedores.py", [
+                 (1, "Construye `MiQPU` y mira en qué se transpila una CNOT entre qubits lejanos."),
+                 (2, "Añade duraciones al Target y estima la duración de un circuito."),
+                 (3, "Implementa `run` con `BasicSimulator` y úsalo con `BackendSamplerV2`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Antes de cerrar, dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("Si el Target de `MiQPU` declarara CX en lugar de CZ, ¿qué cambiaría en el circuito transpilado y qué no? ¿Qué parte del proveedor sigue igual?",
+                         "Un `BackendV2` solo describe el hardware y la ejecución va en `run`. ¿Por qué crees que Qiskit separa esas dos cosas?")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Un proveedor ofrece un BackendV2 con su Target. [[r2]]La ejecución se expone implementando las primitivas. [[r3]]Los resultados usan las estructuras de Qiskit.
              [[r4]]Y al migrar de BackendV1, casi todo pasa al Target.""",
@@ -118,6 +149,23 @@ s_cierre, a_cierre = resumen(["API de C experimental: observables, circuitos, `Q
                               "biblioteca independiente: compilar con Rust, `cbindgen` y un compilador C11 (`make c`)",
                               "extensiones de Python: `qiskit.capi.get_include()` + `#define QISKIT_PYTHON_EXTENSION`",
                               "compatibilidad solo dentro de la misma versión menor"])
+OBSERVABLE_C = '''#include <stdio.h>
+#include <stdint.h>
+#include <qiskit.h>
+
+int main(int argc, char *argv[]) {
+    uint32_t num_qubits = 100;
+    QkObs *obs = qk_obs_zero(num_qubits);
+    QkComplex64 coeff = {2, 0};
+    QkBitTerm bit_terms[3] = {QkBitTerm_X, QkBitTerm_Y, QkBitTerm_Z};
+    uint32_t indices[3] = {0, 1, 2};
+    QkObsTerm term = {coeff, 3, bit_terms, indices, num_qubits};
+    qk_obs_add_term(obs, &term);
+    printf("num_qubits: %i\\n", qk_obs_num_qubits(obs));
+    printf("num_terms: %lu\\n", qk_obs_num_terms(obs));
+    qk_obs_free(obs);
+    return 0;
+}'''
 c_api = lesson(
     "p9-c-api", "La API de C de Qiskit",
     "Usar Qiskit desde C: compilar la biblioteca independiente, construir observables, y escribir extensiones de Python en C para acelerar pases del transpilador.",
@@ -135,35 +183,31 @@ c_api = lesson(
         beat("observable", ("", "Un observable en C"),
              """Este programa en C construye un observable de cien qubits. Empieza con un observable cero, [[termino]]y le añade el término dos por X cero, Y uno, Z dos: un coeficiente complejo, los tres operadores de Pauli y los índices de los qubits.
              [[imprimir]]Imprime sus propiedades [[liberar]]y, como en todo programa en C, libera la memoria al final.""",
-             [Code('''#include <stdio.h>
-#include <stdint.h>
-#include <qiskit.h>
-
-int main(int argc, char *argv[]) {
-    uint32_t num_qubits = 100;
-    QkObs *obs = qk_obs_zero(num_qubits);
-    QkComplex64 coeff = {2, 0};
-    QkBitTerm bit_terms[3] = {QkBitTerm_X, QkBitTerm_Y, QkBitTerm_Z};
-    uint32_t indices[3] = {0, 1, 2};
-    QkObsTerm term = {coeff, 3, bit_terms, indices, num_qubits};
-    qk_obs_add_term(obs, &term);
-    printf("num_qubits: %i\\n", qk_obs_num_qubits(obs));
-    printf("num_terms: %lu\\n", qk_obs_num_terms(obs));
-    qk_obs_free(obs);
-    return 0;
-}''', "text", id="c", size=19)],
+             [Code(OBSERVABLE_C, "text", id="c", size=19)],
              [A("hl", "c", at="observable", range="6-7"), A("hl", "c", at="termino", range="8-12"), A("hl", "c", at="imprimir", range="13-14"), A("hl", "c", at="liberar", lines=[15])]),
 
-        beat("compilar", ("", "Compilar la biblioteca"),
+        beat("predice", ("", "Antes de compilar"),
+             """Antes de compilarlo, apuesta. Mira el fragmento. [[qubits]]El observable se creó con cien qubits. [[term]]Pero solo le añadimos un término, y ese término toca tres qubits.
+             [[cual]]¿Qué número de términos crees que imprimirá el programa?""",
+             [Code('''QkObs *obs = qk_obs_zero(100);
+QkObsTerm term = {coeff, 3, bit_terms, indices, 100};   // 2·X0 Y1 Z2
+qk_obs_add_term(obs, &term);
+printf("num_terms: %lu\\n", qk_obs_num_terms(obs));''', "text", id="c", size=21)],
+             [A("hl", "c", at="qubits", lines=[1]), A("hl", "c", at="term", range="2-3"), A("hl", "c", at="cual", lines=[4])],
+             ask=predict("¿Qué imprime `qk_obs_num_terms(obs)`?",
+                         ["0, porque empieza vacío", "1", "3, uno por cada operador de Pauli", "100, uno por cada qubit"],
+                         "Anotado. Compilemos y ejecutemos.")),
+
+        beat("compilar", ("", "Compilar y ejecutar"),
              """Para compilar la biblioteca independiente necesitas un compilador de Rust, un compilador de C compatible con C once, cbindgen para generar la cabecera, y la biblioteca de Python, que solo se usa al enlazar.
-             [[make]]En la raíz del código de Qiskit, make c genera la biblioteca compartida y la cabecera qiskit punto h. [[gcc]]Luego compilas tu programa enlazando con ella, [[path]]y añades su carpeta a la ruta de bibliotecas antes de ejecutar.
+             [[make]]En la raíz del código de Qiskit, make c genera la biblioteca compartida y la cabecera qiskit punto h. [[gcc]]Luego compilas tu programa enlazando con ella, [[path]]y añades su carpeta a la ruta de bibliotecas antes de ejecutar. [[res]]Imprime cien qubits y un solo término: un término de Pauli es el producto de operadores sobre varios qubits, y no cuenta uno por operador.
              [[win]]En Windows hay dos caminos: para extensiones de Python basta con el compilador de Visual C++, porque las cabeceras vienen con el paquete qiskit; para la biblioteca independiente, se siguen pasos adicionales.""",
              [Sh('''make c
 gcc example.c -o example.o -I dist/c/include -L dist/c/lib -lqiskit
 export LD_LIBRARY_PATH=dist/c/lib:$LD_LIBRARY_PATH
 ./example.o''', id="c"),
               Out("num_qubits: 100\nnum_terms: 1", id="o", hidden=True)],
-             [A("hl", "c", at="make", lines=[1]), A("hl", "c", at="gcc", lines=[2]), A("hl", "c", at="path", range="3-4"), A("show", "o", at="path", t=3)]),
+             [A("hl", "c", at="make", lines=[1]), A("hl", "c", at="gcc", lines=[2]), A("hl", "c", at="path", range="3-4"), A("show", "o", at="res")]),
 
         beat("extension", ("", "Una extensión de Python en C"),
              """La guía construye una extensión real: una versión en C del pase AddSpectatorMeasures, que viste en la postselección. La estructura: un pyproject y un setup punto py para compilar, un init punto py con la interfaz de Python, y un archivo C con el código rápido.
@@ -206,6 +250,21 @@ static PyObject *py_add_spectator_measures(PyObject *self, PyObject *args, PyObj
                         "Correcto: la API de C es experimental; solo se garantiza dentro de la misma versión menor (2.4.x). Por eso la guía fija `qiskit~=2.4.0` en las dependencias.",
                         wrong=["No: puede romperse entre versiones menores.", None, "2.5.0 es otra versión menor: puede fallar."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. No necesita compilador de C: usa el mismo observable desde Python. [[n1]]Primero reproduces el observable de cien qubits con un solo término. [[n2]]Después le añades un segundo término, Z en el qubit noventa y nueve. [[n3]]Y por último escribes la función que da la restricción de versión para una extensión.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes.""",
+             [Mission("practica/p9-c-api.py", [
+                 (1, "Construye el observable de 100 qubits y cuenta sus términos."),
+                 (2, "Añade un segundo término `Z` en el qubit 99 y comprueba que ahora son dos."),
+                 (3, "Escribe `restriccion(version)` con la dependencia que fija la versión menor.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Antes de cerrar, dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("Un colega quiere reescribir en C todo su código de Qiskit «para que vaya más rápido». ¿Qué le preguntarías antes de aconsejarle que lo haga?",
+                         "La API de C solo garantiza compatibilidad dentro de la misma versión menor. ¿Qué harías en un proyecto para que una actualización de Qiskit no rompa tu extensión sin que te enteres?")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]La API de C permite usar Qiskit desde C y acelerar extensiones. [[r2]]La biblioteca se compila con make c. [[r3]]Las extensiones usan get include y la macro QISKIT PYTHON EXTENSION.
              [[r4]]Y por ser experimental, fija la versión menor.""",
@@ -220,6 +279,10 @@ s_cierre, a_cierre = resumen(["QRMI: capa ligera e independiente del fabricante 
                               "SPANK plugin: integra QRMI en Slurm · `#SBATCH --qpu=...`",
                               "administradores: `qrmi_config.json` y `slurm.conf` · usuarios: `--gres=qpu:N`",
                               "aplicaciones: `QRMIService().resources()` · `SamplerV2(qrmi)` · `RUST_LOG` para registros"])
+SCRIPT_SLURM = '''#SBATCH --time=100
+#SBATCH --gres=qpu:3
+#SBATCH --qpu=my_local_qpu,ibm_fez,ibm_marrakesh
+srun python mi_programa.py'''
 hpc = lesson(
     "p9-hpc", "HPC: QRMI y Slurm",
     "Integrar computadores cuánticos en centros de supercomputación: la interfaz QRMI, el plugin SPANK para Slurm y cómo lo usan administradores, usuarios y aplicaciones.",
@@ -258,13 +321,27 @@ NodeName=node[1-5000] Gres=qpu,name:ibm_fez''', "text", id="c", size=21),
 
         beat("usuario", ("", "Pedir QPUs en un trabajo"),
              """Como usuario, pides QPUs en tu script de Slurm igual que pides CPUs: con gres igual a qpu y la cantidad, y la opción qpu con los nombres. [[varios]]Puedes pedir varios, incluso de distintos tipos: uno local y dos de IBM.
-             [[app]]Dentro del trabajo, la variable SLURM JOB QPU RESOURCES lista los recursos asignados, y QRMI la usa. La idea es que tu código no dependa de un backend concreto: la elección del QPU queda en la definición del recurso.""",
-             [Sh('''#SBATCH --time=100
-#SBATCH --gres=qpu:3
-#SBATCH --qpu=my_local_qpu,ibm_fez,ibm_marrakesh
-srun python mi_programa.py''', id="c"),
-              T("dentro del trabajo: `SLURM_JOB_QPU_RESOURCES`", "note", id="n", hidden=True)],
+             [[app]]La idea es que tu código no dependa de un backend concreto: la elección del QPU queda en la definición del recurso, y el trabajo recibe lo que el plugin le deja en el entorno.""",
+             [Sh(SCRIPT_SLURM, id="c"),
+              T("el plugin deja el resultado en variables de entorno", "note", id="n", hidden=True)],
              [A("hl", "c", at="usuario", range="2-3"), A("hl", "c", at="varios", lines=[3]), A("show", "n", at="app")]),
+
+        beat("predice", ("", "Antes de lanzar el trabajo"),
+             """Antes de lanzarlo, apuesta. [[pide]]El script pide tres QPUs. [[admin]]Pero el administrador solo definió dos en qrmi config punto json: my local qpu, de acceso directo, e ibm fez, del servicio de IBM. No hay ninguna entrada para ibm marrakesh.
+             [[cual]]Dentro del trabajo, ¿qué valdrá la variable SLURM JOB QPU RESOURCES?""",
+             [Sh(SCRIPT_SLURM, id="c")],
+             [A("hl", "c", at="pide", lines=[3])],
+             ask=predict("Con solo `my_local_qpu` e `ibm_fez` definidos, ¿qué lista `SLURM_JOB_QPU_RESOURCES`?",
+                         ["`my_local_qpu,ibm_fez,ibm_marrakesh`", "`my_local_qpu,ibm_fez`", "`ibm_fez`", "el trabajo falla porque falta `ibm_marrakesh`"],
+                         "Anotado. Veámoslo dentro del trabajo.")),
+
+        beat("entorno", ("", "Lo que ve el trabajo"),
+             """Dentro del trabajo, el plugin deja dos variables. [[recursos]]SLURM JOB QPU RESOURCES lista los recursos que sí están definidos, en el orden pedido: ibm marrakesh desapareció, sin error. [[tipos]]Y SLURM JOB QPU TYPES da el tipo de cada uno, en el mismo orden.
+             [[ig]]Es la misma regla de la pregunta anterior: lo que no está en la configuración se ignora. Por eso conviene que tu programa lea la variable en lugar de fijar el nombre del QPU.""",
+             [Sh('''echo $SLURM_JOB_QPU_RESOURCES
+echo $SLURM_JOB_QPU_TYPES''', id="c"),
+              Out("my_local_qpu,ibm_fez\ndirect-access,qiskit-runtime-service", id="o", hidden=True)],
+             [A("hl", "c", at="recursos", lines=[1]), A("show", "o", at="recursos"), A("hl", "c", at="tipos", lines=[2])]),
 
         beat("aplicacion", ("", "La aplicación"),
              """En la aplicación, QRMIService te da los recursos asignados. Tomas uno, obtienes su backend para transpilar, [[sampler]]y ejecutas con la primitiva SamplerV2 de QRMI, igual que con las de IBM. [[logs]]Si algo falla, task logs da los registros de la tarea.""",
@@ -287,6 +364,21 @@ print(job.result()[0].data.meas.get_counts())
              ask=choice("`ibm_kyiv` no está en `qrmi_config.json`. ¿Qué pasa?", ["Slurm lo descarga automáticamente", "la especificación se ignora", "se usa el QPU menos ocupado"], 1,
                         "Correcto: si el recurso no está definido en `qrmi_config.json`, la especificación se ignora.",
                         wrong=["Solo se usan los recursos definidos por el administrador.", None, "No hay elección automática en ese caso."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. No necesita Slurm ni cuenta: repites en Python lo que hace el plugin. [[n1]]Primero reproduces el cruce entre lo que pide el script y lo que define el administrador. [[n2]]Después añades un recurso nuevo a la configuración, con el modo lote. [[n3]]Y por último escribes la función que calcula las variables de entorno del trabajo.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes.""",
+             [Mission("practica/p9-hpc.py", [
+                 (1, "Cruza los QPUs pedidos con los definidos y mira cuál se ignora."),
+                 (2, "Añade `ibm_marrakesh` a la configuración con el modo de sesión `batch`."),
+                 (3, "Escribe `entorno(qpu, config)` con las variables que deja el plugin.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Antes de cerrar, dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("Un nombre de QPU mal escrito en `--qpu` se ignora sin error. ¿Qué ventaja tiene eso para el centro y qué riesgo corre quien envía el trabajo?",
+                         "¿Por qué crees que la aplicación debería leer `SLURM_JOB_QPU_RESOURCES` en lugar de fijar el nombre del backend en el código?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]QRMI da acceso a QPUs desde HPC, sin depender del fabricante. [[r2]]El plugin SPANK lo integra en Slurm. [[r3]]El administrador define recursos; el usuario los pide con qpu.
@@ -311,11 +403,26 @@ ia = lesson(
     [
         beat("assistant", ("", "Qiskit Code Assistant"),
              """Qiskit Code Assistant es una familia de modelos de lenguaje entrenados con el código, los ejemplos y la documentación de Qiskit. El modelo actual es mistral small tres punto dos, veinticuatro b, qiskit.
-             [[abiertos]]Todos son modelos abiertos, publicados en Hugging Face. Hay versiones GGUF, más ligeras, pensadas para laptops.
-             [[bench]]Para medirlos, IBM creó el benchmark Qiskit HumanEval: unas ciento cincuenta tareas de programación con Qiskit, con pruebas unitarias, en tres niveles de dificultad, y una versión difícil.""",
-             [Table(["Modelo", "QHE Hard", "QHE", "Qiskit"], [["mistral-small-3.2-24b-qiskit", "32,45", "47,02", "2.2"], ["Qwen2.5-Coder-14B-Qiskit", "25,17", "49,01", "2.0"],
-                                                           ["granite-3.3-8b-qiskit", "14,57", "27,15", "2.0"]], id="t", stagger=True, size=21)],
+             [[abiertos]]Todos son modelos abiertos, publicados en Hugging Face. Hay versiones GGUF, más ligeras, pensadas para laptops.""",
+             [Table(["Modelo", "Parámetros", "Qiskit"], [["mistral-small-3.2-24b-qiskit", "24 B", "2.2"], ["Qwen2.5-Coder-14B-Qiskit", "14 B", "2.0"],
+                                                       ["granite-3.3-8b-qiskit", "8 B", "2.0"]], id="t", stagger=True, size=21)],
              [A("item", "t", at="assistant", t=5, i=0), A("item", "t", at="abiertos", i=1), A("item", "t", at="abiertos", t=2, i=2)]),
+
+        beat("predice", ("", "Antes de mirar la tabla"),
+             """Para medirlos, IBM creó el benchmark Qiskit HumanEval: unas ciento cincuenta tareas de programación con Qiskit, cada una con pruebas unitarias. Tiene una versión difícil, Q H E Hard, que quita la información sobre las importaciones: el modelo debe averiguar solo qué clases y métodos importar. Antes de ver los resultados, apuesta: ¿qué modelo de los tres crees que obtiene la mejor puntuación en la versión difícil?""",
+             [Table(["Modelo", "Parámetros", "Qiskit"], [["mistral-small-3.2-24b-qiskit", "24 B", "2.2"], ["Qwen2.5-Coder-14B-Qiskit", "14 B", "2.0"],
+                                                       ["granite-3.3-8b-qiskit", "8 B", "2.0"]], id="t")],
+             ask=predict("¿Qué modelo puntúa más alto en QHE Hard?",
+                         ["`mistral-small-3.2-24b-qiskit`", "`Qwen2.5-Coder-14B-Qiskit`", "`granite-3.3-8b-qiskit`", "los tres puntúan casi igual"],
+                         "Anotado. Veamos los números.")),
+
+        beat("resultados", ("", "Resultados en QHE"),
+             """Estos son los resultados, en porcentaje de tareas resueltas. [[hard]]En la versión difícil gana mistral, con treinta y dos coma cuarenta y cinco: sin las importaciones a la vista, es el que más tareas resuelve. [[qhe]]Pero en la versión normal, Qwen de catorce b lo supera: cuarenta y nueve contra cuarenta y siete.
+             [[lec]]Granite, de ocho b, queda atrás en ambas. La lección: el tamaño no decide solo. Elige el modelo según el tipo de tarea, y no olvides que cada modelo se entrenó con una versión distinta de Qiskit.""",
+             [Table(["Modelo", "QHE Hard", "QHE", "Qiskit"], [["mistral-small-3.2-24b-qiskit", "32,45", "47,02", "2.2"], ["Qwen2.5-Coder-14B-Qiskit", "25,17", "49,01", "2.0"],
+                                                           ["granite-3.3-8b-qiskit", "14,57", "27,15", "2.0"]], id="t", stagger=True, size=21),
+              T("el mejor en QHE Hard no es el mejor en QHE", "note", id="n", hidden=True)],
+             [A("item", "t", at="hard", i=0), A("item", "t", at="qhe", i=1), A("item", "t", at="lec", i=2), A("show", "n", at="lec", t=4)]),
 
         beat("local", ("", "Ejecutarlo en tu equipo"),
              """La forma más sencilla de usarlo en tu equipo es Ollama: un comando descarga el modelo GGUF desde Hugging Face y abre un chat. [[cmds]]Con ollama list ves tus modelos, con ps los cargados, y con rm los borras.
@@ -366,6 +473,21 @@ npx @modelcontextprotocol/inspector qiskit-mcp-server''', id="s"),
                         "Correcto: `qiskit-docs-mcp-server` busca en la documentación y no necesita autenticación.",
                         wrong=["Ese necesita tu clave y sirve para backends y trabajos.", None, "Un modelo local no consulta la documentación actual por sí solo."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. No usa ningún modelo ni red: trae un pequeño banco de pruebas, como el de Qiskit HumanEval, y tres respuestas ya escritas. [[n1]]Primero reproduces la puntuación de tres candidatos. [[n2]]Después corriges el código de uno que escribió una CNOT al revés. [[n3]]Y por último escribes una prueba unitaria que no se deje engañar por respuestas casi correctas.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes.""",
+             [Mission("practica/p9-ia.py", [
+                 (1, "Pasa tres candidatos por las pruebas y lee su puntuación."),
+                 (2, "Corrige la CNOT del candidato B para que pase la prueba."),
+                 (3, "Escribe `prueba_anti_bell`: debe aceptar el Bell correcto y rechazar dos casi correctos.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Antes de cerrar, dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("Un modelo te da un circuito que «se ve bien» y que ejecuta sin errores. ¿Qué harías para confiar en él antes de usarlo, y qué no te dice una ejecución sin errores?",
+                         "¿Qué tareas de tu trabajo con Qiskit delegarías en un asistente y cuáles no? Justifica con un caso concreto.")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Qiskit Code Assistant son modelos abiertos que puedes ejecutar en tu equipo. [[r2]]Se integran en tu editor. [[r3]]Los servidores MCP conectan asistentes con Qiskit y los servicios de IBM.
              [[r4]]Y las skills enseñan tareas concretas, como migrar código.""",
@@ -380,6 +502,16 @@ s_cierre, a_cierre = resumen(["versionado semántico X.Y.Z · mayor al menos cad
                               "Qiskit 1.0: fin del metapaquete (`qiskit-terra`) · entorno nuevo · `flake8-qiskit-migration`",
                               "Qiskit 2.0: sin `c_if` (usa `if_test`), sin `qiskit.pulse`, `target` en vez de restricciones sueltas",
                               "runtime 0.50: Sampler/Estimator del lado del cliente sobre Executor · aprendizaje de ruido explícito"])
+IF_TEST = '''from qiskit.circuit import QuantumCircuit, QuantumRegister, ClassicalRegister
+
+qr, cr = QuantumRegister(2, "q"), ClassicalRegister(2, "c")
+qc = QuantumCircuit(qr, cr)
+qc.h([0, 1])
+qc.measure(qr, cr)
+# antes: qc.x(0).c_if(cr, 3)
+with qc.if_test((cr, 3)):
+    qc.x(0)
+print(dict(qc.count_ops()))'''
 migraciones = lesson(
     "p9-migraciones", "Versiones y migraciones",
     "La estrategia de versiones de Qiskit, las migraciones a 1.0 y 2.0, el paso a las primitivas del lado del cliente y cómo seguir las novedades.",
@@ -407,25 +539,28 @@ pip install -c https://qisk.it/1-0-constraints qiskit
 pipx run flake8-qiskit-migration src/''', id="c", hidden=True)],
              [A("show", "b", at="cambio"), A("show", "c", at="entorno"), A("hl", "c", at="entorno", range="1-2"), A("hl", "c", at="herramienta", lines=[3])]),
 
-        beat("v2", ("", "Qiskit 2.0"),
-             """Qiskit dos punto cero rompió compatibilidad sin cambiar la estructura de paquetes. Tres cambios principales. [[cif]]Uno: desaparece c if; las condiciones se escriben con if test, que ya viste en la Parte dos.
-             [[dur]]Dos: las instrucciones ya no tienen duration ni unit; las duraciones se consultan en el Target, y para la duración del circuito, estimate duration.
-             [[pulse]]Y tres: qiskit punto pulse se eliminó por completo, con todo lo relacionado con calibraciones.""",
-             [Code('''from qiskit.circuit import QuantumCircuit, QuantumRegister, ClassicalRegister
-
-qr, cr = QuantumRegister(2, "q"), ClassicalRegister(2, "c")
-qc = QuantumCircuit(qr, cr)
-qc.h([0, 1])
+        beat("predice_if", ("", "Qiskit 2.0: antes de ejecutar"),
+             """Qiskit dos punto cero rompió compatibilidad sin cambiar la estructura de paquetes. Tres cambios principales; empecemos por el primero. [[cif]]Desaparece c if: las condiciones se escriben con un bloque if test, que ya viste en la Parte dos.
+             [[cual]]Este circuito mide dos qubits y aplica una X al qubit cero solo si se midió uno uno. Antes de ejecutarlo, apuesta: ¿qué operaciones contará count ops?""",
+             [Code('''qc.h([0, 1])
 qc.measure(qr, cr)
-# antes: qc.x(0).c_if(cr, 3)
 with qc.if_test((cr, 3)):
-    qc.x(0)
-print(dict(qc.count_ops()))''', id="c", size=22),
+    qc.x(0)''', id="c", size=22, norun=True)],
+             [A("hl", "c", at="cif", range="3-4")],
+             ask=predict("¿Qué devuelve `dict(qc.count_ops())`?",
+                         ["`{'h': 2, 'measure': 2, 'x': 1}`", "`{'h': 2, 'measure': 2, 'if_else': 1}`", "`{'h': 2, 'measure': 2, 'x': 1, 'if_else': 1}`", "`{'h': 2, 'measure': 2, 'if_test': 1}`"],
+                         "Anotado. Veamos qué cuenta Qiskit.")),
+
+        beat("v2", ("", "Qiskit 2.0"),
+             """[[cif]]La condición no es una puerta con un decorador: es una sola instrucción, if else, que contiene el bloque. Por eso la X no aparece en el recuento de nivel superior.
+             [[dur]]Segundo cambio: las instrucciones ya no tienen duration ni unit; las duraciones se consultan en el Target, y para la duración del circuito, estimate duration.
+             [[pulse]]Y tercero: qiskit punto pulse se eliminó por completo, con todo lo relacionado con calibraciones.""",
+             [Code(IF_TEST, id="c", size=22),
               Out("{'h': 2, 'measure': 2, 'if_else': 1}", id="o", hidden=True, check=True),
               Code('''# antes: instruction.duration
 duration = getattr(target["cx"][2, 4], "duration", None)''', id="d", hidden=True, size=21,
                    setup="from qiskit.providers.fake_provider import GenericBackendV2\ntarget = GenericBackendV2(5, seed=1).target")],
-             [A("hl", "c", at="cif", range="7-9"), A("show", "o", at="cif", t=3), A("show", "d", at="dur")]),
+             [A("hl", "c", at="cif", range="7-9"), A("show", "o", at="cif", t=1), A("show", "d", at="dur")]),
 
         beat("v2_transp", ("", "El transpilador en 2.0"),
              """En el transpilador, se acabaron casi todas las restricciones sueltas: backend properties, instruction durations y timing constraints ya no se aceptan. Lo que antes pasabas por separado, ahora va en un Target.
@@ -453,8 +588,20 @@ from qiskit_ibm_runtime.options_models import SamplerOptions, EstimatorOptions''
               T("igual: `mode`, opciones, `run()`, PUBs y resultados", "note", id="n", hidden=True)],
              [A("hl", "c", at="imports", range="4-6"), A("show", "n", at="igual")]),
 
+        beat("predice_opciones", ("", "Las opciones, antes de ejecutar"),
+             """Las opciones del Estimator también cambiaron. [[pydantic]]Ahora son modelos de Pydantic, con campos validados. Fíjate en esta asignación: seed estimator era una opción de la versión anterior, y ya no existe. [[cual]]Antes de ejecutar, apuesta: ¿qué pasa al asignarla?""",
+             [Code('''from qiskit_ibm_runtime.options_models import EstimatorOptions
+
+options = EstimatorOptions()
+options.default_shots = 2000
+options.seed_estimator = 1''', id="c", size=24, norun=True)],
+             [A("hl", "c", at="pydantic", lines=[4]), A("hl", "c", at="cual", lines=[5])],
+             ask=predict("¿Qué ocurre en `options.seed_estimator = 1`?",
+                         ["se acepta y fija la semilla", "se acepta y se ignora sin avisar", "`AttributeError`", "`ValidationError`"],
+                         "Anotado. Lo comprobamos en la siguiente pantalla.")),
+
         beat("diferencias", ("", "Qué cambia"),
-             """Algunas diferencias. [[pydantic]]Las opciones son ahora modelos de Pydantic: en lugar de asdict, usa model dump; y las opciones eliminadas, como seed estimator, dan error de validación.
+             """Algunas diferencias. [[pydantic]]Las opciones son modelos de Pydantic. En lugar de asdict, usa model dump; y las opciones eliminadas, como seed estimator, dan error de validación.
              [[mezcla]]No se pueden mezclar disparos o precisiones distintos en un trabajo: agrupa los PUBs por valor, un trabajo por grupo, todos en un lote. [[ruido]]Y para PEA y PEC ya no hay aprendizaje de ruido implícito: lo haces tú con NoiseLearnerV3 y pasas el modelo al Estimator.
              [[local]]Para probar en local con un backend falso, la guía sugiere cliffordizar el circuito ISA, con ConvertISAToClifford: se simula rápido, pero pierde el layout, así que el observable se adapta con el layout del circuito original.""",
              [Code('''from qiskit import QuantumCircuit
@@ -495,6 +642,33 @@ print(clifford.layout)''', id="c", size=18),
                                            ["sep 2026", "runtime 0.50: primitivas del lado del cliente"], ["ago 2026", "Composer con OpenQASM 3"]], id="t", hidden=True, stagger=True, size=21)],
              [A("show", "t", at="recientes"), A("item", "t", at="recientes", i=0), A("item", "t", at="recientes", t=4, i=1), A("item", "t", at="recientes", t=9, i=2),
               A("item", "t", at="recientes", t=11, i=3)]),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. Todo corre en tu equipo. [[n1]]Primero migras un circuito de c if a if test. [[n2]]Después conviertes las opciones del Estimator a un diccionario con model dump. [[n3]]Y por último escribes la función que reparte los PUBs en un trabajo por valor de precisión.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes.""",
+             [Mission("practica/p9-migraciones.py", [
+                 (1, "Migra una condición de `c_if` a `if_test` y cuenta sus operaciones."),
+                 (2, "Convierte `EstimatorOptions` en un diccionario con `model_dump`."),
+                 (3, "Escribe `dividir(pubs)`: un grupo por cada valor de precisión.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("proyecto", ("", "Tu proyecto: el hito IX"),
+             """Esta lección cierra la Parte nueve, y con ella llega el hito nueve del proyecto de la cadena de espines. [[migrar]]Migras el código del proyecto a las primitivas del lado del cliente: el Estimator para la magnetización y el Sampler para los conteos. [[paquete]]Y lo empaquetas como un módulo que puedes importar, ising punto py, para que el informe final lo reutilice.
+             [[hito]]El cuaderno recalcula primero lo de los hitos anteriores, para que no dependas de ningún otro cuaderno.""",
+             [Row(Box("warn", "Antes", T("`StatevectorEstimator` · funciones sueltas", "body"), id="a", hidden=True),
+                  Box("idea", "Ahora", T("`executor_estimator.Estimator` · módulo `ising`", "body"), id="b", hidden=True), gap=24),
+              Mission("practica/proyecto/hito9.py", [
+                  (1, "Recalcula el Hamiltoniano, el circuito de Trotter y la curva exacta de los hitos anteriores."),
+                  (2, "Cambia la importación al `Estimator` del lado del cliente y compara con la curva ideal."),
+                  (3, "Escribe `magnetizacion_conteos` y calcula la magnetización con el `Sampler`.")],
+                  title="Proyecto Ising · Hito IX", id="m", hidden=True)],
+             [A("show", "a", at="migrar"), A("show", "b", at="paquete"), A("show", "m", at="hito")]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Antes de cerrar la parte, dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.""",
+             [T("Explicar con tus palabras es la mejor prueba de que entendiste.", "subtitle")],
+             ask=reflect("Qiskit separa cambios incompatibles (versión mayor) de funciones nuevas (versión menor). ¿Cómo usarías eso para decidir cuándo actualizar un proyecto que depende de Qiskit?",
+                         "En la migración al Estimator del lado del cliente, ¿qué cosas esperas que sigan funcionando igual y cuáles revisarías primero? ¿Cómo lo comprobarías sin una cuenta?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Qiskit usa versionado semántico, con soporte extendido para la mayor anterior. [[r2]]La uno punto cero eliminó el metapaquete. [[r3]]La dos punto cero quitó c if, pulse y las restricciones sueltas.

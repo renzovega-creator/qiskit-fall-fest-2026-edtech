@@ -46,13 +46,44 @@
    ]
   ]
  },
+ "predice": {
+  "dur": 18.768,
+  "marks": {
+   "qubits": 5.477,
+   "term": 9.072,
+   "cual": 14.691
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de compilarlo, apuesta."
+   ],
+   [
+    3.312,
+    "Mira el fragmento."
+   ],
+   [
+    5.477,
+    "El observable se creó con cien qubits."
+   ],
+   [
+    9.072,
+    "Pero solo le añadimos un término, y ese término toca tres qubits."
+   ],
+   [
+    14.691,
+    "¿Qué número de términos crees que imprimirá el programa?"
+   ]
+  ]
+ },
  "compilar": {
-  "dur": 46.68,
+  "dur": 56.808,
   "marks": {
    "make": 14.917,
    "gcc": 23.239,
    "path": 26.325,
-   "win": 31.363
+   "res": 31.363,
+   "win": 41.483
   },
   "cues": [
    [
@@ -69,6 +100,10 @@
    ],
    [
     31.363,
+    "Imprime cien qubits y un solo término: un término de Pauli es el producto de operadores sobre varios qubits, y no cuenta uno por operador."
+   ],
+   [
+    41.483,
     "En Windows hay dos caminos: para extensiones de Python basta con el compilador de Visual C++, porque las cabeceras vienen con el paquete qiskit; para la biblioteca independiente, se siguen pasos adicionales."
    ]
   ]
@@ -136,6 +171,59 @@
    [
     0.107,
     "Sobre compatibilidad."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 34.368,
+  "marks": {
+   "n1": 12.101,
+   "n2": 17.38,
+   "n3": 22.928,
+   "check": 28.915
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.454,
+    "No necesita compilador de C: usa el mismo observable desde Python."
+   ],
+   [
+    12.101,
+    "Primero reproduces el observable de cien qubits con un solo término."
+   ],
+   [
+    17.38,
+    "Después le añades un segundo término, Z en el qubit noventa y nueve."
+   ],
+   [
+    22.928,
+    "Y por último escribes la función que da la restricción de versión para una extensión."
+   ],
+   [
+    28.915,
+    "Cada misión tiene una comprobación que se actualiza sola mientras escribes."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 9.312,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Antes de cerrar, dos preguntas para pensar."
+   ],
+   [
+    4.119,
+    "Escribe con tus palabras; lo que escribas se guarda en tu navegador."
    ]
   ]
  },

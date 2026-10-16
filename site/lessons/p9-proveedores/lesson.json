@@ -67,18 +67,18 @@
     "9.1",
     "Un BackendV2 mínimo"
    ],
-   "say": "El núcleo de un BackendV2 es su Target. Construyamos uno para un QPU imaginario de tres qubits en línea. [[target]]Añadimos las puertas de un qubit, RZ, raíz de X y X, y la medición, en los tres qubits, con su error; y la CZ solo entre los pares cero uno y uno dos. [[metodos]]La clase debe ofrecer el target, el máximo de circuitos por trabajo, las opciones por defecto y run, que en un proveedor real enviaría el trabajo a su servicio. [[usar]]Con eso, el transpilador de Qiskit ya funciona: el backend informa sus qubits, sus operaciones y su mapa de acoplamiento, [[res]]y la CNOT se traduce a una CZ y rotaciones de un qubit. El transpilador eligió qubits vecinos, así que no hizo falta ningún SWAP.",
+   "say": "El núcleo de un BackendV2 es su Target. Construyamos uno para un QPU imaginario de tres qubits en línea. [[target]]Añadimos las puertas de un qubit, RZ, raíz de X y X, y la medición, en los tres qubits, con su error; y la CZ solo entre los pares cero uno y uno dos. [[metodos]]La clase debe ofrecer el target, el máximo de circuitos por trabajo, las opciones por defecto y run, que en un proveedor real enviaría el trabajo a su servicio. [[usar]]Con eso, el backend ya informa sus qubits, sus operaciones y su mapa de acoplamiento: tres qubits, cinco operaciones y solo dos pares conectados.",
    "scene": [
     {
      "type": "code",
-     "src": "from qiskit import QuantumCircuit\nfrom qiskit.circuit import Parameter, Measure\nfrom qiskit.circuit.library import CZGate, RZGate, SXGate, XGate\nfrom qiskit.providers import BackendV2, Options\nfrom qiskit.transpiler import Target, InstructionProperties, generate_preset_pass_manager\n\nclass MiQPU(BackendV2):\n    def __init__(self):\n        super().__init__(name=\"mi_qpu\")\n        self._target = Target(num_qubits=3)\n        theta = Parameter(\"θ\")\n        for gate in (RZGate(theta), SXGate(), XGate(), Measure()):\n            self._target.add_instruction(gate, {(q,): InstructionProperties(error=1e-4) for q in range(3)})\n        self._target.add_instruction(CZGate(), {(0, 1): InstructionProperties(error=1e-2),\n                                                (1, 2): InstructionProperties(error=1e-2)})\n    @property\n    def target(self):\n        return self._target\n    @property\n    def max_circuits(self):\n        return None\n    @classmethod\n    def _default_options(cls):\n        return Options(shots=1024)\n    def run(self, run_input, **options):\n        raise NotImplementedError(\"aquí se enviaría el trabajo al servicio\")\n\nbackend = MiQPU()\nprint(backend.num_qubits, backend.operation_names, backend.coupling_map.get_edges())\nqc = QuantumCircuit(3)\nqc.h(0)\nqc.cx(0, 2)\nisa = generate_preset_pass_manager(1, backend=backend, seed_transpiler=1).run(qc)\nprint(dict(isa.count_ops()))",
+     "src": "from qiskit.circuit import Parameter, Measure\nfrom qiskit.circuit.library import CZGate, RZGate, SXGate, XGate\nfrom qiskit.providers import BackendV2, Options\nfrom qiskit.transpiler import Target, InstructionProperties\n\nclass MiQPU(BackendV2):\n    def __init__(self):\n        super().__init__(name=\"mi_qpu\")\n        self._target = Target(num_qubits=3)\n        theta = Parameter(\"θ\")\n        for gate in (RZGate(theta), SXGate(), XGate(), Measure()):\n            self._target.add_instruction(gate, {(q,): InstructionProperties(error=1e-4) for q in range(3)})\n        self._target.add_instruction(CZGate(), {(0, 1): InstructionProperties(error=1e-2),\n                                                (1, 2): InstructionProperties(error=1e-2)})\n    @property\n    def target(self):\n        return self._target\n    @property\n    def max_circuits(self):\n        return None\n    @classmethod\n    def _default_options(cls):\n        return Options(shots=1024)\n    def run(self, run_input, **options):\n        raise NotImplementedError(\"aquí se enviaría el trabajo al servicio\")\n\nbackend = MiQPU()\nprint(backend.num_qubits, backend.operation_names, backend.coupling_map.get_edges())",
      "lang": "python",
      "id": "c",
      "size": 17
     },
     {
      "type": "code",
-     "src": "3 ['rz', 'sx', 'x', 'measure', 'cz'] EdgeList[(0, 1), (1, 2)]\n{'rz': 6, 'sx': 3, 'cz': 1}",
+     "src": "3 ['rz', 'sx', 'x', 'measure', 'cz'] EdgeList[(0, 1), (1, 2)]",
      "lang": "out",
      "id": "o",
      "hidden": true,
@@ -88,19 +88,19 @@
    "actions": [
     {
      "do": "hl",
-     "range": "10-15",
+     "range": "9-14",
      "id": "c",
      "at": "target"
     },
     {
      "do": "hl",
-     "range": "16-26",
+     "range": "15-25",
      "id": "c",
      "at": "metodos"
     },
     {
      "do": "hl",
-     "range": "28-29",
+     "range": "27-28",
      "id": "c",
      "at": "usar"
     },
@@ -109,12 +109,97 @@
      "id": "o",
      "at": "usar",
      "t": 3
+    }
+   ]
+  },
+  {
+   "id": "predice",
+   "tag": [
+    "9.1",
+    "Antes de transpilar"
+   ],
+   "say": "Antes de transpilar, apuesta. Este circuito aplica una Hadamard al qubit cero y una CNOT entre el qubit cero y el dos. Pero en nuestro QPU esos dos qubits no están conectados: solo hay enlaces entre cero y uno, y entre uno y dos. ¿Cuántas puertas CZ crees que tendrá el circuito transpilado? Piensa en lo que el transpilador tiene que hacer para llegar de un extremo al otro de la línea.",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 3,
+     "ops": [
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        2
+       ]
+      }
+     ]
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuántas CZ tendrá el circuito transpilado?",
+    "options": [
+     "ninguna: la CNOT se traduce a otra puerta",
+     "una",
+     "dos",
+     "cuatro o más: hace falta un SWAP"
+    ],
+    "after": "Anotado. Veamos qué hace el transpilador."
+   },
+   "align": "top"
+  },
+  {
+   "id": "transpilar",
+   "tag": [
+    "9.1",
+    "Transpilar para MiQPU"
+   ],
+   "say": "Transpilamos con el gestor de pases preestablecido, nivel uno, apuntando a nuestro backend. [[res]]Sale una sola CZ, junto con seis rotaciones RZ y tres raíces de X. No hizo falta ningún SWAP: el transpilador colocó los qubits lógicos cero y dos en los físicos uno y cero, que sí son vecinos. [[cx]]La CNOT se tradujo a una CZ rodeada de puertas de un qubit, porque la CZ es la única de dos qubits que el Target declara.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit import QuantumCircuit\nfrom qiskit.transpiler import generate_preset_pass_manager\n\nqc = QuantumCircuit(3)\nqc.h(0)\nqc.cx(0, 2)\nisa = generate_preset_pass_manager(1, backend=backend, seed_transpiler=1).run(qc)\nprint(dict(isa.count_ops()))",
+     "lang": "python",
+     "id": "c",
+     "size": 22
+    },
+    {
+     "type": "code",
+     "src": "{'rz': 6, 'sx': 3, 'cz': 1}",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      7
+     ],
+     "id": "c",
+     "at": "res"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "res",
+     "t": 2
     },
     {
      "do": "hl",
-     "range": "30-34",
+     "lines": [
+      6
+     ],
      "id": "c",
-     "at": "res"
+     "at": "cx"
     }
    ]
   },
@@ -278,6 +363,80 @@
      "Ese atributo no existe.",
      null,
      "`QubitProperties` solo tiene `t1`, `t2` y `frequency`."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "9.1",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. [[n1]]Primero reproduces MiQPU y transpilas un circuito. [[n2]]Después le añades duraciones al Target y estimas cuánto dura un circuito. [[n3]]Y por último implementas run con un simulador local, para que MiQPU funcione con las primitivas. [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes. Todo corre en tu equipo: no hace falta cuenta.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p9-proveedores.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Construye `MiQPU` y mira en qué se transpila una CNOT entre qubits lejanos."
+      },
+      {
+       "level": 2,
+       "text": "Añade duraciones al Target y estima la duración de un circuito."
+      },
+      {
+       "level": 3,
+       "text": "Implementa `run` con `BasicSimulator` y úsalo con `BackendSamplerV2`."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "9.1",
+    "Reflexiona"
+   ],
+   "say": "Antes de cerrar, dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Si el Target de `MiQPU` declarara CX en lugar de CZ, ¿qué cambiaría en el circuito transpilado y qué no? ¿Qué parte del proveedor sigue igual?",
+     "Un `BackendV2` solo describe el hardware y la ejecución va en `run`. ¿Por qué crees que Qiskit separa esas dos cosas?"
     ]
    },
    "align": "top"

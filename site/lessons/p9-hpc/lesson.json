@@ -135,7 +135,7 @@
     "9.3",
     "Pedir QPUs en un trabajo"
    ],
-   "say": "Como usuario, pides QPUs en tu script de Slurm igual que pides CPUs: con gres igual a qpu y la cantidad, y la opción qpu con los nombres. [[varios]]Puedes pedir varios, incluso de distintos tipos: uno local y dos de IBM. [[app]]Dentro del trabajo, la variable SLURM JOB QPU RESOURCES lista los recursos asignados, y QRMI la usa. La idea es que tu código no dependa de un backend concreto: la elección del QPU queda en la definición del recurso.",
+   "say": "Como usuario, pides QPUs en tu script de Slurm igual que pides CPUs: con gres igual a qpu y la cantidad, y la opción qpu con los nombres. [[varios]]Puedes pedir varios, incluso de distintos tipos: uno local y dos de IBM. [[app]]La idea es que tu código no dependa de un backend concreto: la elección del QPU queda en la definición del recurso, y el trabajo recibe lo que el plugin le deja en el entorno.",
    "scene": [
     {
      "type": "code",
@@ -145,7 +145,7 @@
     },
     {
      "type": "text",
-     "text": "dentro del trabajo: `SLURM_JOB_QPU_RESOURCES`",
+     "text": "el plugin deja el resultado en variables de entorno",
      "style": "note",
      "id": "n",
      "hidden": true
@@ -169,6 +169,90 @@
      "do": "show",
      "id": "n",
      "at": "app"
+    }
+   ]
+  },
+  {
+   "id": "predice",
+   "tag": [
+    "9.3",
+    "Antes de lanzar el trabajo"
+   ],
+   "say": "Antes de lanzarlo, apuesta. [[pide]]El script pide tres QPUs. [[admin]]Pero el administrador solo definió dos en qrmi config punto json: my local qpu, de acceso directo, e ibm fez, del servicio de IBM. No hay ninguna entrada para ibm marrakesh. [[cual]]Dentro del trabajo, ¿qué valdrá la variable SLURM JOB QPU RESOURCES?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "#SBATCH --time=100\n#SBATCH --gres=qpu:3\n#SBATCH --qpu=my_local_qpu,ibm_fez,ibm_marrakesh\nsrun python mi_programa.py",
+     "lang": "sh",
+     "id": "c"
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      3
+     ],
+     "id": "c",
+     "at": "pide"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Con solo `my_local_qpu` e `ibm_fez` definidos, ¿qué lista `SLURM_JOB_QPU_RESOURCES`?",
+    "options": [
+     "`my_local_qpu,ibm_fez,ibm_marrakesh`",
+     "`my_local_qpu,ibm_fez`",
+     "`ibm_fez`",
+     "el trabajo falla porque falta `ibm_marrakesh`"
+    ],
+    "after": "Anotado. Veámoslo dentro del trabajo."
+   },
+   "align": "top"
+  },
+  {
+   "id": "entorno",
+   "tag": [
+    "9.3",
+    "Lo que ve el trabajo"
+   ],
+   "say": "Dentro del trabajo, el plugin deja dos variables. [[recursos]]SLURM JOB QPU RESOURCES lista los recursos que sí están definidos, en el orden pedido: ibm marrakesh desapareció, sin error. [[tipos]]Y SLURM JOB QPU TYPES da el tipo de cada uno, en el mismo orden. [[ig]]Es la misma regla de la pregunta anterior: lo que no está en la configuración se ignora. Por eso conviene que tu programa lea la variable en lugar de fijar el nombre del QPU.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "echo $SLURM_JOB_QPU_RESOURCES\necho $SLURM_JOB_QPU_TYPES",
+     "lang": "sh",
+     "id": "c"
+    },
+    {
+     "type": "code",
+     "src": "my_local_qpu,ibm_fez\ndirect-access,qiskit-runtime-service",
+     "lang": "out",
+     "id": "o",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      1
+     ],
+     "id": "c",
+     "at": "recursos"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "recursos"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      2
+     ],
+     "id": "c",
+     "at": "tipos"
     }
    ]
   },
@@ -240,6 +324,80 @@
      "Solo se usan los recursos definidos por el administrador.",
      null,
      "No hay elección automática en ese caso."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "9.3",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. No necesita Slurm ni cuenta: repites en Python lo que hace el plugin. [[n1]]Primero reproduces el cruce entre lo que pide el script y lo que define el administrador. [[n2]]Después añades un recurso nuevo a la configuración, con el modo lote. [[n3]]Y por último escribes la función que calcula las variables de entorno del trabajo. [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p9-hpc.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Cruza los QPUs pedidos con los definidos y mira cuál se ignora."
+      },
+      {
+       "level": 2,
+       "text": "Añade `ibm_marrakesh` a la configuración con el modo de sesión `batch`."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `entorno(qpu, config)` con las variables que deja el plugin."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "9.3",
+    "Reflexiona"
+   ],
+   "say": "Antes de cerrar, dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Un nombre de QPU mal escrito en `--qpu` se ignora sin error. ¿Qué ventaja tiene eso para el centro y qué riesgo corre quien envía el trabajo?",
+     "¿Por qué crees que la aplicación debería leer `SLURM_JOB_QPU_RESOURCES` en lugar de fijar el nombre del backend en el código?"
     ]
    },
    "align": "top"

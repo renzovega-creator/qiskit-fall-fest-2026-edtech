@@ -16,7 +16,115 @@
     "9.4",
     "Qiskit Code Assistant"
    ],
-   "say": "Qiskit Code Assistant es una familia de modelos de lenguaje entrenados con el código, los ejemplos y la documentación de Qiskit. El modelo actual es mistral small tres punto dos, veinticuatro b, qiskit. [[abiertos]]Todos son modelos abiertos, publicados en Hugging Face. Hay versiones GGUF, más ligeras, pensadas para laptops. [[bench]]Para medirlos, IBM creó el benchmark Qiskit HumanEval: unas ciento cincuenta tareas de programación con Qiskit, con pruebas unitarias, en tres niveles de dificultad, y una versión difícil.",
+   "say": "Qiskit Code Assistant es una familia de modelos de lenguaje entrenados con el código, los ejemplos y la documentación de Qiskit. El modelo actual es mistral small tres punto dos, veinticuatro b, qiskit. [[abiertos]]Todos son modelos abiertos, publicados en Hugging Face. Hay versiones GGUF, más ligeras, pensadas para laptops.",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "Modelo",
+      "Parámetros",
+      "Qiskit"
+     ],
+     "rows": [
+      [
+       "mistral-small-3.2-24b-qiskit",
+       "24 B",
+       "2.2"
+      ],
+      [
+       "Qwen2.5-Coder-14B-Qiskit",
+       "14 B",
+       "2.0"
+      ],
+      [
+       "granite-3.3-8b-qiskit",
+       "8 B",
+       "2.0"
+      ]
+     ],
+     "id": "t",
+     "stagger": true,
+     "size": 21
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "t",
+     "t": 5
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "t",
+     "at": "abiertos"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "t",
+     "at": "abiertos",
+     "t": 2
+    }
+   ]
+  },
+  {
+   "id": "predice",
+   "tag": [
+    "9.4",
+    "Antes de mirar la tabla"
+   ],
+   "say": "Para medirlos, IBM creó el benchmark Qiskit HumanEval: unas ciento cincuenta tareas de programación con Qiskit, cada una con pruebas unitarias. Tiene una versión difícil, Q H E Hard, que quita la información sobre las importaciones: el modelo debe averiguar solo qué clases y métodos importar. Antes de ver los resultados, apuesta: ¿qué modelo de los tres crees que obtiene la mejor puntuación en la versión difícil?",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "Modelo",
+      "Parámetros",
+      "Qiskit"
+     ],
+     "rows": [
+      [
+       "mistral-small-3.2-24b-qiskit",
+       "24 B",
+       "2.2"
+      ],
+      [
+       "Qwen2.5-Coder-14B-Qiskit",
+       "14 B",
+       "2.0"
+      ],
+      [
+       "granite-3.3-8b-qiskit",
+       "8 B",
+       "2.0"
+      ]
+     ],
+     "id": "t"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué modelo puntúa más alto en QHE Hard?",
+    "options": [
+     "`mistral-small-3.2-24b-qiskit`",
+     "`Qwen2.5-Coder-14B-Qiskit`",
+     "`granite-3.3-8b-qiskit`",
+     "los tres puntúan casi igual"
+    ],
+    "after": "Anotado. Veamos los números."
+   },
+   "align": "top"
+  },
+  {
+   "id": "resultados",
+   "tag": [
+    "9.4",
+    "Resultados en QHE"
+   ],
+   "say": "Estos son los resultados, en porcentaje de tareas resueltas. [[hard]]En la versión difícil gana mistral, con treinta y dos coma cuarenta y cinco: sin las importaciones a la vista, es el que más tareas resuelve. [[qhe]]Pero en la versión normal, Qwen de catorce b lo supera: cuarenta y nueve contra cuarenta y siete. [[lec]]Granite, de ocho b, queda atrás en ambas. La lección: el tamaño no decide solo. Elige el modelo según el tipo de tarea, y no olvides que cada modelo se entrenó con una versión distinta de Qiskit.",
    "scene": [
     {
      "type": "table",
@@ -49,6 +157,13 @@
      "id": "t",
      "stagger": true,
      "size": 21
+    },
+    {
+     "type": "text",
+     "text": "el mejor en QHE Hard no es el mejor en QHE",
+     "style": "note",
+     "id": "n",
+     "hidden": true
     }
    ],
    "actions": [
@@ -56,20 +171,25 @@
      "do": "item",
      "i": 0,
      "id": "t",
-     "t": 5
+     "at": "hard"
     },
     {
      "do": "item",
      "i": 1,
      "id": "t",
-     "at": "abiertos"
+     "at": "qhe"
     },
     {
      "do": "item",
      "i": 2,
      "id": "t",
-     "at": "abiertos",
-     "t": 2
+     "at": "lec"
+    },
+    {
+     "do": "show",
+     "id": "n",
+     "at": "lec",
+     "t": 4
     }
    ]
   },
@@ -346,6 +466,80 @@
      "Ese necesita tu clave y sirve para backends y trabajos.",
      null,
      "Un modelo local no consulta la documentación actual por sí solo."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "9.4",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. No usa ningún modelo ni red: trae un pequeño banco de pruebas, como el de Qiskit HumanEval, y tres respuestas ya escritas. [[n1]]Primero reproduces la puntuación de tres candidatos. [[n2]]Después corriges el código de uno que escribió una CNOT al revés. [[n3]]Y por último escribes una prueba unitaria que no se deje engañar por respuestas casi correctas. [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p9-ia.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Pasa tres candidatos por las pruebas y lee su puntuación."
+      },
+      {
+       "level": 2,
+       "text": "Corrige la CNOT del candidato B para que pase la prueba."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `prueba_anti_bell`: debe aceptar el Bell correcto y rechazar dos casi correctos."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "9.4",
+    "Reflexiona"
+   ],
+   "say": "Antes de cerrar, dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Un modelo te da un circuito que «se ve bien» y que ejecuta sin errores. ¿Qué harías para confiar en él antes de usarlo, y qué no te dice una ejecución sin errores?",
+     "¿Qué tareas de tu trabajo con Qiskit delegarías en un asistente y cuáles no? Justifica con un caso concreto."
     ]
    },
    "align": "top"
