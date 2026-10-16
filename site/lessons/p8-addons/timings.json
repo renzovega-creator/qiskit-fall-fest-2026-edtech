@@ -117,6 +117,83 @@
    ]
   ]
  },
+ "predice": {
+  "dur": 34.728,
+  "marks": {
+   "circ": 4.812,
+   "obs": 12.78,
+   "abs": 18.866
+  },
+  "cues": [
+   [
+    0.107,
+    "Veamos la retropropagación en acción, y antes apuesta."
+   ],
+   [
+    4.812,
+    "Usaremos la misma cadena de seis espines de Ising, con cuatro pasos de Trotter: doce capas de puertas."
+   ],
+   [
+    12.78,
+    "El observable es la magnetización media: seis términos, uno por espín."
+   ],
+   [
+    18.866,
+    "Vamos a absorber las cuatro últimas capas en el observable."
+   ],
+   [
+    23.438,
+    "¿Cuántos términos tendrá el observable nuevo?"
+   ],
+   [
+    27.047,
+    "No hace falta que sepas la respuesta: equivocarse en una predicción enseña más que acertar por memoria."
+   ]
+  ]
+ },
+ "obp": {
+  "dur": 47.76,
+  "marks": {
+   "ej": 2.406,
+   "bp": 9.737,
+   "res": 20.536,
+   "costo": 38.907
+  },
+  "cues": [
+   [
+    0.107,
+    "Este es el código."
+   ],
+   [
+    2.406,
+    "Construimos el circuito y lo cortamos en capas: cada capa es una columna de puertas del mismo tipo."
+   ],
+   [
+    9.737,
+    "backpropagate recibe el observable y las capas que quieres absorber, de la última a la primera, y devuelve el observable nuevo y las capas que no absorbió."
+   ],
+   [
+    20.536,
+    "El resultado: de seis a sesenta y cuatro términos."
+   ],
+   [
+    25.093,
+    "El circuito pasa de profundidad doce a ocho."
+   ],
+   [
+    29.141,
+    "Y el valor esperado es el mismo, cero punto ocho dos cuatro nueve."
+   ],
+   [
+    34.774,
+    "Si apostaste por sesenta y cuatro, acertaste."
+   ],
+   [
+    38.907,
+    "Ese es el intercambio de OBP: un circuito más corto a cambio de un observable más grande, con más términos que medir."
+   ]
+  ]
+ },
  "q1": {
   "dur": 2.208,
   "marks": {},
@@ -124,6 +201,50 @@
    [
     0.107,
     "Elige el addon."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 29.28,
+  "marks": {
+   "n1": 6.878,
+   "n2": 14.139,
+   "n3": 22.235
+  },
+  "cues": [
+   [
+    0.107,
+    "Abre el cuaderno de práctica de esta lección."
+   ],
+   [
+    3.807,
+    "Todo corre en tu equipo con OBP."
+   ],
+   [
+    6.878,
+    "Primero reproduces la retropropagación: cuatro capas absorbidas, sesenta y cuatro términos."
+   ],
+   [
+    14.139,
+    "Después le pones un presupuesto de operador, para que OBP se detenga antes de que el observable crezca demasiado."
+   ],
+   [
+    22.235,
+    "Y por último escribes una función que elige cuántas capas absorber dado un límite de términos."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 9.336,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección."
    ]
   ]
  },

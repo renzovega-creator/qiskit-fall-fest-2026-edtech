@@ -144,12 +144,37 @@
    ]
   ]
  },
+ "predice": {
+  "dur": 22.176,
+  "marks": {
+   "codigo": 4.005,
+   "cual": 10.586
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de ver cómo se paraleliza, apuesta."
+   ],
+   [
+    4.005,
+    "Esta función lleva el decorador distribute task, y la llamamos una vez con un circuito."
+   ],
+   [
+    10.586,
+    "¿Qué crees que es x justo después de la llamada?"
+   ],
+   [
+    14.479,
+    "No hace falta que sepas la respuesta: equivocarse en una predicción enseña más que acertar por memoria."
+   ]
+  ]
+ },
  "paralelo": {
-  "dur": 35.856,
+  "dur": 38.112,
   "marks": {
    "refs": 13.261,
-   "get": 21.668,
-   "recursos": 27.457
+   "get": 23.933,
+   "recursos": 29.721
   },
   "cues": [
    [
@@ -162,14 +187,14 @@
    ],
    [
     13.261,
-    "Cada llamada ya no devuelve el resultado, sino una referencia a una tarea asíncrona que corre en su propio trabajador."
+    "Esta es la respuesta a tu apuesta: cada llamada ya no devuelve el resultado, sino una referencia a una tarea asíncrona que corre en su propio trabajador."
    ],
    [
-    21.668,
+    23.933,
     "get, con la lista de referencias, espera y reúne los resultados."
    ],
    [
-    27.457,
+    29.721,
     "Puedes pedir núcleos completos o fracciones, y memoria en bytes: dos gigas son dos por mil veinticuatro al cubo."
    ]
   ]
@@ -223,6 +248,63 @@
    [
     0.107,
     "Una entrada a un programa."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 37.848,
+  "marks": {
+   "n1": 17.069,
+   "n2": 21.428,
+   "n3": 26.565,
+   "check": 30.84
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica de esta lección con el comando de abajo."
+   ],
+   [
+    7.374,
+    "Serverless corre en la nube y pide una cuenta de pago, así que el cuaderno reproduce su contrato en tu equipo, con un backend simulado."
+   ],
+   [
+    17.069,
+    "Primero ejecutas un programa y lees sus resultados."
+   ],
+   [
+    21.428,
+    "Después arreglas una llamada cuyo argumento no se puede serializar."
+   ],
+   [
+    26.565,
+    "Y por último paralelizas con distribute task y get."
+   ],
+   [
+    30.84,
+    "Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 13.728,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Antes de cerrar, dos preguntas para pensar."
+   ],
+   [
+    4.119,
+    "No hay respuesta automática: escribe con tus palabras."
+   ],
+   [
+    8.789,
+    "Lo que escribas se guarda y lo verás cuando vuelvas a esta lección."
    ]
   ]
  },

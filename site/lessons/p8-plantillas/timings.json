@@ -70,11 +70,41 @@
    ]
   ]
  },
+ "predice": {
+  "dur": 23.04,
+  "marks": {
+   "total": 4.727,
+   "plan": 7.997,
+   "pregunta": 18.47
+  },
+  "cues": [
+   [
+    0.107,
+    "Una apuesta sobre la plantilla de AQC más Trotter."
+   ],
+   [
+    4.727,
+    "Pides diez pasos de Trotter en total."
+   ],
+   [
+    7.997,
+    "Y un plan de compresión: seis de esos pasos se comprimen en un ansatz de dos capas."
+   ],
+   [
+    14.521,
+    "Los pasos que quedan se ejecutan sin comprimir."
+   ],
+   [
+    18.47,
+    "¿Cuántas capas de Trotter tendrá el circuito del último paso?"
+   ]
+  ]
+ },
  "desplegar": {
-  "dur": 43.872,
+  "dur": 52.896,
   "marks": {
    "run": 13.686,
-   "backends": 26.735
+   "backends": 35.751
   },
   "cues": [
    [
@@ -87,10 +117,18 @@
    ],
    [
     26.735,
+    "Esta es la respuesta a tu apuesta: seis."
+   ],
+   [
+    30.599,
+    "Dos capas del ansatz, más los cuatro pasos que no se comprimen."
+   ],
+   [
+    35.751,
     "Y se puede ejecutar en tres sitios con el mismo código: statevector, exacto; fake, simulación ruidosa; y runtime, en un QPU real."
    ],
    [
-    38.652,
+    47.668,
     "Prueba primero en los simuladores: no gastan tiempo de QPU."
    ]
   ]
@@ -102,6 +140,76 @@
    [
     0.107,
     "Buenas prácticas."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 33.768,
+  "marks": {
+   "n1": 14.691,
+   "n2": 21.484,
+   "n3": 26.594
+  },
+  "cues": [
+   [
+    0.107,
+    "Abre el cuaderno de práctica de esta lección."
+   ],
+   [
+    3.807,
+    "Las plantillas se despliegan en Serverless y piden una cuenta; el cuaderno trae una versión local con la misma estructura y los backends statevector y fake."
+   ],
+   [
+    14.691,
+    "Primero ejecutas la misma función en los dos backends y miras cómo el ruido separa las curvas."
+   ],
+   [
+    21.484,
+    "Después reordenas la función para que valide antes de la etapa cara."
+   ],
+   [
+    26.594,
+    "Y por último calculas cuántas capas de Trotter deja un plan de compresión, con validación temprana."
+   ]
+  ]
+ },
+ "proyecto": {
+  "dur": 37.656,
+  "marks": {
+   "obp": 4.317,
+   "aqc": 12.653,
+   "hito": 24.244
+  },
+  "cues": [
+   [
+    0.107,
+    "Con esto llegamos al hito ocho del proyecto Ising."
+   ],
+   [
+    4.317,
+    "En esta parte conociste los addons, y OBP en particular: llevar las últimas capas del circuito al observable."
+   ],
+   [
+    12.653,
+    "AQC-Tensor, la técnica de la plantilla que acabas de ver, persigue lo mismo desde otro lado: comprimir las primeras capas en un circuito más corto."
+   ],
+   [
+    24.244,
+    "El hito ocho recalcula tu cadena de espines, reduce su profundidad con OBP, y te hace pensar en un presupuesto: cuántos términos estás dispuesto a medir a cambio de un circuito más corto."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 9.336,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar."
+   ],
+   [
+    2.802,
+    "Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección."
    ]
   ]
  },

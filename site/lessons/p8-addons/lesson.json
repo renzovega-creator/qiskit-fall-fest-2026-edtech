@@ -295,6 +295,127 @@
    ]
   },
   {
+   "id": "predice",
+   "tag": [
+    "8.2",
+    "Antes de absorber capas"
+   ],
+   "say": "Veamos la retropropagación en acción, y antes apuesta. [[circ]]Usaremos la misma cadena de seis espines de Ising, con cuatro pasos de Trotter: doce capas de puertas. [[obs]]El observable es la magnetización media: seis términos, uno por espín. [[abs]]Vamos a absorber las cuatro últimas capas en el observable. ¿Cuántos términos tendrá el observable nuevo? No hace falta que sepas la respuesta: equivocarse en una predicción enseña más que acertar por memoria.",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "",
+      "antes",
+      "después"
+     ],
+     "rows": [
+      [
+       "capas del circuito",
+       "12",
+       "?"
+      ],
+      [
+       "términos del observable",
+       "6",
+       "?"
+      ],
+      [
+       "capas absorbidas",
+       "0",
+       "las 4 últimas"
+      ]
+     ],
+     "id": "t",
+     "stagger": true,
+     "size": 26
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "t",
+     "at": "circ"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "t",
+     "at": "obs"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "t",
+     "at": "abs"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Cuántos términos tendrá el observable tras absorber 4 capas?",
+    "options": [
+     "6, los mismos",
+     "unos 12",
+     "64",
+     "más de mil"
+    ],
+    "after": "Anotado. Ejecutémoslo y veamos si acertaste."
+   },
+   "align": "top"
+  },
+  {
+   "id": "obp",
+   "tag": [
+    "8.2",
+    "Retropropagar el observable"
+   ],
+   "say": "Este es el código. [[ej]]Construimos el circuito y lo cortamos en capas: cada capa es una columna de puertas del mismo tipo. [[bp]]backpropagate recibe el observable y las capas que quieres absorber, de la última a la primera, y devuelve el observable nuevo y las capas que no absorbió. [[res]]El resultado: de seis a sesenta y cuatro términos. El circuito pasa de profundidad doce a ocho. Y el valor esperado es el mismo, cero punto ocho dos cuatro nueve. Si apostaste por sesenta y cuatro, acertaste. [[costo]]Ese es el intercambio de OBP: un circuito más corto a cambio de un observable más grande, con más términos que medir.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import SparsePauliOp, Statevector\nfrom qiskit_addon_utils.slicing import combine_slices, slice_by_gate_types\nfrom qiskit_addon_obp import backpropagate\n\nn = 6\ncircuito = QuantumCircuit(n)\nfor _ in range(4):\n    for a in range(0, n - 1, 2):\n        circuito.rzz(0.4, a, a + 1)\n    for a in range(1, n - 1, 2):\n        circuito.rzz(0.4, a, a + 1)\n    for a in range(n):\n        circuito.rx(0.2, a)\n\nM = SparsePauliOp.from_sparse_list([(\"Z\", [i], 1 / n) for i in range(n)], num_qubits=n)\ncapas = slice_by_gate_types(circuito)\nobs, resto, meta = backpropagate(M, capas[-4:])\ncorto = combine_slices(capas[:-4] + list(resto), include_barriers=False)\n\nvalor = lambda c, o: Statevector(c).expectation_value(o).real\nprint(\"términos:\", len(M), \"->\", len(obs))\nprint(\"profundidad:\", circuito.depth(), \"->\", corto.depth())\nprint(f\"valor: {valor(circuito, M):.4f} {valor(corto, obs):.4f}\")",
+     "lang": "python",
+     "id": "c",
+     "size": 17
+    },
+    {
+     "type": "code",
+     "src": "términos: 6 -> 64\nprofundidad: 12 -> 8\nvalor: 0.8249 0.8249",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "6-17",
+     "id": "c",
+     "at": "ej"
+    },
+    {
+     "do": "hl",
+     "range": "18-19",
+     "id": "c",
+     "at": "bp"
+    },
+    {
+     "do": "hl",
+     "range": "22-24",
+     "id": "c",
+     "at": "res"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "res",
+     "t": 1
+    }
+   ]
+  },
+  {
    "id": "q1",
    "tag": [
     "8.2",
@@ -323,6 +444,80 @@
      "M3 mitiga errores de lectura; no cambia el circuito.",
      null,
      "SQD posprocesa muestras para diagonalizar Hamiltonianos."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "8.2",
+    "Tu turno"
+   ],
+   "say": "Abre el cuaderno de práctica de esta lección. Todo corre en tu equipo con OBP. [[n1]]Primero reproduces la retropropagación: cuatro capas absorbidas, sesenta y cuatro términos. [[n2]]Después le pones un presupuesto de operador, para que OBP se detenga antes de que el observable crezca demasiado. [[n3]]Y por último escribes una función que elige cuántas capas absorber dado un límite de términos.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p8-addons.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Retropropaga cuatro capas y compara términos, profundidad y valor esperado."
+      },
+      {
+       "level": 2,
+       "text": "Añade un presupuesto de operador para que OBP se detenga solo."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `mejor_k(limite)`: cuántas capas puedes absorber sin pasar del límite de términos."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "8.2",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda y lo verás al volver a esta lección.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "OBP cambia profundidad por términos que medir.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "OBP mueve el costo del circuito al observable. ¿Cuándo dejaría de compensar absorber más capas?",
+     "Tu observable tiene un solo término Z en un qubit. ¿Crees que OBP crecería igual de rápido que con la magnetización media? ¿Por qué?"
     ]
    },
    "align": "top"
@@ -379,7 +574,7 @@
   "addons"
  ],
  "practice": [
-  "Instala `qiskit-addon-obp` y reduce con él la profundidad del circuito de Trotter de esta lección.",
+  "Con `qiskit-addon-obp` (ya está en las dependencias del curso), absorbe las capas de un circuito de Trotter de ocho pasos y mide cuántos términos tiene el observable en cada paso.",
   "Recorre los tutoriales de [SQD](https://quantum.cloud.ibm.com/docs/en/addons/qiskit-addon-sqd) para una molécula pequeña.",
   "Guías originales: [addons](https://quantum.cloud.ibm.com/docs/en/guides/addons)"
  ],

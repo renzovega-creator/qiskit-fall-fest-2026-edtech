@@ -3037,6 +3037,22 @@ visualization = [
 ]
 
 [[package]]
+name = "qiskit-addon-obp"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "matplotlib" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "qiskit" },
+    { name = "qiskit-ibm-runtime" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/54/07/9f4f7b3ddadbb07ca95ddae78c323250a4e58f003a034c127568c4a09041/qiskit_addon_obp-0.3.0.tar.gz", hash = "sha256:33362fb4573469d6337fba12d0b583b34427159242b3d281fbc26a471af74f00", size = 1575500, upload-time = "2025-05-22T14:53:12.426Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c5/9e/bf849543ee92ea4e869abb1dbb7535b90adfba4ce325e4a2a6384887923e/qiskit_addon_obp-0.3.0-py3-none-any.whl", hash = "sha256:f8315775c634781cbd37a90330a08085790c7a5aa69e466384963531017f01bf", size = 30873, upload-time = "2025-05-22T14:53:10.505Z" },
+]
+
+[[package]]
 name = "qiskit-addon-utils"
 version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3106,6 +3122,7 @@ dependencies = [
     { name = "nbformat" },
     { name = "pylatexenc" },
     { name = "qiskit", extra = ["qasm3-import", "visualization"] },
+    { name = "qiskit-addon-obp" },
     { name = "qiskit-addon-utils" },
     { name = "qiskit-aer" },
     { name = "qiskit-ibm-runtime" },
@@ -3128,6 +3145,7 @@ requires-dist = [
     { name = "nbformat", specifier = ">=5.11.1" },
     { name = "pylatexenc" },
     { name = "qiskit", extras = ["visualization", "qasm3-import"], specifier = ">=2.5.2" },
+    { name = "qiskit-addon-obp", specifier = ">=0.3.0" },
     { name = "qiskit-addon-utils", specifier = "~=0.4.0" },
     { name = "qiskit-aer", specifier = "~=0.17" },
     { name = "qiskit-ibm-runtime", specifier = ">=0.50" },
