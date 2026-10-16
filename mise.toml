@@ -20,6 +20,10 @@ run = [
   "uv run --group tools python tests/proyecto_test.py",
 ]
 
+[tasks.runner]
+description = "Build the runner image and test /run over HTTP against it (needs Docker)"
+run = "uv run pytest tests/runner_test.py"
+
 [tasks.verify]
 description = "Run the Python code shown in every lesson and compare the checked outputs"
 run = "uv run python tools/verify.py"

@@ -28,5 +28,11 @@ tools = [
     "pillow",
 ]
 
+runner = [
+    "qiskit",
+    "qiskit-aer",
+    "qiskit-ibm-runtime",
+]
+
 [tool.uv]
 package = false
