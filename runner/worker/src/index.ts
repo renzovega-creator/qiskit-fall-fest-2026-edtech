@@ -1,6 +1,16 @@
 import { Container, getRandom } from "@cloudflare/containers";
 
+import { type Env, type Limits, loadLimits } from "./limits.ts";
+import { type Entry, logFailure, logRun } from "./log.ts";
+import { Budget, RateLimiter } from "./meters.ts";
+import { hasSession, issueSession, mac, verifyTurnstile } from "./session.ts";
+
+export { Budget, RateLimiter };
+
 const INSTANCES = 3;
+const DAY_MS = 86_400_000;
+// Cloudflare cobra el tiempo del contenedor en pasos de 10 ms.
+const BILLING_STEP_MS = 10;
 
 // Una instancia atiende un trabajo a la vez (runner/server.py). El Worker reparte
 // entre INSTANCES y reintenta una vez cuando la elegida responde 503.
@@ -10,20 +20,293 @@ export class Runner extends Container {
   enableInternet = false;
 }
 
-export default {
-  async fetch(request: Request, _env: unknown, ctx: ExecutionContext): Promise<Response> {
-    const { pathname } = new URL(request.url);
-    if (pathname !== "/run" && pathname !== "/health") {
-      return Response.json({ error: "no existe" }, { status: 404 });
+interface Exports {
+  Runner: DurableObjectNamespace<Runner>;
+  RateLimiter: DurableObjectNamespace<RateLimiter>;
+  Budget: DurableObjectNamespace<Budget>;
+}
+
+class Refusal extends Error {
+  constructor(
+    readonly entry: Entry,
+    readonly reason: string,
+    readonly message: string,
+    readonly headers: Record<string, string> = {},
+  ) {
+    super(message);
+  }
+}
+
+function refuse(response: Refusal): Response {
+  return Response.json(
+    { error: response.message, reason: response.reason },
+    {
+      status: response.entry.status,
+      headers: { "Cache-Control": "no-store", ...response.headers },
+    },
+  );
+}
+
+const utf8Length = (text: string) => new TextEncoder().encode(text).length;
+
+function wait(seconds: number): string {
+  if (seconds < 90) return `${seconds} s`;
+  if (seconds < 5400) return `${Math.ceil(seconds / 60)} min`;
+  return `${Math.ceil(seconds / 3600)} h`;
+}
+
+async function readBody(request: Request, limits: Limits): Promise<Uint8Array> {
+  const tooLarge = () =>
+    new Refusal(
+      { outcome: "too_large", status: 413 },
+      "too_large",
+      `La petición es demasiado grande: el código no puede pasar de ${limits.maxCodeBytes} bytes.`,
+    );
+  const declared = Number(request.headers.get("content-length"));
+  if (declared > limits.maxBodyBytes) throw tooLarge();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  if (request.body) {
+    const reader = request.body.getReader();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.length;
+      if (total > limits.maxBodyBytes) {
+        await reader.cancel();
+        throw tooLarge();
+      }
+      chunks.push(value);
     }
-    const runners = (ctx as unknown as { exports: { Runner: DurableObjectNamespace<Runner> } })
-      .exports.Runner;
-    const body = request.method === "POST" ? await request.arrayBuffer() : undefined;
-    const send = async () =>
-      (await getRandom(runners, INSTANCES)).fetch(
-        new Request(request.url, { method: request.method, headers: request.headers, body }),
+  }
+  const body = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return body;
+}
+
+// Lo que se puede cobrar de una petición ya aceptada. Se calcula tras el
+// trabajo, con el tiempo que el Worker esperó a la instancia (arranque incluido),
+// y nunca pasa de lo que la petición apartó.
+function busyCost(limits: Limits, busyMs: number): number {
+  const steps = Math.max(1, Math.ceil(busyMs / BILLING_STEP_MS));
+  const cost = Math.round(((steps * BILLING_STEP_MS) / 1000) * limits.nanoPerBusySecond);
+  return Math.min(cost, limits.reserveNano);
+}
+
+// Cambia la reserva por el coste medido. Un fallo se registra y no se propaga.
+// La reserva sin ajustar cuenta de más, nunca de menos, y no debe tapar el error
+// que la petición ya traía.
+async function settle(
+  budget: DurableObjectStub<Budget>,
+  month: string,
+  reserved: number,
+  actual: number,
+): Promise<void> {
+  try {
+    await budget.settle(month, reserved, actual);
+  } catch (error) {
+    logFailure(error, "settle");
+  }
+}
+
+async function run(request: Request, env: Env, exports: Exports): Promise<Response> {
+  const limits = loadLimits(env);
+  const now = Date.now();
+  const ip = request.headers.get("cf-connecting-ip") ?? "";
+  const entry: Entry = { outcome: "ok", status: 0 };
+  const month = new Date(now).toISOString().slice(0, 7);
+  const budget = exports.Budget.get(exports.Budget.idFromName("budget"));
+  // La reserva sigue pendiente mientras la petición no ha pasado al contenedor.
+  let holding = false;
+
+  try {
+    const dayStart = Math.floor(now / DAY_MS) * DAY_MS;
+    const limiter = exports.RateLimiter.get(
+      exports.RateLimiter.idFromName(
+        await mac(env.TURNSTILE_SECRET, "limiter", `${dayStart}|${ip}`),
+      ),
+    );
+    const verdict = await limiter.take(now, limits.perMinute, limits.perDay, dayStart + DAY_MS);
+    if (!verdict.ok) {
+      const day = verdict.scope === "day";
+      throw new Refusal(
+        { outcome: day ? "rate_day" : "rate_minute", status: 429 },
+        day ? "rate_day" : "rate_minute",
+        day
+          ? `Llegaste al límite de ejecuciones de hoy. Puedes volver a ejecutar en ${wait(verdict.retryAfter)}.`
+          : `Estás ejecutando demasiado seguido. Espera ${wait(verdict.retryAfter)} y vuelve a intentarlo.`,
+        { "Retry-After": String(verdict.retryAfter) },
       );
-    const first = await send();
-    return first.status === 503 ? send() : first;
+    }
+
+    const body = await readBody(request, limits);
+    let parsed: { code?: unknown; mode?: unknown; exercise?: unknown };
+    try {
+      parsed = JSON.parse(new TextDecoder().decode(body));
+    } catch {
+      throw new Refusal(
+        { outcome: "bad_request", status: 400 },
+        "bad_request",
+        "La petición no es un JSON válido.",
+      );
+    }
+    if (parsed === null || typeof parsed !== "object" || typeof parsed.code !== "string") {
+      throw new Refusal(
+        { outcome: "bad_request", status: 400 },
+        "bad_request",
+        "Falta el campo code.",
+      );
+    }
+    entry.mode = parsed.mode;
+    entry.exercise = parsed.exercise;
+    entry.codeBytes = utf8Length(parsed.code);
+    if (entry.codeBytes > limits.maxCodeBytes) {
+      throw new Refusal(
+        { ...entry, outcome: "too_large", status: 413 },
+        "too_large",
+        `El código ocupa ${entry.codeBytes} bytes y el máximo son ${limits.maxCodeBytes}.`,
+      );
+    }
+
+    holding = await budget.reserve(month, limits.reserveNano, limits.budgetNano);
+    if (!holding) {
+      const next = new Date(now);
+      const retryAfter = Math.ceil(
+        (Date.UTC(next.getUTCFullYear(), next.getUTCMonth() + 1, 1) - now) / 1000,
+      );
+      throw new Refusal(
+        { ...entry, outcome: "budget", status: 503 },
+        "budget",
+        "El corredor alcanzó su presupuesto de este mes y no ejecuta más código hasta que empiece el siguiente. Los cuadernos de marimo siguen funcionando en tu equipo.",
+        { "Retry-After": String(retryAfter) },
+      );
+    }
+
+    let cookie: string | undefined;
+    if (!(await hasSession(env.TURNSTILE_SECRET, ip, now, request.headers.get("cookie")))) {
+      const token = request.headers.get("x-turnstile-token");
+      if (!token) {
+        throw new Refusal(
+          { ...entry, outcome: "turnstile_missing", status: 403 },
+          "turnstile_missing",
+          "Antes de ejecutar código hay que comprobar que eres una persona.",
+        );
+      }
+      const verification = await verifyTurnstile(env.TURNSTILE_SECRET, token);
+      if (verification === "unavailable") {
+        throw new Refusal(
+          { ...entry, outcome: "turnstile_unavailable", status: 503 },
+          "turnstile_unavailable",
+          "No se pudo comprobar que eres una persona. Vuelve a intentarlo en unos segundos.",
+          { "Retry-After": "10" },
+        );
+      }
+      if (verification === "rejected") {
+        throw new Refusal(
+          { ...entry, outcome: "turnstile_failed", status: 403 },
+          "turnstile_failed",
+          "No pasó la comprobación de que eres una persona. Recarga la página e inténtalo de nuevo.",
+        );
+      }
+      cookie = await issueSession(env.TURNSTILE_SECRET, ip, now, limits.sessionMs);
+    }
+
+    // El contenedor recibe solo el cuerpo y su tipo. No recibe la cookie, la IP
+    // ni el token de Turnstile.
+    // La instancia que aún no ha respondido a esta petición. Una que responde, 503
+    // incluido, deja de ser de la petición: el 503 dice que atiende el trabajo de
+    // otro alumno, y detenerla lo mataría.
+    let pending = undefined as DurableObjectStub<Runner> | undefined;
+    let stopped = false;
+    const send = async () => {
+      const instance = await getRandom(exports.Runner, INSTANCES);
+      // Una instancia elegida después del tope no debe llegar a arrancar.
+      if (stopped) throw new Error("run stopped");
+      pending = instance;
+      const response = await instance.fetch(
+        new Request(new URL("/run", request.url), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+        }),
+      );
+      pending = undefined;
+      return response;
+    };
+    const started = Date.now();
+    let result: Response | undefined;
+    holding = false;
+    // La reserva es un tope: la ejecución, con su reintento, tiene RESERVED_BUSY_SECONDS.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const ceiling = new Promise<undefined>((resolve) => {
+      timer = setTimeout(() => resolve(undefined), limits.reserveMs);
+    });
+    const work = (async () => {
+      const first = await send();
+      return first.status === 503 ? send() : first;
+    })();
+    // Si gana el tope, el rechazo tardío de `work` no tiene a quién llegar.
+    work.catch(() => {});
+    try {
+      result = await Promise.race([work, ceiling]);
+      if (!result) {
+        stopped = true;
+        await pending?.destroy().catch((error) => logFailure(error, "stop"));
+      }
+    } finally {
+      clearTimeout(timer);
+      entry.busyMs = Date.now() - started;
+      entry.costNano = busyCost(limits, entry.busyMs);
+      // Si falla el registro del coste, la reserva se queda y el error del
+      // contenedor, si lo hubo, sigue su camino.
+      await settle(budget, month, limits.reserveNano, entry.costNano);
+    }
+    if (!result) {
+      throw new Refusal(
+        { ...entry, outcome: "run_too_long", status: 504 },
+        "run_too_long",
+        "La ejecución tardó más de lo que el corredor permite y se detuvo. Revisa si el código tiene un bucle sin fin.",
+      );
+    }
+    entry.status = result.status;
+    logRun(entry);
+    const headers = new Headers({
+      "Content-Type": result.headers.get("content-type") ?? "application/json",
+      "Cache-Control": "no-store",
+    });
+    if (cookie) headers.set("Set-Cookie", cookie);
+    return new Response(result.body, { status: result.status, headers });
+  } catch (error) {
+    if (holding) await settle(budget, month, limits.reserveNano, 0);
+    if (error instanceof Refusal) {
+      logRun(error.entry);
+      return refuse(error);
+    }
+    throw error;
+  }
+}
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const { pathname } = new URL(request.url);
+    // Responder aquí evita arrancar un contenedor por una petición sin límite.
+    if (pathname === "/health") return Response.json({ ok: true });
+    if (pathname !== "/run") return Response.json({ error: "no existe" }, { status: 404 });
+    if (request.method !== "POST") {
+      return Response.json({ error: "usa POST" }, { status: 405, headers: { Allow: "POST" } });
+    }
+    try {
+      return await run(request, env, (ctx as unknown as { exports: Exports }).exports);
+    } catch (error) {
+      logFailure(error);
+      return Response.json(
+        { error: "Error interno del corredor.", reason: "internal_error" },
+        { status: 500 },
+      );
+    }
   },
 };

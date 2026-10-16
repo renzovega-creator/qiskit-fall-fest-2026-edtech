@@ -4,11 +4,11 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "lib": ["es2022"],
-    "types": ["@cloudflare/workers-types"],
+    "types": ["@cloudflare/workers-types", "node"],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "cloudflare.config.ts"]
+  "include": ["src", "test", "cloudflare.config.ts", "vitest.config.ts"]
 }
