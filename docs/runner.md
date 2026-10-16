@@ -118,9 +118,20 @@ corredor protege el anfitrión y la corrección, no la clave de respuestas.
 | `runner/worker/src/routes.ts`        | Las rutas que entran al Worker antes que a los archivos.                         |
 | `runner/worker/src/index.ts`         | Las comprobaciones de [Protección del Worker](#protección-del-worker).           |
 | `runner/worker/src/meters.ts`        | Los Durable Objects `RateLimiter` y `Budget`.                                    |
-| `runner/worker/src/session.ts`       | La cookie de sesión y la llamada a `siteverify`.                                 |
-| `runner/worker/src/log.ts`           | La única línea que el Worker escribe en su registro.                             |
-| `runner/worker/test/`                | Las pruebas del Worker con un contenedor falso.                                  |
+| `runner/worker/src/session.ts`       | La cookie de sesión de Turnstile y la llamada a `siteverify`.                    |
+| `runner/worker/src/throttle.ts`      | El contador por clave (IP o usuario) sobre `RateLimiter`.                        |
+| `runner/worker/src/auth.ts`          | `/auth/*`: el inicio de sesión con Google y GitHub y el cierre.                  |
+| `runner/worker/src/account.ts`       | Usuarios, identidades y sesiones de cuenta en D1.                                |
+| `runner/worker/src/api.ts`           | `/api/*`: la cuenta y su progreso.                                               |
+| `runner/worker/src/progress.ts`      | La validación y la unión del progreso.                                           |
+| `runner/worker/src/attempts.ts`      | Lo que se anota de cada ejecución.                                               |
+| `runner/worker/src/purge.ts`         | La limpieza diaria.                                                              |
+| `runner/worker/src/schema.sql`       | El esquema de la base D1.                                                        |
+| `runner/worker/src/http.ts`          | Las respuestas y la comprobación de origen que comparten `/auth` y `/api`.       |
+| `runner/worker/src/contract.ts`      | La forma de un id de ejercicio.                                                  |
+| `runner/worker/src/log.ts`           | Las únicas líneas que el Worker escribe en su registro.                          |
+| `runner/worker/test/`                | Las pruebas del Worker con un contenedor y un proveedor OAuth falsos.            |
+| [`deploy.md`](deploy.md)             | Los pasos para publicar una copia propia.                                        |
 | `exercises/<lección>/<ejercicio>/`   | La imagen solo lleva `check.py` de cada uno.                                     |
 
 ## Ejecutarlo con Docker
@@ -159,16 +170,20 @@ mise run worker
 Las pruebas del Worker (`runner/worker/test/`) arrancan el Worker real en el
 runtime local de Cloudflare (Miniflare), con `site/` como archivos estáticos y
 las mismas rutas de entrada que el despliegue, y con un contenedor falso que
-anota cada llamada. No necesitan Docker ni cuenta. Comprueban que `GET /` sirve
+anota cada llamada, una base D1 local y un proveedor OAuth falso que hace de
+Google y de GitHub. No necesitan Docker ni cuenta. Comprueban que `GET /` sirve
 `index.html`, que `POST /run` devuelve el JSON del corredor y cada límite de
 [Protección del Worker](#protección-del-worker) por su respuesta y, con el
-contenedor falso, que una petición rechazada no lo alcanza. Dos pruebas llaman
-al `siteverify` real con las claves de prueba y se saltan si no hay red.
+contenedor falso, que una petición rechazada no lo alcanza. También recorren el
+inicio de sesión, los [endpoints de la cuenta](#cuentas), lo que se guarda de
+cada ejecución y la limpieza diaria. Dos pruebas llaman al `siteverify` real con
+las claves de prueba y se saltan si no hay red.
 
 ## Cloudflare Containers
 
-`runner/worker/` es un solo Worker que sirve el sitio y el corredor en el mismo
-origen: el editor llama a `/run` y la cookie de sesión es `SameSite=Strict`.
+`runner/worker/` es un solo Worker, `qiskit-guides`, que sirve el sitio, el
+corredor y las cuentas en el mismo origen: el editor llama a `/run` y la cookie
+de sesión de Turnstile es `SameSite=Strict`.
 
 - Los archivos de `site/` son sus archivos estáticos. El directorio lo fija
   [`wrangler.config.ts`](../runner/worker/wrangler.config.ts).
@@ -177,7 +192,8 @@ origen: el editor llama a `/run` y la cookie de sesión es `SameSite=Strict`.
   [`src/routes.ts`](../runner/worker/src/routes.ts), que usan también el
   despliegue y las pruebas. Cualquier otra ruta la responde el servicio de
   archivos sin ejecutar el Worker, y una ruta que no es un archivo responde 404.
-  Hoy el Worker responde 404 en `/auth/*` y `/api/*`.
+  Una ruta de `/auth/*` o de `/api/*` que no existe la responde el Worker con
+  404 y `reason` `not_found`.
 - Una clase `Runner` que extiende `Container` (`@cloudflare/containers`) reparte
   las peticiones de `/run` entre tres instancias. Si la instancia elegida
   responde 503, repite la petición una vez. La instancia no tiene salida a
@@ -189,29 +205,195 @@ desplegar.
 
 ### Lo que fija el operador
 
-- El plan Workers Paid, que los Containers requieren.
-- Docker en el `PATH` y accesible para quien despliega: `cf deploy` construye la
-  imagen en su equipo.
-- Un widget de Cloudflare Turnstile cuyos nombres de host incluyan el del sitio.
-  Su clave del sitio es pública y va en `TURNSTILE_SITE_KEY` de
-  [`cloudflare.config.ts`](../runner/worker/cloudflare.config.ts). Su secreto es
-  `TURNSTILE_SECRET` y no se escribe en el repositorio. Con `TURNSTILE_SITE_KEY`
-  vacía, un `POST /run` sin sesión responde 500 `internal_error` y registra la
-  variable que falta.
-- Para servir el sitio en un dominio propio, el campo `domains` de `worker` en
-  `cloudflare.config.ts`. Hoy no lo declara.
+El plan Workers Paid, Docker, la base D1, el widget de Turnstile y los clientes
+OAuth son de la cuenta de quien despliega. [deploy.md](deploy.md) da los pasos.
+Los valores y los secretos que el Worker lee están en
+[Variables y secretos](#variables-y-secretos). El Worker no declara `domains`:
+sale en `<nombre>.<subdominio>.workers.dev`.
 
-```sh
-cd runner/worker
-bun install
-bunx cf deploy --dry-run   # construye la imagen y el Worker, no sube nada
-umask 077
-read -rs -p 'Secreto de Turnstile: ' secret && printf 'TURNSTILE_SECRET=%s\n' "$secret" > "$TMPDIR/secrets.env"
-bunx cf deploy --secrets-file "$TMPDIR/secrets.env"
-rm "$TMPDIR/secrets.env"
+## Cuentas
+
+Una cuenta es opcional. Sin ella todo funciona y el progreso se queda en el
+navegador (`localStorage`). Con ella el progreso se guarda en una base D1 y se
+comparte entre dispositivos. Se entra con Google o con GitHub, sin contraseña.
+
+| Método y ruta                      | Qué hace                                                                     |
+| ---------------------------------- | ---------------------------------------------------------------------------- |
+| `GET /auth/google`, `/auth/github` | Redirige al proveedor. `?return=/ruta` dice adónde volver (por defecto `/`). |
+| `GET /auth/<proveedor>/callback`   | La vuelta del proveedor. Abre la sesión y redirige a `return`.               |
+| `POST /auth/logout`                | Cierra la sesión. Responde 204.                                              |
+| `GET /api/me`                      | Quién entró y su progreso.                                                   |
+| `POST /api/merge`                  | Junta el progreso del navegador con el de la cuenta.                         |
+| `PUT /api/progress`                | Guarda cambios de progreso. Responde 204.                                    |
+| `DELETE /api/me`                   | Borra la cuenta y todo lo suyo.                                              |
+
+Las respuestas de error llevan `{"error": "...", "reason": "..."}`. Los métodos
+que cambian datos (`POST`, `PUT`, `DELETE`) exigen la cabecera `Origin` del
+mismo origen y responden 403 `bad_origin` si no. Sin sesión, todo `/api` salvo
+`GET /api/me` responde 401 `signed_out`. Una ruta que no existe responde 404
+`not_found`, y un método equivocado, 405 `method` con `Allow`.
+
+### Entrar
+
+El inicio de sesión es el flujo de código de autorización de OAuth 2.0 con
+`state` y PKCE (S256), escrito sin biblioteca en
+[`src/auth.ts`](../runner/worker/src/auth.ts).
+
+1. `GET /auth/<proveedor>` guarda un `state` al azar, el verificador PKCE y el
+   `return` en la cookie `qg_oauth`
+   (`Path=/auth; HttpOnly; Secure; SameSite=Lax`, 10 minutos) y redirige al
+   proveedor. Google recibe el permiso `openid`; GitHub, ninguno. `return` solo
+   puede ser una ruta de este sitio (empieza por una `/` y no por `//` ni `/\`,
+   sin caracteres de control, hasta 200 caracteres); otra cosa responde 400
+   `bad_return`. La redirección escribe en porcentaje (UTF-8) los caracteres que
+   no son ASCII. Sin las credenciales del proveedor responde 503
+   `provider_unavailable`.
+2. La vuelta cambia el código por un token en el extremo del proveedor y lee de
+   su extremo de datos solo el identificador: `sub` en Google, `id` en GitHub.
+   Las peticiones a GitHub llevan `User-Agent: qiskit-guides`.
+3. Si el identificador ya tiene usuario, entra en él; si no, se crea uno. Una
+   sesión nueva sale en la cookie `qg_auth`
+   (`Path=/; HttpOnly; Secure; SameSite=Lax`, `AUTH_SESSION_DAYS` días) y la
+   respuesta redirige a `return`. La cookie `qg_oauth` se gasta en toda vuelta.
+
+La vuelta se rechaza con 400 si falta la cookie `qg_oauth` o es de otro
+proveedor (`flow_missing`), si el `state` no es el guardado (`state_mismatch`),
+si no trae `code` (`code_missing`) o si el proveedor no acepta el código
+(`code_rejected`: un código solo vale una vez). Si el proveedor no responde, 502
+`provider_failed`. Si el alumno cancela en la pantalla del proveedor, la
+respuesta redirige a `return` sin sesión.
+
+Un proveedor y un identificador son una identidad. Ni dos proveedores ni dos
+cuentas de un mismo proveedor se juntan: cada identidad nueva es un usuario
+nuevo.
+
+### El progreso
+
+`GET /api/me` responde `{"signedIn": false}` sin sesión. Con ella:
+
+```json
+{
+  "signedIn": true,
+  "providers": ["google"],
+  "progress": {
+    "done": ["p1-quickstart"],
+    "exercises": {
+      "p1-quickstart/ghz": {
+        "code": "…",
+        "hints": 1,
+        "checks": 3,
+        "passed": true,
+        "at": 1760000000000
+      }
+    },
+    "kv": { "qiskit:hitos": [1, 3] }
+  }
+}
 ```
 
-`--secrets-file` sube `TURNSTILE_SECRET` con la versión (JSON o `.env`).
+`done` son las lecciones terminadas. `exercises` guarda por ejercicio el código
+(solo si la página lo manda), las pistas y las comprobaciones, si pasó y `at`,
+los milisegundos Unix de la última edición. `kv` guarda las claves de
+`localStorage` que siguen una de estas formas:
+
+| Clave                                    | Valor              | Al juntar dos valores                                                 |
+| ---------------------------------------- | ------------------ | --------------------------------------------------------------------- |
+| `qiskit:heard:<lección>`, `qiskit:hitos` | lista de enteros   | la unión                                                              |
+| `qiskit:misiones`                        | lista de textos    | la unión                                                              |
+| `qiskit:pos:<lección>`                   | entero             | el mayor                                                              |
+| `qiskit:predict:<lección>:<id>`          | entero             | el que ya estaba: una apuesta no cambia                               |
+| `qiskit:repaso`                          | `{id: {box, due}}` | por pregunta, la caja mayor y, a igual caja, la fecha que vence antes |
+
+`POST /api/merge` y `PUT /api/progress` reciben el mismo cuerpo (`done`,
+`exercises` y `kv`, todos opcionales) y lo juntan con lo guardado:
+
+- `done` se une.
+- Por ejercicio, `hints` y `checks` son el mayor, `passed` es verdadero si lo
+  era alguno, y el código es el de la edición con `at` mayor. Un código ausente
+  o `null` no borra el guardado.
+- `kv` se junta según la tabla.
+
+Ninguna regla depende del orden, así que dos dispositivos que se sincronizan
+acaban en el mismo estado. `POST /api/merge` responde `{"progress": {...}}` con
+el resultado; `PUT /api/progress` responde 204. Una clave de `kv` o un campo que
+el Worker no conoce responde 400 `bad_request`, para que un error de la página
+se vea. El cuerpo es `application/json` (415 `content_type` si no) y de hasta
+800 000 bytes (413 `too_large`). Una cuenta admite 500 lecciones, 100 ejercicios
+y 2000 claves; pasarse responde 413 `too_much`. El código de un ejercicio mide
+hasta 20 000 bytes. Dos escrituras a la vez del mismo usuario no se pisan: una
+que encuentra el progreso cambiado vuelve a leer y a juntar. Si pierde 10 veces
+seguidas responde 503 `busy` con `Retry-After`. El detalle está en
+[architecture.md](architecture.md#runner).
+
+`DELETE /api/me` borra el usuario y, por las claves foráneas, sus identidades,
+sesiones, progreso e intentos. Responde `{"deleted": true}` y borra la cookie.
+
+Cada endpoint de `/auth` cuenta contra un límite por IP, `AUTH_PER_MINUTE` por
+minuto y `RATE_PER_DAY` por día, y responde 429 `rate_auth` al pasarse. Cada
+endpoint de `/api` cuenta contra el límite por usuario de
+[Límite por IP](#límite-por-ip).
+
+### Datos que se guardan
+
+El Worker no guarda correo, nombre, avatar ni contraseña: no los pide al
+proveedor y descarta lo que este devuelve. El esquema es
+[`src/schema.sql`](../runner/worker/src/schema.sql).
+
+| Tabla            | Qué guarda                                                             |
+| ---------------- | ---------------------------------------------------------------------- |
+| `users`          | Un id al azar, el día de alta y el día de la última visita.            |
+| `identities`     | Proveedor e identificador del proveedor de cada usuario.               |
+| `sessions`       | El hash SHA-256 del token de `qg_auth` y su caducidad. Nunca el token. |
+| `lesson_done`    | Las lecciones terminadas y cuándo.                                     |
+| `exercise_state` | El código, las pistas, las comprobaciones y si pasó, por ejercicio.    |
+| `kv`             | Las claves de `localStorage` de la tabla de arriba.                    |
+| `attempts`       | Una fila por ejecución, con o sin cuenta.                              |
+
+Cada respuesta 200 de `/run` escribe una fila en `attempts`, a partir del JSON
+que devolvió el contenedor, que es quien califica el código. La fila lleva el
+momento, el `user_id` (`NULL` sin cuenta), el ejercicio, el modo, el resultado
+(`pass`, `fail`, `error` o `timeout`), los nombres de los casos que fallaron, el
+nombre de la excepción de Python (o `other`, o `killed_memory`, `killed_disk` o
+`killed_output`), las pistas que la página dice haber usado (cabecera `X-Hints`,
+un dígito del 0 al 9), `ms` y el tamaño del código en bytes. No lleva el código,
+`stdout`, el texto del error ni el `message` de un caso, que pueden repetir lo
+que escribió el alumno. Solo se anota una ejecución con `mode` `run` o `check` y
+un `exercise` con la forma de un valor del contrato. Un fallo al escribir la
+fila se registra y la respuesta no cambia.
+
+### Retención
+
+| Variable                 | Valor | Qué se borra                                        |
+| ------------------------ | ----- | --------------------------------------------------- |
+| `ATTEMPT_RETENTION_DAYS` | 180   | Los intentos de más de esos días.                   |
+| `ACCOUNT_RETENTION_DAYS` | 730   | Las cuentas sin una visita en esos días (24 meses). |
+
+Un cron diario (`17 3 * * *`, UTC) llama al manejador `scheduled` del Worker,
+que borra en un solo lote los intentos vencidos, las sesiones caducadas y las
+cuentas inactivas. Borrar una cuenta arrastra todo lo suyo. Una visita es una
+petición con sesión de cuenta, y se anota a lo sumo una vez al día.
+
+### Variables y secretos
+
+Los secretos se crean con `bindings.secret()` en
+[`cloudflare.config.ts`](../runner/worker/cloudflare.config.ts) y no se escriben
+en el repositorio. [deploy.md](deploy.md) dice dónde se obtiene cada uno y cómo
+se guarda.
+
+| Nombre                                     | Tipo    | Para qué                                                          |
+| ------------------------------------------ | ------- | ----------------------------------------------------------------- |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | secreto | El cliente OAuth de Google.                                       |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | secreto | La aplicación OAuth de GitHub.                                    |
+| `TURNSTILE_SECRET`                         | secreto | El widget de Turnstile; también clave del HMAC de los contadores. |
+| `DB`                                       | D1      | La base de datos.                                                 |
+| `AUTH_PER_MINUTE`                          | 10      | Peticiones por IP y minuto a `/auth/*`.                           |
+| `AUTH_SESSION_DAYS`                        | 30      | Duración de la cookie `qg_auth`.                                  |
+| `SIGNED_IN_IP_FACTOR`                      | 4       | Cuánto sube el tope por IP de quien tiene cuenta.                 |
+| `ATTEMPT_RETENTION_DAYS`                   | 180     | Ver [Retención](#retención).                                      |
+| `ACCOUNT_RETENTION_DAYS`                   | 730     | Ver [Retención](#retención).                                      |
+
+El Worker arma el `redirect_uri` con el origen de la petición. Qué registrar en
+cada proveedor lo dice [deploy.md](deploy.md).
 
 ## Protección del Worker
 
@@ -220,9 +402,11 @@ comprobaciones van en este orden, y la primera que falla responde sin que el
 contenedor reciba nada:
 
 1. El límite por IP.
-2. El tamaño del cuerpo y del código.
-3. El presupuesto del mes.
-4. Turnstile, si la petición no trae una sesión válida.
+2. El límite por usuario, si la petición trae una sesión de cuenta (`qg_auth`).
+3. El tamaño del cuerpo y del código.
+4. El presupuesto del mes.
+5. Turnstile, si la petición no trae una sesión de cuenta ni una de Turnstile
+   válida.
 
 Una negativa lleva `{"error": "...", "reason": "..."}`. El editor muestra el
 texto de `error` tal cual. Todos los valores salen de `env` en
@@ -252,10 +436,18 @@ La IP es `CF-Connecting-IP`. Sin esa cabecera (en local) todas las peticiones
 comparten un solo contador. Una clase entera detrás de una misma IP comparte el
 límite.
 
-El contador de una IP vive en un Durable Object `RateLimiter` que se nombra con
-un HMAC de la IP y del día. La clave del HMAC sale de `TURNSTILE_SECRET`, así
-que el nombre no se puede volver a una IP sin ese secreto. El objeto guarda dos
-contadores y borra su estado cuando termina el día.
+Con una sesión de cuenta, el tope por IP es `SIGNED_IN_IP_FACTOR` veces el
+anónimo (4: 120 por minuto y 4000 por día) y el que acota a cada alumno es el
+suyo, con los mismos valores de `RATE_PER_MINUTE` y `RATE_PER_DAY`. Así una
+clase entera con cuenta cabe detrás de una IP, y un solo alumno no gasta más que
+uno anónimo. La respuesta 429 es la misma, con `reason` `rate_minute` o
+`rate_day`.
+
+Cada contador vive en un Durable Object `RateLimiter` que se nombra con un HMAC
+de la etiqueta (`limiter` para una IP, `user`, `auth` o `api`), del día y de la
+clave (la IP o el id del usuario). La clave del HMAC sale de `TURNSTILE_SECRET`,
+así que el nombre no se puede volver a una IP ni a un usuario sin ese secreto.
+El objeto guarda dos contadores y borra su estado cuando termina el día.
 
 ### Tamaño del código
 
@@ -327,12 +519,15 @@ La suma de `cost_nano_usd` en el registro da el gasto estimado del mes.
 
 ### Turnstile
 
-Cloudflare Turnstile se verifica en la primera ejecución de una sesión. Una
-petición sin sesión y sin token recibe 403 `turnstile_missing` con la clave del
-sitio en el campo `sitekey`. Con ella, `site/exercise.js` carga el widget, y
-repite la petición con el token del widget en la cabecera `X-Turnstile-Token`.
-El Worker lo comprueba con `siteverify`, al que envía solo el secreto y el
-token, y si vale responde con la cookie `qg_session` además del resultado:
+Cloudflare Turnstile se verifica en la primera ejecución de una sesión anónima.
+Quien entró con una cuenta no pasa por Turnstile: su sesión `qg_auth` ya
+distingue a una persona, y la petición ni llama a `siteverify` ni recibe
+`qg_session`. Una petición sin sesión y sin token recibe 403 `turnstile_missing`
+con la clave del sitio en el campo `sitekey`. Con ella, `site/exercise.js` carga
+el widget, y repite la petición con el token del widget en la cabecera
+`X-Turnstile-Token`. El Worker lo comprueba con `siteverify`, al que envía solo
+el secreto y el token, y si vale responde con la cookie `qg_session` además del
+resultado:
 
 ```text
 qg_session=<caducidad>.<mac>; Max-Age=28800; Path=/run; HttpOnly; Secure; SameSite=Strict
@@ -355,8 +550,9 @@ siguientes ejecuciones la mandan solas y no vuelven a llamar a Turnstile.
 
 `TURNSTILE_SECRET` es un secreto del Worker (`bindings.secret()`), no un valor
 del repositorio. La clave del sitio no es secreta: el Worker se la da a la
-página en la respuesta `turnstile_missing`. Cloudflare documenta claves de
-prueba que no necesitan cuenta:
+página en la respuesta `turnstile_missing`. Con `TURNSTILE_SITE_KEY` vacía, un
+`POST /run` anónimo responde 500 `internal_error` y registra la variable que
+falta. Cloudflare documenta claves de prueba que no necesitan cuenta:
 
 | Clave                                 | Tipo    | Comportamiento                                                |
 | ------------------------------------- | ------- | ------------------------------------------------------------- |
@@ -416,6 +612,12 @@ El Worker escribe estos registros y ningún otro. Todos tienen campos fijos, que
    lleva `status`:
    - `"settle"`: falló el ajuste del presupuesto.
    - `"stop"`: falló detener una instancia al llegar al tope de la reserva.
+   - `"attempt"`: falló anotar el intento en la base. La respuesta no cambia.
+
+4. Una línea de error con `event` `auth`, `api` o `purge` cuando falla un
+   endpoint de [Cuentas](#cuentas) o la limpieza diaria. Lleva `outcome`
+   `internal_error`, `status` 500 y `error` con el nombre de la clase. Un
+   endpoint responde 500 `internal_error`; la limpieza deja que falle el cron.
 
 Ningún registro lleva el código, la IP, el token, la cookie ni el texto de un
 error. `cloudflare.config.ts` activa Workers Logs con el registro de
