@@ -121,6 +121,36 @@ libres, en `server.py`.
 - Las instancias de Cloudflare no comparten nada: cada una tiene su cola. El
   Worker elige una de tres y, si responde 503, repite la petición una vez, que
   puede llegar a la misma instancia.
+- El Worker guarda su estado en dos Durable Objects de
+  `runner/worker/src/meters.ts` ([runner.md](runner.md#protección-del-worker)
+  explica los límites). Cada objeto atiende una llamada a la vez, y sus métodos
+  solo esperan a su propio almacenamiento, así que leer y escribir dentro de un
+  método es una operación.
+
+`RateLimiter` hay uno por IP y día, nombrado con un HMAC de ambos. Su estado es
+el registro `count` (minuto del reloj, peticiones de ese minuto y del día).
+
+| Estado   | Significa                                | Quién lo deja y cuándo                                                                                                                 |
+| -------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| vacío    | No hay `count`.                          | Al crearse el objeto, y la alarma `alarm` cuando termina el día más un minuto.                                                         |
+| contando | Hay `count` y una alarma al fin del día. | `take`, que el Worker llama primero en cada `POST /run`. Suma una petición si caben en el minuto y en el día, y si no, no cambia nada. |
+
+- Al cambiar el minuto del reloj, `take` empieza el contador del minuto de cero
+  sin esperar a ningún evento. El contador del día sigue hasta la alarma.
+- Solo `take` escribe `count`, y solo `alarm` lo borra.
+
+`Budget` hay uno en total. Su estado es el registro `spent` (mes UTC y
+nanodólares).
+
+| Estado    | Significa                                                                                 | Quién lo deja y cuándo                                                                                                                                       |
+| --------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| mes nuevo | No hay `spent`, o su mes no es el actual: el total del mes es 0.                          | El paso del reloj al día 1 UTC. No hay temporizador: el primer `reserve` del mes nuevo lo sobrescribe.                                                       |
+| reservado | El total incluye lo apartado por ejecuciones que aún no terminaron.                       | `reserve`, que el Worker llama antes de arrancar el contenedor. Suma la reserva solo si el total más la reserva no pasa del presupuesto; si pasa, no cambia. |
+| ajustado  | El total cambia la reserva de una ejecución por su coste medido, con tope en lo apartado. | `settle`, en el `finally` de la ejecución y, con coste 0, cuando Turnstile rechaza una petición que ya había apartado. No hace nada si el mes ya cambió.     |
+
+- Una petición tiene a lo sumo una reserva: la aparta una vez y la cambia una
+  vez, o se interrumpe y la reserva se queda en el total.
+- Un `settle` que falla se registra y no cambia la respuesta de la petición.
 
 ## Camino de los datos
 

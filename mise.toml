@@ -24,6 +24,10 @@ run = [
 description = "Build the runner image and test /run over HTTP against it (needs Docker)"
 run = "uv run pytest tests/runner_test.py"
 
+[tasks.worker]
+description = "Test the runner Worker's limits against a fake container (needs bun install in runner/worker)"
+run = "bun run --cwd runner/worker test"
+
 [tasks.verify]
 description = "Run the Python code shown in every lesson and compare the checked outputs"
 run = "uv run python tools/verify.py"
