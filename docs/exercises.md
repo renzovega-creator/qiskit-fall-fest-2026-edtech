@@ -158,24 +158,21 @@ tiene su mensaje.
 ### Dónde corre el código
 
 El editor envía `POST /run` con `{"exercise", "code", "mode"}` y recibe el
-resultado de `grade()`. La URL sale de `site/config.json`, que escribe
-`build.py`:
+resultado de `grade()`. La ruta es siempre `/run`, la del mismo origen que la
+página. El corredor de [runner.md](runner.md) no responde las peticiones
+`OPTIONS` ni envía cabeceras CORS, y su cookie de sesión es `SameSite=Strict`:
+la página y el corredor deben tener el mismo origen. En producción los sirve un
+solo Worker; ver [runner.md](runner.md#cloudflare-containers).
 
-```sh
-QG_RUNNER_URL=https://corredor.example/run uv run python lessons_src/build.py
-```
+Si el corredor responde 403 con `reason` `turnstile_missing`, la página carga el
+widget de Cloudflare Turnstile con la clave del sitio que trae esa respuesta, y
+repite la petición con el token en la cabecera `X-Turnstile-Token`. El widget
+solo se ve si Cloudflare necesita que el lector haga algo. Con la sesión abierta
+no se vuelve a pedir. Si el widget no carga, el panel lo dice y se puede
+reintentar.
 
-Sin `QG_RUNNER_URL`, `config.json` trae `{"runner": null}`. Entonces el editor
-muestra el código y avisa de que todavía no se puede ejecutar en esa página; los
-botones **Ejecutar** y **Comprobar** no se activan y la página no hace ninguna
-petición al corredor. `QG_RUNNER_URL` es una URL `http(s)` o una ruta que
-empieza por `/`; `build.py` rechaza otra cosa. El corredor de
-[runner.md](runner.md) no responde las peticiones `OPTIONS` ni envía cabeceras
-CORS: la página y el corredor deben tener el mismo origen.
-
-En tu equipo, [`tools/serve.py`](../tools/serve.py) responde `POST /run` y
-también `/config.json`, con `{"runner": "/run"}` en lugar del archivo de
-`site/`:
+En tu equipo, [`tools/serve.py`](../tools/serve.py) responde `POST /run` sin
+Turnstile:
 
 ```sh
 uv run python tools/serve.py [puerto]
@@ -215,9 +212,9 @@ después de `build.py`. Por cada ejercicio comprueba que:
 [`tests/exercises_test.py`](../tests/exercises_test.py) corre cada ejercicio con
 su solución y con una solución equivocada que debe fallar con un mensaje útil, y
 prueba el corrector, lo que publica `build.py`, las tres comprobaciones y
-`serve.py` y `config.json`.
-[`tests/exercise_ui_test.py`](../tests/exercise_ui_test.py) abre las lecciones
-en el navegador contra `serve.py`: escribe código equivocado y ve fallar un
-caso, lo corrige y lo ve pasar, recarga y comprueba que el progreso sigue. Lo
-repite en un móvil, y prueba el teclado, las pistas, el timeout, los errores y
-una página sin corredor. `mise run test` ejecuta los tres.
+`serve.py`. [`tests/exercise_ui_test.py`](../tests/exercise_ui_test.py) abre las
+lecciones en el navegador contra `serve.py`: escribe código equivocado y ve
+fallar un caso, lo corrige y lo ve pasar, recarga y comprueba que el progreso
+sigue. Lo repite en un móvil, y prueba el teclado, las pistas, el timeout, los
+errores y la comprobación de Turnstile, con un widget de prueba. `mise run test`
+ejecuta los tres.
