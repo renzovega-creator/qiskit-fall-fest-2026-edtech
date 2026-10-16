@@ -126,7 +126,8 @@ además corre los casos. Devuelve:
   importar en el proceso del alumno.
 - `grade` no aísla al alumno del equipo: no limita memoria, procesos ni red, y
   el código del alumno corre en el mismo intérprete que los casos. Un servicio
-  expuesto a internet debe correrlo en un contenedor sin red y con límites.
+  expuesto a internet debe correrlo en un contenedor sin red y con límites:
+  [runner.md](runner.md) lo hace.
 
 ## Editor en la lección
 
