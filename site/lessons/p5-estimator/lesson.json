@@ -62,15 +62,15 @@
     "5.4",
     "Entradas"
    ],
-   "say": "Las entradas son PUBs, como ya sabes: circuito, observables, parámetros y precisión. Si el circuito trae mediciones, se ignoran. [[agrupar]]Los observables que conmutan dentro del mismo PUB se agrupan para medirse juntos, por conmutación qubit a qubit. En PUBs distintos, no. [[ej]]El ejemplo de la guía: un circuito con dos parámetros, cien juegos de valores y tres observables en forma tres por uno: trescientos valores esperados en una sola llamada.",
+   "say": "Las entradas son PUBs, como ya sabes: circuito, observables, parámetros y precisión. Si el circuito trae mediciones, se ignoran. [[agrupar]]Los observables que conmutan dentro del mismo PUB se agrupan para medirse juntos, por conmutación qubit a qubit. En PUBs distintos, no. [[ej]]El ejemplo de la guía: un circuito con dos parámetros, cien juegos de valores y tres observables en forma tres por uno, todo en una sola llamada.",
    "scene": [
     {
      "type": "code",
-     "src": "params = np.vstack([np.linspace(-np.pi, np.pi, 100),\n                    np.linspace(-4 * np.pi, 4 * np.pi, 100)]).T       # (100, 2)\nobservables = [[SparsePauliOp([\"XX\", \"IY\"], [0.5, 0.5])],\n               [SparsePauliOp(\"XX\")],\n               [SparsePauliOp(\"IY\")]]                                 # (3, 1)\njob = estimator.run([(transpiled_circuit, observables, params)])     # evs: (3, 100)",
+     "src": "params = np.vstack([np.linspace(-np.pi, np.pi, 100),\n                    np.linspace(-4 * np.pi, 4 * np.pi, 100)]).T\nobservables = [[SparsePauliOp([\"XX\", \"IY\"], [0.5, 0.5])],\n               [SparsePauliOp(\"XX\")],\n               [SparsePauliOp(\"IY\")]]\njob = estimator.run([(transpiled_circuit, observables, params)])",
      "lang": "python",
      "id": "c",
-     "setup": "import numpy as np\nfrom qiskit import QuantumCircuit\nfrom qiskit.circuit import Parameter\nfrom qiskit.providers.fake_provider import GenericBackendV2\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.executor_estimator import Estimator\n\nbackend = GenericBackendV2(2, basis_gates=[\"cz\", \"rz\", \"sx\", \"x\"], seed=1)\npm = generate_preset_pass_manager(backend=backend, optimization_level=1)\na, b = Parameter(\"a\"), Parameter(\"b\")\ncircuit = QuantumCircuit(2)\ncircuit.rx(a, 0)\ncircuit.ry(b, 1)\ncircuit.cx(0, 1)\ntranspiled_circuit = pm.run(circuit)\nestimator = Estimator(mode=backend)\nbell = QuantumCircuit(2)\nbell.h(0)\nbell.cx(0, 1)\nqc1 = qc2 = pm.run(bell)\nobs1 = obs2 = SparsePauliOp(\"ZZ\")",
-     "size": 22
+     "size": 22,
+     "norun": true
     }
    ],
    "actions": [
@@ -87,6 +87,105 @@
      ],
      "id": "c",
      "at": "ej"
+    }
+   ]
+  },
+  {
+   "id": "pred_forma",
+   "tag": [
+    "5.4",
+    "Antes de ejecutar"
+   ],
+   "say": "Cuenta bien las formas de lo que entra. [[par]]Los parámetros tienen forma cien por dos: cien juegos de dos valores, así que el barrido es de cien. [[obs]]Los observables, tres por uno. [[cual]]Apuesta: ¿qué forma tendrá el arreglo de valores esperados, evs?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "params = np.vstack([np.linspace(-np.pi, np.pi, 100),\n                    np.linspace(-4 * np.pi, 4 * np.pi, 100)]).T\nobservables = [[SparsePauliOp([\"XX\", \"IY\"], [0.5, 0.5])],\n               [SparsePauliOp(\"XX\")],\n               [SparsePauliOp(\"IY\")]]\njob = estimator.run([(transpiled_circuit, observables, params)])",
+     "lang": "python",
+     "id": "c",
+     "size": 22,
+     "norun": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "1-2",
+     "id": "c",
+     "at": "par"
+    },
+    {
+     "do": "hl",
+     "range": "3-5",
+     "id": "c",
+     "at": "obs"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué forma tiene `evs`?",
+    "options": [
+     "`(3, 100)`",
+     "`(100, 3)`",
+     "`(300,)`",
+     "`(3, 1, 100)`"
+    ],
+    "after": "Anotado. Ejecutémoslo y miremos la forma."
+   },
+   "align": "top"
+  },
+  {
+   "id": "forma",
+   "tag": [
+    "5.4",
+    "Broadcasting de PUBs"
+   ],
+   "say": "Resultado: tres por cien. [[bc]]Los observables, de forma tres por uno, y el barrido de parámetros, de forma cien, se alinean por la derecha y se combinan por broadcasting: tres filas, una por observable, y cien columnas, una por juego de parámetros. [[tot]]Son trescientos valores esperados en una sola llamada.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "params = np.vstack([np.linspace(-np.pi, np.pi, 100),\n                    np.linspace(-4 * np.pi, 4 * np.pi, 100)]).T\nobservables = [[SparsePauliOp([\"XX\", \"IY\"], [0.5, 0.5])],\n               [SparsePauliOp(\"XX\")],\n               [SparsePauliOp(\"IY\")]]\njob = estimator.run([(transpiled_circuit, observables, params)])\nprint(job.result()[0].data.evs.shape)",
+     "lang": "python",
+     "id": "c",
+     "setup": "import numpy as np\nfrom qiskit import QuantumCircuit\nfrom qiskit.circuit import Parameter\nfrom qiskit.providers.fake_provider import GenericBackendV2\nfrom qiskit.quantum_info import SparsePauliOp\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.executor_estimator import Estimator\n\nbackend = GenericBackendV2(2, basis_gates=[\"cz\", \"rz\", \"sx\", \"x\"], seed=1)\npm = generate_preset_pass_manager(backend=backend, optimization_level=1)\na, b = Parameter(\"a\"), Parameter(\"b\")\ncircuit = QuantumCircuit(2)\ncircuit.rx(a, 0)\ncircuit.ry(b, 1)\ncircuit.cx(0, 1)\ntranspiled_circuit = pm.run(circuit)\nestimator = Estimator(mode=backend)\nbell = QuantumCircuit(2)\nbell.h(0)\nbell.cx(0, 1)\nqc1 = qc2 = pm.run(bell)\nobs1 = obs2 = SparsePauliOp(\"ZZ\")",
+     "size": 20
+    },
+    {
+     "type": "code",
+     "src": "(3, 100)",
+     "lang": "out",
+     "id": "o",
+     "check": true
+    },
+    {
+     "type": "math",
+     "tex": "(3,1)\\ \\text{con}\\ (100,)\\ \\Rightarrow\\ (3,100)",
+     "id": "m",
+     "hidden": true,
+     "size": 36
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      6
+     ],
+     "id": "c",
+     "at": "bc"
+    },
+    {
+     "do": "show",
+     "id": "m",
+     "at": "bc"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      7
+     ],
+     "id": "c",
+     "at": "tot"
     }
    ]
   },
@@ -537,6 +636,80 @@
      null,
      "El nivel 1 aplica mitigación de lectura.",
      "El nivel 2 aplica aún más mitigación."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "5.4",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; corre con un procesador falso de cinco qubits, sin cuenta. [[n1]]Primero reproduces el barrido de trescientos valores esperados. [[n2]]Después cambias una sola línea para bajar el error estándar de Z Z. [[n3]]Y por último escribes la función que combina los cuatro observables del experimento CHSH en el valor S. [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p5-estimator.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Ejecuta un barrido de 100 juegos de parámetros con 3 observables y lee la forma de `evs`."
+      },
+      {
+       "level": 2,
+       "text": "Baja el error estándar de $\\langle ZZ\\rangle$ de $0{,}008$ cambiando una sola línea."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `valor_S(evs)` para CHSH y comprueba que $|S|>2$."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "5.4",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Cada centésima de precisión se paga con tiempo de procesador.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "La precisión por defecto equivale a 4096 disparos. Para duplicar la precisión, ¿cuántos disparos necesitas? ¿Qué implica eso para un presupuesto de QPU?",
+     "Tu proyecto mide la magnetización. ¿La mandarías como un solo observable o como varios PUBs? Piensa en cuántos circuitos distintos se ejecutarán."
     ]
    },
    "align": "top"

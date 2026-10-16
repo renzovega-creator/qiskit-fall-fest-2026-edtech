@@ -90,14 +90,40 @@
    ]
   ]
  },
+ "pred_shots": {
+  "dur": 15.672,
+  "marks": {
+   "def": 4.515,
+   "run": 7.855,
+   "cual": 11.535
+  },
+  "cues": [
+   [
+    0.107,
+    "Un Sampler con dos fuentes de disparos que no coinciden."
+   ],
+   [
+    4.515,
+    "Fijamos default shots en quinientos."
+   ],
+   [
+    7.855,
+    "Pero al llamar a run pedimos ciento veintiocho."
+   ],
+   [
+    11.535,
+    "Apuesta: ¿cuántos disparos recibirá cada PUB?"
+   ]
+  ]
+ },
  "shots": {
-  "dur": 36.504,
+  "dur": 38.52,
   "marks": {
    "pub": 5.491,
    "run": 7.402,
-   "tw": 10.063,
-   "def": 14.988,
-   "cliente": 17.663
+   "tw": 12.115,
+   "def": 17.012,
+   "cliente": 19.687
   },
   "cues": [
    [
@@ -106,14 +132,14 @@
    ],
    [
     5.491,
-    "Primero, los del PUB; luego, el argumento shots de run; luego, si hay twirling, aleatorizaciones por disparos de cada una; y al final default shots."
+    "Primero, los del PUB; luego, el argumento shots de run, que es lo que decide tu apuesta; luego, si hay twirling, aleatorizaciones por disparos de cada una; y al final default shots."
    ],
    [
-    17.663,
+    19.687,
     "Un detalle que descubrimos al probar el código: con el Sampler del lado del cliente de la cero punto cincuenta, todos los PUBs de un mismo trabajo deben tener el mismo número de disparos."
    ],
    [
-    30.5,
+    32.524,
     "Si mezclas, por ejemplo sesenta y cuatro y ciento veintiocho, da error."
    ]
   ]
@@ -186,6 +212,51 @@
    [
     0.107,
     "Los ejemplos de la guía cubren los casos típicos: un experimento con un circuito IQP de ciento veintisiete qubits; varios circuitos en un solo trabajo, pasándolos como lista; un circuito parametrizado, real amplitudes, con tres juegos de parámetros en un PUB; y dos trabajos dentro de un lote, con with Batch, que se cierra solo al salir del bloque."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 38.616,
+  "marks": {
+   "n1": 9.667,
+   "n2": 16.234,
+   "n3": 24.159,
+   "check": 31.604
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo; corre con un procesador falso, sin cuenta."
+   ],
+   [
+    9.667,
+    "Primero mides qué fracción de un GHZ de cinco qubits sale con algún bit cambiado."
+   ],
+   [
+    16.234,
+    "Después corriges el envío de dos PUBs con distinto número de disparos, que la cero punto cincuenta rechaza."
+   ],
+   [
+    24.159,
+    "Y por último escribes la función que calcula esa fracción y ves cómo crece con el tamaño del GHZ."
+   ],
+   [
+    31.604,
+    "Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },

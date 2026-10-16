@@ -78,8 +78,29 @@
    ]
   ]
  },
+ "pred_resultados": {
+  "dur": 13.32,
+  "marks": {
+   "ruta": 5.661,
+   "cual": 8.945
+  },
+  "cues": [
+   [
+    0.107,
+    "El trabajo de Sampler terminó, y pedimos sus resultados con un GET."
+   ],
+   [
+    5.661,
+    "La respuesta es un JSON con los datos del registro c."
+   ],
+   [
+    8.945,
+    "Apuesta: ¿cómo viene cada disparo dentro de samples?"
+   ]
+  ]
+ },
  "resultados": {
-  "dur": 27.456,
+  "dur": 29.808,
   "marks": {
    "res": 3.701,
    "est": 9.299,
@@ -96,10 +117,10 @@
    ],
    [
     16.205,
-    "Para Sampler, los datos del registro c vienen como samples: cada disparo es un número hexadecimal."
+    "Para Sampler, los datos del registro c vienen como samples: cada disparo es un número hexadecimal, y esa es la respuesta de tu apuesta."
    ],
    [
-    23.805,
+    26.169,
     "Cero x tres es uno uno en binario."
    ]
   ]
@@ -169,6 +190,77 @@
    [
     0.107,
     "Sobre la autenticación."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 41.568,
+  "marks": {
+   "n1": 12.653,
+   "n2": 19.064,
+   "n3": 26.48,
+   "check": 34.548
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo; prepara los cuerpos de los trabajos y lee resultados, todo en tu equipo, sin enviar nada."
+   ],
+   [
+    12.653,
+    "Primero armas el cuerpo de un trabajo de Sampler con un circuito en OpenQASM tres."
+   ],
+   [
+    19.064,
+    "Después corriges la lectura de los disparos en hexadecimal para que los conteos coincidan con get counts."
+   ],
+   [
+    26.48,
+    "Y por último escribes la función que arma el cuerpo de un trabajo de Estimator, con su observable y sus opciones."
+   ],
+   [
+    34.548,
+    "Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde."
+   ]
+  ]
+ },
+ "proyecto": {
+  "dur": 37.896,
+  "marks": {
+   "estimar": 11.379,
+   "falso": 18.753,
+   "real": 26.226
+  },
+  "cues": [
+   [
+    0.107,
+    "Y con esto llegas al hito cinco del proyecto: tu primera ejecución en un procesador cuántico real, con un presupuesto de como máximo un minuto de QPU."
+   ],
+   [
+    11.379,
+    "Antes de enviar, estimas el tiempo de QPU con una fórmula que el propio cuaderno te explica."
+   ],
+   [
+    18.753,
+    "El cuaderno corre completo en un procesador falso, sin cuenta, y sus comprobaciones pasan ahí."
+   ],
+   [
+    26.226,
+    "Un interruptor, bien marcado, manda el mismo trabajo a hardware real con tu cuenta guardada, y solo se envía si pulsas el botón y la estimación cabe en el presupuesto."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 3.288,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para cerrar la parte."
    ]
   ]
  },

@@ -114,14 +114,44 @@
    ]
   ]
  },
+ "pred_instancia": {
+  "dur": 23.376,
+  "marks": {
+   "una": 6.85,
+   "otra": 10.742,
+   "cual": 14.295
+  },
+  "cues": [
+   [
+    0.107,
+    "Imagina que tienes dos instancias con la misma clave y no das ninguna al crear el servicio."
+   ],
+   [
+    6.85,
+    "La primera es del plan Open, gratuita."
+   ],
+   [
+    10.742,
+    "La segunda es de pago, Pay As You Go."
+   ],
+   [
+    14.295,
+    "Pides un procesador al que solo la instancia de pago tiene acceso."
+   ],
+   [
+    19.291,
+    "Apuesta: ¿qué instancia elegirá el servicio?"
+   ]
+  ]
+ },
  "instancia": {
-  "dur": 40.128,
+  "dur": 44.448,
   "marks": {
    "orden": 6.935,
    "guard": 12.511,
    "varias": 17.281,
    "una": 26.65,
-   "cual": 34.151
+   "cual": 38.468
   },
   "cues": [
    [
@@ -146,6 +176,10 @@
    ],
    [
     34.151,
+    "Esa es la respuesta de tu apuesta: la instancia B."
+   ],
+   [
+    38.468,
     "La instancia elegida aparece en un aviso, y active instance te la muestra."
    ]
   ]
@@ -225,12 +259,38 @@
    ]
   ]
  },
+ "pred_limite": {
+  "dur": 16.44,
+  "marks": {
+   "lim": 0.107,
+   "corre": 5.506,
+   "llega": 8.761
+  },
+  "cues": [
+   [
+    0.107,
+    "Supón que ya pagas por uso y fijaste un límite de costo en la instancia."
+   ],
+   [
+    5.506,
+    "Tienes un trabajo largo en ejecución."
+   ],
+   [
+    8.761,
+    "A mitad de camino, el gasto llega al límite."
+   ],
+   [
+    12.865,
+    "Apuesta: ¿qué pasa con ese trabajo?"
+   ]
+  ]
+ },
  "costo": {
-  "dur": 56.28,
+  "dur": 59.16,
   "marks": {
    "limite": 13.771,
    "alcanza": 29.0,
-   "aulas": 47.116
+   "aulas": 50.003
   },
   "cues": [
    [
@@ -251,14 +311,14 @@
    ],
    [
     29.0,
-    "Cuando se alcanza, los trabajos en curso se cancelan con el motivo ran too long, y no empieza ninguno más hasta subir el límite."
+    "Cuando se alcanza, los trabajos en curso se cancelan con el motivo ran too long, y no empieza ninguno más hasta subir el límite: esa es la respuesta correcta de tu apuesta."
    ],
    [
-    38.213,
+    41.101,
     "Ojo: el uso se reporta cada cierto tiempo, así que un trabajo puede pasarse un poco, y eso también se factura."
    ],
    [
-    47.116,
+    50.003,
     "Para docentes existen las cuentas Classroom: plan Open para cada estudiante, sin tarjeta, gestionadas por el profesor."
    ]
   ]
@@ -270,6 +330,51 @@
    [
     0.107,
     "Una pregunta sobre planes."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 35.184,
+  "marks": {
+   "n1": 11.563,
+   "n2": 15.3,
+   "n3": 20.097,
+   "check": 28.165
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo; no necesita cuenta, trabaja con un archivo temporal y una clave falsa."
+   ],
+   [
+    11.563,
+    "Primero guardas una cuenta con save account."
+   ],
+   [
+    15.3,
+    "Después guardas una segunda y la marcas como predeterminada."
+   ],
+   [
+    20.097,
+    "Y por último escribes una función que calcula cuántos minutos libres te quedan en la ventana móvil de veintiocho días."
+   ],
+   [
+    28.165,
+    "Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },

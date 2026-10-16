@@ -26,7 +26,7 @@
   ]
  },
  "mapear": {
-  "dur": 36.792,
+  "dur": 35.304,
   "marks": {
    "zz": 10.636,
    "ent": 21.329
@@ -46,7 +46,7 @@
    ],
    [
     30.189,
-    "Para este estado, Z Z vale uno, mientras que I Z y Z I valen cero."
+    "Cuánto vale cada uno en el estado de Bell lo vas a predecir enseguida."
    ]
   ]
  },
@@ -98,8 +98,33 @@
    ]
   ]
  },
+ "predice": {
+  "dur": 20.976,
+  "marks": {
+   "zz": 6.142,
+   "iz": 11.167
+  },
+  "cues": [
+   [
+    0.107,
+    "El trabajo terminó."
+   ],
+   [
+    2.491,
+    "Antes de mirar los números, apuesta."
+   ],
+   [
+    6.142,
+    "Para el estado de Bell, ¿cuánto crees que vale el valor esperado de Z Z, y cuánto el de I Z, un solo qubit?"
+   ],
+   [
+    14.733,
+    "Recuerda que Z vale más uno si el qubit sale cero, y menos uno si sale uno."
+   ]
+  ]
+ },
  "resultado": {
-  "dur": 29.232,
+  "dur": 31.128,
   "marks": {
    "val": 10.035,
    "corr": 18.173
@@ -123,7 +148,7 @@
    ],
    [
     25.872,
-    "Esa es la firma del entrelazamiento."
+    "Esa es la firma del entrelazamiento, y la respuesta a tu apuesta."
    ]
   ]
  },
@@ -178,6 +203,51 @@
    [
     0.107,
     "Sobre el decaimiento."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 39.024,
+  "marks": {
+   "n1": 10.629,
+   "n2": 15.384,
+   "n3": 22.121,
+   "check": 32.0
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo; corre en un procesador falso de cinco qubits, sin cuenta."
+   ],
+   [
+    10.629,
+    "Primero reproduces el estado de Bell con sus seis observables."
+   ],
+   [
+    15.384,
+    "Después subes los disparos hasta que el error estándar de Z Z baje de cuatro milésimas."
+   ],
+   [
+    22.121,
+    "Y por último escribes una función que mide las correlaciones de un GHZ de dos a cinco qubits, los que caben en el procesador falso."
+   ],
+   [
+    32.0,
+    "Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },

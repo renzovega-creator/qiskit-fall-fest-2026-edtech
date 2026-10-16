@@ -35,7 +35,7 @@
   ]
  },
  "entradas": {
-  "dur": 35.688,
+  "dur": 33.984,
   "marks": {
    "agrupar": 12.073,
    "ej": 23.183
@@ -59,7 +59,54 @@
    ],
    [
     23.183,
-    "El ejemplo de la guía: un circuito con dos parámetros, cien juegos de valores y tres observables en forma tres por uno: trescientos valores esperados en una sola llamada."
+    "El ejemplo de la guía: un circuito con dos parámetros, cien juegos de valores y tres observables en forma tres por uno, todo en una sola llamada."
+   ]
+  ]
+ },
+ "pred_forma": {
+  "dur": 20.016,
+  "marks": {
+   "par": 3.213,
+   "obs": 10.997,
+   "cual": 14.323
+  },
+  "cues": [
+   [
+    0.107,
+    "Cuenta bien las formas de lo que entra."
+   ],
+   [
+    3.213,
+    "Los parámetros tienen forma cien por dos: cien juegos de dos valores, así que el barrido es de cien."
+   ],
+   [
+    10.997,
+    "Los observables, tres por uno."
+   ],
+   [
+    14.323,
+    "Apuesta: ¿qué forma tendrá el arreglo de valores esperados, evs?"
+   ]
+  ]
+ },
+ "forma": {
+  "dur": 24.048,
+  "marks": {
+   "bc": 3.156,
+   "tot": 19.545
+  },
+  "cues": [
+   [
+    0.107,
+    "Resultado: tres por cien."
+   ],
+   [
+    3.156,
+    "Los observables, de forma tres por uno, y el barrido de parámetros, de forma cien, se alinean por la derecha y se combinan por broadcasting: tres filas, una por observable, y cien columnas, una por juego de parámetros."
+   ],
+   [
+    19.545,
+    "Son trescientos valores esperados en una sola llamada."
    ]
   ]
  },
@@ -285,6 +332,51 @@
    [
     0.107,
     "Sobre resiliencia."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 36.552,
+  "marks": {
+   "n1": 10.714,
+   "n2": 15.625,
+   "n3": 21.258,
+   "check": 29.537
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo; corre con un procesador falso de cinco qubits, sin cuenta."
+   ],
+   [
+    10.714,
+    "Primero reproduces el barrido de trescientos valores esperados."
+   ],
+   [
+    15.625,
+    "Después cambias una sola línea para bajar el error estándar de Z Z."
+   ],
+   [
+    21.258,
+    "Y por último escribes la función que combina los cuatro observables del experimento CHSH en el valor S."
+   ],
+   [
+    29.537,
+    "Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },

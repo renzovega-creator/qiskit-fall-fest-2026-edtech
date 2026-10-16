@@ -46,7 +46,7 @@
     "5.2",
     "1 · Mapear: circuito y observables"
    ],
-   "say": "Paso uno: el circuito de Bell, y seis observables de dos qubits: I Z, I X, Z I, X I, Z Z y X X. [[zz]]Z Z es una abreviatura del producto tensorial Z por Z: mide Z en los dos qubits a la vez y da información de la correlación entre ellos. [[ent]]Si el estado está entrelazado, el valor esperado de Z Z no es el producto de los valores de cada qubit por separado. Para este estado, Z Z vale uno, mientras que I Z y Z I valen cero.",
+   "say": "Paso uno: el circuito de Bell, y seis observables de dos qubits: I Z, I X, Z I, X I, Z Z y X X. [[zz]]Z Z es una abreviatura del producto tensorial Z por Z: mide Z en los dos qubits a la vez y da información de la correlación entre ellos. [[ent]]Si el estado está entrelazado, el valor esperado de Z Z no es el producto de los valores de cada qubit por separado. Cuánto vale cada uno en el estado de Bell lo vas a predecir enseguida.",
    "scene": [
     {
      "type": "code",
@@ -57,7 +57,7 @@
     },
     {
      "type": "math",
-     "tex": "\\langle Z_1Z_0\\rangle=1\\ \\neq\\ \\langle Z_1\\rangle\\langle Z_0\\rangle=0",
+     "tex": "\\langle Z_1Z_0\\rangle\\ \\neq\\ \\langle Z_1\\rangle\\langle Z_0\\rangle",
      "id": "m",
      "hidden": true,
      "size": 36
@@ -163,12 +163,100 @@
    ]
   },
   {
+   "id": "predice",
+   "tag": [
+    "5.2",
+    "Antes de leer el resultado"
+   ],
+   "say": "El trabajo terminó. Antes de mirar los números, apuesta. [[zz]]Para el estado de Bell, ¿cuánto crees que vale el valor esperado de Z Z, [[iz]]y cuánto el de I Z, un solo qubit? Recuerda que Z vale más uno si el qubit sale cero, y menos uno si sale uno.",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 2,
+     "ops": [
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        1
+       ]
+      }
+     ],
+     "id": "q"
+    },
+    {
+     "type": "row",
+     "items": [
+      {
+       "type": "box",
+       "kind": "def",
+       "title": "$\\langle ZZ\\rangle$",
+       "body": [
+        {
+         "type": "text",
+         "text": "dos qubits a la vez",
+         "style": "body"
+        }
+       ],
+       "id": "a",
+       "hidden": true
+      },
+      {
+       "type": "box",
+       "kind": "idea",
+       "title": "$\\langle IZ\\rangle$",
+       "body": [
+        {
+         "type": "text",
+         "text": "un solo qubit",
+         "style": "body"
+        }
+       ],
+       "id": "b",
+       "hidden": true
+      }
+     ],
+     "gap": 24
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "a",
+     "at": "zz"
+    },
+    {
+     "do": "show",
+     "id": "b",
+     "at": "iz"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué valores esperas, con algo de ruido, para ⟨ZZ⟩ y ⟨IZ⟩?",
+    "options": [
+     "⟨ZZ⟩ ≈ 1 y ⟨IZ⟩ ≈ 0",
+     "⟨ZZ⟩ ≈ 0 y ⟨IZ⟩ ≈ 1",
+     "los dos ≈ 1",
+     "los dos ≈ 0"
+    ],
+    "after": "Anotado. Leamos los resultados y veamos si acertaste."
+   },
+   "align": "top"
+  },
+  {
    "id": "resultado",
    "tag": [
     "5.2",
     "4 · Posprocesar"
    ],
-   "say": "Paso cuatro: leemos los valores esperados. Así queda el programa completo, que se ejecuta de verdad en el modo local. [[val]]Los cuatro observables de un solo qubit dan cero: cada qubit, por separado, es completamente aleatorio. [[corr]]Pero X X y Z Z dan casi uno: las correlaciones son perfectas, salvo por el ruido. Esa es la firma del entrelazamiento.",
+   "say": "Paso cuatro: leemos los valores esperados. Así queda el programa completo, que se ejecuta de verdad en el modo local. [[val]]Los cuatro observables de un solo qubit dan cero: cada qubit, por separado, es completamente aleatorio. [[corr]]Pero X X y Z Z dan casi uno: las correlaciones son perfectas, salvo por el ruido. Esa es la firma del entrelazamiento, y la respuesta a tu apuesta.",
    "scene": [
     {
      "type": "code",
@@ -388,6 +476,80 @@
      "En el GHZ ideal, todos los $\\langle Z_0Z_i\\rangle=1$.",
      null,
      "Los admite sin problema."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "5.2",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; corre en un procesador falso de cinco qubits, sin cuenta. [[n1]]Primero reproduces el estado de Bell con sus seis observables. [[n2]]Después subes los disparos hasta que el error estándar de Z Z baje de cuatro milésimas. [[n3]]Y por último escribes una función que mide las correlaciones de un GHZ de dos a cinco qubits, los que caben en el procesador falso. [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p5-hello-world.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Ejecuta el Bell con seis observables y lee `evs`."
+      },
+      {
+       "level": 2,
+       "text": "Sube `default_shots` hasta que el error estándar de $\\langle ZZ\\rangle$ sea menor que $0{,}004$."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `correlaciones(n)` para $\\langle Z_0Z_i\\rangle$ de un GHZ de 2 a 5 qubits y mira cómo decae con la distancia."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "5.2",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para pensar con calma, conectadas con tu proyecto.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Un número sin su incertidumbre es solo la mitad del resultado.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "En el Bell, ⟨IZ⟩ y ⟨ZI⟩ valen casi cero mientras ⟨ZZ⟩ vale casi uno. Explica con tus palabras por qué esto no es una contradicción.",
+     "Tu proyecto mide la magnetización de una cadena de espines. ¿Qué observables necesitarías pasar a Estimator, y cuántos disparos pedirías para que el error fuera menor que una centésima?"
     ]
    },
    "align": "top"

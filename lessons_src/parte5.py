@@ -1,5 +1,5 @@
 """Parte V · Ejecutar en IBM Quantum."""
-from lib import (T, M, L, Row, Box, A, shows, beat, choice, numeric, reveal, lesson,
+from lib import (T, M, L, Row, Box, A, shows, beat, choice, numeric, reveal, predict, reflect, Mission, lesson,
                  Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph)
 from parte2 import resumen
 
@@ -57,10 +57,21 @@ print(service.active_instance())''', id="c", norun=True, size=22),
               Box("warn", "401 Unauthorized", T("¿usaste un token portador (bearer) en vez de tu clave API?", "body"), id="b", hidden=True)],
              [A("hl", "c", at="cargar", lines=[1]), A("hl", "c", at="nombre", lines=[2]), A("hl", "c", at="local", lines=[4]), A("show", "b", at="401")]),
 
+        beat("pred_instancia", ("", "Antes de elegir instancia"),
+             """Imagina que tienes dos instancias con la misma clave y no das ninguna al crear el servicio. [[una]]La primera es del plan Open, gratuita. [[otra]]La segunda es de pago, Pay As You Go.
+             [[cual]]Pides un procesador al que solo la instancia de pago tiene acceso. Apuesta: ¿qué instancia elegirá el servicio?""",
+             [Table(["Instancia", "Plan", "¿Puede usar el procesador pedido?"], [
+                 ["instancia A", "Open · gratis", "no"],
+                 ["instancia B", "Pay-As-You-Go", "sí"]], id="t", stagger=True, size=26)],
+             [A("item", "t", at="una", i=0), A("item", "t", at="otra", i=1)],
+             ask=predict("Pides ese procesador sin indicar instancia. ¿Cuál se usa?",
+                         ["la A, porque es gratuita", "la B, la única que puede usarlo", "ninguna: da error", "el servicio te pregunta cuál"],
+                         "Anotado. Veamos el orden que sigue el servicio.")),
+
         beat("instancia", ("", "Selección automática de instancia"),
              """Si das la clave pero no la instancia, el servicio elige la más adecuada para lo que pides. [[orden]]El orden es este: si solo tienes acceso a una instancia, esa.
              [[guard]]Si las credenciales guardadas traen instancia, esa. [[varias]]Si varias instancias pueden usar el procesador pedido, decide tu preferencia de planes; por defecto, las gratuitas primero.
-             [[una]]Y si solo una puede usarlo, se elige esa, aunque sea de pago: ojo, eso tiene costo.
+             [[una]]Y si solo una puede usarlo, se elige esa, aunque sea de pago: ojo, eso tiene costo. Esa es la respuesta de tu apuesta: la instancia B.
              [[cual]]La instancia elegida aparece en un aviso, y active instance te la muestra.""",
              [Flow([dict(t="¿una sola instancia?"), dict(t="¿instancia guardada?"), dict(t="¿varias pueden?", s="preferencia de planes (gratis primero)"),
                     dict(t="¿solo una puede?", s="se usa, aunque cueste", color="red")], id="f", stagger=True, vertical=True)],
@@ -92,10 +103,21 @@ print(service.active_instance())''', id="c", norun=True, size=22),
                  ["On-Prem", "sistema dedicado en tus instalaciones"]], id="t", stagger=True, size=24)],
              [A("item", "t", at="open", i=0), A("item", "t", at="payg", i=1), A("item", "t", at="flex", i=2), A("item", "t", at="prem", i=3), A("item", "t", at="onprem", i=4)]),
 
+        beat("pred_limite", ("", "Antes de gastar"),
+             """[[lim]]Supón que ya pagas por uso y fijaste un límite de costo en la instancia. [[corre]]Tienes un trabajo largo en ejecución. [[llega]]A mitad de camino, el gasto llega al límite. Apuesta: ¿qué pasa con ese trabajo?""",
+             [Flow([dict(t="límite de costo fijado"), dict(t="trabajo largo en ejecución"), dict(t="el gasto llega al límite", color="red")], id="f", stagger=True)],
+             [A("item", "f", at="lim", i=0), A("item", "f", at="corre", i=1), A("item", "f", at="llega", i=2)],
+             ask=predict("¿Qué ocurre cuando se alcanza el límite?",
+                         ["el trabajo termina y después no se envía ninguno más",
+                          "los trabajos en curso se cancelan y no empieza ninguno más",
+                          "el servicio sube el límite solo, para no perder el trabajo",
+                          "nada: el límite es solo un aviso"],
+                         "Anotado. Veamos qué hace el servicio.")),
+
         beat("costo", ("", "Controlar el gasto"),
              """Para pasar del plan Open a Pay As You Go, actualizas tu cuenta de IBM Cloud con una tarjeta y creas una instancia de ese plan. No se cobra nada hasta que envíes trabajos con ella.
              [[limite]]Lo primero que conviene hacer es fijar un límite de costo en la instancia: desde la página de instancias, la API o la línea de comandos de IBM Cloud. Se fija en dólares y se convierte a segundos de ejecución.
-             [[alcanza]]Cuando se alcanza, los trabajos en curso se cancelan con el motivo ran too long, y no empieza ninguno más hasta subir el límite. Ojo: el uso se reporta cada cierto tiempo, así que un trabajo puede pasarse un poco, y eso también se factura.
+             [[alcanza]]Cuando se alcanza, los trabajos en curso se cancelan con el motivo ran too long, y no empieza ninguno más hasta subir el límite: esa es la respuesta correcta de tu apuesta. Ojo: el uso se reporta cada cierto tiempo, así que un trabajo puede pasarse un poco, y eso también se factura.
              [[aulas]]Para docentes existen las cuentas Classroom: plan Open para cada estudiante, sin tarjeta, gestionadas por el profesor.""",
              [Flow([dict(t="cuenta con tarjeta"), dict(t="instancia Pay-As-You-Go"), dict(t="**límite de costo**", color="gold")], id="f"),
               Box("warn", "Al alcanzar el límite", T("trabajos cancelados («Ran too long») · el uso puede pasarse un poco y se cobra", "body"), id="b", hidden=True),
@@ -108,6 +130,21 @@ print(service.active_instance())''', id="c", norun=True, size=22),
              ask=choice("¿Qué plan y qué límite tienes?", ["Open: 10 minutos por cada 28 días", "Flex: 400 minutos al año", "Premium: sin límite"], 0,
                         "Correcto: el plan Open da hasta 10 minutos de QPU por ventana móvil de 28 días (y no permite sesiones).",
                         wrong=[None, "Flex es de pago.", "Premium es una suscripción empresarial."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; no necesita cuenta, trabaja con un archivo temporal y una clave falsa. [[n1]]Primero guardas una cuenta con save account. [[n2]]Después guardas una segunda y la marcas como predeterminada. [[n3]]Y por último escribes una función que calcula cuántos minutos libres te quedan en la ventana móvil de veintiocho días.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.""",
+             [Mission("practica/p5-cuenta.py", [
+                 (1, "Guarda una cuenta con `save_account` en un archivo temporal y lee `saved_accounts()`."),
+                 (2, "Guarda una segunda cuenta, `clase`, y hazla la predeterminada."),
+                 (3, "Escribe `minutos_libres(usos, hoy)` para el plan Open: 10 min por ventana móvil de 28 días.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Un límite de gasto es una decisión de diseño, no un trámite.", "subtitle")],
+             ask=reflect("Tu clave API se filtra en un repositorio público. Describe, paso a paso, qué harías y en qué orden.",
+                         "En el hito V ejecutarás en un QPU real con un presupuesto de un minuto. ¿Qué plan usarías y qué límite fijarías antes de enviar nada?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Cuenta, instancia con su CRN y clave API. [[r2]]save account en tu equipo; en uno público, la clave a mano y luego se borra. [[r3]]Sin instancia, el servicio elige con tus preferencias.
@@ -170,9 +207,9 @@ service = QiskitRuntimeService()''', id="c", hidden=True, norun=True)],
         beat("mapear", ("", "1 · Mapear: circuito y observables"),
              """Paso uno: el circuito de Bell, y seis observables de dos qubits: I Z, I X, Z I, X I, Z Z y X X.
              [[zz]]Z Z es una abreviatura del producto tensorial Z por Z: mide Z en los dos qubits a la vez y da información de la correlación entre ellos.
-             [[ent]]Si el estado está entrelazado, el valor esperado de Z Z no es el producto de los valores de cada qubit por separado. Para este estado, Z Z vale uno, mientras que I Z y Z I valen cero.""",
+             [[ent]]Si el estado está entrelazado, el valor esperado de Z Z no es el producto de los valores de cada qubit por separado. Cuánto vale cada uno en el estado de Bell lo vas a predecir enseguida.""",
              [Code(HELLO, id="c", size=20),
-              M(r"\langle Z_1Z_0\rangle=1\ \neq\ \langle Z_1\rangle\langle Z_0\rangle=0", id="m", hidden=True, size=36)],
+              M(r"\langle Z_1Z_0\rangle\ \neq\ \langle Z_1\rangle\langle Z_0\rangle", id="m", hidden=True, size=36)],
              [A("hl", "c", at="mapear", range="7-12"), A("show", "m", at="ent")]),
 
         beat("optimizar", ("", "2 · Optimizar"),
@@ -188,9 +225,19 @@ service = QiskitRuntimeService()''', id="c", hidden=True, norun=True)],
              [Code(HELLO, id="c", size=20)],
              [A("hl", "c", at="ejecutar", range="20-21"), A("hl", "c", at="res", lines=[22]), A("hl", "c", at="shots", lines=[23]), A("hl", "c", at="run", lines=[24])]),
 
+        beat("predice", ("", "Antes de leer el resultado"),
+             """El trabajo terminó. Antes de mirar los números, apuesta. [[zz]]Para el estado de Bell, ¿cuánto crees que vale el valor esperado de Z Z, [[iz]]y cuánto el de I Z, un solo qubit? Recuerda que Z vale más uno si el qubit sale cero, y menos uno si sale uno.""",
+             [Circ(2, [G("h", 0), G("cx", 0, 1)], id="q"),
+              Row(Box("def", r"$\langle ZZ\rangle$", T("dos qubits a la vez", "body"), id="a", hidden=True),
+                  Box("idea", r"$\langle IZ\rangle$", T("un solo qubit", "body"), id="b", hidden=True), gap=24)],
+             [A("show", "a", at="zz"), A("show", "b", at="iz")],
+             ask=predict("¿Qué valores esperas, con algo de ruido, para ⟨ZZ⟩ y ⟨IZ⟩?",
+                         ["⟨ZZ⟩ ≈ 1 y ⟨IZ⟩ ≈ 0", "⟨ZZ⟩ ≈ 0 y ⟨IZ⟩ ≈ 1", "los dos ≈ 1", "los dos ≈ 0"],
+                         "Anotado. Leamos los resultados y veamos si acertaste.")),
+
         beat("resultado", ("", "4 · Posprocesar"),
              """Paso cuatro: leemos los valores esperados. Así queda el programa completo, que se ejecuta de verdad en el modo local.
-             [[val]]Los cuatro observables de un solo qubit dan cero: cada qubit, por separado, es completamente aleatorio. [[corr]]Pero X X y Z Z dan casi uno: las correlaciones son perfectas, salvo por el ruido. Esa es la firma del entrelazamiento.""",
+             [[val]]Los cuatro observables de un solo qubit dan cero: cada qubit, por separado, es completamente aleatorio. [[corr]]Pero X X y Z Z dan casi uno: las correlaciones son perfectas, salvo por el ruido. Esa es la firma del entrelazamiento, y la respuesta a tu apuesta.""",
              [Code(HELLO, id="c", size=18),
               Out("{'IZ': 0.02, 'IX': -0.01, 'ZI': 0.02, 'XI': -0.01, 'ZZ': 0.96, 'XX': 0.97}", id="o", hidden=True),
               Hist([["IZ", .02], ["IX", -.01], ["ZI", .02], ["XI", -.01], ["ZZ", .96], ["XX", .97]], id="h", hidden=True, h=130, ymax=1.15, ymin=-.2, digits=2, color="teal")],
@@ -230,6 +277,21 @@ options.dynamical_decoupling.sequence_type = "XY4"''', id="c", size=21),
              ask=choice("¿Por qué?", ["el estado GHZ ideal no correlaciona qubits lejanos", "el ruido se acumula a lo largo de la cadena de CNOT", "Estimator no admite 100 observables"], 1,
                         "Correcto: idealmente todos valen 1; los errores de cada CNOT se suman con la distancia.",
                         wrong=["En el GHZ ideal, todos los $\\langle Z_0Z_i\\rangle=1$.", None, "Los admite sin problema."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; corre en un procesador falso de cinco qubits, sin cuenta. [[n1]]Primero reproduces el estado de Bell con sus seis observables. [[n2]]Después subes los disparos hasta que el error estándar de Z Z baje de cuatro milésimas. [[n3]]Y por último escribes una función que mide las correlaciones de un GHZ de dos a cinco qubits, los que caben en el procesador falso.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.""",
+             [Mission("practica/p5-hello-world.py", [
+                 (1, "Ejecuta el Bell con seis observables y lee `evs`."),
+                 (2, r"Sube `default_shots` hasta que el error estándar de $\langle ZZ\rangle$ sea menor que $0{,}004$."),
+                 (3, r"Escribe `correlaciones(n)` para $\langle Z_0Z_i\rangle$ de un GHZ de 2 a 5 qubits y mira cómo decae con la distancia.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Un número sin su incertidumbre es solo la mitad del resultado.", "subtitle")],
+             ask=reflect("En el Bell, ⟨IZ⟩ y ⟨ZI⟩ valen casi cero mientras ⟨ZZ⟩ vale casi uno. Explica con tus palabras por qué esto no es una contradicción.",
+                         "Tu proyecto mide la magnetización de una cadena de espines. ¿Qué observables necesitarías pasar a Estimator, y cuántos disparos pedirías para que el error fuera menor que una centésima?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]least busy elige un procesador real. [[r2]]Estimator, con resiliencia y disparos, ejecuta el trabajo. [[r3]]El estado de Bell muestra correlaciones perfectas con qubits individuales aleatorios.
@@ -275,9 +337,29 @@ from qiskit_ibm_runtime.executor_sampler import Sampler
 from qiskit_ibm_runtime.options_models import EstimatorOptions, SamplerOptions''', id="c", size=22)],
              [A("hl", "c", at="import", range="6-8")]),
 
+        beat("pred_defecto", ("", "Antes de tocar nada"),
+             """Creamos un Estimator local y no cambiamos ninguna opción. [[leer]]Solo imprimimos dos: el nivel de resiliencia y el número de disparos por defecto. [[cual]]Apuesta qué valor tiene cada una.""",
+             [Code('''estimator = Estimator(mode=FakeManilaV2())
+print(estimator.options.resilience_level, estimator.options.default_shots)''', id="c", size=26,
+                   setup="from qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2")],
+             [A("hl", "c", at="leer", lines=[2])],
+             ask=predict("¿Qué imprime?",
+                         ["`0 None`", "`1 None`", "`1 4096`", "`None None`"],
+                         "Anotado. Ejecutémoslo.")),
+
+        beat("defecto", ("", "Lo que valen sin fijar"),
+             """Resultado: resilience level vale uno y default shots queda en None. [[vacio]]No todo lo que no fijas es None: algunas opciones traen ya un valor, como el nivel de resiliencia, y otras quedan vacías.
+             [[prec]]Con los disparos vacíos manda la precisión por defecto, cero coma cero uno cinco seis dos cinco, que equivale a cuatro mil noventa y seis disparos.""",
+             [Code('''estimator = Estimator(mode=FakeManilaV2())
+print(estimator.options.resilience_level, estimator.options.default_shots)''', id="c", size=26,
+                   setup="from qiskit_ibm_runtime.executor_estimator import Estimator\nfrom qiskit_ibm_runtime.fake_provider import FakeManilaV2"),
+              Out("1 None", id="o", check=True),
+              M(r"\text{default\_precision}=0{,}015625=\frac{1}{\sqrt{4096}}", id="m", hidden=True, size=34)],
+             [A("hl", "c", at="vacio", lines=[2]), A("show", "m", at="prec")]),
+
         beat("estructura", ("", "Estructura de las opciones"),
              """Las opciones tienen estructura de árbol. Las más usadas, como resilience level, están en el primer nivel; las demás se agrupan en categorías, como execution o dynamical decoupling.
-             [[formato]]Se escriben así: options punto opción punto subopción igual a valor. [[unset]]Si no fijas una opción, queda en None, y se usa su valor por defecto, que a veces depende del nivel de resiliencia.""",
+             [[formato]]Se escriben así: options punto opción punto subopción igual a valor. [[unset]]Una opción sin fijar puede valer None, y entonces se usa su valor por defecto, que a veces depende del nivel de resiliencia.""",
              [Code('''estimator.options.resilience_level = 2
 estimator.options.dynamical_decoupling.enable = True
 estimator.options.resilience.zne.noise_factors = [1, 3, 5]''', id="c",
@@ -330,6 +412,21 @@ opts["resilience_level"] = 2''')],
                         "Correcto: la ejecución dirigida permite elegir capas a mitigar y ajustar las tasas de ruido inyectadas.",
                         wrong=["Los niveles de resiliencia deciden por ti.", None, "Sampler no ofrece ese control fino."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; corre con un procesador falso, sin cuenta. [[n1]]Primero fijas la misma precisión de cuatro formas distintas. [[n2]]Después corriges un error típico: cambiar las opciones del objeto equivocado. [[n3]]Y por último escribes una función que crea un Estimator crudo o protegido, y comparas el valor de Z Z que da cada uno.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.""",
+             [Mission("practica/p5-opciones.py", [
+                 (1, "Fija `default_precision = 0.02` con clase, diccionario, atributo y `update`."),
+                 (2, "Arregla el código para que cambiar los disparos afecte al `Estimator` ya creado."),
+                 (3, "Escribe `crear_estimator(\"crudo\" | \"protegido\")` y compara su $\\langle ZZ\\rangle$.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Más control también es más responsabilidad.", "subtitle")],
+             ask=reflect("Cuatro formas de fijar una opción parecen demasiadas. ¿Cuál usarías en un script largo y cuál en una exploración rápida? ¿Por qué?",
+                         "En tu proyecto, ¿preferirías Estimator con un nivel de resiliencia o el modelo de ejecución dirigida? Justifica con lo que necesitas controlar.")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Estimator, Sampler y Executor, de más alto a más bajo nivel. [[r2]]Desde la cero punto cincuenta, Sampler y Estimator corren del lado del cliente. [[r3]]Las opciones se fijan con clase, diccionario, atributos o update.
              [[r4]]Y la ejecución dirigida te da control total sobre la mitigación.""",
@@ -363,6 +460,12 @@ bell.h(0)
 bell.cx(0, 1)
 qc1 = qc2 = pm.run(bell)
 obs1 = obs2 = SparsePauliOp("ZZ")'''
+EST_ENTRADAS = '''params = np.vstack([np.linspace(-np.pi, np.pi, 100),
+                    np.linspace(-4 * np.pi, 4 * np.pi, 100)]).T
+observables = [[SparsePauliOp(["XX", "IY"], [0.5, 0.5])],
+               [SparsePauliOp("XX")],
+               [SparsePauliOp("IY")]]
+job = estimator.run([(transpiled_circuit, observables, params)])'''
 s_cierre, a_cierre = resumen(["`Estimator(mode=backend | batch | session)` · PUB (circuito, observables, parámetros, precisión)",
                               "`data`: `evs`, `stds`, `ensemble_standard_error` · `metadata` con opciones usadas",
                               "precisión: PUB > `run()` > twirling > `default_shots` > `default_precision`",
@@ -391,14 +494,25 @@ print(job.job_id(), job.status())''', id="c", norun=True, size=22)],
         beat("entradas", ("", "Entradas"),
              """Las entradas son PUBs, como ya sabes: circuito, observables, parámetros y precisión. Si el circuito trae mediciones, se ignoran.
              [[agrupar]]Los observables que conmutan dentro del mismo PUB se agrupan para medirse juntos, por conmutación qubit a qubit. En PUBs distintos, no.
-             [[ej]]El ejemplo de la guía: un circuito con dos parámetros, cien juegos de valores y tres observables en forma tres por uno: trescientos valores esperados en una sola llamada.""",
-             [Code('''params = np.vstack([np.linspace(-np.pi, np.pi, 100),
-                    np.linspace(-4 * np.pi, 4 * np.pi, 100)]).T       # (100, 2)
-observables = [[SparsePauliOp(["XX", "IY"], [0.5, 0.5])],
-               [SparsePauliOp("XX")],
-               [SparsePauliOp("IY")]]                                 # (3, 1)
-job = estimator.run([(transpiled_circuit, observables, params)])     # evs: (3, 100)''', id="c", setup=EST_SETUP, size=22)],
+             [[ej]]El ejemplo de la guía: un circuito con dos parámetros, cien juegos de valores y tres observables en forma tres por uno, todo en una sola llamada.""",
+             [Code(EST_ENTRADAS, id="c", size=22, norun=True)],
              [A("hl", "c", at="agrupar", range="3-5"), A("hl", "c", at="ej", lines=[6])]),
+
+        beat("pred_forma", ("", "Antes de ejecutar"),
+             """Cuenta bien las formas de lo que entra. [[par]]Los parámetros tienen forma cien por dos: cien juegos de dos valores, así que el barrido es de cien. [[obs]]Los observables, tres por uno.
+             [[cual]]Apuesta: ¿qué forma tendrá el arreglo de valores esperados, evs?""",
+             [Code(EST_ENTRADAS, id="c", size=22, norun=True)],
+             [A("hl", "c", at="par", range="1-2"), A("hl", "c", at="obs", range="3-5")],
+             ask=predict("¿Qué forma tiene `evs`?", ["`(3, 100)`", "`(100, 3)`", "`(300,)`", "`(3, 1, 100)`"],
+                         "Anotado. Ejecutémoslo y miremos la forma.")),
+
+        beat("forma", ("", "Broadcasting de PUBs"),
+             """Resultado: tres por cien. [[bc]]Los observables, de forma tres por uno, y el barrido de parámetros, de forma cien, se alinean por la derecha y se combinan por broadcasting: tres filas, una por observable, y cien columnas, una por juego de parámetros.
+             [[tot]]Son trescientos valores esperados en una sola llamada.""",
+             [Code(EST_ENTRADAS + "\nprint(job.result()[0].data.evs.shape)", id="c", setup=EST_SETUP, size=20),
+              Out("(3, 100)", id="o", check=True),
+              M(r"(3,1)\ \text{con}\ (100,)\ \Rightarrow\ (3,100)", id="m", hidden=True, size=36)],
+             [A("hl", "c", at="bc", lines=[6]), A("show", "m", at="bc"), A("hl", "c", at="tot", lines=[7])]),
 
         beat("salidas", ("", "Salidas"),
              """La salida es la misma estructura que ya conoces: un PubResult por PUB, con data y metadata. [[data]]En data están evs, los valores esperados; stds, sus desviaciones; y ensemble standard error. Según la mitigación, puede haber más.
@@ -493,6 +607,21 @@ job = estimator.run([(chsh_isa, isa_ops, phases)])                   # evs: (4, 
                         "Correcto: el nivel 0 desactiva toda la mitigación y la supresión.",
                         wrong=[None, "El nivel 1 aplica mitigación de lectura.", "El nivel 2 aplica aún más mitigación."])),
 
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; corre con un procesador falso de cinco qubits, sin cuenta. [[n1]]Primero reproduces el barrido de trescientos valores esperados. [[n2]]Después cambias una sola línea para bajar el error estándar de Z Z. [[n3]]Y por último escribes la función que combina los cuatro observables del experimento CHSH en el valor S.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.""",
+             [Mission("practica/p5-estimator.py", [
+                 (1, "Ejecuta un barrido de 100 juegos de parámetros con 3 observables y lee la forma de `evs`."),
+                 (2, r"Baja el error estándar de $\langle ZZ\rangle$ de $0{,}008$ cambiando una sola línea."),
+                 (3, r"Escribe `valor_S(evs)` para CHSH y comprueba que $|S|>2$.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Cada centésima de precisión se paga con tiempo de procesador.", "subtitle")],
+             ask=reflect("La precisión por defecto equivale a 4096 disparos. Para duplicar la precisión, ¿cuántos disparos necesitas? ¿Qué implica eso para un presupuesto de QPU?",
+                         "Tu proyecto mide la magnetización. ¿La mandarías como un solo observable o como varios PUBs? Piensa en cuántos circuitos distintos se ejecutarán.")),
+
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Estimator recibe PUBs y un modo. [[r2]]Devuelve evs, stds y ensemble standard error, más metadata. [[r3]]La precisión sigue una cadena de prioridades.
              [[r4]]Y resilience level resume la mitigación, aunque no todas las técnicas se combinan.""",
@@ -577,8 +706,17 @@ for part in timing[0].parts:                 # PUBs de este intervalo
 timing.draw()''', id="c", norun=True, size=22)],
              [A("hl", "c", at="que", range="3-4"), A("hl", "c", at="partes", range="6-7"), A("hl", "c", at="util", lines=[5, 8])]),
 
+        beat("pred_shots", ("", "¿Cuántos disparos?"),
+             """Un Sampler con dos fuentes de disparos que no coinciden. [[def]]Fijamos default shots en quinientos. [[run]]Pero al llamar a run pedimos ciento veintiocho. [[cual]]Apuesta: ¿cuántos disparos recibirá cada PUB?""",
+             [Code('''sampler.options.default_shots = 500
+result = sampler.run([isa, isa], shots=128).result()
+print([pub.data.meas.num_shots for pub in result])''', id="c", size=26, norun=True)],
+             [A("hl", "c", at="def", lines=[1]), A("hl", "c", at="run", lines=[2])],
+             ask=predict("¿Qué imprime?", ["`[500, 500]`", "`[128, 128]`", "`[500, 128]`", "`[4096, 4096]`"],
+                         "Anotado. Veamos en qué orden se aplican las fuentes de disparos.")),
+
         beat("shots", ("", "Los disparos"),
-             """Para los disparos la precedencia es como la de la precisión en Estimator. [[pub]]Primero, los del PUB; [[run]]luego, el argumento shots de run; [[tw]]luego, si hay twirling, aleatorizaciones por disparos de cada una; [[def]]y al final default shots.
+             """Para los disparos la precedencia es como la de la precisión en Estimator. [[pub]]Primero, los del PUB; [[run]]luego, el argumento shots de run, que es lo que decide tu apuesta; [[tw]]luego, si hay twirling, aleatorizaciones por disparos de cada una; [[def]]y al final default shots.
              [[cliente]]Un detalle que descubrimos al probar el código: con el Sampler del lado del cliente de la cero punto cincuenta, todos los PUBs de un mismo trabajo deben tener el mismo número de disparos. Si mezclas, por ejemplo sesenta y cuatro y ciento veintiocho, da error.""",
              [Table(["Prioridad", "Dónde"], [["1", "dentro del PUB"], ["2", "`run(..., shots=)`"], ["3", "twirling"], ["4", "`options.default_shots`"]],
                     id="t", stagger=True, size=25),
@@ -635,6 +773,21 @@ with Batch(backend=backend) as batch:                      # lote
     job = sampler.run([isa_circuit])
     another_job = sampler.run([another_isa_circuit])''', id="c", setup=SAMPLER_SETUP, size=22)],
              [A("hl", "c", at="ejemplos", lines=[1]), A("hl", "c", at="multi", lines=[2]), A("hl", "c", at="par", lines=[3]), A("hl", "c", at="batch", range="4-7")]),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; corre con un procesador falso, sin cuenta. [[n1]]Primero mides qué fracción de un GHZ de cinco qubits sale con algún bit cambiado. [[n2]]Después corriges el envío de dos PUBs con distinto número de disparos, que la cero punto cincuenta rechaza. [[n3]]Y por último escribes la función que calcula esa fracción y ves cómo crece con el tamaño del GHZ.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.""",
+             [Mission("practica/p5-sampler.py", [
+                 (1, "Ejecuta un GHZ de 5 qubits y calcula la fracción de disparos con algún bit cambiado."),
+                 (2, "Reparte dos PUBs con 64 y 128 disparos en dos trabajos."),
+                 (3, "Escribe `fraccion_errores(conteos)` y grafícala para GHZ de 2 a 5 qubits.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Un conteo con ruido también es un resultado.", "subtitle")],
+             ask=reflect("Cada qubit más añade una CNOT y una medición. ¿Cuál de las dos crees que aporta más errores? ¿Qué opción de Sampler probarías para averiguarlo?",
+                         "Tu proyecto usa Estimator, no Sampler. ¿Qué información extra te daría ver los conteos de cada cadena de bits?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Sampler recibe circuitos con mediciones. [[r2]]Devuelve un BitArray por registro, e intervalos de ejecución en la metadata. [[r3]]Los disparos siguen una precedencia, y en la cero punto cincuenta deben coincidir en todo el trabajo.
@@ -709,9 +862,18 @@ executor = lesson(
              [Code(EXEC, id="c", size=17)],
              [A("hl", "c", at="box", lines=[23]), A("hl", "c", at="build", lines=[24]), A("hl", "c", at="shape", range="25-27")]),
 
+        beat("pred_resultado", ("", "Antes de ver la forma"),
+             """El programa ya corrió. Mira lo que pedimos. [[circ]]El CircuitItem lleva diez juegos de dos parámetros. [[shots]]El programa usa mil veinticuatro disparos, [[bits]]y el circuito mide tres bits.
+             [[cual]]Apuesta: ¿qué forma tiene el arreglo de la primera tarea, result de cero, meas?""",
+             [Code(EXEC, id="c", size=17, norun=True)],
+             [A("hl", "c", at="circ", lines=[21]), A("hl", "c", at="shots", lines=[20]), A("hl", "c", at="bits", lines=[17])],
+             ask=predict("¿Qué forma tiene `result[0][\"meas\"]`?",
+                         ["`(10, 1024, 3)`", "`(1024, 3)`", "`(10, 3)`", "`(3, 1024, 10)`"],
+                         "Anotado. Ahora los resultados.")),
+
         beat("resultado", ("", "Los resultados"),
              """La salida es un QuantumProgramResult, con una entrada por tarea, en el mismo orden. Cada entrada es un diccionario con el nombre del registro como clave y un arreglo NumPy de booleanos como valor.
-             [[c0]]Para el CircuitItem: diez juegos de parámetros, mil veinticuatro disparos, tres bits. [[c1]]Para el SamplexItem: veintiocho aleatorizaciones por diez juegos por mil veinticuatro disparos por tres bits.
+             [[c0]]Para el CircuitItem: diez juegos de parámetros, mil veinticuatro disparos, tres bits: la respuesta de tu apuesta. [[c1]]Para el SamplexItem: veintiocho aleatorizaciones por diez juegos por mil veinticuatro disparos por tres bits.
              [[flips]]Y measurement flips meas guarda las inversiones de bit que introdujo el twirling de mediciones: una por aleatorización. Se deshacen con un XOR clásico. Executor no corrige nada por ti.""",
              [Code(EXEC, id="c", size=17),
               Out("(10, 1024, 3)\n(28, 10, 1024, 3) (28, 10, 1, 3)", id="o", hidden=True, check=True),
@@ -787,6 +949,21 @@ program = QuantumProgram(shots=1024, meas_level="both")''', id="c", size=22)],
              ask=choice("¿Qué falla?", ["nada", "faltó deshacer las inversiones con XOR de `measurement_flips.meas`", "Executor no admite twirling de mediciones"], 1,
                         "Correcto: Executor devuelve las mediciones tal como salieron, con los bits invertidos por el twirling; tú aplicas la corrección.",
                         wrong=["Los bits aleatoriamente invertidos arruinan los conteos.", None, "Sí lo admite, mediante anotaciones."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; corre con un procesador falso de cinco qubits, sin cuenta. [[n1]]Primero ejecutas un CircuitItem y lees la forma de sus resultados. [[n2]]Después pasas de dos a veinte aleatorizaciones con el parámetro shape. [[n3]]Y por último escribes la función que deshace el twirling de las mediciones con un XOR, y compruebas que el GHZ vuelve a dar solo cero cero cero y uno uno uno.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.""",
+             [Mission("practica/p5-executor.py", [
+                 (1, "Ejecuta un `CircuitItem` y lee la forma de `result[0][\"meas\"]`."),
+                 (2, "Cambia `shape` de `(2, 10)` a `(20, 10)` y comprueba la forma de salida."),
+                 (3, "Escribe `deshacer(item)` con un XOR y mide la fracción de disparos en `000` o `111`.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para pensar con calma, conectadas con tu proyecto.""",
+             [T("Executor no decide por ti: todo lo que corrige, lo corriges tú.", "subtitle")],
+             ask=reflect("Sampler deshace el twirling de mediciones por ti y Executor no. ¿Qué ganas a cambio de esa tarea extra?",
+                         "¿Tu proyecto Ising del hito V necesita Executor, o le basta con Estimator? Justifica con lo que necesitas controlar.")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]Un QuantumProgram reúne elementos de circuito y de samplex. [[r2]]El samplex sale de cajas anotadas y de build. [[r3]]Las formas combinan ejes extrínsecos e intrínsecos.
@@ -865,9 +1042,18 @@ response = requests.post("https://quantum.cloud.ibm.com/api/v1/jobs",
 job_id = response.json()["id"]''', id="c", norun=True, size=21)],
              [A("hl", "c", at="estimator", range="2-3"), A("hl", "c", at="pub", lines=[5]), A("hl", "c", at="opts", range="6-8"), A("hl", "c", at="id", range="11-13")]),
 
+        beat("pred_resultados", ("", "Antes de leer los resultados"),
+             """El trabajo de Sampler terminó, y pedimos sus resultados con un GET. [[ruta]]La respuesta es un JSON con los datos del registro c. [[cual]]Apuesta: ¿cómo viene cada disparo dentro de samples?""",
+             [Code('''results = requests.get(f"{url}/{job_id}/results", headers=headers).json()["results"]
+samples = results[0]["data"]["c"]["samples"]''', id="c", norun=True, size=24)],
+             [A("hl", "c", at="ruta", lines=[1])],
+             ask=predict("Un disparo medido como `10` en el registro `c` aparece como…",
+                         ["la cadena `'10'`", "el hexadecimal `'0x2'`", "la lista `[1, 0]`", "el entero `10`"],
+                         "Anotado. Veamos qué devuelve el servicio.")),
+
         beat("resultados", ("", "Estado y resultados"),
              """Con el id, GET a jobs barra id da el estado, [[res]]y GET a jobs barra id barra results, los resultados en JSON.
-             [[est]]Para Estimator: evs, stds y ensemble standard error, más la metadata. [[sam]]Para Sampler, los datos del registro c vienen como samples: cada disparo es un número hexadecimal. Cero x tres es uno uno en binario.""",
+             [[est]]Para Estimator: evs, stds y ensemble standard error, más la metadata. [[sam]]Para Sampler, los datos del registro c vienen como samples: cada disparo es un número hexadecimal, y esa es la respuesta de tu apuesta. Cero x tres es uno uno en binario.""",
              [Code('''state = requests.get(f"{url}/{job_id}", headers=headers).json()["state"]
 results = requests.get(f"{url}/{job_id}/results", headers=headers).json()["results"]''', id="c", norun=True),
               Code('''Estimator: [{'data': {'evs': 0.7429, 'stds': 0.0299, 'ensemble_standard_error': 0.0326}, …}]
@@ -912,6 +1098,32 @@ requests.delete(f"{base}/sessions/{session_id}/close", headers=headers)''', id="
              ask=choice("¿Qué es lo más probable?", ["te revocaron la clave API", "el token portador caducó (dura como máximo una hora)", "el CRN cambió"], 1,
                         "Correcto: genera un token portador nuevo a partir de tu clave API.",
                         wrong=["Posible, pero lo habitual es que caduque el token portador.", None, "El CRN de una instancia no cambia."])),
+
+        beat("mision", ("", "Tu turno"),
+             """Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; prepara los cuerpos de los trabajos y lee resultados, todo en tu equipo, sin enviar nada. [[n1]]Primero armas el cuerpo de un trabajo de Sampler con un circuito en OpenQASM tres. [[n2]]Después corriges la lectura de los disparos en hexadecimal para que los conteos coincidan con get counts. [[n3]]Y por último escribes la función que arma el cuerpo de un trabajo de Estimator, con su observable y sus opciones.
+             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.""",
+             [Mission("practica/p5-rest.py", [
+                 (1, "Arma el cuerpo JSON de un trabajo de Sampler con el circuito en OpenQASM 3."),
+                 (2, "Corrige la decodificación de `samples` para que los conteos coincidan con `get_counts()`."),
+                 (3, "Escribe `cuerpo_estimator(isa, observable, opciones)` y comprueba que es JSON válido.")], id="m", stagger=True)],
+             [A("item", "m", at="n1", i=0), A("item", "m", at="n2", i=1), A("item", "m", at="n3", i=2)]),
+
+        beat("proyecto", ("", "Tu proyecto: hito V"),
+             """Y con esto llegas al hito cinco del proyecto: tu primera ejecución en un procesador cuántico real, con un presupuesto de como máximo un minuto de QPU.
+             [[estimar]]Antes de enviar, estimas el tiempo de QPU con una fórmula que el propio cuaderno te explica. [[falso]]El cuaderno corre completo en un procesador falso, sin cuenta, y sus comprobaciones pasan ahí. [[real]]Un interruptor, bien marcado, manda el mismo trabajo a hardware real con tu cuenta guardada, y solo se envía si pulsas el botón y la estimación cabe en el presupuesto.""",
+             [M(r"M(t)=\frac1N\sum_i\langle Z_i\rangle", size=46),
+              Mission("practica/proyecto/hito5.py", [
+                  (1, "Recalcula la referencia: Hamiltoniano, pasos de Trotter y magnetización exacta."),
+                  (2, "Estima el uso de QPU antes de enviar y comprueba que cabe en 60 s."),
+                  (3, "Ejecuta con `Estimator` sin mitigación; el interruptor ⚠️ lo envía a un QPU real.")],
+                  title="Proyecto Ising · Hito V", id="m", hidden=True)],
+             [A("show", "m", at="estimar")]),
+
+        beat("reflexion", ("", "Reflexiona"),
+             """Dos preguntas para cerrar la parte.""",
+             [T("Antes de pagar por una ejecución, haz las cuentas.", "subtitle")],
+             ask=reflect("Tu estimación de uso para el hito V dio varios segundos. ¿Qué cambiarías, y en qué orden, si superara tu presupuesto de un minuto?",
+                         "Cuando tengas la curva medida en un QPU, ¿qué parte de la diferencia con la curva exacta atribuirías al error de Trotter y qué parte al ruido? ¿Cómo lo comprobarías?")),
 
         beat("cierre", ("", "Resumen"),
              """Resumen. [[r1]]La clave API se cambia por un token portador de una hora. [[r2]]Cada petición lleva Authorization y Service CRN. [[r3]]Los trabajos se envían a jobs con program id, backend y PUBs en OpenQASM tres.

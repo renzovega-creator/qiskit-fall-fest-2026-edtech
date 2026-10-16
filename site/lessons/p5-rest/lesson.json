@@ -134,12 +134,52 @@
    ]
   },
   {
+   "id": "pred_resultados",
+   "tag": [
+    "5.7",
+    "Antes de leer los resultados"
+   ],
+   "say": "El trabajo de Sampler terminó, y pedimos sus resultados con un GET. [[ruta]]La respuesta es un JSON con los datos del registro c. [[cual]]Apuesta: ¿cómo viene cada disparo dentro de samples?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "results = requests.get(f\"{url}/{job_id}/results\", headers=headers).json()[\"results\"]\nsamples = results[0][\"data\"][\"c\"][\"samples\"]",
+     "lang": "python",
+     "id": "c",
+     "norun": true,
+     "size": 24
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      1
+     ],
+     "id": "c",
+     "at": "ruta"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Un disparo medido como `10` en el registro `c` aparece como…",
+    "options": [
+     "la cadena `'10'`",
+     "el hexadecimal `'0x2'`",
+     "la lista `[1, 0]`",
+     "el entero `10`"
+    ],
+    "after": "Anotado. Veamos qué devuelve el servicio."
+   },
+   "align": "top"
+  },
+  {
    "id": "resultados",
    "tag": [
     "5.7",
     "Estado y resultados"
    ],
-   "say": "Con el id, GET a jobs barra id da el estado, [[res]]y GET a jobs barra id barra results, los resultados en JSON. [[est]]Para Estimator: evs, stds y ensemble standard error, más la metadata. [[sam]]Para Sampler, los datos del registro c vienen como samples: cada disparo es un número hexadecimal. Cero x tres es uno uno en binario.",
+   "say": "Con el id, GET a jobs barra id da el estado, [[res]]y GET a jobs barra id barra results, los resultados en JSON. [[est]]Para Estimator: evs, stds y ensemble standard error, más la metadata. [[sam]]Para Sampler, los datos del registro c vienen como samples: cada disparo es un número hexadecimal, y esa es la respuesta de tu apuesta. Cero x tres es uno uno en binario.",
    "scene": [
     {
      "type": "code",
@@ -316,6 +356,123 @@
      "Posible, pero lo habitual es que caduque el token portador.",
      null,
      "El CRN de una instancia no cambia."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "5.7",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo; prepara los cuerpos de los trabajos y lee resultados, todo en tu equipo, sin enviar nada. [[n1]]Primero armas el cuerpo de un trabajo de Sampler con un circuito en OpenQASM tres. [[n2]]Después corriges la lectura de los disparos en hexadecimal para que los conteos coincidan con get counts. [[n3]]Y por último escribes la función que arma el cuerpo de un trabajo de Estimator, con su observable y sus opciones. [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p5-rest.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Arma el cuerpo JSON de un trabajo de Sampler con el circuito en OpenQASM 3."
+      },
+      {
+       "level": 2,
+       "text": "Corrige la decodificación de `samples` para que los conteos coincidan con `get_counts()`."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `cuerpo_estimator(isa, observable, opciones)` y comprueba que es JSON válido."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "proyecto",
+   "tag": [
+    "5.7",
+    "Tu proyecto: hito V"
+   ],
+   "say": "Y con esto llegas al hito cinco del proyecto: tu primera ejecución en un procesador cuántico real, con un presupuesto de como máximo un minuto de QPU. [[estimar]]Antes de enviar, estimas el tiempo de QPU con una fórmula que el propio cuaderno te explica. [[falso]]El cuaderno corre completo en un procesador falso, sin cuenta, y sus comprobaciones pasan ahí. [[real]]Un interruptor, bien marcado, manda el mismo trabajo a hardware real con tu cuenta guardada, y solo se envía si pulsas el botón y la estimación cabe en el presupuesto.",
+   "scene": [
+    {
+     "type": "math",
+     "tex": "M(t)=\\frac1N\\sum_i\\langle Z_i\\rangle",
+     "size": 46
+    },
+    {
+     "type": "mission",
+     "notebook": "practica/proyecto/hito5.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Recalcula la referencia: Hamiltoniano, pasos de Trotter y magnetización exacta."
+      },
+      {
+       "level": 2,
+       "text": "Estima el uso de QPU antes de enviar y comprueba que cabe en 60 s."
+      },
+      {
+       "level": 3,
+       "text": "Ejecuta con `Estimator` sin mitigación; el interruptor ⚠️ lo envía a un QPU real."
+      }
+     ],
+     "title": "Proyecto Ising · Hito V",
+     "id": "m",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "m",
+     "at": "estimar"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "5.7",
+    "Reflexiona"
+   ],
+   "say": "Dos preguntas para cerrar la parte.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Antes de pagar por una ejecución, haz las cuentas.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Tu estimación de uso para el hito V dio varios segundos. ¿Qué cambiarías, y en qué orden, si superara tu presupuesto de un minuto?",
+     "Cuando tengas la curva medida en un QPU, ¿qué parte de la diferencia con la curva exacta atribuirías al error de Trotter y qué parte al ruido? ¿Cómo lo comprobarías?"
     ]
    },
    "align": "top"

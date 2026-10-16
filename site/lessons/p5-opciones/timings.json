@@ -54,8 +54,50 @@
    ]
   ]
  },
+ "pred_defecto": {
+  "dur": 14.4,
+  "marks": {
+   "leer": 4.784,
+   "cual": 11.266
+  },
+  "cues": [
+   [
+    0.107,
+    "Creamos un Estimator local y no cambiamos ninguna opción."
+   ],
+   [
+    4.784,
+    "Solo imprimimos dos: el nivel de resiliencia y el número de disparos por defecto."
+   ],
+   [
+    11.266,
+    "Apuesta qué valor tiene cada una."
+   ]
+  ]
+ },
+ "defecto": {
+  "dur": 25.44,
+  "marks": {
+   "vacio": 5.774,
+   "prec": 15.073
+  },
+  "cues": [
+   [
+    0.107,
+    "Resultado: resilience level vale uno y default shots queda en None."
+   ],
+   [
+    5.774,
+    "No todo lo que no fijas es None: algunas opciones traen ya un valor, como el nivel de resiliencia, y otras quedan vacías."
+   ],
+   [
+    15.073,
+    "Con los disparos vacíos manda la precisión por defecto, cero coma cero uno cinco seis dos cinco, que equivale a cuatro mil noventa y seis disparos."
+   ]
+  ]
+ },
  "estructura": {
-  "dur": 29.184,
+  "dur": 29.496,
   "marks": {
    "formato": 14.479,
    "unset": 20.395
@@ -75,7 +117,7 @@
    ],
    [
     20.395,
-    "Si no fijas una opción, queda en None, y se usa su valor por defecto, que a veces depende del nivel de resiliencia."
+    "Una opción sin fijar puede valer None, y entonces se usa su valor por defecto, que a veces depende del nivel de resiliencia."
    ]
   ]
  },
@@ -180,6 +222,51 @@
    [
     0.107,
     "Elige la herramienta."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 36.792,
+  "marks": {
+   "n1": 9.667,
+   "n2": 14.436,
+   "n3": 20.48,
+   "check": 29.778
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo; corre con un procesador falso, sin cuenta."
+   ],
+   [
+    9.667,
+    "Primero fijas la misma precisión de cuatro formas distintas."
+   ],
+   [
+    14.436,
+    "Después corriges un error típico: cambiar las opciones del objeto equivocado."
+   ],
+   [
+    20.48,
+    "Y por último escribes una función que crea un Estimator crudo o protegido, y comparas el valor de Z Z que da cada uno."
+   ],
+   [
+    29.778,
+    "Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 5.352,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Dos preguntas para pensar con calma, conectadas con tu proyecto."
    ]
   ]
  },
