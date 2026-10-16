@@ -1,12 +1,14 @@
 // Bloque «exercise»: un editor de Python con Ejecutar, Comprobar, pistas y progreso (docs/exercises.md).
 //
 // spec: exercise (id) · prompt · level · hints · starter · cases (nombres de los casos visibles)
-// Ejecutar y Comprobar envían el código con POST a la URL `runner` de config.json; sin ella no envían nada.
+// Ejecutar y Comprobar envían el código a /run en el mismo origen que la página.
+// La primera petición de una sesión puede requerir Turnstile y repetir la petición con el token.
 // El código, las pistas vistas y si está resuelto se guardan en el navegador, en qiskit:exercise:<id>.
 (() => {
   'use strict';
   const CALL_TIMEOUT_MS = 30000;
   const SLOW_MS = 4000;
+  const RUN_URL = '/run';
   const MOD = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl';
   const LEVELS = BLOCKS.mission.levels;
   const HTTP_ERRORS = {
@@ -18,7 +20,7 @@
   };
 
   // Carga editor.js solo en las lecciones con ejercicio para no descargarlo en las demás.
-  let editorLib = null, runner = null;
+  let editorLib = null, turnstileLib = null;
   const loadEditor = () => editorLib ??= new Promise((ok, no) => {
     const sc = document.createElement('script');
     sc.src = 'editor.js';
@@ -26,7 +28,27 @@
     sc.onerror = () => { editorLib = null; no(new Error('editor')); };
     document.head.appendChild(sc);
   });
-  const loadRunner = () => runner ??= fetch('config.json').then(r => r.ok ? r.json() : {}).then(c => c.runner || null).catch(() => null);
+  const loadTurnstile = () => turnstileLib ??= new Promise((ok, no) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    sc.onload = () => ok(window.turnstile);
+    sc.onerror = () => { turnstileLib = null; no(new Error('turnstile')); };
+    document.head.appendChild(sc);
+  });
+  // El token se usa una sola vez. El widget solo aparece si Cloudflare lo exige.
+  const turnstileToken = async (sitekey, slot, signal) => {
+    let id, lib;
+    try {
+      lib = await loadTurnstile();
+      return await new Promise((ok, no) => {
+        signal.addEventListener('abort', () => no(new DOMException('', 'AbortError')));
+        id = lib.render(slot, { sitekey, appearance: 'interaction-only', callback: ok, 'error-callback': () => no(new Error('turnstile')) });
+      });
+    } finally {
+      if (id !== undefined) lib.remove(id);
+      slot.remove();
+    }
+  };
 
   const progress = {
     get(id) { try { return JSON.parse(localStorage.getItem(`qiskit:exercise:${id}`)) || {}; } catch (e) { return {}; } },
@@ -81,13 +103,13 @@
     status.setAttribute('role', 'status');
     const out = A.el('div', 'xout', right);
     const hints = A.el('div', 'xhints', right);
-    let busy = false, url = null;
+    let busy = false;
 
     const note = (cls, text) => { status.className = 'xstatus ' + cls; status.textContent = text; };
     const text = (cls, content, parent = out) => { const d = A.el('div', cls, parent); d.textContent = content; return d; };
     const setBusy = on => {
       busy = on;
-      runBtn.disabled = checkBtn.disabled = on || !url;
+      runBtn.disabled = checkBtn.disabled = on;
       card.setAttribute('aria-busy', on);
     };
 
@@ -145,7 +167,7 @@
     const fail = msg => { out.textContent = ''; note('bad', msg); };
 
     async function send(mode) {
-      if (busy || !ed || !url) return;
+      if (busy || !ed) return;
       setBusy(true);
       ed.markError(0);
       out.textContent = '';
@@ -154,16 +176,24 @@
       const ctl = new AbortController();
       const cut = setTimeout(() => ctl.abort(), CALL_TIMEOUT_MS);
       try {
-        const resp = await fetch(url, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
+        const post = token => fetch(RUN_URL, {
+          method: 'POST', signal: ctl.signal,
+          headers: { 'Content-Type': 'application/json', ...(token && { 'X-Turnstile-Token': token }) },
           body: JSON.stringify({ exercise: s.exercise, code: ed.get(), mode }),
         });
-        const body = await resp.json().catch(() => null);
+        let resp = await post();
+        let body = await resp.json().catch(() => null);
+        if (resp.status === 403 && body?.reason === 'turnstile_missing' && body.sitekey) {
+          note('busy', 'Comprobando que eres una persona…');
+          resp = await post(await turnstileToken(body.sitekey, A.el('div', 'xturnstile', out), ctl.signal));
+          body = await resp.json().catch(() => null);
+        }
         if (!resp.ok) fail(HTTP_ERRORS[resp.status] || body?.error || `El corredor respondió ${resp.status}.`);
         else if (typeof body?.passed !== 'boolean') fail('El corredor respondió algo que no se entiende.');
         else render(body, mode);
       } catch (e) {
         fail(e.name === 'AbortError' ? `El corredor no respondió en ${CALL_TIMEOUT_MS / 1000} s. Inténtalo de nuevo.`
+          : e.message === 'turnstile' ? 'No se pudo cargar la comprobación de que eres una persona. Desactiva el bloqueador de anuncios de esta página e inténtalo de nuevo.'
           : 'No se pudo conectar con el corredor. Revisa tu conexión e inténtalo de nuevo.');
       } finally {
         clearTimeout(slow); clearTimeout(cut);
@@ -172,9 +202,8 @@
     }
 
     setBusy(true);
-    Promise.all([loadRunner(), loadEditor().catch(() => null)]).then(([runnerUrl, lib]) => {
+    loadEditor().catch(() => null).then(lib => {
       if (!lib) { A.el('p', 'xerr', host).textContent = 'No se pudo cargar el editor. Recarga la página.'; return; }
-      url = runnerUrl;
       host.textContent = '';
       ed = lib.create(host, {
         doc: saved.code ?? s.starter,
@@ -184,11 +213,7 @@
         onCheck: () => send('check'),
       });
       setBusy(false);
-      if (url) note('idle', 'Escribe tu código y pulsa Ejecutar o Comprobar.');
-      else {
-        note('warn', 'Todavía no se puede ejecutar código en esta página. Puedes escribir tu solución: se guarda en tu navegador.');
-        A.rich(A.el('p', 'xhelp', out), 'Para ejecutarlo en tu equipo, abre el curso con `uv run python tools/serve.py`.');
-      }
+      note('idle', 'Escribe tu código y pulsa Ejecutar o Comprobar.');
     });
     return o;
   };
