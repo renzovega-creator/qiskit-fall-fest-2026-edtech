@@ -1,4 +1,4 @@
-"""Formato de mensajes de datos entre pytest y el proceso del alumno.
+"""Formato de mensajes de datos entre el comprobador y el proceso del alumno.
 
 Cada mensaje es JSON precedido por su longitud en 4 bytes. El canal admite
 valores básicos, arrays numéricos y circuitos QPY, pero nunca deserializa código.

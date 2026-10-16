@@ -3169,13 +3169,9 @@ dev = [
     { name = "pytest" },
 ]
 runner = [
-    { name = "pytest" },
     { name = "qiskit" },
     { name = "qiskit-aer" },
     { name = "qiskit-ibm-runtime" },
-]
-runner-test = [
-    { name = "pytest" },
 ]
 tools = [
     { name = "edge-tts" },
@@ -3202,12 +3198,10 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=9.1.1" }]
 runner = [
-    { name = "pytest", specifier = ">=9" },
     { name = "qiskit" },
     { name = "qiskit-aer" },
     { name = "qiskit-ibm-runtime" },
 ]
-runner-test = [{ name = "pytest", specifier = ">=9" }]
 tools = [
     { name = "edge-tts" },
     { name = "pillow" },

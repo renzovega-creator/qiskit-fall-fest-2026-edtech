@@ -16,8 +16,9 @@ RUN --mount=from=ghcr.io/astral-sh/uv:0.13.1,source=/uv,target=/usr/local/bin/uv
  && rm -r /tmp/lock /tmp/requirements.txt
 
 COPY runner/ /app/
+COPY qgcheck/ /app/qgcheck/
 COPY exercises/ /app/exercises/
-RUN python -m compileall -q /app/qgcheck
+RUN python -m compileall -q /app/qgcheck /app/grader
 
 # Nada es escribible por el alumno salvo su directorio de trabajo en /scratch.
 RUN mkdir /scratch && chmod 755 /scratch /tmp /var/tmp /app

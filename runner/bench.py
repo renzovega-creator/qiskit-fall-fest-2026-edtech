@@ -35,7 +35,7 @@ def post(url, body):
     start = time.monotonic()
     with urllib.request.urlopen(req, timeout=60) as r:
         out = json.load(r)
-    assert out["ok"], out
+    assert out["passed"], out
     return (time.monotonic() - start) * 1000, out
 
 

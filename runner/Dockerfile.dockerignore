@@ -3,8 +3,8 @@
 !pyproject.toml
 !uv.lock
 !runner/*.py
-!runner/*.ini
-!runner/qgcheck
+!runner/grader
+!qgcheck
 !exercises
 **/__pycache__
 exercises/**/solution.py

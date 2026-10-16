@@ -40,11 +40,8 @@ class Limits:
 
 @dataclass
 class Outcome:
-    stdout: str
-    stderr: str
+    output: str
     report: bytes
-    exit_code: int | None
-    timed_out: bool
     killed: str | None
     peak_mb: int
     ms: int
@@ -182,6 +179,8 @@ def run_job(slot, files, argv, limits, env, report=False):
 
     `argv` y los valores de `env` pueden usar `{dir}`, la ruta del directorio.
     Con `report=True` el hijo hereda un pipe, cuyo número va en QG_REPORT_FD.
+    La salida estándar y la de errores van juntas, en el orden en que se escribieron.
+    `killed` es `time`, `memory`, `disk` u `output` si el trabajo pasó ese límite.
     """
     uid = slot_uid(slot)
     start = time.monotonic()
@@ -225,17 +224,16 @@ def run_job(slot, files, argv, limits, env, report=False):
 
         proc = subprocess.Popen(
             launch, cwd=work, env=child_env, stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             start_new_session=True, pass_fds=pass_fds,
         )
         if rep_w is not None:
             os.close(rep_w)
 
         over = threading.Event()
-        out, err, rep = bytearray(), bytearray(), bytearray()
+        out, rep = bytearray(), bytearray()
         readers = [
             threading.Thread(target=_drain, args=(proc.stdout.fileno(), limits.out_bytes, out, over)),
-            threading.Thread(target=_drain, args=(proc.stderr.fileno(), limits.out_bytes, err, over)),
         ]
         if rep_r is not None:
             readers.append(threading.Thread(target=_drain, args=(rep_r, REPORT_CAP, rep, over)))
@@ -244,7 +242,7 @@ def run_job(slot, files, argv, limits, env, report=False):
 
         scan = _Scan(uid, work, limits)
         scan.start()
-        timed_out, killed = False, None
+        killed = None
         deadline = start + limits.wall_s
         while proc.poll() is None:
             if over.is_set():
@@ -252,8 +250,8 @@ def run_job(slot, files, argv, limits, env, report=False):
             elif scan.tripped.is_set():
                 killed = scan.killed
             elif time.monotonic() > deadline:
-                timed_out = True
-            if timed_out or killed:
+                killed = "time"
+            if killed:
                 break
             time.sleep(POLL_S)
 
@@ -268,16 +266,11 @@ def run_job(slot, files, argv, limits, env, report=False):
         for t in readers:
             t.join(timeout=2)
         proc.stdout.close()
-        proc.stderr.close()
         if rep_r is not None:
             os.close(rep_r)
-        code = proc.returncode
         return Outcome(
-            stdout=out.decode("utf-8", "replace"),
-            stderr=err.decode("utf-8", "replace"),
+            output=out.decode("utf-8", "replace"),
             report=bytes(rep),
-            exit_code=None if timed_out else code,
-            timed_out=timed_out,
             killed=killed,
             peak_mb=round(scan.peak / 2**20),
             ms=round((time.monotonic() - start) * 1000),

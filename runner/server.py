@@ -7,19 +7,17 @@ docs/architecture.md. Si no queda una ranura libre, responde 503.
 import json
 import os
 import queue
-import re
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 
 import sandbox
+from qgcheck import spec
+from qgcheck.runner import MAX_CODE
 
-EXERCISES = Path(os.environ.get("QG_EXERCISES", "/app/exercises"))
 PORT = int(os.environ.get("PORT", "8080"))
-MAX_CODE_BYTES = 20_000
 # Un carácter de control ocupa 6 bytes escapado en JSON; el resto es la envoltura.
-MAX_BODY_BYTES = 6 * MAX_CODE_BYTES + 1024
-EXERCISE_ID = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*/[a-z0-9]+(?:-[a-z0-9]+)*")
+MAX_BODY_BYTES = 6 * MAX_CODE + 1024
+NOT_FINISHED = "El código no terminó: se quedó sin memoria o el proceso se cerró."
 LIMITS = sandbox.Limits(
     wall_s=float(os.environ.get("QG_WALL_S", "10")),
     mem_mb=int(os.environ.get("QG_MEM_MB", "512")),
@@ -47,28 +45,37 @@ def parse_request(raw):
     code, mode, exercise = body.get("code"), body.get("mode", "run"), body.get("exercise")
     if not isinstance(code, str):
         raise BadRequest(400, "`code` debe ser texto")
-    if len(code.encode("utf-8")) > MAX_CODE_BYTES:
-        raise BadRequest(413, f"el código supera {MAX_CODE_BYTES} bytes")
+    if len(code.encode("utf-8")) > MAX_CODE:
+        raise BadRequest(413, f"el código supera {MAX_CODE} bytes")
     if mode not in ("run", "check"):
         raise BadRequest(400, "`mode` es `run` o `check`")
     check = None
     if mode == "check":
-        if not isinstance(exercise, str) or not EXERCISE_ID.fullmatch(exercise):
+        if not isinstance(exercise, str):
             raise BadRequest(400, "`exercise` debe ser `lección/ejercicio`")
-        check = EXERCISES / exercise / "check.py"
+        try:
+            check = spec.folder(exercise) / "check.py"
+        except ValueError:
+            raise BadRequest(400, "`exercise` debe ser `lección/ejercicio`")
         if not check.is_file():
             raise BadRequest(404, f"no existe el ejercicio {exercise}")
     return code, mode, check
 
 
 def parse_report(raw):
-    """Valida lo que escribió el plugin; el hijo lo controla el alumno."""
+    """Valida lo que escribió el trabajo; en `run` lo controla el alumno.
+
+    Devuelve (error, casos), o None si no hay un informe válido.
+    """
     try:
-        items = json.loads(raw)["tests"]
+        report = json.loads(raw)
+        error, items = report["error"], report["tests"]
     except (ValueError, KeyError, TypeError):
-        return []
+        return None
+    if not (error is None or isinstance(error, str)) or not isinstance(items, list):
+        return None
     tests = []
-    for t in items if isinstance(items, list) else []:
+    for t in items:
         if not isinstance(t, dict):
             continue
         name, message = t.get("name"), t.get("message")
@@ -78,34 +85,39 @@ def parse_report(raw):
             "passed": t.get("passed") is True,
             "message": message[:MESSAGE_CAP] if isinstance(message, str) else None,
         })
-    return tests
+    return error and error[:MESSAGE_CAP], tests
+
+
+def stopped(killed):
+    return {
+        "time": f"Tu código tardó más de {LIMITS.wall_s:g} s y se detuvo.",
+        "memory": f"Tu código usó más de {LIMITS.mem_mb} MB de memoria y se detuvo.",
+        "disk": f"Tu código escribió más de {LIMITS.scratch_mb} MB y se detuvo.",
+        "output": f"Tu código imprimió más de {LIMITS.out_bytes // 1024} KiB y se detuvo.",
+    }[killed]
 
 
 def execute(slot, code, mode, check):
-    files = {"main.py": code}
-    if mode == "run":
-        argv = [sys.executable, "-u", "{dir}/main.py"]
-        out = sandbox.run_job(slot, files, argv, LIMITS, {})
+    argv = [sys.executable, "-u", "-P", "-m", "grader.job", mode, "{dir}/main.py"]
+    if check:
+        argv.append(str(check))
+    out = sandbox.run_job(slot, {"main.py": code}, argv, LIMITS, {}, report=True)
+    report = parse_report(out.report)
+    if out.killed:
+        error, tests = stopped(out.killed), []
+    elif report is None:
+        error, tests = NOT_FINISHED, []
     else:
-        argv = [
-            sys.executable, "-u", "-P", "-m", "pytest", "-c", str(sandbox.APP / "pytest.ini"),
-            "-p", "qgcheck.plugin", str(check),
-        ]
-        out = sandbox.run_job(
-            slot, files, argv, LIMITS, {"QG_LEARNER": "{dir}/main.py"}, report=True,
-        )
-    tests = parse_report(out.report) if mode == "check" else []
-    clean = out.exit_code == 0 and not out.timed_out and out.killed is None
-    ok = clean if mode == "run" else clean and bool(tests) and all(t["passed"] for t in tests)
+        error, tests = report
+    if mode == "run":
+        tests = []
     return {
-        "ok": ok,
-        "stdout": out.stdout,
-        "stderr": out.stderr,
-        "exit_code": out.exit_code,
-        "timed_out": out.timed_out,
-        "killed": out.killed,
+        "passed": error is None and (mode == "run" or bool(tests) and all(t["passed"] for t in tests)),
+        "stdout": out.output,
+        "error": error,
         "tests": tests,
         "ms": out.ms,
+        "killed": out.killed,
         "peak_mb": out.peak_mb,
     }
 

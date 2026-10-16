@@ -32,11 +32,6 @@ runner = [
     "qiskit",
     "qiskit-aer",
     "qiskit-ibm-runtime",
-    "pytest>=9",
-]
-
-runner-test = [
-    "pytest>=9",
 ]
 
 [tool.uv]
