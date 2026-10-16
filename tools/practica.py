@@ -74,7 +74,7 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     import matplotlib
     matplotlib.use("Agg")  # Evita que Tk libere figuras desde otro hilo y aborte el proceso.
-    files = [Path(a) for a in sys.argv[1:]] or sorted(p for p in PR.rglob("*.py") if "soluciones" not in p.parts)
+    files = [Path(a) for a in sys.argv[1:]] or sorted(p for p in PR.rglob("*.py") if "soluciones" not in p.parts and "marimo.App(" in p.read_text(encoding="utf-8"))
     fallos = sum(comprobar(f) for f in files)
     print("fallos:", fallos)
     sys.exit(1 if fallos else 0)

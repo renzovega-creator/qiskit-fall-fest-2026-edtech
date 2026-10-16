@@ -22,12 +22,11 @@
   ]
  },
  "backend": {
-  "dur": 55.056,
+  "dur": 46.128,
   "marks": {
    "target": 9.582,
    "metodos": 23.381,
-   "usar": 34.746,
-   "res": 43.507
+   "usar": 34.746
   },
   "cues": [
    [
@@ -48,11 +47,58 @@
    ],
    [
     34.746,
-    "Con eso, el transpilador de Qiskit ya funciona: el backend informa sus qubits, sus operaciones y su mapa de acoplamiento, y la CNOT se traduce a una CZ y rotaciones de un qubit."
+    "Con eso, el backend ya informa sus qubits, sus operaciones y su mapa de acoplamiento: tres qubits, cinco operaciones y solo dos pares conectados."
+   ]
+  ]
+ },
+ "predice": {
+  "dur": 30.48,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Antes de transpilar, apuesta."
    ],
    [
-    48.927,
-    "El transpilador eligió qubits vecinos, así que no hizo falta ningún SWAP."
+    3.227,
+    "Este circuito aplica una Hadamard al qubit cero y una CNOT entre el qubit cero y el dos."
+   ],
+   [
+    10.204,
+    "Pero en nuestro QPU esos dos qubits no están conectados: solo hay enlaces entre cero y uno, y entre uno y dos."
+   ],
+   [
+    19.192,
+    "¿Cuántas puertas CZ crees que tendrá el circuito transpilado?"
+   ],
+   [
+    24.23,
+    "Piensa en lo que el transpilador tiene que hacer para llegar de un extremo al otro de la línea."
+   ]
+  ]
+ },
+ "transpilar": {
+  "dur": 34.272,
+  "marks": {
+   "res": 7.147,
+   "cx": 24.188
+  },
+  "cues": [
+   [
+    0.107,
+    "Transpilamos con el gestor de pases preestablecido, nivel uno, apuntando a nuestro backend."
+   ],
+   [
+    7.147,
+    "Sale una sola CZ, junto con seis rotaciones RZ y tres raíces de X."
+   ],
+   [
+    14.408,
+    "No hizo falta ningún SWAP: el transpilador colocó los qubits lógicos cero y dos en los físicos uno y cero, que sí son vecinos."
+   ],
+   [
+    24.188,
+    "La CNOT se tradujo a una CZ rodeada de puertas de un qubit, porque la CZ es la única de dos qubits que el Target declara."
    ]
   ]
  },
@@ -122,6 +168,59 @@
    [
     0.107,
     "Migra una línea."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 33.264,
+  "marks": {
+   "n1": 6.454,
+   "n2": 11.054,
+   "n3": 16.616,
+   "check": 23.905
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.454,
+    "Primero reproduces MiQPU y transpilas un circuito."
+   ],
+   [
+    11.054,
+    "Después le añades duraciones al Target y estimas cuánto dura un circuito."
+   ],
+   [
+    16.616,
+    "Y por último implementas run con un simulador local, para que MiQPU funcione con las primitivas."
+   ],
+   [
+    23.905,
+    "Cada misión tiene una comprobación que se actualiza sola mientras escribes."
+   ],
+   [
+    29.339,
+    "Todo corre en tu equipo: no hace falta cuenta."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 9.312,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Antes de cerrar, dos preguntas para pensar."
+   ],
+   [
+    4.119,
+    "Escribe con tus palabras; lo que escribas se guarda en tu navegador."
    ]
   ]
  },

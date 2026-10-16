@@ -161,12 +161,50 @@
    ]
   },
   {
+   "id": "predice_if",
+   "tag": [
+    "9.5",
+    "Qiskit 2.0: antes de ejecutar"
+   ],
+   "say": "Qiskit dos punto cero rompió compatibilidad sin cambiar la estructura de paquetes. Tres cambios principales; empecemos por el primero. [[cif]]Desaparece c if: las condiciones se escriben con un bloque if test, que ya viste en la Parte dos. [[cual]]Este circuito mide dos qubits y aplica una X al qubit cero solo si se midió uno uno. Antes de ejecutarlo, apuesta: ¿qué operaciones contará count ops?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "qc.h([0, 1])\nqc.measure(qr, cr)\nwith qc.if_test((cr, 3)):\n    qc.x(0)",
+     "lang": "python",
+     "id": "c",
+     "size": 22,
+     "norun": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "3-4",
+     "id": "c",
+     "at": "cif"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué devuelve `dict(qc.count_ops())`?",
+    "options": [
+     "`{'h': 2, 'measure': 2, 'x': 1}`",
+     "`{'h': 2, 'measure': 2, 'if_else': 1}`",
+     "`{'h': 2, 'measure': 2, 'x': 1, 'if_else': 1}`",
+     "`{'h': 2, 'measure': 2, 'if_test': 1}`"
+    ],
+    "after": "Anotado. Veamos qué cuenta Qiskit."
+   },
+   "align": "top"
+  },
+  {
    "id": "v2",
    "tag": [
     "9.5",
     "Qiskit 2.0"
    ],
-   "say": "Qiskit dos punto cero rompió compatibilidad sin cambiar la estructura de paquetes. Tres cambios principales. [[cif]]Uno: desaparece c if; las condiciones se escriben con if test, que ya viste en la Parte dos. [[dur]]Dos: las instrucciones ya no tienen duration ni unit; las duraciones se consultan en el Target, y para la duración del circuito, estimate duration. [[pulse]]Y tres: qiskit punto pulse se eliminó por completo, con todo lo relacionado con calibraciones.",
+   "say": "[[cif]]La condición no es una puerta con un decorador: es una sola instrucción, if else, que contiene el bloque. Por eso la X no aparece en el recuento de nivel superior. [[dur]]Segundo cambio: las instrucciones ya no tienen duration ni unit; las duraciones se consultan en el Target, y para la duración del circuito, estimate duration. [[pulse]]Y tercero: qiskit punto pulse se eliminó por completo, con todo lo relacionado con calibraciones.",
    "scene": [
     {
      "type": "code",
@@ -204,7 +242,7 @@
      "do": "show",
      "id": "o",
      "at": "cif",
-     "t": 3
+     "t": 1
     },
     {
      "do": "show",
@@ -290,12 +328,60 @@
    ]
   },
   {
+   "id": "predice_opciones",
+   "tag": [
+    "9.5",
+    "Las opciones, antes de ejecutar"
+   ],
+   "say": "Las opciones del Estimator también cambiaron. [[pydantic]]Ahora son modelos de Pydantic, con campos validados. Fíjate en esta asignación: seed estimator era una opción de la versión anterior, y ya no existe. [[cual]]Antes de ejecutar, apuesta: ¿qué pasa al asignarla?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit_ibm_runtime.options_models import EstimatorOptions\n\noptions = EstimatorOptions()\noptions.default_shots = 2000\noptions.seed_estimator = 1",
+     "lang": "python",
+     "id": "c",
+     "size": 24,
+     "norun": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      4
+     ],
+     "id": "c",
+     "at": "pydantic"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      5
+     ],
+     "id": "c",
+     "at": "cual"
+    }
+   ],
+   "ask": {
+    "kind": "predict",
+    "prompt": "¿Qué ocurre en `options.seed_estimator = 1`?",
+    "options": [
+     "se acepta y fija la semilla",
+     "se acepta y se ignora sin avisar",
+     "`AttributeError`",
+     "`ValidationError`"
+    ],
+    "after": "Anotado. Lo comprobamos en la siguiente pantalla."
+   },
+   "align": "top"
+  },
+  {
    "id": "diferencias",
    "tag": [
     "9.5",
     "Qué cambia"
    ],
-   "say": "Algunas diferencias. [[pydantic]]Las opciones son ahora modelos de Pydantic: en lugar de asdict, usa model dump; y las opciones eliminadas, como seed estimator, dan error de validación. [[mezcla]]No se pueden mezclar disparos o precisiones distintos en un trabajo: agrupa los PUBs por valor, un trabajo por grupo, todos en un lote. [[ruido]]Y para PEA y PEC ya no hay aprendizaje de ruido implícito: lo haces tú con NoiseLearnerV3 y pasas el modelo al Estimator. [[local]]Para probar en local con un backend falso, la guía sugiere cliffordizar el circuito ISA, con ConvertISAToClifford: se simula rápido, pero pierde el layout, así que el observable se adapta con el layout del circuito original.",
+   "say": "Algunas diferencias. [[pydantic]]Las opciones son modelos de Pydantic. En lugar de asdict, usa model dump; y las opciones eliminadas, como seed estimator, dan error de validación. [[mezcla]]No se pueden mezclar disparos o precisiones distintos en un trabajo: agrupa los PUBs por valor, un trabajo por grupo, todos en un lote. [[ruido]]Y para PEA y PEC ya no hay aprendizaje de ruido implícito: lo haces tú con NoiseLearnerV3 y pasas el modelo al Estimator. [[local]]Para probar en local con un backend falso, la guía sugiere cliffordizar el circuito ISA, con ConvertISAToClifford: se simula rápido, pero pierde el layout, así que el observable se adapta con el layout del circuito original.",
    "scene": [
     {
      "type": "code",
@@ -439,6 +525,162 @@
      "t": 11
     }
    ]
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "9.5",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. Abre el cuaderno de práctica con el comando de abajo. Todo corre en tu equipo. [[n1]]Primero migras un circuito de c if a if test. [[n2]]Después conviertes las opciones del Estimator a un diccionario con model dump. [[n3]]Y por último escribes la función que reparte los PUBs en un trabajo por valor de precisión. [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes.",
+   "scene": [
+    {
+     "type": "mission",
+     "notebook": "practica/p9-migraciones.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Migra una condición de `c_if` a `if_test` y cuenta sus operaciones."
+      },
+      {
+       "level": 2,
+       "text": "Convierte `EstimatorOptions` en un diccionario con `model_dump`."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `dividir(pubs)`: un grupo por cada valor de precisión."
+      }
+     ],
+     "id": "m",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "m",
+     "at": "n1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "m",
+     "at": "n2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "m",
+     "at": "n3"
+    }
+   ]
+  },
+  {
+   "id": "proyecto",
+   "tag": [
+    "9.5",
+    "Tu proyecto: el hito IX"
+   ],
+   "say": "Esta lección cierra la Parte nueve, y con ella llega el hito nueve del proyecto de la cadena de espines. [[migrar]]Migras el código del proyecto a las primitivas del lado del cliente: el Estimator para la magnetización y el Sampler para los conteos. [[paquete]]Y lo empaquetas como un módulo que puedes importar, ising punto py, para que el informe final lo reutilice. [[hito]]El cuaderno recalcula primero lo de los hitos anteriores, para que no dependas de ningún otro cuaderno.",
+   "scene": [
+    {
+     "type": "row",
+     "items": [
+      {
+       "type": "box",
+       "kind": "warn",
+       "title": "Antes",
+       "body": [
+        {
+         "type": "text",
+         "text": "`StatevectorEstimator` · funciones sueltas",
+         "style": "body"
+        }
+       ],
+       "id": "a",
+       "hidden": true
+      },
+      {
+       "type": "box",
+       "kind": "idea",
+       "title": "Ahora",
+       "body": [
+        {
+         "type": "text",
+         "text": "`executor_estimator.Estimator` · módulo `ising`",
+         "style": "body"
+        }
+       ],
+       "id": "b",
+       "hidden": true
+      }
+     ],
+     "gap": 24
+    },
+    {
+     "type": "mission",
+     "notebook": "practica/proyecto/hito9.py",
+     "tasks": [
+      {
+       "level": 1,
+       "text": "Recalcula el Hamiltoniano, el circuito de Trotter y la curva exacta de los hitos anteriores."
+      },
+      {
+       "level": 2,
+       "text": "Cambia la importación al `Estimator` del lado del cliente y compara con la curva ideal."
+      },
+      {
+       "level": 3,
+       "text": "Escribe `magnetizacion_conteos` y calcula la magnetización con el `Sampler`."
+      }
+     ],
+     "title": "Proyecto Ising · Hito IX",
+     "id": "m",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "a",
+     "at": "migrar"
+    },
+    {
+     "do": "show",
+     "id": "b",
+     "at": "paquete"
+    },
+    {
+     "do": "show",
+     "id": "m",
+     "at": "hito"
+    }
+   ]
+  },
+  {
+   "id": "reflexion",
+   "tag": [
+    "9.5",
+    "Reflexiona"
+   ],
+   "say": "Antes de cerrar la parte, dos preguntas para pensar. Escribe con tus palabras; lo que escribas se guarda en tu navegador.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Explicar con tus palabras es la mejor prueba de que entendiste.",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "reflect",
+    "prompts": [
+     "Qiskit separa cambios incompatibles (versión mayor) de funciones nuevas (versión menor). ¿Cómo usarías eso para decidir cuándo actualizar un proyecto que depende de Qiskit?",
+     "En la migración al Estimator del lado del cliente, ¿qué cosas esperas que sigan funcionando igual y cuáles revisarías primero? ¿Cómo lo comprobarías sin una cuenta?"
+    ]
+   },
+   "align": "top"
   },
   {
    "id": "cierre",

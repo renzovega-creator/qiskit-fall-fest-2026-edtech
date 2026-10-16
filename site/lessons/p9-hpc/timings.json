@@ -74,7 +74,7 @@
   ]
  },
  "usuario": {
-  "dur": 37.344,
+  "dur": 31.488,
   "marks": {
    "varios": 12.639,
    "app": 19.107
@@ -90,11 +90,67 @@
    ],
    [
     19.107,
-    "Dentro del trabajo, la variable SLURM JOB QPU RESOURCES lista los recursos asignados, y QRMI la usa."
+    "La idea es que tu código no dependa de un backend concreto: la elección del QPU queda en la definición del recurso, y el trabajo recibe lo que el plugin le deja en el entorno."
+   ]
+  ]
+ },
+ "predice": {
+  "dur": 29.52,
+  "marks": {
+   "pide": 3.213,
+   "admin": 6.723,
+   "cual": 23.324
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de lanzarlo, apuesta."
    ],
    [
-    28.66,
-    "La idea es que tu código no dependa de un backend concreto: la elección del QPU queda en la definición del recurso."
+    3.213,
+    "El script pide tres QPUs."
+   ],
+   [
+    6.723,
+    "Pero el administrador solo definió dos en qrmi config punto json: my local qpu, de acceso directo, e ibm fez, del servicio de IBM."
+   ],
+   [
+    19.517,
+    "No hay ninguna entrada para ibm marrakesh."
+   ],
+   [
+    23.324,
+    "Dentro del trabajo, ¿qué valdrá la variable SLURM JOB QPU RESOURCES?"
+   ]
+  ]
+ },
+ "entorno": {
+  "dur": 34.008,
+  "marks": {
+   "recursos": 4.685,
+   "tipos": 15.186,
+   "ig": 21.484
+  },
+  "cues": [
+   [
+    0.107,
+    "Dentro del trabajo, el plugin deja dos variables."
+   ],
+   [
+    4.685,
+    "SLURM JOB QPU RESOURCES lista los recursos que sí están definidos, en el orden pedido: ibm marrakesh desapareció, sin error."
+   ],
+   [
+    15.186,
+    "Y SLURM JOB QPU TYPES da el tipo de cada uno, en el mismo orden."
+   ],
+   [
+    21.484,
+    "Es la misma regla de la pregunta anterior: lo que no está en la configuración se ignora."
+   ],
+   [
+    27.74,
+    "Por eso conviene que tu programa lea la variable en lugar de fijar el nombre del QPU."
    ]
   ]
  },
@@ -126,6 +182,59 @@
    [
     0.107,
     "Sobre Slurm."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 35.232,
+  "marks": {
+   "n1": 12.2,
+   "n2": 18.47,
+   "n3": 23.989,
+   "check": 29.792
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Abre el cuaderno de práctica con el comando de abajo."
+   ],
+   [
+    6.454,
+    "No necesita Slurm ni cuenta: repites en Python lo que hace el plugin."
+   ],
+   [
+    12.2,
+    "Primero reproduces el cruce entre lo que pide el script y lo que define el administrador."
+   ],
+   [
+    18.47,
+    "Después añades un recurso nuevo a la configuración, con el modo lote."
+   ],
+   [
+    23.989,
+    "Y por último escribes la función que calcula las variables de entorno del trabajo."
+   ],
+   [
+    29.792,
+    "Cada misión tiene una comprobación que se actualiza sola mientras escribes."
+   ]
+  ]
+ },
+ "reflexion": {
+  "dur": 9.312,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Antes de cerrar, dos preguntas para pensar."
+   ],
+   [
+    4.119,
+    "Escribe con tus palabras; lo que escribas se guarda en tu navegador."
    ]
   ]
  },
