@@ -1,11 +1,30 @@
-import { bindings, defineConfig, defineContainer, exports, triggers } from "cf/config";
+import { execFileSync } from "node:child_process";
+
+import {
+  bindings,
+  defineConfig,
+  defineContainer,
+  exports,
+  triggers,
+} from "cf/config";
 
 import * as entrypoint from "./src/index.ts" with { type: "cf-worker" };
 import { WORKER_FIRST } from "./src/routes.ts";
 
+// Las versiones de Python y de uv de la imagen son las de mise.toml.
+const miseVersion = (tool: string) =>
+  execFileSync("mise", ["current", tool], { encoding: "utf8" }).trim();
+
 const runner = defineContainer({
   name: "qg-runner",
-  image: { dockerfile: "../Dockerfile", buildContext: "../.." },
+  image: {
+    dockerfile: "../Dockerfile",
+    buildContext: "../..",
+    buildVars: {
+      PYTHON_VERSION: miseVersion("python"),
+      UV_VERSION: miseVersion("uv"),
+    },
+  },
   instanceType: "basic",
   maxInstances: 3,
 });
@@ -17,7 +36,10 @@ export default defineConfig({
     entrypoint,
     // Workers Logs guarda solo lo que escribe src/log.ts. El registro de
     // invocaciones lleva la petición, así que está apagado.
-    observability: { enabled: true, logs: { enabled: true, invocationLogs: false } },
+    observability: {
+      enabled: true,
+      logs: { enabled: true, invocationLogs: false },
+    },
     // site/ (wrangler.config.ts) se sirve desde este mismo Worker.
     // Solo las rutas de WORKER_FIRST lo invocan.
     assets: { runWorkerFirst: WORKER_FIRST },

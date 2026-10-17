@@ -106,41 +106,41 @@ corredor protege el anfitrión y la corrección, no la clave de respuestas.
 
 ## Archivos
 
-| Archivo                              | Función                                                                          |
-| ------------------------------------ | -------------------------------------------------------------------------------- |
-| `runner/server.py`                   | El servidor HTTP y la validación de la petición.                                 |
-| `runner/sandbox.py`                  | Lanza el trabajo y vigila tiempo, memoria, disco y salida.                       |
-| `runner/launcher.py`                 | Fija los rlimits, baja de uid e instala el filtro seccomp antes del `exec`.      |
-| `runner/grader/`                     | El comprobador (`job.py`), el intermediario del alumno y su formato de mensajes. |
-| `qgcheck/`                           | El corrector de [exercises.md](exercises.md). La imagen lo copia sin cambios.    |
-| `runner/Dockerfile`                  | La imagen. Sus versiones salen del grupo `runner` de `uv.lock`.                  |
-| `runner/local.py`                    | Construye la imagen y la ejecuta con Docker y las banderas de aislamiento.       |
-| `runner/bench.py`                    | Mide la latencia fría y templada.                                                |
-| `runner/worker/`                     | El Worker de Cloudflare: sirve `site/` y arranca la imagen como Container.       |
-| `runner/worker/cloudflare.config.ts` | El Worker, el Container, los Durable Objects, las variables y las rutas.         |
-| `runner/worker/wrangler.config.ts`   | El directorio de `site/` que el Worker publica como archivos estáticos.          |
-| `runner/worker/src/routes.ts`        | Las rutas que entran al Worker antes que a los archivos.                         |
-| `runner/worker/src/index.ts`         | Las comprobaciones de [Protección del Worker](#protección-del-worker).           |
-| `runner/worker/src/meters.ts`        | Los Durable Objects `RateLimiter` y `Budget`.                                    |
-| `runner/worker/src/session.ts`       | La cookie de sesión de Turnstile y la llamada a `siteverify`.                    |
-| `runner/worker/src/throttle.ts`      | El contador por clave (IP o usuario) sobre `RateLimiter`.                        |
-| `runner/worker/src/auth.ts`          | `/auth/*`: el inicio de sesión con Google y GitHub y el cierre.                  |
-| `runner/worker/src/account.ts`       | Usuarios, identidades y sesiones de cuenta en D1.                                |
-| `runner/worker/src/api.ts`           | `/api/*`: la cuenta y su progreso.                                               |
-| `runner/worker/src/progress.ts`      | La validación y la unión del progreso.                                           |
-| `runner/worker/src/attempts.ts`      | Lo que se anota de cada ejecución.                                               |
-| `runner/worker/src/purge.ts`         | La limpieza diaria.                                                              |
-| `runner/worker/src/schema.sql`       | El esquema de la base D1.                                                        |
-| `tools/dashboard.py`                 | El panel del operador: lee D1 y muestra dónde se atascan los alumnos.            |
-| `runner/worker/src/http.ts`          | Las respuestas y la comprobación de origen que comparten `/auth` y `/api`.       |
-| `runner/worker/src/contract.ts`      | La forma de un id de ejercicio.                                                  |
-| `runner/worker/src/log.ts`           | Las únicas líneas que el Worker escribe en su registro.                          |
-| `runner/worker/test/`                | Las pruebas del Worker con un contenedor y un proveedor OAuth falsos.            |
-| `runner/worker/test/serve.ts`        | El mismo Worker en local, para las pruebas de navegador de la cuenta.            |
-| `site/account.js`                    | El cliente de la cuenta: el menú, la unión al cargar y el envío al escribir.     |
-| `site/privacidad.html`               | La página de privacidad.                                                         |
-| [`deploy.md`](deploy.md)             | Los pasos para publicar una copia propia.                                        |
-| `exercises/<lección>/<ejercicio>/`   | La imagen solo lleva `check.py` de cada uno.                                     |
+| Archivo                              | Función                                                                                        |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `runner/server.py`                   | El servidor HTTP y la validación de la petición.                                               |
+| `runner/sandbox.py`                  | Lanza el trabajo y vigila tiempo, memoria, disco y salida.                                     |
+| `runner/launcher.py`                 | Fija los rlimits, baja de uid e instala el filtro seccomp antes del `exec`.                    |
+| `runner/grader/`                     | El comprobador (`job.py`), el intermediario del alumno y su formato de mensajes.               |
+| `qgcheck/`                           | El corrector de [exercises.md](exercises.md). La imagen lo copia sin cambios.                  |
+| `runner/Dockerfile`                  | La imagen. Python y uv salen de `mise.toml`; las bibliotecas, del grupo `runner` de `uv.lock`. |
+| `runner/local.py`                    | Construye la imagen y la ejecuta con Docker y las banderas de aislamiento.                     |
+| `runner/bench.py`                    | Mide la latencia fría y templada.                                                              |
+| `runner/worker/`                     | El Worker de Cloudflare: sirve `site/` y arranca la imagen como Container.                     |
+| `runner/worker/cloudflare.config.ts` | El Worker, el Container, los Durable Objects, las variables y las rutas.                       |
+| `runner/worker/wrangler.config.ts`   | El directorio de `site/` que el Worker publica como archivos estáticos.                        |
+| `runner/worker/src/routes.ts`        | Las rutas que entran al Worker antes que a los archivos.                                       |
+| `runner/worker/src/index.ts`         | Las comprobaciones de [Protección del Worker](#protección-del-worker).                         |
+| `runner/worker/src/meters.ts`        | Los Durable Objects `RateLimiter` y `Budget`.                                                  |
+| `runner/worker/src/session.ts`       | La cookie de sesión de Turnstile y la llamada a `siteverify`.                                  |
+| `runner/worker/src/throttle.ts`      | El contador por clave (IP o usuario) sobre `RateLimiter`.                                      |
+| `runner/worker/src/auth.ts`          | `/auth/*`: el inicio de sesión con Google y GitHub y el cierre.                                |
+| `runner/worker/src/account.ts`       | Usuarios, identidades y sesiones de cuenta en D1.                                              |
+| `runner/worker/src/api.ts`           | `/api/*`: la cuenta y su progreso.                                                             |
+| `runner/worker/src/progress.ts`      | La validación y la unión del progreso.                                                         |
+| `runner/worker/src/attempts.ts`      | Lo que se anota de cada ejecución.                                                             |
+| `runner/worker/src/purge.ts`         | La limpieza diaria.                                                                            |
+| `runner/worker/src/schema.sql`       | El esquema de la base D1.                                                                      |
+| `tools/dashboard.py`                 | El panel del operador: lee D1 y muestra dónde se atascan los alumnos.                          |
+| `runner/worker/src/http.ts`          | Las respuestas y la comprobación de origen que comparten `/auth` y `/api`.                     |
+| `runner/worker/src/contract.ts`      | La forma de un id de ejercicio.                                                                |
+| `runner/worker/src/log.ts`           | Las únicas líneas que el Worker escribe en su registro.                                        |
+| `runner/worker/test/`                | Las pruebas del Worker con un contenedor y un proveedor OAuth falsos.                          |
+| `runner/worker/test/serve.ts`        | El mismo Worker en local, para las pruebas de navegador de la cuenta.                          |
+| `site/account.js`                    | El cliente de la cuenta: el menú, la unión al cargar y el envío al escribir.                   |
+| `site/privacidad.html`               | La página de privacidad.                                                                       |
+| [`deploy.md`](deploy.md)             | Los pasos para publicar una copia propia.                                                      |
+| `exercises/<lección>/<ejercicio>/`   | La imagen solo lleva `check.py` de cada uno.                                                   |
 
 ## Ejecutarlo con Docker
 
@@ -162,7 +162,7 @@ curl -s $URL/run -d '{"code": "print(2 + 2)"}'
 ## Pruebas y medidas
 
 ```sh
-mise run runner
+mise run test:integration
 python runner/bench.py --runs 50
 ```
 
@@ -172,7 +172,7 @@ HTTP. Cubre el contrato, que el resultado de cada ejercicio sea el de
 Docker no responde.
 
 ```sh
-mise run worker
+mise run test:worker
 ```
 
 Las pruebas del Worker (`runner/worker/test/`) arrancan el Worker real en el
@@ -191,7 +191,7 @@ las claves de prueba y se saltan si no hay red.
 mismo Worker en local con el proveedor falso, y lo recorre con un navegador:
 termina una lección y falla una comprobación sin cuenta, entra, abre otro
 navegador con la misma cuenta, borra la cuenta y mira qué queda en el servidor y
-en el navegador. Se ejecuta dentro de `mise run test`.
+en el navegador. Se ejecuta dentro de `mise run test:ui`.
 
 ## Cloudflare Containers
 

@@ -137,8 +137,8 @@ fondo.
 Para repetir la medición:
 
 ```sh
-uv run --group tools playwright install chromium
-uv run --group tools python tests/theme_test.py --table
+mise run install
+uv run python tests/theme_test.py --table
 ```
 
 La misma prueba carga la portada y tres lecciones, cada una en su primer y

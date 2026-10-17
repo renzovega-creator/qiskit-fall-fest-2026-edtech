@@ -1,12 +1,18 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { type Harness, type Options, TOKEN, clearOfMinuteEnd, start } from "./harness.ts";
+import {
+  type Harness,
+  type Options,
+  TOKEN,
+  clearOfMinuteEnd,
+  start as startWorker,
+} from "./harness.ts";
 import { PII, type ProviderName } from "./provider.ts";
 
 const open: Harness[] = [];
 
 async function worker(options?: Options): Promise<Harness> {
-  const h = await start(options);
+  const h = await startWorker(options);
   open.push(h);
   return h;
 }
@@ -40,7 +46,9 @@ async function dump(h: Harness): Promise<string> {
 }
 
 const cookieOf = (setCookie: string[], name: string) =>
-  setCookie.map((line) => line.split(";")[0]).find((pair) => pair.startsWith(`${name}=`));
+  setCookie
+    .map((line) => line.split(";")[0])
+    .find((pair) => pair.startsWith(`${name}=`));
 
 const setCookies = (headers: Headers) => headers.getSetCookie();
 
@@ -61,9 +69,13 @@ async function signIn(
   const { location, flow } = await begin(h, provider, query);
   const code = h.provider.consent(location!, subject);
   const state = new URL(location!).searchParams.get("state")!;
-  const back = await h.request("GET", `/auth/${provider}/callback?code=${code}&state=${state}`, {
-    headers: { cookie: flow! },
-  });
+  const back = await h.request(
+    "GET",
+    `/auth/${provider}/callback?code=${code}&state=${state}`,
+    {
+      headers: { cookie: flow! },
+    },
+  );
   const cookie = cookieOf(setCookies(back.headers), "qg_auth");
   return { back, cookie, code, state, flow: flow! };
 }
@@ -83,8 +95,12 @@ describe("inicio de sesión con OAuth", () => {
         `http://runner.test/auth/${provider}/callback`,
       );
       // Solo el identificador: ni correo ni nombre.
-      expect(url.searchParams.get("scope")).toBe(provider === "google" ? "openid" : null);
-      const header = setCookies(start.headers).find((line) => line.startsWith("qg_oauth="))!;
+      expect(url.searchParams.get("scope")).toBe(
+        provider === "google" ? "openid" : null,
+      );
+      const header = setCookies(start.headers).find((line) =>
+        line.startsWith("qg_oauth="),
+      )!;
       expect(flow).toBeDefined();
       expect(header).toMatch(/HttpOnly/);
       expect(header).toMatch(/Secure/);
@@ -97,9 +113,13 @@ describe("inicio de sesión con OAuth", () => {
     const h = await worker();
     const { location, flow } = await begin(h, "google");
     const code = h.provider.consent(location!, "sub-1");
-    const back = await h.request("GET", `/auth/google/callback?code=${code}&state=otro`, {
-      headers: { cookie: flow! },
-    });
+    const back = await h.request(
+      "GET",
+      `/auth/google/callback?code=${code}&state=otro`,
+      {
+        headers: { cookie: flow! },
+      },
+    );
     expect(back.status).toBe(400);
     expect(back.body.reason).toBe("state_mismatch");
     expect(cookieOf(setCookies(back.headers), "qg_auth")).toBeUndefined();
@@ -112,7 +132,10 @@ describe("inicio de sesión con OAuth", () => {
     const { location } = await begin(h, "github");
     const code = h.provider.consent(location!, "7");
     const state = new URL(location!).searchParams.get("state")!;
-    const back = await h.request("GET", `/auth/github/callback?code=${code}&state=${state}`);
+    const back = await h.request(
+      "GET",
+      `/auth/github/callback?code=${code}&state=${state}`,
+    );
     expect(back.status).toBe(400);
     expect(back.body.reason).toBe("flow_missing");
     expect(h.provider.tokenCalls()).toHaveLength(0);
@@ -122,9 +145,13 @@ describe("inicio de sesión con OAuth", () => {
     const h = await worker();
     const { location, flow } = await begin(h, "google");
     const state = new URL(location!).searchParams.get("state")!;
-    const back = await h.request("GET", `/auth/github/callback?code=x&state=${state}`, {
-      headers: { cookie: flow! },
-    });
+    const back = await h.request(
+      "GET",
+      `/auth/github/callback?code=x&state=${state}`,
+      {
+        headers: { cookie: flow! },
+      },
+    );
     expect(back.body.reason).toBe("flow_missing");
   });
 
@@ -170,7 +197,11 @@ describe("inicio de sesión con OAuth", () => {
     `/${"a".repeat(300)}`,
   ])("rechaza el destino %j como redirección abierta", async (target) => {
     const h = await worker();
-    const { start } = await begin(h, "google", `?return=${encodeURIComponent(target)}`);
+    const { start } = await begin(
+      h,
+      "google",
+      `?return=${encodeURIComponent(target)}`,
+    );
     expect(start.status).toBe(400);
     expect(start.body.reason).toBe("bad_return");
     expect(start.headers.get("location")).toBeNull();
@@ -179,7 +210,12 @@ describe("inicio de sesión con OAuth", () => {
 
   it("vuelve solo a la ruta de este sitio que se pidió", async () => {
     const h = await worker();
-    const { back } = await signIn(h, "google", "sub-1", "?return=/lesson.html%3Fid%3Dqubit%23paso");
+    const { back } = await signIn(
+      h,
+      "google",
+      "sub-1",
+      "?return=/lesson.html%3Fid%3Dqubit%23paso",
+    );
     expect(back.status).toBe(302);
     expect(back.headers.get("location")).toBe("/lesson.html?id=qubit#paso");
     const none = await signIn(h, "google", "sub-1", "");
@@ -189,9 +225,16 @@ describe("inicio de sesión con OAuth", () => {
   it("vuelve a una ruta con caracteres no ASCII, en porcentaje y sin error", async () => {
     const h = await worker();
     const target = "/lección/€.html?q=ñ";
-    const { back } = await signIn(h, "google", "sub-1", `?return=${encodeURIComponent(target)}`);
+    const { back } = await signIn(
+      h,
+      "google",
+      "sub-1",
+      `?return=${encodeURIComponent(target)}`,
+    );
     expect(back.status).toBe(302);
-    expect(back.headers.get("location")).toBe("/lecci%C3%B3n/%E2%82%AC.html?q=%C3%B1");
+    expect(back.headers.get("location")).toBe(
+      "/lecci%C3%B3n/%E2%82%AC.html?q=%C3%B1",
+    );
     expect(decodeURI(back.headers.get("location")!)).toBe(target);
   });
 
@@ -208,9 +251,13 @@ describe("inicio de sesión con OAuth", () => {
         next: "//evil.example",
       }),
     ).toString("base64url");
-    const back = await h.request("GET", `/auth/google/callback?code=${code}&state=${state}`, {
-      headers: { cookie: `qg_oauth=${forged}` },
-    });
+    const back = await h.request(
+      "GET",
+      `/auth/google/callback?code=${code}&state=${state}`,
+      {
+        headers: { cookie: `qg_oauth=${forged}` },
+      },
+    );
     expect(back.status).toBe(400);
     expect(back.body.reason).toBe("flow_missing");
     expect(back.headers.get("location")).toBeNull();
@@ -223,19 +270,23 @@ describe("inicio de sesión con OAuth", () => {
     expect(back.status).toBe(302);
     expect(back.headers.get("location")).toBe("/lesson.html");
     expect(cookie).toMatch(/^qg_auth=[A-Za-z0-9_-]{43}$/);
-    const header = setCookies(back.headers).find((line) => line.startsWith("qg_auth="))!;
+    const header = setCookies(back.headers).find((line) =>
+      line.startsWith("qg_auth="),
+    )!;
     expect(header).toMatch(/HttpOnly/);
     expect(header).toMatch(/Secure/);
     expect(header).toMatch(/SameSite=Lax/);
     expect(header).toMatch(/Path=\//);
     expect(header).toMatch(new RegExp(`Max-Age=${30 * 86400}`));
-    expect(setCookies(back.headers).find((line) => line.startsWith("qg_oauth="))).toMatch(
-      /Max-Age=0/,
-    );
+    expect(
+      setCookies(back.headers).find((line) => line.startsWith("qg_oauth=")),
+    ).toMatch(/Max-Age=0/);
     expect(await count(h, "users")).toBe(1);
     expect(await count(h, "identities")).toBe(1);
 
-    const me = await h.request("GET", "/api/me", { headers: { cookie: cookie! } });
+    const me = await h.request("GET", "/api/me", {
+      headers: { cookie: cookie! },
+    });
     expect(me.body).toMatchObject({ signedIn: true, providers: ["google"] });
   });
 
@@ -247,7 +298,9 @@ describe("inicio de sesión con OAuth", () => {
     expect(await count(h, "identities")).toBe(1);
     expect(await count(h, "sessions")).toBe(2);
     expect(second.cookie).not.toBe(first.cookie);
-    const ids = await h.db.prepare("SELECT DISTINCT user_id FROM sessions").all();
+    const ids = await h.db
+      .prepare("SELECT DISTINCT user_id FROM sessions")
+      .all();
     expect(ids.results).toHaveLength(1);
   });
 
@@ -268,7 +321,10 @@ describe("inicio de sesión con OAuth", () => {
     const row = await h.db
       .prepare("SELECT token_hash FROM sessions")
       .first<{ token_hash: string }>();
-    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(token),
+    );
     expect(row!.token_hash).toBe(Buffer.from(digest).toString("base64url"));
   });
 
@@ -314,16 +370,22 @@ describe("inicio de sesión con OAuth", () => {
     const code = h.provider.consent(location!, "sub-1");
     const state = new URL(location!).searchParams.get("state")!;
     h.provider.down.add("google");
-    const back = await h.request("GET", `/auth/google/callback?code=${code}&state=${state}`, {
-      headers: { cookie: flow! },
-    });
+    const back = await h.request(
+      "GET",
+      `/auth/google/callback?code=${code}&state=${state}`,
+      {
+        headers: { cookie: flow! },
+      },
+    );
     expect(back.status).toBe(502);
     expect(back.body.reason).toBe("provider_failed");
     expect(await count(h, "users")).toBe(0);
   });
 
   it("responde 503 si el proveedor no tiene credenciales", async () => {
-    const h = await worker({ vars: { GITHUB_CLIENT_ID: "", GITHUB_CLIENT_SECRET: "" } });
+    const h = await worker({
+      vars: { GITHUB_CLIENT_ID: "", GITHUB_CLIENT_SECRET: "" },
+    });
     const reply = await h.request("GET", "/auth/github");
     expect(reply.status).toBe(503);
     expect(reply.body.reason).toBe("provider_unavailable");
@@ -334,9 +396,12 @@ describe("inicio de sesión con OAuth", () => {
     await clearOfMinuteEnd();
     const h = await worker({ vars: { AUTH_PER_MINUTE: "3" } });
     const statuses: number[] = [];
-    for (let i = 0; i < 4; i++) statuses.push((await h.request("GET", "/auth/google")).status);
+    for (let i = 0; i < 4; i++)
+      statuses.push((await h.request("GET", "/auth/google")).status);
     expect(statuses).toEqual([302, 302, 302, 429]);
-    expect((await h.request("GET", "/auth/google", { ip: "203.0.113.9" })).status).toBe(302);
+    expect(
+      (await h.request("GET", "/auth/google", { ip: "203.0.113.9" })).status,
+    ).toBe(302);
   });
 
   it("responde 404 y 405 a lo que no es una ruta de /auth", async () => {
@@ -360,18 +425,22 @@ describe("cerrar sesión y caducidad", () => {
       headers: { ...origin, cookie: cookie! },
     });
     expect(out.status).toBe(204);
-    expect(setCookies(out.headers).find((line) => line.startsWith("qg_auth="))).toMatch(
-      /Max-Age=0/,
-    );
+    expect(
+      setCookies(out.headers).find((line) => line.startsWith("qg_auth=")),
+    ).toMatch(/Max-Age=0/);
     expect(await count(h, "sessions")).toBe(0);
-    const me = await h.request("GET", "/api/me", { headers: { cookie: cookie! } });
+    const me = await h.request("GET", "/api/me", {
+      headers: { cookie: cookie! },
+    });
     expect(me.body).toEqual({ signedIn: false });
   });
 
   it("logout exige que la petición venga de este sitio", async () => {
     const h = await worker();
     const { cookie } = await signIn(h, "google", "sub-1");
-    const none = await h.request("POST", "/auth/logout", { headers: { cookie: cookie! } });
+    const none = await h.request("POST", "/auth/logout", {
+      headers: { cookie: cookie! },
+    });
     expect(none.status).toBe(403);
     const foreign = await h.request("POST", "/auth/logout", {
       headers: { origin: "https://evil.example", cookie: cookie! },
@@ -384,7 +453,9 @@ describe("cerrar sesión y caducidad", () => {
     const h = await worker();
     const { cookie } = await signIn(h, "google", "sub-1");
     await h.db.prepare("UPDATE sessions SET expires_at = 1").run();
-    const me = await h.request("GET", "/api/me", { headers: { cookie: cookie! } });
+    const me = await h.request("GET", "/api/me", {
+      headers: { cookie: cookie! },
+    });
     expect(me.body).toEqual({ signedIn: false });
     const put = await h.request("PUT", "/api/progress", {
       headers: { ...origin, cookie: cookie! },
@@ -418,18 +489,23 @@ describe("/run con cuenta", () => {
 
   it("una cookie qg_auth inventada no salta Turnstile", async () => {
     const h = await worker();
-    const reply = await h.post(check, { headers: { cookie: "qg_auth=inventada" } });
+    const reply = await h.post(check, {
+      headers: { cookie: "qg_auth=inventada" },
+    });
     expect(reply.status).toBe(403);
   });
 
   it("cada usuario tiene su propio límite por minuto", async () => {
     await clearOfMinuteEnd();
-    const h = await worker({ vars: { RATE_PER_MINUTE: "2", SIGNED_IN_IP_FACTOR: "100" } });
+    const h = await worker({
+      vars: { RATE_PER_MINUTE: "2", SIGNED_IN_IP_FACTOR: "100" },
+    });
     const ada = await signIn(h, "google", "ada");
     const bea = await signIn(h, "google", "bea");
     const statuses = async (cookie: string) => {
       const out: number[] = [];
-      for (let i = 0; i < 3; i++) out.push((await h.post(check, { headers: { cookie } })).status);
+      for (let i = 0; i < 3; i++)
+        out.push((await h.post(check, { headers: { cookie } })).status);
       return out;
     };
     expect(await statuses(ada.cookie!)).toEqual([200, 200, 429]);
@@ -439,14 +515,20 @@ describe("/run con cuenta", () => {
   it("con cuenta la IP admite cuatro veces el tope anónimo", async () => {
     await clearOfMinuteEnd();
     // Cada usuario tiene su cuenta (3) y la IP compartida solo 2 × 4.
-    const h = await worker({ vars: { RATE_PER_MINUTE: "2", SIGNED_IN_IP_FACTOR: "4" } });
+    const h = await worker({
+      vars: { RATE_PER_MINUTE: "2", SIGNED_IN_IP_FACTOR: "4" },
+    });
     const users = await Promise.all(
       ["a", "b", "c", "d", "e"].map((subject) => signIn(h, "google", subject)),
     );
     const statuses: number[] = [];
     for (const user of users) {
-      statuses.push((await h.post(check, { headers: { cookie: user.cookie! } })).status);
-      statuses.push((await h.post(check, { headers: { cookie: user.cookie! } })).status);
+      statuses.push(
+        (await h.post(check, { headers: { cookie: user.cookie! } })).status,
+      );
+      statuses.push(
+        (await h.post(check, { headers: { cookie: user.cookie! } })).status,
+      );
     }
     // Ocho ejecuciones caben; la novena de la misma IP ya no.
     expect(statuses.slice(0, 8)).toEqual(Array(8).fill(200));
@@ -458,7 +540,8 @@ describe("/run con cuenta", () => {
     const h = await worker({ vars: { RATE_PER_MINUTE: "2" } });
     const headers = { "x-turnstile-token": TOKEN };
     const statuses: number[] = [];
-    for (let i = 0; i < 3; i++) statuses.push((await h.post(check, { headers })).status);
+    for (let i = 0; i < 3; i++)
+      statuses.push((await h.post(check, { headers })).status);
     expect(statuses).toEqual([200, 200, 429]);
   });
 });
@@ -511,7 +594,11 @@ describe("intentos", () => {
       { headers: { cookie: cookie! } },
     );
     const [row] = await attempts(h);
-    expect(row).toMatchObject({ outcome: "error", error_kind: "NameError", mode: "run" });
+    expect(row).toMatchObject({
+      outcome: "error",
+      error_kind: "NameError",
+      mode: "run",
+    });
     expect(await dump(h)).not.toContain(MARKER);
     expect(await dump(h)).not.toContain("is not defined");
   });
@@ -530,8 +617,14 @@ describe("intentos", () => {
   it("un corte por tiempo es «timeout» y un acierto es «pass»", async () => {
     const h = await worker();
     const headers = { "x-turnstile-token": TOKEN };
-    await h.post({ code: `MATADO ${MARKER}`, mode: "check", exercise: "intro/uno" }, { headers });
-    await h.post({ code: "print(1)", mode: "check", exercise: "intro/uno" }, { headers });
+    await h.post(
+      { code: `MATADO ${MARKER}`, mode: "check", exercise: "intro/uno" },
+      { headers },
+    );
+    await h.post(
+      { code: "print(1)", mode: "check", exercise: "intro/uno" },
+      { headers },
+    );
     const rows = await attempts(h);
     expect(rows.map((r) => r.outcome)).toEqual(["timeout", "pass"]);
     expect(JSON.parse(rows[1].failed)).toEqual([]);
@@ -556,8 +649,14 @@ describe("intentos", () => {
     const h = await worker();
     const headers = { "x-turnstile-token": TOKEN };
     await h.post({ code: "print(1)", mode: "run" }, { headers });
-    await h.post({ code: "print(1)", mode: "run", exercise: "../etc/passwd" }, { headers });
-    await h.post({ code: "print(1)", mode: "otro", exercise: "intro/uno" }, { headers });
+    await h.post(
+      { code: "print(1)", mode: "run", exercise: "../etc/passwd" },
+      { headers },
+    );
+    await h.post(
+      { code: "print(1)", mode: "otro", exercise: "intro/uno" },
+      { headers },
+    );
     expect(await attempts(h)).toHaveLength(0);
     await h.post(
       { code: "print(1)", mode: "run", exercise: "intro/uno" },
@@ -601,7 +700,12 @@ describe("/api", () => {
     const { cookie } = await signIn(h, "google", subject);
     return { cookie: cookie! };
   }
-  const put = (h: Harness, cookie: string, body: unknown, path = "/api/progress") =>
+  const put = (
+    h: Harness,
+    cookie: string,
+    body: unknown,
+    path = "/api/progress",
+  ) =>
     h.request(path === "/api/merge" ? "POST" : "PUT", path, {
       headers: { ...origin, cookie },
       body,
@@ -609,12 +713,20 @@ describe("/api", () => {
 
   it("sin sesión /api/me dice que nadie entró y lo demás responde 401", async () => {
     const h = await worker();
-    expect((await h.request("GET", "/api/me")).body).toEqual({ signedIn: false });
-    expect((await h.request("POST", "/api/merge", { headers: origin, body: {} })).status).toBe(401);
-    expect((await h.request("PUT", "/api/progress", { headers: origin, body: {} })).status).toBe(
-      401,
-    );
-    expect((await h.request("DELETE", "/api/me", { headers: origin })).status).toBe(401);
+    expect((await h.request("GET", "/api/me")).body).toEqual({
+      signedIn: false,
+    });
+    expect(
+      (await h.request("POST", "/api/merge", { headers: origin, body: {} }))
+        .status,
+    ).toBe(401);
+    expect(
+      (await h.request("PUT", "/api/progress", { headers: origin, body: {} }))
+        .status,
+    ).toBe(401);
+    expect(
+      (await h.request("DELETE", "/api/me", { headers: origin })).status,
+    ).toBe(401);
   });
 
   it("rechaza el origen ajeno, el contenido que no es JSON y los métodos erróneos", async () => {
@@ -625,7 +737,9 @@ describe("/api", () => {
       body: { done: [] },
     });
     expect(foreign.status).toBe(403);
-    const noOrigin = await h.request("DELETE", "/api/me", { headers: { cookie } });
+    const noOrigin = await h.request("DELETE", "/api/me", {
+      headers: { cookie },
+    });
     expect(noOrigin.status).toBe(403);
     expect(await count(h, "users")).toBe(1);
 
@@ -634,7 +748,9 @@ describe("/api", () => {
       body: { done: [] },
     });
     expect(text.status).toBe(415);
-    const wrong = await h.request("GET", "/api/progress", { headers: { cookie } });
+    const wrong = await h.request("GET", "/api/progress", {
+      headers: { cookie },
+    });
     expect(wrong.status).toBe(405);
     expect(wrong.headers.get("allow")).toBe("PUT");
     expect((await h.request("GET", "/api/nada")).status).toBe(404);
@@ -647,7 +763,11 @@ describe("/api", () => {
     ["un ejercicio mal formado", { exercises: { "intro/uno": { hints: -1 } } }],
     [
       "un id de ejercicio inválido",
-      { exercises: { "Intro/UNO": { hints: 0, checks: 0, passed: false, at: 1 } } },
+      {
+        exercises: {
+          "Intro/UNO": { hints: 0, checks: 0, passed: false, at: 1 },
+        },
+      },
     ],
     ["una clave de kv desconocida", { kv: { "qiskit:otra": [1] } }],
     ["un valor de kv de otra forma", { kv: { "qiskit:hitos": "uno" } }],
@@ -655,7 +775,13 @@ describe("/api", () => {
       "un código enorme",
       {
         exercises: {
-          "intro/uno": { code: "x".repeat(20_001), hints: 0, checks: 0, passed: false, at: 1 },
+          "intro/uno": {
+            code: "x".repeat(20_001),
+            hints: 0,
+            checks: 0,
+            passed: false,
+            at: 1,
+          },
         },
       },
     ],
@@ -701,16 +827,25 @@ describe("/api", () => {
         put(h, cookie, {
           done: [lesson],
           exercises: {
-            [`intro/e${i}`]: { code: `c${i}`, hints: i, checks: 1, passed: false, at: 10 + i },
+            [`intro/e${i}`]: {
+              code: `c${i}`,
+              hints: i,
+              checks: 1,
+              passed: false,
+              at: 10 + i,
+            },
           },
           kv: { "qiskit:hitos": [i] },
         }),
       ),
     );
     expect(replies.map((r) => r.status)).toEqual(lessons.map(() => 204));
-    const me = (await h.request("GET", "/api/me", { headers: { cookie } })).body.progress;
+    const me = (await h.request("GET", "/api/me", { headers: { cookie } })).body
+      .progress;
     expect(me.done).toEqual(lessons);
-    expect(Object.keys(me.exercises).sort()).toEqual(lessons.map((_, i) => `intro/e${i}`));
+    expect(Object.keys(me.exercises).toSorted()).toEqual(
+      lessons.map((_, i) => `intro/e${i}`),
+    );
     expect(me.kv["qiskit:hitos"]).toEqual([0, 1, 2, 3, 4]);
   });
 
@@ -720,7 +855,13 @@ describe("/api", () => {
     await put(h, cookie, {
       done: ["intro", "qubit"],
       exercises: {
-        "intro/uno": { code: "viejo", hints: 1, checks: 3, passed: false, at: 1000 },
+        "intro/uno": {
+          code: "viejo",
+          hints: 1,
+          checks: 3,
+          passed: false,
+          at: 1000,
+        },
       },
       kv: {
         "qiskit:hitos": [1, 3],
@@ -735,14 +876,24 @@ describe("/api", () => {
       {
         done: ["qubit", "puertas"],
         exercises: {
-          "intro/uno": { code: "nuevo", hints: 0, checks: 5, passed: true, at: 2000 },
+          "intro/uno": {
+            code: "nuevo",
+            hints: 0,
+            checks: 5,
+            passed: true,
+            at: 2000,
+          },
           "intro/dos": { hints: 2, checks: 1, passed: false, at: 500 },
         },
         kv: {
           "qiskit:hitos": [2, 3],
           "qiskit:pos:intro": 2,
           "qiskit:predict:intro:p1": 9,
-          "qiskit:repaso": { a: { box: 3, due: 90 }, b: { box: 1, due: 5 }, c: { box: 0, due: 1 } },
+          "qiskit:repaso": {
+            a: { box: 3, due: 90 },
+            b: { box: 1, due: 5 },
+            c: { box: 0, due: 1 },
+          },
         },
       },
       "/api/merge",
@@ -752,7 +903,13 @@ describe("/api", () => {
       done: ["intro", "puertas", "qubit"],
       exercises: {
         // Gana el código más reciente; pistas y comprobaciones, el máximo; pasar no se pierde.
-        "intro/uno": { code: "nuevo", hints: 1, checks: 5, passed: true, at: 2000 },
+        "intro/uno": {
+          code: "nuevo",
+          hints: 1,
+          checks: 5,
+          passed: true,
+          at: 2000,
+        },
         "intro/dos": { hints: 2, checks: 1, passed: false, at: 500 },
       },
       kv: {
@@ -776,14 +933,36 @@ describe("/api", () => {
     const { cookie } = await user(h);
     await put(h, cookie, {
       exercises: {
-        "intro/uno": { code: "reciente", hints: 0, checks: 0, passed: false, at: 2000 },
+        "intro/uno": {
+          code: "reciente",
+          hints: 0,
+          checks: 0,
+          passed: false,
+          at: 2000,
+        },
       },
     });
     await put(h, cookie, {
-      exercises: { "intro/uno": { code: "antiguo", hints: 0, checks: 0, passed: false, at: 1000 } },
+      exercises: {
+        "intro/uno": {
+          code: "antiguo",
+          hints: 0,
+          checks: 0,
+          passed: false,
+          at: 1000,
+        },
+      },
     });
     await put(h, cookie, {
-      exercises: { "intro/uno": { code: null, hints: 0, checks: 0, passed: false, at: 3000 } },
+      exercises: {
+        "intro/uno": {
+          code: null,
+          hints: 0,
+          checks: 0,
+          passed: false,
+          at: 3000,
+        },
+      },
     });
     const me = await h.request("GET", "/api/me", { headers: { cookie } });
     expect(me.body.progress.exercises["intro/uno"].code).toBe("reciente");
@@ -803,14 +982,18 @@ describe("/api", () => {
     };
     await put(h, first.cookie, a);
     await put(h, second.cookie!, b);
-    const one = await h.request("GET", "/api/me", { headers: { cookie: first.cookie } });
+    const one = await h.request("GET", "/api/me", {
+      headers: { cookie: first.cookie },
+    });
 
     const other = await worker();
     const x = await user(other);
     const y = await signIn(other, "google", "sub-1");
     await put(other, y.cookie!, b);
     await put(other, x.cookie, a);
-    const two = await other.request("GET", "/api/me", { headers: { cookie: x.cookie } });
+    const two = await other.request("GET", "/api/me", {
+      headers: { cookie: x.cookie },
+    });
     expect(one.body.progress).toEqual(two.body.progress);
     expect(one.body.progress.kv["qiskit:hitos"]).toEqual([1, 2]);
   });
@@ -820,7 +1003,9 @@ describe("/api", () => {
     const ada = await user(h, "ada");
     const bea = await user(h, "bea");
     await put(h, ada.cookie, { done: ["intro"] });
-    const me = await h.request("GET", "/api/me", { headers: { cookie: bea.cookie } });
+    const me = await h.request("GET", "/api/me", {
+      headers: { cookie: bea.cookie },
+    });
     expect(me.body.progress.done).toEqual([]);
   });
 
@@ -832,7 +1017,9 @@ describe("/api", () => {
     for (const who of [ada, bea]) {
       await put(h, who.cookie, {
         done: ["intro"],
-        exercises: { "intro/uno": { code: "a", hints: 0, checks: 1, passed: true, at: 10 } },
+        exercises: {
+          "intro/uno": { code: "a", hints: 0, checks: 1, passed: true, at: 10 },
+        },
         kv: { "qiskit:hitos": [1] },
       });
       await h.post(
@@ -848,12 +1035,17 @@ describe("/api", () => {
     await signIn(h, "google", "ada");
 
     const adaId = (await h.db
-      .prepare("SELECT user_id FROM identities WHERE provider = 'google' AND subject = 'ada'")
+      .prepare(
+        "SELECT user_id FROM identities WHERE provider = 'google' AND subject = 'ada'",
+      )
       .first<{ user_id: string }>())!.user_id;
     for (const table of TABLES) {
       if (table === "users") continue;
       // Todas las tablas tienen filas de Ada antes de borrar.
-      expect(await count(h, table, `user_id = '${adaId}'`), table).toBeGreaterThan(0);
+      expect(
+        await count(h, table, `user_id = '${adaId}'`),
+        table,
+      ).toBeGreaterThan(0);
     }
 
     const out = await h.request("DELETE", "/api/me", {
@@ -861,9 +1053,9 @@ describe("/api", () => {
     });
     expect(out.status).toBe(200);
     expect(out.body).toEqual({ deleted: true });
-    expect(setCookies(out.headers).find((line) => line.startsWith("qg_auth="))).toMatch(
-      /Max-Age=0/,
-    );
+    expect(
+      setCookies(out.headers).find((line) => line.startsWith("qg_auth=")),
+    ).toMatch(/Max-Age=0/);
 
     expect(await count(h, "users", `id = '${adaId}'`)).toBe(0);
     for (const table of TABLES) {
@@ -876,7 +1068,9 @@ describe("/api", () => {
     expect(await count(h, "attempts", "user_id IS NULL")).toBe(1);
     expect(await count(h, "attempts")).toBe(2);
     // La cookie vieja ya no vale.
-    const me = await h.request("GET", "/api/me", { headers: { cookie: ada.cookie } });
+    const me = await h.request("GET", "/api/me", {
+      headers: { cookie: ada.cookie },
+    });
     expect(me.body).toEqual({ signedIn: false });
   });
 });
@@ -884,7 +1078,11 @@ describe("/api", () => {
 describe("limpieza diaria", () => {
   const DAY = 86_400;
 
-  async function insertAttempt(h: Harness, at: number, userId: string | null = null) {
+  async function insertAttempt(
+    h: Harness,
+    at: number,
+    userId: string | null = null,
+  ) {
     await h.db
       .prepare(
         `INSERT INTO attempts (at, user_id, exercise, mode, outcome, ms, code_bytes)
@@ -901,7 +1099,9 @@ describe("limpieza diaria", () => {
     await insertAttempt(h, now - 179 * DAY);
     expect(await count(h, "attempts")).toBe(2);
     await h.purge();
-    const left = await h.db.prepare("SELECT at FROM attempts").all<{ at: number }>();
+    const left = await h.db
+      .prepare("SELECT at FROM attempts")
+      .all<{ at: number }>();
     expect(left.results.map((r) => r.at)).toEqual([now - 179 * DAY]);
   });
 
@@ -936,7 +1136,9 @@ describe("limpieza diaria", () => {
     expect(await count(h, "sessions")).toBe(1);
     expect(await count(h, "attempts")).toBe(0);
     expect(await count(h, "lesson_done")).toBe(1);
-    const me = await h.request("GET", "/api/me", { headers: { cookie: live.cookie! } });
+    const me = await h.request("GET", "/api/me", {
+      headers: { cookie: live.cookie! },
+    });
     expect(me.body.signedIn).toBe(true);
   });
 

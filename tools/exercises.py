@@ -11,23 +11,27 @@ Para cada ejercicio comprueba que:
 
 `needs` se lee de site/lessons/*/lesson.json, así que hay que ejecutar lessons_src/build.py antes.
 """
+
+import io
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT), str(ROOT / "lessons_src")]
 
 from build import walk  # noqa: E402
+
 from qgcheck import grade, spec  # noqa: E402
 
 SITE = ROOT / "site"
 NO_AER = ("qiskit_aer",)
 
 
-def published():
+def published() -> dict[str, dict[str, Any]]:
     """Devuelve los bloques de ejercicio publicados, por id."""
-    found = {}
+    found: dict[str, dict[str, Any]] = {}
     for f in sorted((SITE / "lessons").glob("*/lesson.json")):
         for beat in json.loads(f.read_text(encoding="utf-8"))["beats"]:
             for blk in walk(beat["scene"]):
@@ -36,32 +40,33 @@ def published():
     return found
 
 
-def declared():
+def declared() -> dict[str, str]:
     """Devuelve las dependencias declaradas por los ejercicios publicados."""
     return {eid: blk["needs"] for eid, blk in published().items()}
 
 
-def failures(result):
+def failures(result: dict[str, Any]) -> str:
     """Devuelve los mensajes de los casos fallidos o el error del código."""
     if result["error"]:
-        return result["error"]
-    return "; ".join(f"{t['name']}: {t['message']}" for t in result["tests"] if not t["passed"]) or "sin casos"
+        return str(result["error"])
+    return (
+        "; ".join(f"{t['name']}: {t['message']}" for t in result["tests"] if not t["passed"])
+        or "sin casos"
+    )
 
 
-def problems(eid, needs, hints=None):
+def problems(eid: str, needs: str, hints: int | None = None) -> list[str]:
     """Devuelve problemas del ejercicio y valida sus referencias a pistas."""
     d = spec.folder(eid)
     if missing := spec.missing_files(eid):
         return [f"faltan {', '.join(missing)}"]
     solution = (d / "solution.py").read_text(encoding="utf-8")
-    found = []
+    found: list[str] = []
     if hints is not None:
         for fn, _ in spec.load_cases(d / "check.py"):
             number = getattr(fn, "qg_hint", None)
             if number is not None and number > hints:
-                found.append(
-                    f"{fn.__name__} nombra la pista {number} y el ejercicio tiene {hints}"
-                )
+                found.append(f"{fn.__name__} nombra la pista {number} y el ejercicio tiene {hints}")
     solved = grade(eid, solution)
     if not solved["passed"]:
         found.append(f"solution.py no pasa: {failures(solved)}")
@@ -73,14 +78,17 @@ def problems(eid, needs, hints=None):
     if solved["passed"]:
         without = grade(eid, solution, block=NO_AER)
         if needs == "qiskit" and not without["passed"]:
-            found.append(f'needs="qiskit" pero solution.py necesita qiskit_aer: {failures(without)}')
+            found.append(
+                f'needs="qiskit" pero solution.py necesita qiskit_aer: {failures(without)}'
+            )
         if needs == "aer" and without["passed"]:
             found.append('needs="aer" pero solution.py pasa sin qiskit_aer')
     return found
 
 
-def main():
-    sys.stdout.reconfigure(encoding="utf-8")
+def main() -> None:
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8")
     needs = declared()
     hints = {eid: len(blk["hints"]) for eid, blk in published().items()}
     ids = sys.argv[1:] or sorted(set(needs) | set(spec.all_ids()))

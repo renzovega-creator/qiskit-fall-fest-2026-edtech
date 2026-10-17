@@ -39,19 +39,26 @@ const PROVIDERS: Record<Provider, ProviderConfig> = {
     token: "https://oauth2.googleapis.com/token",
     userinfo: "https://openidconnect.googleapis.com/v1/userinfo",
     scope: "openid",
-    credentials: (env) => ({ id: env.GOOGLE_CLIENT_ID, secret: env.GOOGLE_CLIENT_SECRET }),
+    credentials: (env) => ({
+      id: env.GOOGLE_CLIENT_ID,
+      secret: env.GOOGLE_CLIENT_SECRET,
+    }),
     subject: (info) => (typeof info.sub === "string" ? info.sub : null),
   },
   github: {
     authorize: "https://github.com/login/oauth/authorize",
     token: "https://github.com/login/oauth/access_token",
     userinfo: "https://api.github.com/user",
-    credentials: (env) => ({ id: env.GITHUB_CLIENT_ID, secret: env.GITHUB_CLIENT_SECRET }),
+    credentials: (env) => ({
+      id: env.GITHUB_CLIENT_ID,
+      secret: env.GITHUB_CLIENT_SECRET,
+    }),
     subject: (info) => (Number.isSafeInteger(info.id) ? String(info.id) : null),
   },
 };
 
-const isProvider = (name: string): name is Provider => Object.hasOwn(PROVIDERS, name);
+const isProvider = (name: string): name is Provider =>
+  Object.hasOwn(PROVIDERS, name);
 
 // Lo que viaja en la cookie `qg_oauth` entre la salida y la vuelta del proveedor.
 interface Flow {
@@ -66,7 +73,8 @@ interface Flow {
 export function localPath(value: string | null): string | null {
   if (value === null || value === "") return "/";
   // oxlint-disable-next-line no-control-regex -- los caracteres de control son justo lo que se rechaza
-  if (value.length > 200 || !/^\/(?![/\\])[^\\\x00-\x20\x7f]*$/.test(value)) return null;
+  if (value.length > 200 || !/^\/(?![/\\])[^\\\x00-\x20\x7f]*$/.test(value))
+    return null;
   return value;
 }
 
@@ -86,7 +94,9 @@ function readFlow(cookieHeader: string | null): Flow | null {
   const raw = getCookie(cookieHeader, FLOW_COOKIE);
   if (!raw) return null;
   try {
-    const flow = JSON.parse(new TextDecoder().decode(fromBase64url(raw))) as Flow;
+    const flow = JSON.parse(
+      new TextDecoder().decode(fromBase64url(raw)),
+    ) as Flow;
     const strings = [flow.provider, flow.state, flow.verifier, flow.next];
     // `next` se valida otra vez: la cookie la lleva el navegador y puede venir alterada.
     return strings.every((part) => typeof part === "string") &&
@@ -101,9 +111,16 @@ function readFlow(cookieHeader: string | null): Flow | null {
 
 const sameText = (a: string, b: string) =>
   a.length === b.length &&
-  crypto.subtle.timingSafeEqual(new TextEncoder().encode(a), new TextEncoder().encode(b));
+  crypto.subtle.timingSafeEqual(
+    new TextEncoder().encode(a),
+    new TextEncoder().encode(b),
+  );
 
-async function start(request: Request, env: Env, provider: Provider): Promise<Response> {
+async function start(
+  request: Request,
+  env: Env,
+  provider: Provider,
+): Promise<Response> {
   const config = PROVIDERS[provider];
   const { id, secret } = config.credentials(env);
   if (!id || !secret) {
@@ -116,9 +133,18 @@ async function start(request: Request, env: Env, provider: Provider): Promise<Re
   const url = new URL(request.url);
   const next = localPath(url.searchParams.get("return"));
   if (next === null) {
-    return fail(400, "bad_return", "La dirección de regreso no es una ruta de este sitio.");
+    return fail(
+      400,
+      "bad_return",
+      "La dirección de regreso no es una ruta de este sitio.",
+    );
   }
-  const flow: Flow = { provider, state: randomToken(16), verifier: randomToken(32), next };
+  const flow: Flow = {
+    provider,
+    state: randomToken(16),
+    verifier: randomToken(32),
+    next,
+  };
   const target = new URL(config.authorize);
   target.search = new URLSearchParams({
     client_id: id,
@@ -127,7 +153,10 @@ async function start(request: Request, env: Env, provider: Provider): Promise<Re
     state: flow.state,
     code_challenge: base64url(
       new Uint8Array(
-        await crypto.subtle.digest("SHA-256", new TextEncoder().encode(flow.verifier)),
+        await crypto.subtle.digest(
+          "SHA-256",
+          new TextEncoder().encode(flow.verifier),
+        ),
       ),
     ),
     code_challenge_method: "S256",
@@ -169,7 +198,8 @@ async function exchange(
     const token = (await tokenResponse.json().catch(() => null)) as {
       access_token?: unknown;
     } | null;
-    if (!tokenResponse.ok || typeof token?.access_token !== "string") return "rejected";
+    if (!tokenResponse.ok || typeof token?.access_token !== "string")
+      return "rejected";
 
     const infoResponse = await fetch(config.userinfo, {
       headers: { ...headers, Authorization: `Bearer ${token.access_token}` },
@@ -177,9 +207,14 @@ async function exchange(
     });
     if (infoResponse.status >= 500) return "unavailable";
     if (!infoResponse.ok) return "rejected";
-    const info = (await infoResponse.json().catch(() => null)) as Record<string, unknown> | null;
+    const info = (await infoResponse.json().catch(() => null)) as Record<
+      string,
+      unknown
+    > | null;
     const subject = info ? config.subject(info) : null;
-    return subject && subject.length <= MAX_SUBJECT_CHARS ? { subject } : "rejected";
+    return subject && subject.length <= MAX_SUBJECT_CHARS
+      ? { subject }
+      : "rejected";
   } catch {
     return "unavailable";
   }
@@ -209,7 +244,11 @@ async function callback(
   }
   const state = url.searchParams.get("state");
   if (state === null || !sameText(state, flow.state)) {
-    return refuse(400, "state_mismatch", "El inicio de sesión no coincide con el que empezaste.");
+    return refuse(
+      400,
+      "state_mismatch",
+      "El inicio de sesión no coincide con el que empezaste.",
+    );
   }
   if (url.searchParams.has("error")) {
     // El alumno canceló en la pantalla del proveedor.
@@ -236,7 +275,9 @@ async function callback(
     );
   }
   const userId = await userForIdentity(env.DB, provider, result.subject, now);
-  await env.DB.prepare("UPDATE users SET seen_day = MAX(seen_day, ?1) WHERE id = ?2")
+  await env.DB.prepare(
+    "UPDATE users SET seen_day = MAX(seen_day, ?1) WHERE id = ?2",
+  )
     .bind(Math.floor(now / DAY_MS), userId)
     .run();
   const session = await openSession(env.DB, userId, now, limits.authSessionMs);
@@ -251,7 +292,9 @@ export async function handleAuth(
   now: number,
 ): Promise<Response> {
   // /auth/logout, /auth/<proveedor> y /auth/<proveedor>/callback.
-  const [, name = "", extra, tail] = new URL(request.url).pathname.split("/").filter(Boolean);
+  const [, name = "", extra, tail] = new URL(request.url).pathname
+    .split("/")
+    .filter(Boolean);
   let route: "logout" | "start" | "callback" | null = null;
   if (tail === undefined) {
     if (name === "logout" && extra === undefined) route = "logout";
@@ -287,7 +330,8 @@ export async function handleAuth(
   }
 
   if (route === "logout") {
-    if (!sameOrigin(request)) return fail(403, "bad_origin", "Origen no permitido.");
+    if (!sameOrigin(request))
+      return fail(403, "bad_origin", "Origen no permitido.");
     await closeSession(env.DB, request.headers.get("cookie"));
     return new Response(null, {
       status: 204,

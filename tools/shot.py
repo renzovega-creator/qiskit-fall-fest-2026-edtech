@@ -5,6 +5,7 @@
 Ej.: tools/shot.py p1-quickstart 0,3,8 laptop
 Deja shots/<tamaño>-b<beat>.png.
 """
+
 import sys
 from pathlib import Path
 
@@ -13,7 +14,7 @@ from playwright.sync_api import sync_playwright
 SIZES = {"movil": (390, 844), "laptop": (1366, 768)}
 
 
-def main():
+def main() -> None:
     lid = sys.argv[1]
     beats = [int(b) for b in sys.argv[2].split(",")]
     which = sys.argv[3] if len(sys.argv) > 3 else "laptop"

@@ -13,27 +13,40 @@ es la 1). Si el caso falla, el alumno ve esa pista junto a él. Lo que el alumno
 `learner.<nombre>` dentro del caso, no al importar el archivo. Este módulo no importa qiskit hasta
 que se llama a un ayudante, para que build.py pueda leer los casos sin él.
 """
+
 import functools
 import inspect
 from collections import Counter
+from collections.abc import Callable
+from typing import Any, Protocol
 
-from qgcheck.runner import grade  # noqa: F401
+from qgcheck.runner import grade as grade
 
 
-def visible(name):
+class Names(Protocol):
+    """Los nombres que definió el código del alumno."""
+
+    def __contains__(self, name: str, /) -> bool: ...
+
+    def __getitem__(self, name: str, /) -> Any: ...
+
+
+def visible(name: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Expone este caso con el nombre indicado."""
-    def mark(fn):
+
+    def mark(fn: Any) -> Any:
         fn.qg_visible = name
         return fn
+
     return mark
 
 
-def hint(number):
+def hint(number: int) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Enlaza este caso con la pista `number` (desde 1) de `hints` del ejercicio."""
     if isinstance(number, bool) or not isinstance(number, int) or number < 1:
         raise ValueError(f"la pista se numera desde 1, no {number!r}")
 
-    def mark(fn):
+    def mark(fn: Any) -> Any:
         fn.qg_hint = number
         return fn
 
@@ -44,44 +57,47 @@ class HelperFailure(AssertionError):
     """Un fallo que un ayudante de qgcheck detecta sin conocer la entrada del caso."""
 
 
-_last_use = {"name": None, "call": None}
+_last_use: dict[str, str | None] = {"name": None, "call": None}
 
 
-def last_use():
+def last_use() -> str | None:
     """Cómo se usó por última vez el código del alumno: `ghz(7)` o, si no era una función, `MiBackend`."""
     return _last_use["call"] or (f"`{_last_use['name']}`" if _last_use["name"] else None)
 
 
-def _shown(value):
+def _shown(value: Any) -> str:
     text = repr(value)
     if " at 0x" in text:
         return type(value).__name__
     return text if len(text) <= 40 else text[:37] + "..."
 
 
-def _recorded(name, fn):
+def _recorded(name: str, fn: Callable[..., Any]) -> Callable[..., Any]:
     @functools.wraps(fn)
-    def call(*args, **kwargs):
+    def call(*args: Any, **kwargs: Any) -> Any:
         shown = [*map(_shown, args), *(f"{k}={_shown(v)}" for k, v in kwargs.items())]
         _last_use["call"] = f"`{name}({', '.join(shown)})`"
         return fn(*args, **kwargs)
+
     return call
 
 
 class _Learner:
     """Accede a los nombres definidos por el código del alumno."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         object.__setattr__(self, "_ns", None)
 
-    def _bind(self, ns):
+    def _bind(self, ns: Names | None) -> None:
         object.__setattr__(self, "_ns", ns)
         _last_use.update(name=None, call=None)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         ns = object.__getattribute__(self, "_ns")
         if ns is None:
-            raise RuntimeError("learner solo existe mientras qgcheck corrige el código de un alumno")
+            raise RuntimeError(
+                "learner solo existe mientras qgcheck corrige el código de un alumno"
+            )
         if name not in ns:
             raise AssertionError(f"Falta definir `{name}` en tu código.")
         _last_use.update(name=name, call=None)
@@ -92,7 +108,7 @@ class _Learner:
 learner = _Learner()
 
 
-def _first_register(result, what):
+def _first_register(result: Any, what: str) -> Any:
     data = result[0].data
     names = list(data.keys())
     if not names:
@@ -100,23 +116,25 @@ def _first_register(result, what):
     return data[names[0]]
 
 
-def counts(circuit, shots=1024, seed=7):
+def counts(circuit: Any, shots: int = 1024, seed: int = 7) -> Any:
     """Devuelve los conteos del primer registro clásico con StatevectorSampler."""
     from qiskit.primitives import StatevectorSampler
+
     result = StatevectorSampler(seed=seed).run([circuit], shots=shots).result()
     return _first_register(result, "El circuito").get_counts()
 
 
-def aer_counts(circuit, shots=512, seed=11):
+def aer_counts(circuit: Any, shots: int = 512, seed: int = 11) -> Any:
     """Devuelve los conteos del primer registro clásico con SamplerV2."""
     from qiskit_aer.primitives import SamplerV2
+
     result = SamplerV2(seed=seed).run([circuit], shots=shots).result()
     return _first_register(result, "El circuito").get_counts()
 
 
-def gates(circuit):
+def gates(circuit: Any) -> Counter[str]:
     """Cuenta operaciones por nombre, incluso dentro de bloques de control."""
-    found = Counter()
+    found: Counter[str] = Counter()
     for inst in circuit.data:
         found[inst.operation.name] += 1
         for body in getattr(inst.operation, "blocks", ()):
@@ -124,15 +142,16 @@ def gates(circuit):
     return found
 
 
-def state(circuit):
+def state(circuit: Any) -> Any:
     """Devuelve el statevector del circuito sin mediciones finales."""
     from qiskit.quantum_info import Statevector
+
     return Statevector(circuit.remove_final_measurements(inplace=False))
 
 
-def unsupported(circuit, target):
+def unsupported(circuit: Any, target: Any) -> list[str]:
     """Lista las instrucciones del circuito que el target no admite donde están: ['h en 0', 'cz en 0-2']."""
-    found = []
+    found: list[str] = []
     for inst in circuit.data:
         at = tuple(circuit.find_bit(q).index for q in inst.qubits)
         if not target.instruction_supported(inst.operation.name, at):
@@ -140,7 +159,7 @@ def unsupported(circuit, target):
     return found
 
 
-def operator(circuit):
+def operator(circuit: Any) -> Any:
     """Devuelve el operador de un circuito sobre los qubits virtuales del circuito original.
 
     Si el circuito está transpilado, aplica el layout inicial y el final para que se pueda comparar
@@ -164,7 +183,7 @@ def operator(circuit):
         small.append(inst.operation, [at[body.find_bit(q).index] for q in inst.qubits])
     n = len(first)
 
-    def index(places, x):
+    def index(places: Any, x: int) -> int:
         return sum(((x >> v) & 1) << at[places[v]] for v in range(n))
 
     full = Operator(small).data

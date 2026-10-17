@@ -12,8 +12,10 @@ va en el repositorio ni en un archivo que subas a git.
 
 - Una cuenta de Cloudflare con el plan Workers Paid, que los Containers
   requieren.
-- [bun](https://bun.sh/) y Docker en el `PATH`. `cf deploy` construye la imagen
-  del corredor en tu equipo.
+- [mise](https://mise.jdx.dev/), [bun](https://bun.sh/) y Docker en el `PATH`.
+  `cf deploy` construye la imagen del corredor en tu equipo, con las versiones
+  de Python y de uv que `mise.toml` fija y que
+  `runner/worker/cloudflare.config.ts` lee con `mise current`.
 - Una cuenta de Google y una de GitHub, para registrar los clientes OAuth.
 
 ```sh

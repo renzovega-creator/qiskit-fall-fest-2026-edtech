@@ -89,10 +89,12 @@ async function readBody(request: Request, limits: Limits): Promise<Uint8Array> {
   if (request.body) {
     const reader = request.body.getReader();
     for (;;) {
+      // oxlint-disable-next-line eslint/no-await-in-loop -- Los fragmentos de un flujo se leen en orden.
       const { done, value } = await reader.read();
       if (done) break;
       total += value.length;
       if (total > limits.maxBodyBytes) {
+        // oxlint-disable-next-line eslint/no-await-in-loop -- Se cancela una sola vez y el bucle termina.
         await reader.cancel();
         throw tooLarge();
       }
@@ -113,7 +115,9 @@ async function readBody(request: Request, limits: Limits): Promise<Uint8Array> {
 // y nunca pasa de lo que la petición apartó.
 function busyCost(limits: Limits, busyMs: number): number {
   const steps = Math.max(1, Math.ceil(busyMs / BILLING_STEP_MS));
-  const cost = Math.round(((steps * BILLING_STEP_MS) / 1000) * limits.nanoPerBusySecond);
+  const cost = Math.round(
+    ((steps * BILLING_STEP_MS) / 1000) * limits.nanoPerBusySecond,
+  );
   return Math.min(cost, limits.reserveNano);
 }
 
@@ -133,7 +137,11 @@ async function settle(
   }
 }
 
-async function run(request: Request, env: Env, exports: Exports): Promise<Response> {
+async function run(
+  request: Request,
+  env: Env,
+  exports: Exports,
+): Promise<Response> {
   const limits = loadLimits(env);
   const now = Date.now();
   const ip = request.headers.get("cf-connecting-ip") ?? "";
@@ -144,7 +152,11 @@ async function run(request: Request, env: Env, exports: Exports): Promise<Respon
   let holding = false;
 
   try {
-    const userId = await sessionUser(env.DB, request.headers.get("cookie"), now);
+    const userId = await sessionUser(
+      env.DB,
+      request.headers.get("cookie"),
+      now,
+    );
     // Quien tiene cuenta comparte la IP con su clase: su tope por IP es mayor y el
     // que lo acota es el suyo propio.
     const ipFactor = userId ? limits.signedInIpFactor : 1;
@@ -185,7 +197,11 @@ async function run(request: Request, env: Env, exports: Exports): Promise<Respon
         "La petición no es un JSON válido.",
       );
     }
-    if (parsed === null || typeof parsed !== "object" || typeof parsed.code !== "string") {
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      typeof parsed.code !== "string"
+    ) {
       throw new Refusal(
         { outcome: "bad_request", status: 400 },
         "bad_request",
@@ -203,11 +219,16 @@ async function run(request: Request, env: Env, exports: Exports): Promise<Respon
       );
     }
 
-    holding = await budget.reserve(month, limits.reserveNano, limits.budgetNano);
+    holding = await budget.reserve(
+      month,
+      limits.reserveNano,
+      limits.budgetNano,
+    );
     if (!holding) {
       const next = new Date(now);
       const retryAfter = Math.ceil(
-        (Date.UTC(next.getUTCFullYear(), next.getUTCMonth() + 1, 1) - now) / 1000,
+        (Date.UTC(next.getUTCFullYear(), next.getUTCMonth() + 1, 1) - now) /
+          1000,
       );
       throw new Refusal(
         { ...entry, outcome: "budget", status: 503 },
@@ -221,7 +242,12 @@ async function run(request: Request, env: Env, exports: Exports): Promise<Respon
     // Una cuenta ya pasó por Google o GitHub y tiene su propio limitador.
     if (
       !userId &&
-      !(await hasSession(env.TURNSTILE_SECRET, ip, now, request.headers.get("cookie")))
+      !(await hasSession(
+        env.TURNSTILE_SECRET,
+        ip,
+        now,
+        request.headers.get("cookie"),
+      ))
     ) {
       const token = request.headers.get("x-turnstile-token");
       if (!token) {
@@ -251,7 +277,12 @@ async function run(request: Request, env: Env, exports: Exports): Promise<Respon
           "No pasó la comprobación de que eres una persona. Recarga la página e inténtalo de nuevo.",
         );
       }
-      cookie = await issueSession(env.TURNSTILE_SECRET, ip, now, limits.sessionMs);
+      cookie = await issueSession(
+        env.TURNSTILE_SECRET,
+        ip,
+        now,
+        limits.sessionMs,
+      );
     }
 
     // El contenedor recibe solo el cuerpo y su tipo. No recibe la cookie, la IP
@@ -345,7 +376,11 @@ async function run(request: Request, env: Env, exports: Exports): Promise<Respon
 }
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<Response> {
     const { pathname } = new URL(request.url);
     // Responder aquí evita arrancar un contenedor por una petición sin límite.
     if (pathname === "/health") return Response.json({ ok: true });
@@ -355,7 +390,8 @@ export default {
         ? "api"
         : null;
     if (account) {
-      const { RateLimiter: limiters } = (ctx as unknown as { exports: Exports }).exports;
+      const { RateLimiter: limiters } = (ctx as unknown as { exports: Exports })
+        .exports;
       try {
         const limits = loadLimits(env);
         const handle = account === "auth" ? handleAuth : handleApi;
@@ -365,12 +401,20 @@ export default {
         return fail(500, "internal_error", "Error interno.");
       }
     }
-    if (pathname !== "/run") return Response.json({ error: "no existe" }, { status: 404 });
+    if (pathname !== "/run")
+      return Response.json({ error: "no existe" }, { status: 404 });
     if (request.method !== "POST") {
-      return Response.json({ error: "usa POST" }, { status: 405, headers: { Allow: "POST" } });
+      return Response.json(
+        { error: "usa POST" },
+        { status: 405, headers: { Allow: "POST" } },
+      );
     }
     try {
-      return await run(request, env, (ctx as unknown as { exports: Exports }).exports);
+      return await run(
+        request,
+        env,
+        (ctx as unknown as { exports: Exports }).exports,
+      );
     } catch (error) {
       logFailure(error);
       return Response.json(

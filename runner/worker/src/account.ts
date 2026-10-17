@@ -9,7 +9,10 @@ export const unixSeconds = (ms: number) => Math.floor(ms / 1000);
 export function base64url(bytes: Uint8Array): string {
   let text = "";
   for (const byte of bytes) text += String.fromCharCode(byte);
-  return btoa(text).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+  return btoa(text)
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "");
 }
 
 export function fromBase64url(text: string): Uint8Array {
@@ -22,7 +25,9 @@ export const randomToken = (bytes: number) =>
 
 export async function sha256(text: string): Promise<string> {
   return base64url(
-    new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))),
+    new Uint8Array(
+      await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)),
+    ),
   );
 }
 
@@ -36,13 +41,16 @@ export async function openSession(
 ): Promise<string> {
   const token = randomToken(32);
   await db
-    .prepare("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?1, ?2, ?3)")
+    .prepare(
+      "INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?1, ?2, ?3)",
+    )
     .bind(await sha256(token), userId, unixSeconds(now + ttlMs))
     .run();
   return `${COOKIE}=${token}; Max-Age=${Math.ceil(ttlMs / 1000)}; Path=/; HttpOnly; Secure; SameSite=Lax`;
 }
 
-export const clearedCookie = () => `${COOKIE}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`;
+export const clearedCookie = () =>
+  `${COOKIE}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`;
 
 // El id del usuario de la cookie `qg_auth`, o null si no hay sesión vigente.
 // Marca el día de la visita: la limpieza borra las cuentas sin visitas.
@@ -73,7 +81,10 @@ export async function sessionUser(
   return row.id;
 }
 
-export async function closeSession(db: D1Database, cookieHeader: string | null): Promise<void> {
+export async function closeSession(
+  db: D1Database,
+  cookieHeader: string | null,
+): Promise<void> {
   const token = getCookie(cookieHeader, COOKIE);
   if (!token || token.length > MAX_TOKEN_CHARS) return;
   await db
@@ -92,7 +103,9 @@ export async function userForIdentity(
 ): Promise<string> {
   const find = () =>
     db
-      .prepare("SELECT user_id FROM identities WHERE provider = ?1 AND subject = ?2")
+      .prepare(
+        "SELECT user_id FROM identities WHERE provider = ?1 AND subject = ?2",
+      )
       .bind(provider, subject)
       .first<string>("user_id");
   const existing = await find();
@@ -101,9 +114,15 @@ export async function userForIdentity(
   const day = Math.floor(now / DAY_MS);
   try {
     await db.batch([
-      db.prepare("INSERT INTO users (id, created_day, seen_day) VALUES (?1, ?2, ?2)").bind(id, day),
       db
-        .prepare("INSERT INTO identities (provider, subject, user_id) VALUES (?1, ?2, ?3)")
+        .prepare(
+          "INSERT INTO users (id, created_day, seen_day) VALUES (?1, ?2, ?2)",
+        )
+        .bind(id, day),
+      db
+        .prepare(
+          "INSERT INTO identities (provider, subject, user_id) VALUES (?1, ?2, ?3)",
+        )
         .bind(provider, subject, id),
     ]);
     return id;

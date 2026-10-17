@@ -37,7 +37,9 @@ async function readProgressBody(request: Request) {
   const body = await readJson(request);
   if (body instanceof Response) return body;
   const progress = parseProgress(body);
-  return typeof progress === "string" ? fail(400, "bad_request", progress) : progress;
+  return typeof progress === "string"
+    ? fail(400, "bad_request", progress)
+    : progress;
 }
 
 export async function handleApi(
@@ -65,7 +67,8 @@ export async function handleApi(
 
   const userId = await sessionUser(env.DB, request.headers.get("cookie"), now);
   if (!userId) {
-    if (pathname === "/api/me" && method === "GET") return reply({ signedIn: false });
+    if (pathname === "/api/me" && method === "GET")
+      return reply({ signedIn: false });
     return fail(401, "signed_out", "Inicia sesión para guardar tu progreso.");
   }
   const verdict = await take(
@@ -116,10 +119,19 @@ export async function handleApi(
       : new Response(null, { status: 204 });
   } catch (error) {
     if (error instanceof TooMuch)
-      return fail(413, "too_much", "Hay más progreso del que la cuenta admite.");
-    if (error instanceof Gone) return fail(401, "signed_out", "La cuenta ya no existe.");
+      return fail(
+        413,
+        "too_much",
+        "Hay más progreso del que la cuenta admite.",
+      );
+    if (error instanceof Gone)
+      return fail(401, "signed_out", "La cuenta ya no existe.");
     if (error instanceof Contended) {
-      const response = fail(503, "busy", "La cuenta está ocupada. Inténtalo de nuevo.");
+      const response = fail(
+        503,
+        "busy",
+        "La cuenta está ocupada. Inténtalo de nuevo.",
+      );
       response.headers.set("Retry-After", "1");
       return response;
     }

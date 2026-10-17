@@ -56,7 +56,12 @@ describe("el sitio y /run en un solo Worker", () => {
     const h = await worker();
     const reply = await h.post(run, verified);
     expect(reply.status).toBe(200);
-    expect(reply.body).toMatchObject({ passed: true, error: null, tests: [], killed: null });
+    expect(reply.body).toMatchObject({
+      passed: true,
+      error: null,
+      tests: [],
+      killed: null,
+    });
     expect(reply.body.stdout).toBe("recibidos 12 caracteres\n");
     expect(reply.headers.get("set-cookie")).toContain("qg_session=");
     expect(h.runnerCalls()).toHaveLength(1);
@@ -84,7 +89,8 @@ describe("límite por IP", () => {
   it("responde 429 con Retry-After al pasar el límite por minuto", async () => {
     await clearOfMinuteEnd();
     const h = await worker({ vars: { RATE_PER_MINUTE: "3" } });
-    for (let i = 0; i < 3; i++) expect((await h.post(run, verified)).status).toBe(200);
+    for (let i = 0; i < 3; i++)
+      expect((await h.post(run, verified)).status).toBe(200);
 
     const reply = await h.post(run, verified);
     expect(reply.status).toBe(429);
@@ -100,7 +106,9 @@ describe("límite por IP", () => {
   it("con peticiones simultáneas deja pasar exactamente el límite", async () => {
     await clearOfMinuteEnd();
     const h = await worker({ vars: { RATE_PER_MINUTE: "3" } });
-    const replies = await Promise.all(Array.from({ length: 10 }, () => h.post(run, verified)));
+    const replies = await Promise.all(
+      Array.from({ length: 10 }, () => h.post(run, verified)),
+    );
     expect(replies.filter((reply) => reply.status === 200)).toHaveLength(3);
     expect(replies.filter((reply) => reply.status === 429)).toHaveLength(7);
   });
@@ -108,9 +116,15 @@ describe("límite por IP", () => {
   it("cuenta cada IP por separado", async () => {
     await clearOfMinuteEnd();
     const h = await worker({ vars: { RATE_PER_MINUTE: "1" } });
-    expect((await h.post(run, { ...verified, ip: "198.51.100.1" })).status).toBe(200);
-    expect((await h.post(run, { ...verified, ip: "198.51.100.1" })).status).toBe(429);
-    expect((await h.post(run, { ...verified, ip: "198.51.100.2" })).status).toBe(200);
+    expect(
+      (await h.post(run, { ...verified, ip: "198.51.100.1" })).status,
+    ).toBe(200);
+    expect(
+      (await h.post(run, { ...verified, ip: "198.51.100.1" })).status,
+    ).toBe(429);
+    expect(
+      (await h.post(run, { ...verified, ip: "198.51.100.2" })).status,
+    ).toBe(200);
   });
 
   it("responde 429 con Retry-After al pasar el límite del día", async () => {
@@ -181,7 +195,9 @@ describe("Turnstile", () => {
       /^qg_session=\d+\.[0-9a-f]{64}; Max-Age=28800; Path=\/run; HttpOnly; Secure; SameSite=Strict$/,
     );
 
-    const second = await h.post(run, { headers: { cookie: cookie.split(";")[0] } });
+    const second = await h.post(run, {
+      headers: { cookie: cookie.split(";")[0] },
+    });
     expect(second.status).toBe(200);
     expect(second.headers.get("set-cookie")).toBeNull();
     expect(h.siteverify.calls).toHaveLength(1);
@@ -191,19 +207,28 @@ describe("Turnstile", () => {
     const h = await worker();
     await h.post(run, { ...verified, ip: "203.0.113.50" });
     expect(h.siteverify.calls).toHaveLength(1);
-    expect(Object.keys(h.siteverify.calls[0]).sort()).toEqual(["response", "secret"]);
+    expect(Object.keys(h.siteverify.calls[0]).toSorted()).toEqual([
+      "response",
+      "secret",
+    ]);
   });
 
   it("rechaza una cookie manipulada, ajena a la IP o caducada", async () => {
     const h = await worker({ vars: { SESSION_HOURS: "0.00001" } });
-    const issued = (await h.post(run, verified)).headers.get("set-cookie") ?? "";
+    const issued =
+      (await h.post(run, verified)).headers.get("set-cookie") ?? "";
     const cookie = issued.split(";")[0];
     const tag = cookie.slice(-64);
 
     const forged = cookie.replace(tag, "0".repeat(64));
-    expect((await h.post(run, { headers: { cookie: forged } })).status).toBe(403);
+    expect((await h.post(run, { headers: { cookie: forged } })).status).toBe(
+      403,
+    );
 
-    const other = await h.post(run, { ip: "198.51.100.99", headers: { cookie } });
+    const other = await h.post(run, {
+      ip: "198.51.100.99",
+      headers: { cookie },
+    });
     expect(other.status).toBe(403);
 
     await new Promise((resolve) => setTimeout(resolve, 150));
@@ -214,7 +239,9 @@ describe("Turnstile", () => {
 
   it("acepta la cookie mientras no caduca", async () => {
     const h = await worker();
-    const cookie = ((await h.post(run, verified)).headers.get("set-cookie") ?? "").split(";")[0];
+    const cookie = (
+      (await h.post(run, verified)).headers.get("set-cookie") ?? ""
+    ).split(";")[0];
     expect((await h.post(run, { headers: { cookie } })).status).toBe(200);
   });
 });
@@ -224,7 +251,10 @@ describe("tamaño del código", () => {
 
   it("responde 413 sin llegar al contenedor", async () => {
     const h = await worker();
-    const reply = await h.post({ code: "x".repeat(limit + 1), mode: "run" }, verified);
+    const reply = await h.post(
+      { code: "x".repeat(limit + 1), mode: "run" },
+      verified,
+    );
     expect(reply.status).toBe(413);
     expect(reply.body.reason).toBe("too_large");
     expect(reply.body.error).toContain("20000");
@@ -242,7 +272,10 @@ describe("tamaño del código", () => {
 
   it("deja pasar un código de exactamente el máximo", async () => {
     const h = await worker();
-    const reply = await h.post({ code: "x".repeat(limit), mode: "run" }, verified);
+    const reply = await h.post(
+      { code: "x".repeat(limit), mode: "run" },
+      verified,
+    );
     expect(reply.status).toBe(200);
     expect(h.runnerCalls()).toHaveLength(1);
   });
@@ -260,7 +293,9 @@ describe("tamaño del código", () => {
 
   it("responde 400 a un JSON inválido o sin código", async () => {
     const h = await worker();
-    expect((await h.post(null, { ...verified, raw: "{no es json" })).status).toBe(400);
+    expect(
+      (await h.post(null, { ...verified, raw: "{no es json" })).status,
+    ).toBe(400);
     expect((await h.post({ mode: "run" }, verified)).status).toBe(400);
     expect((await h.post({ code: 3 }, verified)).status).toBe(400);
     expect(h.runnerCalls()).toHaveLength(0);
@@ -315,7 +350,8 @@ describe("presupuesto mensual", () => {
       },
     });
     const other = h.get("/other-learner");
-    while (h.runnerCalls().length < 1) await new Promise((resolve) => setTimeout(resolve, 10));
+    while (h.runnerCalls().length < 1)
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
     const reply = await h.post(hang, verified);
     expect(reply.status).toBe(504);
@@ -331,7 +367,11 @@ describe("presupuesto mensual", () => {
 
   it("no ejecuta si la reserva de una ejecución ya no cabe", async () => {
     const h = await worker({
-      vars: { MONTHLY_BUDGET_USD: "5", USD_PER_BUSY_SECOND: "1000", RESERVED_BUSY_SECONDS: "1" },
+      vars: {
+        MONTHLY_BUDGET_USD: "5",
+        USD_PER_BUSY_SECOND: "1000",
+        RESERVED_BUSY_SECONDS: "1",
+      },
     });
     const reply = await h.post(run, verified);
     expect(reply.status).toBe(503);
@@ -342,9 +382,15 @@ describe("presupuesto mensual", () => {
   it("con sitio para una sola ejecución, de varias simultáneas solo una llega al contenedor", async () => {
     // Reserva de 1000 USD y presupuesto de 1500: cabe una reserva, no dos.
     const h = await worker({
-      vars: { MONTHLY_BUDGET_USD: "1500", USD_PER_BUSY_SECOND: "1000", RESERVED_BUSY_SECONDS: "1" },
+      vars: {
+        MONTHLY_BUDGET_USD: "1500",
+        USD_PER_BUSY_SECOND: "1000",
+        RESERVED_BUSY_SECONDS: "1",
+      },
     });
-    const replies = await Promise.all(Array.from({ length: 8 }, () => h.post(run, verified)));
+    const replies = await Promise.all(
+      Array.from({ length: 8 }, () => h.post(run, verified)),
+    );
 
     expect(replies.filter((reply) => reply.status === 200)).toHaveLength(1);
     const refused = replies.filter((reply) => reply.status === 503);
@@ -357,7 +403,11 @@ describe("presupuesto mensual", () => {
     // Cada reserva es de 1000 USD y el presupuesto de 1500: la segunda solo cabe si
     // la primera devolvió lo que no gastó.
     const h = await worker({
-      vars: { MONTHLY_BUDGET_USD: "1500", USD_PER_BUSY_SECOND: "1000", RESERVED_BUSY_SECONDS: "1" },
+      vars: {
+        MONTHLY_BUDGET_USD: "1500",
+        USD_PER_BUSY_SECOND: "1000",
+        RESERVED_BUSY_SECONDS: "1",
+      },
     });
     expect((await h.post(run, verified)).status).toBe(200);
     expect((await h.post(run, verified)).status).toBe(200);
@@ -366,7 +416,11 @@ describe("presupuesto mensual", () => {
 
   it("devuelve la reserva si Turnstile rechaza la petición", async () => {
     const h = await worker({
-      vars: { MONTHLY_BUDGET_USD: "1500", USD_PER_BUSY_SECOND: "1000", RESERVED_BUSY_SECONDS: "1" },
+      vars: {
+        MONTHLY_BUDGET_USD: "1500",
+        USD_PER_BUSY_SECOND: "1000",
+        RESERVED_BUSY_SECONDS: "1",
+      },
     });
     for (let i = 0; i < 3; i++) expect((await h.post(run)).status).toBe(403);
     expect((await h.post(run, verified)).status).toBe(200);
@@ -381,7 +435,8 @@ describe("presupuesto mensual", () => {
 
   it("sigue ejecutando mientras el gasto está bajo el presupuesto", async () => {
     const h = await worker();
-    for (let i = 0; i < 5; i++) expect((await h.post(run, verified)).status).toBe(200);
+    for (let i = 0; i < 5; i++)
+      expect((await h.post(run, verified)).status).toBe(200);
     expect(h.runnerCalls()).toHaveLength(5);
   });
 
@@ -402,9 +457,9 @@ describe("presupuesto mensual", () => {
     // Quedan dos líneas: la del ajuste fallido y la del error de la petición.
     const lines = h.workerLogs().map((line) => JSON.parse(line));
     expect(lines.filter((line) => line.where === "settle")).toHaveLength(1);
-    expect(lines.filter((line) => line.outcome === "internal_error" && !line.where)).toHaveLength(
-      1,
-    );
+    expect(
+      lines.filter((line) => line.outcome === "internal_error" && !line.where),
+    ).toHaveLength(1);
   });
 });
 
@@ -413,14 +468,19 @@ describe("lo que recibe el contenedor", () => {
     const h = await worker();
     const first = await h.post(run, { ...verified, ip: "203.0.113.50" });
     const cookie = (first.headers.get("set-cookie") ?? "").split(";")[0];
-    await h.post(run, { ip: "203.0.113.50", headers: { cookie, "user-agent": "prueba" } });
+    await h.post(run, {
+      ip: "203.0.113.50",
+      headers: { cookie, "user-agent": "prueba" },
+    });
 
     const calls = h.runnerCalls();
     expect(calls).toHaveLength(2);
     for (const call of calls) {
       expect(call.path).toBe("/run");
       // content-length es solo el tamaño del cuerpo que el runtime añade al enviarlo.
-      expect(call.headers.filter((name) => name !== "content-length")).toEqual(["content-type"]);
+      expect(call.headers.filter((name) => name !== "content-length")).toEqual([
+        "content-type",
+      ]);
     }
   });
 });
@@ -446,8 +506,15 @@ describe("registro", () => {
       { code, mode: "check", exercise: "p1-quickstart/ghz" },
       { ip: IP, headers: { cookie } },
     );
-    await h.post({ code: code + "x".repeat(20_000) }, { ip: IP, headers: { cookie } });
-    await h.post(null, { ip: IP, headers: { cookie }, raw: `{"code": "${MARK}` });
+    await h.post(
+      { code: code + "x".repeat(20_000) },
+      { ip: IP, headers: { cookie } },
+    );
+    await h.post(null, {
+      ip: IP,
+      headers: { cookie },
+      raw: `{"code": "${MARK}`,
+    });
     await h.post({ code, mode: MARK, exercise: `${MARK}/${MARK}` }, { ip: IP });
     const limited = await h.post({ code }, { ip: IP, headers: { cookie } });
     expect(limited.status).toBe(429);
@@ -455,7 +522,13 @@ describe("registro", () => {
     const lines = h.workerLogs();
     expect(lines.length).toBeGreaterThanOrEqual(6);
     const everything = lines.join("\n");
-    for (const secret of [MARK, IP, TOKEN, cookie.split("=")[1], "198.51.100"]) {
+    for (const secret of [
+      MARK,
+      IP,
+      TOKEN,
+      cookie.split("=")[1],
+      "198.51.100",
+    ]) {
       expect(everything).not.toContain(secret);
     }
     for (const line of lines) {
@@ -480,7 +553,10 @@ describe("registro", () => {
 
   it("una petición aceptada deja una línea con el resultado y el coste", async () => {
     const h = await worker();
-    await h.post({ code: "print(1)", mode: "check", exercise: "p1-quickstart/ghz" }, verified);
+    await h.post(
+      { code: "print(1)", mode: "check", exercise: "p1-quickstart/ghz" },
+      verified,
+    );
     const [line] = h.workerLogs();
     expect(JSON.parse(line)).toMatchObject({
       event: "run",
@@ -494,7 +570,9 @@ describe("registro", () => {
   });
 
   it("un error interno registra el nombre del error y no su texto", async () => {
-    const h = await worker({ vars: { RATE_PER_MINUTE: `no es un número ${MARK}` } });
+    const h = await worker({
+      vars: { RATE_PER_MINUTE: `no es un número ${MARK}` },
+    });
     const reply = await h.post({ code: "print(1)" }, verified);
     expect(reply.status).toBe(500);
     const lines = h.workerLogs().join("\n");
@@ -506,22 +584,34 @@ describe("registro", () => {
 
 describe("Turnstile real", async () => {
   // Cloudflare documenta estas claves de prueba. Esta prueba habla con su servicio.
-  const reachable = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-    method: "POST",
-    body: new URLSearchParams({ secret: FAIL_SECRET, response: "x" }),
-    signal: AbortSignal.timeout(5000),
-  }).then(
+  const reachable = await fetch(
+    "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    {
+      method: "POST",
+      body: new URLSearchParams({ secret: FAIL_SECRET, response: "x" }),
+      signal: AbortSignal.timeout(5000),
+    },
+  ).then(
     () => true,
     () => false,
   );
 
-  it.skipIf(!reachable)("acepta con el secreto de prueba que siempre pasa", async () => {
-    const h = await worker({ siteverify: "real" });
-    expect((await h.post(run, verified)).status).toBe(200);
-  });
+  it.skipIf(!reachable)(
+    "acepta con el secreto de prueba que siempre pasa",
+    async () => {
+      const h = await worker({ siteverify: "real" });
+      expect((await h.post(run, verified)).status).toBe(200);
+    },
+  );
 
-  it.skipIf(!reachable)("rechaza con el secreto de prueba que siempre falla", async () => {
-    const h = await worker({ siteverify: "real", vars: { TURNSTILE_SECRET: FAIL_SECRET } });
-    expect((await h.post(run, verified)).status).toBe(403);
-  });
+  it.skipIf(!reachable)(
+    "rechaza con el secreto de prueba que siempre falla",
+    async () => {
+      const h = await worker({
+        siteverify: "real",
+        vars: { TURNSTILE_SECRET: FAIL_SECRET },
+      });
+      expect((await h.post(run, verified)).status).toBe(403);
+    },
+  );
 });

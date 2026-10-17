@@ -5,6 +5,7 @@
 Construye `qg-runner` con `runner/local.py`. Se salta si Docker no responde.
 `QG_DOCKER` y `QG_RUNTIME` eligen el comando y el runtime.
 """
+
 import json
 import subprocess
 import sys
@@ -12,13 +13,16 @@ import threading
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT), str(ROOT / "runner")]
 import local  # noqa: E402
+
 from qgcheck import grade, spec  # noqa: E402
 
 EXERCISES = ROOT / "exercises"
@@ -26,7 +30,7 @@ EXERCISE_IDS = spec.all_ids()
 
 
 @pytest.fixture(scope="module")
-def runner():
+def runner() -> Iterator[local.Container]:
     try:
         local.docker("info")
     except (OSError, subprocess.CalledProcessError) as e:
@@ -37,11 +41,11 @@ def runner():
     container.stop()
 
 
-def post(container, body, raw=None):
+def post(
+    container: local.Container, body: dict[str, Any], raw: bytes | None = None
+) -> tuple[int, dict[str, Any]]:
     data = raw if raw is not None else json.dumps(body).encode()
-    req = urllib.request.Request(
-        f"{container.url}/run", data, {"Content-Type": "application/json"}
-    )
+    req = urllib.request.Request(f"{container.url}/run", data, {"Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
             return r.status, json.load(r)
@@ -49,37 +53,40 @@ def post(container, body, raw=None):
         return e.code, json.load(e)
 
 
-def run(container, code):
+def run(container: local.Container, code: str) -> dict[str, Any]:
     status, out = post(container, {"code": code})
     assert status == 200, out
     return out
 
 
-def check(container, exercise, code):
+def check(container: local.Container, exercise: str, code: str) -> dict[str, Any]:
     status, out = post(container, {"mode": "check", "exercise": exercise, "code": code})
     assert status == 200, out
     return out
 
 
-def health(container):
+def health(container: local.Container) -> int:
     with urllib.request.urlopen(f"{container.url}/health", timeout=5) as r:
-        return r.status
+        return int(r.status)
 
 
-def processes(container):
+def processes(container: local.Container) -> list[str]:
     out = run(container, "import os; print(*[p for p in os.listdir('/proc') if p.isdigit()])")
-    return out["stdout"].split()
+    return str(out["stdout"]).split()
 
 
-def test_report_keeps_only_a_valid_hint_number():
+def test_report_keeps_only_a_valid_hint_number() -> None:
     """El informe proviene del código del alumno, así que valida la pista."""
     import server
+
     cases = [{"name": "a", "hint": hint} for hint in (2, 0, True, "1", None)] + [{"name": "b"}]
-    _, tests = server.parse_report(json.dumps({"error": None, "tests": cases}))
+    report = server.parse_report(json.dumps({"error": None, "tests": cases}).encode())
+    assert report is not None
+    _, tests = report
     assert [t["hint"] for t in tests] == [2, None, None, None, None, None]
 
 
-def test_run_returns_the_output_of_both_streams(runner):
+def test_run_returns_the_output_of_both_streams(runner: local.Container) -> None:
     out = run(runner, "import sys\nprint('hola')\nprint('aviso', file=sys.stderr)")
     assert out["passed"] is True
     assert out["stdout"] == "hola\naviso\n"
@@ -89,13 +96,13 @@ def test_run_returns_the_output_of_both_streams(runner):
     assert out["ms"] > 0
 
 
-def test_run_reports_the_error_with_its_line(runner):
+def test_run_reports_the_error_with_its_line(runner: local.Container) -> None:
     out = run(runner, "def f():\n    return 1 / 0\nf()")
     assert out["passed"] is False
     assert out["error"] == "ZeroDivisionError: division by zero (línea 2: return 1 / 0)"
 
 
-def test_image_has_qiskit_aer_and_runtime(runner):
+def test_image_has_qiskit_aer_and_runtime(runner: local.Container) -> None:
     out = run(
         runner,
         "import qiskit, qiskit_aer, qiskit_ibm_runtime\n"
@@ -106,7 +113,7 @@ def test_image_has_qiskit_aer_and_runtime(runner):
 
 
 @pytest.mark.parametrize("exercise", EXERCISE_IDS)
-def test_check_passes_the_solution(runner, exercise):
+def test_check_passes_the_solution(runner: local.Container, exercise: str) -> None:
     out = check(runner, exercise, (EXERCISES / exercise / "solution.py").read_text())
     assert out["passed"], out
     assert out["tests"] and all(t["passed"] for t in out["tests"])
@@ -114,7 +121,9 @@ def test_check_passes_the_solution(runner, exercise):
 
 @pytest.mark.parametrize("exercise", EXERCISE_IDS)
 @pytest.mark.parametrize("file", ["solution.py", "starter.py"])
-def test_check_gives_the_result_of_qgcheck_grade(runner, exercise, file):
+def test_check_gives_the_result_of_qgcheck_grade(
+    runner: local.Container, exercise: str, file: str
+) -> None:
     code = (EXERCISES / exercise / file).read_text()
     local_result = grade(exercise, code)
     out = check(runner, exercise, code)
@@ -124,29 +133,33 @@ def test_check_gives_the_result_of_qgcheck_grade(runner, exercise, file):
 
 
 @pytest.mark.parametrize("exercise", EXERCISE_IDS)
-def test_check_fails_the_starter_with_messages(runner, exercise):
+def test_check_fails_the_starter_with_messages(runner: local.Container, exercise: str) -> None:
     out = check(runner, exercise, (EXERCISES / exercise / "starter.py").read_text())
     assert out["passed"] is False
     failed = [t for t in out["tests"] if not t["passed"]]
     assert failed and all(t["message"] for t in failed)
 
 
-def test_check_names_hidden_cases_by_number(runner):
-    out = check(runner, "p1-quickstart/ghz", "from qiskit import QuantumCircuit\n"
-                "def ghz(n):\n    qc = QuantumCircuit(n)\n    qc.measure_all()\n    return qc\n")
+def test_check_names_hidden_cases_by_number(runner: local.Container) -> None:
+    out = check(
+        runner,
+        "p1-quickstart/ghz",
+        "from qiskit import QuantumCircuit\n"
+        "def ghz(n):\n    qc = QuantumCircuit(n)\n    qc.measure_all()\n    return qc\n",
+    )
     by_name = {t["name"]: t for t in out["tests"]}
     assert by_name["n = 2, 3 y 4"]["visible"] is True
     assert by_name["n = 2, 3 y 4"]["message"].startswith("Con n = 2 salen ['00']")
     assert by_name["caso oculto 1"]["visible"] is False
 
 
-def test_check_names_the_missing_function(runner):
+def test_check_names_the_missing_function(runner: local.Container) -> None:
     out = check(runner, "p1-quickstart/ghz", "x = 1\n")
     assert out["passed"] is False
     assert out["tests"] and all("Falta definir `ghz`" in t["message"] for t in out["tests"])
 
 
-def test_check_reports_an_exception_of_the_function(runner):
+def test_check_reports_an_exception_of_the_function(runner: local.Container) -> None:
     out = check(runner, "p1-quickstart/ghz", "def ghz(n):\n    return 1 / 0\n")
     assert out["passed"] is False
     assert out["tests"] and all(
@@ -154,26 +167,28 @@ def test_check_reports_an_exception_of_the_function(runner):
     )
 
 
-def test_check_survives_a_syntax_error(runner):
+def test_check_survives_a_syntax_error(runner: local.Container) -> None:
     out = check(runner, "p1-quickstart/ghz", "def ghz(n:\n")
     assert out["passed"] is False
     assert out["tests"] == []
     assert out["error"].startswith("SyntaxError") and "línea 1" in out["error"]
 
 
-def test_check_returns_what_the_code_prints_once(runner):
+def test_check_returns_what_the_code_prints_once(runner: local.Container) -> None:
     code = (EXERCISES / "p1-quickstart/ghz/solution.py").read_text() + "\nprint('cargado')\n"
     out = check(runner, "p1-quickstart/ghz", code)
     assert out["passed"] and out["stdout"].count("cargado") == 1
 
 
-def failed_everything(out):
-    return out["passed"] is False and (out["error"] or out["tests"]) and not any(
-        t["passed"] for t in out["tests"]
+def failed_everything(out: dict[str, Any]) -> bool:
+    return (
+        out["passed"] is False
+        and (out["error"] or out["tests"])
+        and not any(t["passed"] for t in out["tests"])
     )
 
 
-def test_check_cannot_pass_by_exiting_early(runner):
+def test_check_cannot_pass_by_exiting_early(runner: local.Container) -> None:
     assert failed_everything(check(runner, "p1-quickstart/ghz", "import os\nos._exit(0)\n"))
 
 
@@ -189,8 +204,10 @@ def good(n):
 """
 
 
-def test_check_grades_the_submitted_function_not_a_replaced_one(runner):
-    code = GOOD_GHZ + """
+def test_check_grades_the_submitted_function_not_a_replaced_one(runner: local.Container) -> None:
+    code = (
+        GOOD_GHZ
+        + """
 import qgcheck
 qgcheck.learner.ghz = good
 def ghz(n):
@@ -198,12 +215,13 @@ def ghz(n):
     qc.measure_all()
     return qc
 """
+    )
     out = check(runner, "p1-quickstart/ghz", code)
     assert out["passed"] is False
     assert not {t["name"]: t for t in out["tests"]}["n = 2, 3 y 4"]["passed"]
 
 
-def test_check_cannot_be_passed_by_replacing_the_checker(runner):
+def test_check_cannot_be_passed_by_replacing_the_checker(runner: local.Container) -> None:
     code = """
 import builtins, qgcheck, sys
 qgcheck.learner.ghz = lambda n: None
@@ -213,7 +231,7 @@ sys.modules["qgcheck"] = None
     assert failed_everything(check(runner, "p1-quickstart/ghz", code))
 
 
-def test_check_cannot_pass_by_forging_the_report(runner):
+def test_check_cannot_pass_by_forging_the_report(runner: local.Container) -> None:
     code = """
 import os
 forged = b'{"error": null, "tests": [{"name": null, "visible": false, "passed": true, "message": null}]}'
@@ -226,13 +244,15 @@ for fd in range(3, 64):
     assert failed_everything(check(runner, "p1-quickstart/ghz", code))
 
 
-def test_check_cannot_pass_by_flooding_the_channel(runner):
+def test_check_cannot_pass_by_flooding_the_channel(runner: local.Container) -> None:
     code = "import os\nfor fd in range(3, 64):\n    try: os.write(fd, b'\\xff' * 100000)\n    except OSError: pass\n"
     assert failed_everything(check(runner, "p1-quickstart/ghz", code))
 
 
-def test_check_processes_are_out_of_reach_of_the_learner_code(runner):
-    code = GOOD_GHZ + """
+def test_check_processes_are_out_of_reach_of_the_learner_code(runner: local.Container) -> None:
+    code = (
+        GOOD_GHZ
+        + """
 import ctypes, os
 broker = os.getppid()
 checker = int(open(f"/proc/{broker}/stat").read().split(")")[1].split()[1])
@@ -256,24 +276,28 @@ for pid in (broker, checker):
         print("denegado")
 ghz = good
 """
+    )
     out = check(runner, "p1-quickstart/ghz", code)
     assert out["passed"], out
     assert out["stdout"] == "denegado\n" * 8
 
 
-def test_check_learner_code_holds_only_its_own_reply_channel(runner):
-    code = GOOD_GHZ + """
+def test_check_learner_code_holds_only_its_own_reply_channel(runner: local.Container) -> None:
+    code = (
+        GOOD_GHZ
+        + """
 import os
 def ghz(n):
     print(len([f for f in os.listdir("/proc/self/fd") if int(f) > 2]))
     return good(n)
 """
+    )
     out = check(runner, "p1-quickstart/ghz", code)
     assert out["passed"], out
     assert set(out["stdout"].split()) == {"2"}
 
 
-def test_check_cannot_pass_by_prewriting_replies(runner):
+def test_check_cannot_pass_by_prewriting_replies(runner: local.Container) -> None:
     code = """
 import os
 from qiskit import QuantumCircuit
@@ -297,13 +321,16 @@ del ghz
     assert failed_everything(check(runner, "p1-quickstart/ghz", code))
 
 
-def test_check_does_not_import_what_the_learner_plants(runner):
-    code = GOOD_GHZ + """
+def test_check_does_not_import_what_the_learner_plants(runner: local.Container) -> None:
+    code = (
+        GOOD_GHZ
+        + """
 import os
 for name in ("qiskit", "qiskit_aer", "numpy", "grader", "qgcheck", "json"):
     open(f"{name}.py", "w").write("print('PLANTADO')")
 ghz = good
 """
+    )
     out = check(runner, "p1-quickstart/ghz", code)
     assert out["passed"], out
     assert "PLANTADO" not in out["stdout"]
@@ -322,39 +349,41 @@ ghz = good
         ({"code": "x" * 130_000}, None, 413),
     ],
 )
-def test_rejects_bad_requests(runner, body, raw, status):
+def test_rejects_bad_requests(
+    runner: local.Container, body: dict[str, Any], raw: bytes | None, status: int
+) -> None:
     got, out = post(runner, body, raw)
     assert got == status
     assert out["error"]
 
 
-def test_accepts_code_whose_json_is_six_times_longer(runner):
+def test_accepts_code_whose_json_is_six_times_longer(runner: local.Container) -> None:
     tail = "\nprint('ok')\n"
     code = "# " + "\x01" * (20_000 - 2 - len(tail)) + tail
     assert len(code.encode()) == 20_000 and len(json.dumps({"code": code})) > 100_000
     assert run(runner, code)["stdout"] == "ok\n"
 
 
-def test_unknown_path_is_404(runner):
+def test_unknown_path_is_404(runner: local.Container) -> None:
     with pytest.raises(urllib.error.HTTPError) as e:
         urllib.request.urlopen(f"{runner.url}/nada", timeout=5)
     assert e.value.code == 404
 
 
-def test_rejects_a_second_job_while_one_runs(runner):
-    first = {}
+def test_rejects_a_second_job_while_one_runs(runner: local.Container) -> None:
+    first: dict[str, Any] = {}
     t = threading.Thread(
         target=lambda: first.update(out=run(runner, "import time; time.sleep(2); print('listo')"))
     )
     t.start()
     time.sleep(0.7)
-    status, out = post(runner, {"code": "print(1)"})
+    status, _ = post(runner, {"code": "print(1)"})
     t.join()
     assert status == 503
     assert first["out"]["stdout"] == "listo\n"
 
 
-def test_timeout_kills_the_job(runner):
+def test_timeout_kills_the_job(runner: local.Container) -> None:
     out = run(runner, "while True: pass")
     assert out["passed"] is False
     assert out["killed"] == "time"
@@ -371,7 +400,7 @@ def test_timeout_kills_the_job(runner):
         "import numpy as np\nx = np.ones((30000, 30000))",
     ],
 )
-def test_memory_cap(runner, code):
+def test_memory_cap(runner: local.Container, code: str) -> None:
     out = run(runner, code)
     assert out["passed"] is False
     assert out["killed"] == "memory" or out["error"].startswith("MemoryError")
@@ -380,7 +409,7 @@ def test_memory_cap(runner, code):
     assert health(runner) == 200
 
 
-def test_job_runs_without_privileges(runner):
+def test_job_runs_without_privileges(runner: local.Container) -> None:
     out = run(
         runner,
         "import os\nprint(os.getuid())\nprint(os.getgroups())\n"
@@ -401,12 +430,12 @@ for family, address in ((socket.AF_INET, ("1.1.1.1", 53)), (socket.AF_INET6, ("2
 """
 
 
-def test_no_network(runner):
+def test_no_network(runner: local.Container) -> None:
     out = run(runner, NETWORK_CODE)
     assert out["stdout"] == "denegado\ndenegado\n"
 
 
-def test_no_network_even_when_the_container_has_internet():
+def test_no_network_even_when_the_container_has_internet() -> None:
     try:
         local.docker("info")
     except (OSError, subprocess.CalledProcessError) as e:
@@ -415,7 +444,9 @@ def test_no_network_even_when_the_container_has_internet():
     try:
         try:
             container.exec(
-                "python", "-c", "import socket; socket.create_connection(('1.1.1.1', 53), timeout=3)"
+                "python",
+                "-c",
+                "import socket; socket.create_connection(('1.1.1.1', 53), timeout=3)",
             )
         except subprocess.CalledProcessError:
             pytest.skip("el anfitrión no tiene salida a internet; no hay con qué comparar")
@@ -425,7 +456,7 @@ def test_no_network_even_when_the_container_has_internet():
         container.stop()
 
 
-def test_fork_bomb_is_contained(runner):
+def test_fork_bomb_is_contained(runner: local.Container) -> None:
     before = len(processes(runner))
     out = run(runner, "import os\nwhile True: os.fork()")
     assert out["passed"] is False
@@ -434,7 +465,7 @@ def test_fork_bomb_is_contained(runner):
     assert len(processes(runner)) <= before
 
 
-def test_fork_bomb_that_swallows_errors_is_contained(runner):
+def test_fork_bomb_that_swallows_errors_is_contained(runner: local.Container) -> None:
     before = len(processes(runner))
     out = run(runner, "import os\nwhile True:\n    try: os.fork()\n    except OSError: pass")
     assert out["passed"] is False
@@ -443,38 +474,55 @@ def test_fork_bomb_that_swallows_errors_is_contained(runner):
     assert len(processes(runner)) <= before
 
 
-def test_detached_process_does_not_outlive_the_job(runner):
+def test_detached_process_does_not_outlive_the_job(runner: local.Container) -> None:
     before = len(processes(runner))
-    out = run(runner, "import os, time\nif os.fork() == 0:\n    os.setsid()\n    time.sleep(300)\n    os._exit(0)")
+    out = run(
+        runner,
+        "import os, time\nif os.fork() == 0:\n    os.setsid()\n    time.sleep(300)\n    os._exit(0)",
+    )
     assert out["passed"] is True
     assert len(processes(runner)) <= before
 
 
 @pytest.mark.parametrize(
     "path",
-    ["/x", "/app/x", "/app/server.py", "/etc/x", "/usr/local/x", "/var/tmp/x",
-     "/tmp/x", "/dev/shm/x", "/scratch/x", "/proc/x", "/root/x", "/home/x"],
+    [
+        "/x",
+        "/app/x",
+        "/app/server.py",
+        "/etc/x",
+        "/usr/local/x",
+        "/var/tmp/x",
+        "/tmp/x",
+        "/dev/shm/x",
+        "/scratch/x",
+        "/proc/x",
+        "/root/x",
+        "/home/x",
+    ],
 )
-def test_writes_outside_the_work_directory_fail(runner, path):
+def test_writes_outside_the_work_directory_fail(runner: local.Container, path: str) -> None:
     out = run(runner, f"open({path!r}, 'w').write('x')")
     assert out["passed"] is False
     assert "Error" in out["error"]
 
 
-def test_writes_to_the_work_directory_work_and_do_not_persist(runner):
-    out = run(runner, "import os\nopen('nota.txt', 'w').write('hola')\nprint(sorted(os.listdir('.')))")
+def test_writes_to_the_work_directory_work_and_do_not_persist(runner: local.Container) -> None:
+    out = run(
+        runner, "import os\nopen('nota.txt', 'w').write('hola')\nprint(sorted(os.listdir('.')))"
+    )
     assert out["stdout"] == "['main.py', 'nota.txt']\n"
     again = run(runner, "import os\nprint(sorted(os.listdir('.')))")
     assert again["stdout"] == "['main.py']\n"
 
 
-def test_a_job_cannot_read_the_files_of_the_previous_one(runner):
+def test_a_job_cannot_read_the_files_of_the_previous_one(runner: local.Container) -> None:
     run(runner, "open('secreto.txt', 'w').write('x')")
     out = run(runner, "import glob\nprint(glob.glob('/scratch/*/secreto.txt'))")
     assert out["stdout"] == "[]\n"
 
 
-def test_disk_fill_is_stopped(runner):
+def test_disk_fill_is_stopped(runner: local.Container) -> None:
     out = run(runner, "for i in range(100):\n    open(f'f{i}', 'wb').write(b'x' * (8 << 20))")
     assert out["passed"] is False
     assert out["killed"] == "disk" or "No space left" in out["error"]
@@ -482,13 +530,13 @@ def test_disk_fill_is_stopped(runner):
     assert health(runner) == 200
 
 
-def test_single_huge_file_is_refused(runner):
+def test_single_huge_file_is_refused(runner: local.Container) -> None:
     out = run(runner, "open('grande', 'wb').write(b'x' * (64 << 20))")
     assert out["passed"] is False
     assert "File too large" in out["error"]
 
 
-def test_output_flood_is_cut(runner):
+def test_output_flood_is_cut(runner: local.Container) -> None:
     out = run(runner, "while True: print('x' * 1000)")
     assert out["passed"] is False
     assert out["killed"] == "output"

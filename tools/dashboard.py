@@ -16,6 +16,7 @@ Cuenta, en ese periodo:
     fallida es un intento `check` que no acabó en `pass`; cuenta también sin cuenta;
   - los ejercicios aprobados con más pistas abiertas: solo cuentas, una vez por alumno.
 """
+
 import argparse
 import datetime
 import json
@@ -23,7 +24,9 @@ import os
 import subprocess
 import sys
 import tempfile
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 WORKER = ROOT / "runner" / "worker"
@@ -92,16 +95,16 @@ SECTIONS = {
 }
 
 
-def day_start(text):
+def day_start(text: str) -> int:
     """Devuelve el inicio UTC de un día con formato AAAA-MM-DD."""
     try:
         day = datetime.datetime.strptime(text, "%Y-%m-%d")
     except ValueError:
-        raise SystemExit(f"error: «{text}» no es una fecha AAAA-MM-DD")
-    return int(day.replace(tzinfo=datetime.timezone.utc).timestamp())
+        raise SystemExit(f"error: «{text}» no es una fecha AAAA-MM-DD") from None
+    return int(day.replace(tzinfo=datetime.UTC).timestamp())
 
 
-def period(since, until, today):
+def period(since: str | None, until: str | None, today: str) -> tuple[int, int]:
     """Devuelve el intervalo Unix que incluye todo `until`."""
     end = (day_start(until) if until else day_start(today)) + DAY
     start = day_start(since) if since else end - DEFAULT_DAYS * DAY
@@ -110,7 +113,7 @@ def period(since, until, today):
     return start, end
 
 
-def wrangler_json(args):
+def wrangler_json(args: argparse.Namespace) -> list[dict[str, Any]]:
     """Ejecuta Wrangler con una configuración temporal y devuelve su JSON."""
     # Wrangler no lee cloudflare.config.ts. La configuración temporal declara la base.
     # El id solo importa en remoto.
@@ -140,20 +143,24 @@ def wrangler_json(args):
     if run.returncode != 0:
         sys.stderr.write(run.stdout + run.stderr)
         raise SystemExit(f"error: wrangler terminó con código {run.returncode}")
-    return json.loads(run.stdout)
+    answers: list[dict[str, Any]] = json.loads(run.stdout)
+    return answers
 
 
-def collect(args):
+def collect(args: argparse.Namespace) -> dict[str, Any]:
     """Convierte las respuestas de Wrangler en el informe."""
     answers = wrangler_json(args)
     if len(answers) != len(QUERIES):
         raise SystemExit(f"error: wrangler devolvió {len(answers)} respuestas de {len(QUERIES)}")
-    rows = {}
-    for name, answer in zip(QUERIES, answers):
+    rows: dict[str, Any] = {}
+    for name, answer in zip(QUERIES, answers, strict=True):
         if not answer.get("success", False):
             raise SystemExit(f"error: la consulta {name} falló: {answer}")
         rows[name] = answer["results"]
-    day = lambda seconds: datetime.datetime.fromtimestamp(seconds, datetime.timezone.utc).date()
+
+    def day(seconds: int) -> datetime.date:
+        return datetime.datetime.fromtimestamp(seconds, datetime.UTC).date()
+
     start, end = args.bounds["S"], args.bounds["E"]
     return {
         "period": {"since": day(start).isoformat(), "until": day(end - DAY).isoformat()},
@@ -162,21 +169,23 @@ def collect(args):
     }
 
 
-def table(rows, columns):
+def table(rows: Sequence[dict[str, Any]], columns: Sequence[tuple[str, str]]) -> list[str]:
     """Devuelve líneas alineadas con texto a la izquierda y números a la derecha."""
     cells = [[str(row[key]) for key, _ in columns] for row in rows]
     heads = [head for _, head in columns]
     widths = [max(len(c[i]) for c in [heads, *cells]) for i in range(len(columns))]
     numeric = [all(isinstance(row[key], (int, float)) for row in rows) for key, _ in columns]
 
-    def line(values):
-        parts = [v.rjust(w) if n else v.ljust(w) for v, w, n in zip(values, widths, numeric)]
+    def line(values: Sequence[str]) -> str:
+        parts = [
+            v.rjust(w) if n else v.ljust(w) for v, w, n in zip(values, widths, numeric, strict=True)
+        ]
         return ("  ".join(parts)).rstrip()
 
     return [line(heads), *map(line, cells)]
 
 
-def render(report):
+def render(report: dict[str, Any]) -> str:
     """Renderiza el informe como texto alineado."""
     period, summary = report["period"], report["summary"]
     out = [f"Periodo: {period['since']} a {period['until']} (UTC)", ""]
@@ -195,7 +204,7 @@ def render(report):
     return "\n".join(out)
 
 
-def main():
+def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--since", help="primer día, AAAA-MM-DD (por defecto, 30 días hasta --until)")
     ap.add_argument("--until", help="último día incluido, AAAA-MM-DD (por defecto, hoy)")
@@ -211,7 +220,7 @@ def main():
     if args.limit < 1:
         ap.error("--limit debe ser positivo")
 
-    today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
     start, end = period(args.since, args.until, today)
     args.bounds = {"S": start, "E": end, "SD": start // DAY, "ED": end // DAY, "N": args.limit}
     report = collect(args)

@@ -33,7 +33,8 @@ export function logRun(entry: Entry): void {
       event: "run",
       outcome: entry.outcome,
       status: entry.status,
-      mode: entry.mode === "run" || entry.mode === "check" ? entry.mode : undefined,
+      mode:
+        entry.mode === "run" || entry.mode === "check" ? entry.mode : undefined,
       exercise:
         typeof entry.exercise === "string" && EXERCISE.test(entry.exercise)
           ? entry.exercise

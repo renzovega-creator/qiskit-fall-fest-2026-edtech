@@ -42,7 +42,8 @@ export const PII = {
   login: "login-propio-pii-4417",
 };
 
-const sha256url = (text: string) => createHash("sha256").update(text).digest("base64url");
+const sha256url = (text: string) =>
+  createHash("sha256").update(text).digest("base64url");
 
 export class FakeProvider {
   readonly calls: ProviderCall[] = [];
@@ -82,7 +83,9 @@ export class FakeProvider {
   }
 
   tokenCalls(): ProviderCall[] {
-    return this.calls.filter((call) => /\/token$|access_token$/.test(new URL(call.url).pathname));
+    return this.calls.filter((call) =>
+      /\/token$|access_token$/.test(new URL(call.url).pathname),
+    );
   }
 
   async handle(request: Request): Promise<Response> {
@@ -104,7 +107,9 @@ export class FakeProvider {
         { status: 403 },
       );
     }
-    const grant = this.tokens.get(headers.authorization?.replace(/^Bearer /, "") ?? "");
+    const grant = this.tokens.get(
+      headers.authorization?.replace(/^Bearer /, "") ?? "",
+    );
     if (!grant || grant.provider !== provider)
       return new Response("no autorizado", { status: 401 });
     return Response.json(
@@ -121,7 +126,9 @@ export class FakeProvider {
   ) {
     // GitHub contesta 200 con `error`; Google, 400.
     const reject = (error: string) =>
-      provider === "github" ? Response.json({ error }) : Response.json({ error }, { status: 400 });
+      provider === "github"
+        ? Response.json({ error })
+        : Response.json({ error }, { status: 400 });
     const grant = this.grants.get(form.code ?? "");
     const client = CLIENTS[provider];
     if (!grant || grant.provider !== provider) return reject("invalid_grant");
@@ -130,10 +137,14 @@ export class FakeProvider {
     if (form.client_id !== client.id || form.client_secret !== client.secret) {
       return reject("invalid_client");
     }
-    if (form.grant_type !== "authorization_code" || form.redirect_uri !== grant.redirectUri) {
+    if (
+      form.grant_type !== "authorization_code" ||
+      form.redirect_uri !== grant.redirectUri
+    ) {
       return reject("redirect_uri_mismatch");
     }
-    if (sha256url(form.code_verifier ?? "") !== grant.challenge) return reject("invalid_grant");
+    if (sha256url(form.code_verifier ?? "") !== grant.challenge)
+      return reject("invalid_grant");
     if (provider === "github" && headers.accept !== "application/json") {
       return new Response("access_token=ignored", { status: 200 });
     }

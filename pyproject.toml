@@ -20,7 +20,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "mypy>=2",
     "pytest>=9.1.1",
+    "ruff>=0.17",
 ]
 tools = [
     "edge-tts",
@@ -37,3 +39,22 @@ runner = [
 
 [tool.uv]
 package = false
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["exercises", "practica", "muestras", "tests/mutants"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "B", "I", "UP", "SIM", "RUF"]
+# Tipografía del texto de las lecciones y de las reglas de pronunciación.
+allowed-confusables = ["×", "−", "–", "‘", "’", "′"]
+
+[tool.mypy]
+strict = true
+files = ["qgcheck", "runner", "tools", "tests", "lessons_src"]
+exclude = ["tests/mutants/", "runner/worker/"]
+mypy_path = ["stubs", "runner", "lessons_src", "tools", "tests"]
+explicit_package_bases = true
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers"

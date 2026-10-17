@@ -21,10 +21,15 @@ escena de un paso, junto a la tarjeta `Mission`, y se revela con una acción
 `show` como cualquier bloque oculto:
 
 ```python
-Exercise("p1-quickstart/ghz",
-         "Escribe `ghz(n)`: un circuito de `n` qubits, medido con `measure_all()`.",
-         level=3, needs="qiskit", id="e3", hidden=True,
-         hints=["Empieza con una Hadamard en el qubit 0."])
+Exercise(
+    "p1-quickstart/ghz",
+    "Escribe `ghz(n)`: un circuito de `n` qubits, medido con `measure_all()`.",
+    level=3,
+    needs="qiskit",
+    id="e3",
+    hidden=True,
+    hints=["Empieza con una Hadamard en el qubit 0."],
+)
 ```
 
 | Campo   | Significado                                                                              |
@@ -53,7 +58,7 @@ def test_small():
         assert got == ["0" * n, "1" * n], f"Con n = {n} salen {got}."
 
 
-def test_larger():          # sin @visible: el caso es oculto
+def test_larger():  # sin @visible: el caso es oculto
     for n in (5, 7):
         got = sorted(counts(learner.ghz(n)))
         assert got == ["0" * n, "1" * n], f"Con n = {n} salen {got}."
@@ -255,8 +260,11 @@ que otra web abierta en tu navegador no ejecute código en tu equipo.
 esbuild; se versiona porque `site/` es estático. Tras cambiar `editor/src/`:
 
 ```sh
-cd editor && bun install && bun run build
+mise run generate:editor
 ```
+
+`mise run build:editor` falla si `site/editor.js` no coincide con el paquete que
+saldría de `editor/src/`.
 
 ## Comprobar los ejercicios
 
@@ -290,4 +298,4 @@ caso, lo corrige y lo ve pasar, recarga y comprueba que el progreso sigue.
 También escribe un error de sintaxis y un `ghz` que solo falla casos ocultos, y
 comprueba lo que muestra el panel. Lo repite en un móvil, y prueba el teclado,
 las pistas, el timeout, los errores y la comprobación de Turnstile, con un
-widget de prueba. `mise run test` ejecuta los tres.
+widget de prueba. `mise run test:ui` ejecuta las pruebas del navegador.

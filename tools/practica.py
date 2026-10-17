@@ -8,6 +8,7 @@ Si tiene controles mo.ui.slider o mo.ui.number, también se ejecuta con todos lo
 mínimo y en su máximo. Las comprobaciones que dan ❌ en un extremo se listan, pero no hacen fallar
 la ejecución porque pueden depender de los parámetros.
 """
+
 import ast
 import contextlib
 import importlib.util
@@ -17,16 +18,18 @@ import re
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 PR = ROOT / "practica"
 
 
-def veredictos(path, carpeta):
+def veredictos(path: Path, carpeta: Path) -> list[tuple[str, str]]:
     """Ejecuta el cuaderno con sus módulos vecinos disponibles para importar."""
     sys.path.insert(0, str(carpeta))
     try:
         spec = importlib.util.spec_from_file_location("nb_" + path.stem, path)
+        assert spec and spec.loader
         nb = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(nb)
         with contextlib.redirect_stdout(io.StringIO()):
@@ -37,7 +40,7 @@ def veredictos(path, carpeta):
     return re.findall(r"(✅|❌)\s+([^<&]{0,60})", text)
 
 
-def ejecutar(src, nombre, carpeta):
+def ejecutar(src: str, nombre: str, carpeta: Path) -> list[tuple[str, str]]:
     """Ejecuta src como cuaderno `nombre` con los módulos de `carpeta` disponibles."""
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d) / nombre
@@ -45,7 +48,7 @@ def ejecutar(src, nombre, carpeta):
         return veredictos(tmp, carpeta)
 
 
-def con_extremo(src, extremo):
+def con_extremo(src: str, extremo: str) -> tuple[str, dict[str, Any]]:
     """Sustituye el value= de cada control por su mínimo o máximo.
 
     Devuelve el código actualizado y los valores usados por nombre de control.
@@ -54,22 +57,32 @@ def con_extremo(src, extremo):
     inicios = [0]
     for linea in lineas:
         inicios.append(inicios[-1] + len(linea) + 1)
-    pos = lambda lineno, col: inicios[lineno - 1] + col
-    cambios, valores = [], {}
+
+    def pos(lineno: int, col: int) -> int:
+        return inicios[lineno - 1] + col
+
+    cambios: list[tuple[int, int, str]] = []
+    valores: dict[str, Any] = {}
     for asig in ast.walk(ast.parse(src)):
         call = getattr(asig, "value", None)
-        if not (isinstance(asig, ast.Assign) and isinstance(call, ast.Call)
-                and ast.unparse(call.func) in ("mo.ui.slider", "mo.ui.number")):
+        if not (
+            isinstance(asig, ast.Assign)
+            and isinstance(call, ast.Call)
+            and ast.unparse(call.func) in ("mo.ui.slider", "mo.ui.number")
+        ):
             continue
         nombre = ast.unparse(asig.targets[0])
         kw = {k.arg: k.value for k in call.keywords}
         limites = [ast.literal_eval(a) for a in call.args[:2]]
-        limites += [ast.literal_eval(kw[k]) for k in ("start", "stop")[len(limites):]]
+        limites += [ast.literal_eval(kw[k]) for k in ("start", "stop")[len(limites) :]]
         if "value" not in kw:
             raise ValueError(f"{nombre}: el control no fija value=")
         valor = limites[0 if extremo == "min" else 1]
         v = kw["value"]
-        cambios.append((pos(v.lineno, v.col_offset), pos(v.end_lineno, v.end_col_offset), repr(valor)))
+        assert v.end_lineno is not None and v.end_col_offset is not None
+        cambios.append(
+            (pos(v.lineno, v.col_offset), pos(v.end_lineno, v.end_col_offset), repr(valor))
+        )
         valores[nombre] = valor
     datos = src.encode("utf-8")
     for a, b, nuevo in sorted(cambios, reverse=True):
@@ -77,7 +90,7 @@ def con_extremo(src, extremo):
     return datos.decode("utf-8"), valores
 
 
-def comprobar(f):
+def comprobar(f: Path) -> int:
     """Devuelve 1 si el cuaderno falla, 0 si pasa o no tiene soluciones."""
     rel = f.resolve().relative_to(PR.resolve()).as_posix()
     try:
@@ -125,11 +138,17 @@ def comprobar(f):
     return fallos
 
 
-def main():
-    sys.stdout.reconfigure(encoding="utf-8")
+def main() -> None:
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8")
     import matplotlib
+
     matplotlib.use("Agg")  # Evita que Tk libere figuras desde otro hilo y aborte el proceso.
-    files = [Path(a) for a in sys.argv[1:]] or sorted(p for p in PR.rglob("*.py") if "soluciones" not in p.parts and "marimo.App(" in p.read_text(encoding="utf-8"))
+    files = [Path(a) for a in sys.argv[1:]] or sorted(
+        p
+        for p in PR.rglob("*.py")
+        if "soluciones" not in p.parts and "marimo.App(" in p.read_text(encoding="utf-8")
+    )
     fallos = sum(comprobar(f) for f in files)
     print("fallos:", fallos)
     sys.exit(1 if fallos else 0)

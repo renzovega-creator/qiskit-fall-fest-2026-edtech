@@ -8,28 +8,34 @@ coincidir exactamente con lo que imprime ese código. Bloques con norun=True se 
 (por ejemplo, los que necesitan una cuenta de IBM Quantum). Si un bloque trae setup="…", ese
 código se ejecuta antes que el bloque, sin mostrarse: da el contexto a un fragmento.
 """
+
 import contextlib
 import io
-import os
-import tempfile
 import json
+import os
 import sys
+import tempfile
 import traceback
+from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 SITE = Path(__file__).resolve().parent.parent / "site"
 
 
-def blocks(scene):
+def blocks(scene: list[dict[str, Any]]) -> Iterator[dict[str, Any]]:
     for s in scene:
         yield s
-        yield from blocks([x for x in s.get("items", []) + s.get("body", []) if isinstance(x, dict)])
+        yield from blocks(
+            [x for x in s.get("items", []) + s.get("body", []) if isinstance(x, dict)]
+        )
 
 
-def verify_lesson(lid, show):
+def verify_lesson(lid: str, show: bool) -> tuple[int, int]:
     """Ejecuta los bloques de una lección y devuelve (bloques ejecutados, fallos)."""
     les = json.loads((SITE / "lessons" / lid / "lesson.json").read_text(encoding="utf-8"))
-    ns, n, fails = {"__name__": "__leccion__"}, 0, 0
+    ns: dict[str, Any] = {"__name__": "__leccion__"}
+    n, fails = 0, 0
     for b in les["beats"]:
         bl = list(blocks(b["scene"]))
         for k, s in enumerate(bl):
@@ -50,25 +56,38 @@ def verify_lesson(lid, show):
                 continue
             out = buf.getvalue().rstrip()
             nxt = bl[k + 1] if k + 1 < len(bl) else None
-            if nxt and nxt.get("type") == "code" and nxt.get("lang") == "out" and nxt.get("check"):
-                if out != nxt["src"].rstrip():
-                    fails += 1
-                    print(f"✗ {lid}/{b['id']}: la salida no coincide\n--- esperado\n{nxt['src']}\n--- obtenido\n{out}")
+            if (
+                nxt
+                and nxt.get("type") == "code"
+                and nxt.get("lang") == "out"
+                and nxt.get("check")
+                and out != nxt["src"].rstrip()
+            ):
+                fails += 1
+                print(
+                    f"✗ {lid}/{b['id']}: la salida no coincide\n--- esperado\n{nxt['src']}\n--- obtenido\n{out}"
+                )
             if show:
                 print(f"· {lid}/{b['id']}\n{out}")
     return n, fails
 
 
-def main():
-    sys.stdout.reconfigure(encoding="utf-8")
+def main() -> None:
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8")
     import matplotlib
+
     matplotlib.use("Agg")
     ids = [a for a in sys.argv[1:] if not a.startswith("-")] or [
-        l["id"] for p in json.loads((SITE / "course.json").read_text(encoding="utf-8"))["parts"]
-        for l in p["lessons"]]
+        les["id"]
+        for p in json.loads((SITE / "course.json").read_text(encoding="utf-8"))["parts"]
+        for les in p["lessons"]
+    ]
     show = "-v" in sys.argv or "--show" in sys.argv
     fails = 0
-    os.chdir(tempfile.mkdtemp(prefix="verify-"))  # Aísla los archivos temporales que crean los ejemplos.
+    os.chdir(
+        tempfile.mkdtemp(prefix="verify-")
+    )  # Aísla los archivos temporales que crean los ejemplos.
     for lid in ids:
         n, f = verify_lesson(lid, show)
         fails += f

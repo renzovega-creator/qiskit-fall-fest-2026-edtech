@@ -1,48 +1,144 @@
 [tools]
-python = "3.14"
-uv = "0.13"
+bun = "1.4.2"
+gitleaks = "8.30.1"
+node = "24.22.0"
+python = "3.14.8"
+uv = "0.13.1"
+
+[env]
+UV_LOCKED = "1"
+_.path = ["runner/worker/node_modules/.bin", "editor/node_modules/.bin"]
+
+[tasks.install]
+description = "Install Python and JavaScript dependencies from the lockfiles, the Playwright browser and the upstream guides"
+run = [
+  "uv sync --locked --all-groups",
+  "bun install --cwd editor --frozen-lockfile",
+  "bun install --cwd runner/worker --frozen-lockfile",
+  "uv run --group tools playwright install ${CI:+--with-deps} chromium",
+  "uv run python tools/fetch_docs.py",
+]
 
 [tasks.fetch]
 description = "Download the upstream Qiskit guides into .cache/qiskit-docs if they are missing"
-run = "python tools/fetch_docs.py"
+run = "uv run python tools/fetch_docs.py"
 
-[tasks.build]
-description = "Rebuild site/lessons/*/lesson.json and site/course.json and check guide coverage"
-run = "uv run python lessons_src/build.py"
+[tasks."lint:py"]
+description = "Check Python with ruff"
+run = ["uv run ruff check .", "uv run ruff format --check ."]
 
-[tasks.generated]
-description = "Fail without writing if the committed site JSON differs from the build output"
-run = "uv run python lessons_src/build.py --check"
+[tasks."lint:js"]
+description = "Check JavaScript and TypeScript with oxlint"
+run = "oxlint --deny-warnings"
 
-[tasks.test]
-description = "Run practice notebooks with solutions and controls at both bounds, check every exercise, run its tests, then drive the exercise editor, the project panel and the optional account in a browser"
+[tasks."lint:fmt"]
+description = "Check the format of Markdown, JSON, YAML, JavaScript and TypeScript with oxfmt"
+run = "oxfmt --check"
+
+[tasks."lint:secrets"]
+description = "Scan the working tree for secrets with gitleaks"
+run = "gitleaks dir . --no-banner --redact"
+
+[tasks.lint]
+description = "Run every lint check"
+depends = ["lint:*"]
+
+[tasks.fix]
+description = "Apply safe fixes and format Python, JavaScript, TypeScript, Markdown, JSON and YAML"
+run = [
+  "uv run ruff check --fix .",
+  "uv run ruff format .",
+  "oxlint --fix",
+  "oxfmt --write",
+]
+
+[tasks."typecheck:py"]
+description = "Check Python types with mypy in strict mode"
+run = "uv run mypy"
+
+[tasks."typecheck:ts"]
+description = "Check the Worker's TypeScript with tsc"
+dir = "runner/worker"
+run = "tsc -p ."
+
+[tasks.typecheck]
+description = "Run every type check"
+depends = ["typecheck:*"]
+
+[tasks."test:py"]
+description = "Run the pytest suites that need no browser"
+# The grader tests time learner code against a 10 s limit. This suite runs only beside the notebooks,
+# each on its own core, and the browser, Worker and lesson suites wait for it.
+wait_for = ["lint", "typecheck", "build"]
+run ="uv run pytest tests/exercises_test.py tests/dashboard_test.py"
+
+[tasks."test:notebooks"]
+description = "Run the practice notebooks with solutions and controls at both bounds, and check every exercise"
 run = [
   "uv run python tools/practica.py",
   "uv run python tools/exercises.py",
-  "uv run pytest tests/exercises_test.py",
-  "uv run pytest tests/dashboard_test.py",
-  "uv run --group tools python tests/exercise_ui_test.py",
-  "uv run --group tools python tests/proyecto_test.py",
-  "uv run --group tools python tests/account_ui_test.py",
 ]
 
-[tasks.runner]
+[tasks."test:ui"]
+description = "Drive the exercise editor, the project panel, the theme and the optional account in a browser"
+wait_for = ["test:py"]
+run = [
+  "uv run python tests/exercise_ui_test.py",
+  "uv run python tests/proyecto_test.py",
+  "uv run python tests/account_ui_test.py",
+  "uv run python tests/theme_test.py",
+]
+
+[tasks."test:worker"]
+description = "Test the runner Worker's limits and accounts against a fake container"
+dir = "runner/worker"
+wait_for = ["test:py"]
+run = "vitest run"
+
+[tasks."test:lessons"]
+description = "Run the Python code shown in every lesson and compare the checked outputs"
+wait_for = ["test:py"]
+run ="uv run python tools/verify.py"
+
+[tasks."test:integration"]
 description = "Build the runner image and test /run over HTTP against it (needs Docker)"
 run = "uv run pytest tests/runner_test.py"
 
-[tasks.worker]
-description = "Test the runner Worker's limits against a fake container (needs bun install in runner/worker)"
-run = "bun run --cwd runner/worker test"
+[tasks.test]
+description = "Run every test that needs no service, network or secret"
+depends = ["test:py", "test:notebooks", "test:ui", "test:worker", "test:lessons"]
 
-[tasks.verify]
-description = "Run the Python code shown in every lesson and compare the checked outputs"
-run = "uv run python tools/verify.py"
+[tasks."generate:lessons"]
+description = "Rewrite site/lessons/*/lesson.json and site/course.json from lessons_src"
+run = "uv run python lessons_src/build.py"
+
+[tasks."generate:editor"]
+description = "Rewrite site/editor.js from editor/src"
+dir = "editor"
+run = "esbuild src/index.js --bundle --minify --format=iife --target=es2020 --outfile=../site/editor.js"
+
+[tasks.generate]
+description = "Rewrite every generated file under site/"
+depends = ["generate:*"]
+
+[tasks."build:lessons"]
+description = "Fail without writing if the committed lesson JSON differs from the build output"
+run = "uv run python lessons_src/build.py --check"
+
+[tasks."build:editor"]
+description = "Fail without writing if site/editor.js differs from the bundle built from editor/src"
+dir = "editor"
+run = """
+out="$(mktemp)"
+trap 'rm -f "$out"' EXIT
+esbuild src/index.js --bundle --minify --format=iife --target=es2020 --outfile="$out" --log-level=warning
+cmp "$out" ../site/editor.js
+"""
+
+[tasks.build]
+description = "Check that the shipped site files match their sources"
+depends = ["build:*"]
 
 [tasks.check]
-description = "Fetch guides, verify generated lessons, run notebooks, and run lesson code. Writes nothing tracked."
-run = [
-  { task = "fetch" },
-  { task = "generated" },
-  { task = "test" },
-  { task = "verify" },
-]
+description = "Run lint, typecheck, test and build. Writes nothing tracked."
+depends = ["lint", "typecheck", "test", "build"]

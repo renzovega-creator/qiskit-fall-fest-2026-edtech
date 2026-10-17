@@ -13,28 +13,35 @@ el alumno controla es el valor de su propia petición y nada más. La salida del
 código solo se muestra en la primera petición. Termina cuando el comprobador
 cierra el canal.
 """
+
 import contextlib
 import ctypes
 import os
 import signal
 import sys
 from pathlib import Path
+from typing import Any
 
 from grader.wire import BROKEN, WireError, decode, encode, receive, send
+
 from qgcheck.worker import CODE_NAME, describe
 
 MESSAGE_CAP = 300
 PR_SET_DUMPABLE = 4
 
 
-def failure(text):
+def failure(text: str) -> dict[str, Any]:
     return {"error": text[:MESSAGE_CAP]}
 
 
-def answer(namespace, request):
+def answer(namespace: dict[str, Any], request: dict[str, Any]) -> dict[str, Any]:
     op, name = request.get("op"), request.get("name")
     if op == "names":
-        return {"value": encode({n: callable(v) for n, v in namespace.items() if not n.startswith("__")})}
+        return {
+            "value": encode(
+                {n: callable(v) for n, v in namespace.items() if not n.startswith("__")}
+            )
+        }
     if name not in namespace:
         return failure(f"Falta definir `{name}` en tu código.")
     value = namespace[name]
@@ -51,11 +58,11 @@ def answer(namespace, request):
         return failure(f"`{name}` contiene {e} que no se puede comprobar.")
 
 
-def call_in_child(source, request, fd, quiet_load):
+def call_in_child(source: str, request: dict[str, Any], fd: int, quiet_load: bool) -> None:
     """Cuerpo del hijo: solo conserva `fd`, el extremo de escritura de su llamada."""
     os.closerange(3, fd)
     os.closerange(fd + 1, 4096)
-    namespace = {"__name__": "__main__"}
+    namespace: dict[str, Any] = {"__name__": "__main__"}
     try:
         with contextlib.ExitStack() as stack:
             if quiet_load:
@@ -67,16 +74,14 @@ def call_in_child(source, request, fd, quiet_load):
         message = failure(describe(e, source))
     else:
         message = answer(namespace, request)
-    try:
+    with contextlib.suppress(WireError):
         send(fd, message)
-    except WireError:
-        pass
     sys.stdout.flush()
     sys.stderr.flush()
     os._exit(0)
 
 
-def run_call(source, request, quiet_load):
+def run_call(source: str, request: dict[str, Any], quiet_load: bool) -> dict[str, Any]:
     read_fd, write_fd = os.pipe()
     pid = os.fork()
     if pid == 0:
@@ -98,7 +103,7 @@ def run_call(source, request, quiet_load):
     return failure(BROKEN)
 
 
-def main():
+def main() -> None:
     path, requests, responses = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
     # Mismo uid que el alumno: sin esto podría leer o escribir la memoria de este
     # proceso. El hijo hereda la marca.
@@ -117,8 +122,6 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
+    with contextlib.suppress(WireError):
         main()
-    except WireError:
-        pass
     os._exit(0)

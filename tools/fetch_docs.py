@@ -7,8 +7,8 @@ Si .cache/qiskit-docs ya está en esa versión no hace nada.
 build.py y extract.py leen de aquí. Para actualizar las guías, cambia el hash de
 tools/qiskit-docs.commit y ejecuta de nuevo.
 """
+
 import subprocess
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -17,19 +17,20 @@ PIN = Path(__file__).resolve().parent / "qiskit-docs.commit"
 REPO = "https://github.com/Qiskit/documentation.git"
 
 
-def git(*args, capture=False):
-    return subprocess.run(["git", "-C", str(DEST), *args], check=True, text=True,
-                          capture_output=capture).stdout
+def git(*args: str, capture: bool = False) -> str:
+    return subprocess.run(
+        ["git", "-C", str(DEST), *args], check=True, text=True, capture_output=capture
+    ).stdout
 
 
-def current():
+def current() -> str | None:
     try:
         return git("rev-parse", "HEAD", capture=True).strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
 
-def main():
+def main() -> None:
     commit = PIN.read_text(encoding="utf-8").strip()
     if current() == commit and (DEST / "docs" / "guides" / "_toc.json").exists():
         print(f"guías al día: {commit[:8]}")
@@ -45,4 +46,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
