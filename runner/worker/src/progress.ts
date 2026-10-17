@@ -34,7 +34,10 @@ const isInt = (value: unknown): value is number =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
-const list = (value: unknown, accepts: (item: unknown) => boolean): value is unknown[] =>
+const list = (
+  value: unknown,
+  accepts: (item: unknown) => boolean,
+): value is unknown[] =>
   Array.isArray(value) && value.length <= MAX_ITEMS && value.every(accepts);
 
 // Cada familia de claves de `kv`: qué forma tiene su valor y cómo se juntan el
@@ -47,8 +50,11 @@ interface Family {
 }
 
 const union = (stored: unknown, incoming: unknown) =>
-  [...new Set([...(stored as unknown[]), ...(incoming as unknown[])])].sort((a, b) =>
-    typeof a === "number" && typeof b === "number" ? a - b : String(a).localeCompare(String(b)),
+  [...new Set([...(stored as unknown[]), ...(incoming as unknown[])])].toSorted(
+    (a, b) =>
+      typeof a === "number" && typeof b === "number"
+        ? a - b
+        : String(a).localeCompare(String(b)),
   );
 
 const isBox = (value: unknown) =>
@@ -72,7 +78,11 @@ const FAMILIES: Family[] = [
   {
     key: /^qiskit:misiones$/,
     valid: (value) =>
-      list(value, (item) => typeof item === "string" && /^[A-Za-z0-9_./-]{1,100}$/.test(item)),
+      list(
+        value,
+        (item) =>
+          typeof item === "string" && /^[A-Za-z0-9_./-]{1,100}$/.test(item),
+      ),
     merge: union,
   },
   {
@@ -96,10 +106,16 @@ const FAMILIES: Family[] = [
       ),
     // Por pregunta, la caja más alta; con la misma caja, la que vence antes.
     merge: (stored, incoming) => {
-      const merged = { ...(stored as Record<string, { box: number; due: number }>) };
+      const merged = {
+        ...(stored as Record<string, { box: number; due: number }>),
+      };
       for (const [id, item] of Object.entries(incoming as typeof merged)) {
         const old = merged[id];
-        if (!old || item.box > old.box || (item.box === old.box && item.due < old.due)) {
+        if (
+          !old ||
+          item.box > old.box ||
+          (item.box === old.box && item.due < old.due)
+        ) {
           merged[id] = { box: item.box, due: item.due };
         }
       }
@@ -108,7 +124,8 @@ const FAMILIES: Family[] = [
   },
 ];
 
-const familyOf = (key: string) => FAMILIES.find((family) => family.key.test(key));
+const familyOf = (key: string) =>
+  FAMILIES.find((family) => family.key.test(key));
 
 const utf8Length = (text: string) => new TextEncoder().encode(text).length;
 
@@ -116,13 +133,16 @@ const utf8Length = (text: string) => new TextEncoder().encode(text).length;
 // que el servidor no entiende: un error de la página se ve en vez de perderse.
 export function parseProgress(input: unknown): Progress | string {
   if (!isRecord(input)) return "El cuerpo debe ser un objeto JSON.";
-  const unknown = Object.keys(input).find((key) => !["done", "exercises", "kv"].includes(key));
+  const unknown = Object.keys(input).find(
+    (key) => !["done", "exercises", "kv"].includes(key),
+  );
   if (unknown) return `Campo desconocido: ${unknown.slice(0, 40)}.`;
   const progress: Progress = { done: [], exercises: {}, kv: {} };
 
   if (input.done !== undefined) {
     const { done } = input;
-    if (!Array.isArray(done) || done.length > MAX_DONE) return "done debe ser una lista corta.";
+    if (!Array.isArray(done) || done.length > MAX_DONE)
+      return "done debe ser una lista corta.";
     if (!done.every((id) => typeof id === "string" && LESSON.test(id))) {
       return "done lleva un id de lección inválido.";
     }
@@ -135,13 +155,20 @@ export function parseProgress(input: unknown): Progress | string {
       return "exercises debe ser un objeto corto.";
     }
     for (const [id, item] of Object.entries(exercises)) {
-      if (!EXERCISE.test(id) || !isRecord(item)) return "exercises lleva un ejercicio inválido.";
+      if (!EXERCISE.test(id) || !isRecord(item))
+        return "exercises lleva un ejercicio inválido.";
       const { code, hints, checks, passed, at } = item;
       const codeOk =
         code === undefined ||
         code === null ||
         (typeof code === "string" && utf8Length(code) <= MAX_CODE_BYTES);
-      if (!codeOk || !isInt(hints) || !isInt(checks) || typeof passed !== "boolean" || !isInt(at)) {
+      if (
+        !codeOk ||
+        !isInt(hints) ||
+        !isInt(checks) ||
+        typeof passed !== "boolean" ||
+        !isInt(at)
+      ) {
         return `El ejercicio ${id} tiene campos inválidos.`;
       }
       progress.exercises[id] = { code, hints, checks, passed, at };
@@ -150,10 +177,14 @@ export function parseProgress(input: unknown): Progress | string {
 
   if (input.kv !== undefined) {
     const { kv } = input;
-    if (!isRecord(kv) || Object.keys(kv).length > MAX_KV_KEYS) return "kv debe ser un objeto.";
+    if (!isRecord(kv) || Object.keys(kv).length > MAX_KV_KEYS)
+      return "kv debe ser un objeto.";
     for (const [key, value] of Object.entries(kv)) {
       const family = familyOf(key);
-      if (!family?.valid(value) || utf8Length(JSON.stringify(value)) > MAX_KV_BYTES) {
+      if (
+        !family?.valid(value) ||
+        utf8Length(JSON.stringify(value)) > MAX_KV_BYTES
+      ) {
         return `kv lleva una clave o un valor inválido: ${key.slice(0, 60)}.`;
       }
       progress.kv[key] = value;
@@ -169,14 +200,20 @@ async function readState(
   userId: string,
 ): Promise<{ progress: Progress; version: number } | null> {
   const [done, exercises, kv, user] = await db.batch<Record<string, unknown>>([
-    db.prepare("SELECT lesson FROM lesson_done WHERE user_id = ?1 ORDER BY lesson").bind(userId),
+    db
+      .prepare(
+        "SELECT lesson FROM lesson_done WHERE user_id = ?1 ORDER BY lesson",
+      )
+      .bind(userId),
     db
       .prepare(
         "SELECT exercise, code, hints, checks, passed, updated_at FROM exercise_state WHERE user_id = ?1",
       )
       .bind(userId),
     db.prepare("SELECT key, value FROM kv WHERE user_id = ?1").bind(userId),
-    db.prepare("SELECT progress_version AS version FROM users WHERE id = ?1").bind(userId),
+    db
+      .prepare("SELECT progress_version AS version FROM users WHERE id = ?1")
+      .bind(userId),
   ]);
   if (user.results.length === 0) return null;
   const progress: Progress = { done: [], exercises: {}, kv: {} };
@@ -190,19 +227,27 @@ async function readState(
       at: row.updated_at as number,
     };
   }
-  for (const row of kv.results) progress.kv[row.key as string] = JSON.parse(row.value as string);
+  for (const row of kv.results)
+    progress.kv[row.key as string] = JSON.parse(row.value as string);
   return { progress, version: user.results[0].version as number };
 }
 
-export async function readProgress(db: D1Database, userId: string): Promise<Progress | null> {
+export async function readProgress(
+  db: D1Database,
+  userId: string,
+): Promise<Progress | null> {
   return (await readState(db, userId))?.progress ?? null;
 }
 
-function mergeExercise(stored: ExerciseState | undefined, incoming: ExerciseState): ExerciseState {
+function mergeExercise(
+  stored: ExerciseState | undefined,
+  incoming: ExerciseState,
+): ExerciseState {
   if (!stored) return incoming;
   const newer = incoming.at > stored.at;
   // Sin código (`undefined` o null) la página no lo manda: no borra el guardado.
-  const code = newer && typeof incoming.code === "string" ? incoming.code : stored.code;
+  const code =
+    newer && typeof incoming.code === "string" ? incoming.code : stored.code;
   return {
     ...(code === undefined || code === null ? {} : { code }),
     hints: Math.max(stored.hints, incoming.hints),
@@ -232,6 +277,7 @@ export async function mergeProgress(
   now: number,
 ): Promise<Progress> {
   for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
+    // oxlint-disable-next-line eslint/no-await-in-loop -- Cada intento relee el estado que dejó el anterior.
     const state = await readState(db, userId);
     if (!state) throw new Gone();
     const { merged, statements } = plan(db, userId, state, incoming, now);
@@ -243,6 +289,7 @@ export async function mergeProgress(
         )
         .bind(userId, state.version),
     );
+    // oxlint-disable-next-line eslint/no-await-in-loop -- El siguiente intento depende de este resultado.
     const results = await db.batch(statements);
     if (results[results.length - 1].meta.changes === 1) return merged;
   }
@@ -262,8 +309,10 @@ function plan(
     kv: { ...stored.kv },
   };
 
-  const newDone = incoming.done.filter((lesson) => !stored.done.includes(lesson));
-  merged.done = [...merged.done, ...newDone].sort();
+  const newDone = incoming.done.filter(
+    (lesson) => !stored.done.includes(lesson),
+  );
+  merged.done = [...merged.done, ...newDone].toSorted();
 
   const exerciseRows: unknown[] = [];
   for (const [id, item] of Object.entries(incoming.exercises)) {

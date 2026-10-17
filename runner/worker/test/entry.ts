@@ -9,7 +9,11 @@ export { RateLimiter } from "../src/index.ts";
 // Un Budget real cuyo almacenamiento falla al ajustar el coste cuando la prueba
 // lo pide con la variable FAKE_SETTLE_FAILS.
 export class Budget extends RealBudget {
-  override async settle(month: string, reserved: number, actual: number): Promise<void> {
+  override async settle(
+    month: string,
+    reserved: number,
+    actual: number,
+  ): Promise<void> {
     if ((this.env as { FAKE_SETTLE_FAILS?: string }).FAKE_SETTLE_FAILS) {
       throw new Error("StorageDown: el almacenamiento no responde");
     }
@@ -41,7 +45,12 @@ function answer(code: string) {
       ...base,
       passed: false,
       tests: [
-        { name: "n = 2, 3 y 4", visible: true, passed: false, message: `salió ${code}` },
+        {
+          name: "n = 2, 3 y 4",
+          visible: true,
+          passed: false,
+          message: `salió ${code}`,
+        },
         { name: "caso oculto 1", visible: false, passed: false, message: code },
         { name: "otro caso", visible: true, passed: true, message: "" },
       ],
@@ -58,15 +67,29 @@ function answer(code: string) {
     };
   }
   if (code.includes("MATADO")) {
-    return { ...base, passed: false, error: `tiempo agotado: ${code}`, killed: "time" };
+    return {
+      ...base,
+      passed: false,
+      error: `tiempo agotado: ${code}`,
+      killed: "time",
+    };
   }
-  return { ...base, passed: true, stdout: `recibidos ${code.length} caracteres\n` };
+  return {
+    ...base,
+    passed: true,
+    stdout: `recibidos ${code.length} caracteres\n`,
+  };
 }
 
 export default {
-  async fetch(request: Request, env: TestEnv, ctx: ExecutionContext): Promise<Response> {
-    const runners = (ctx as unknown as { exports: { Runner: DurableObjectNamespace } }).exports
-      .Runner;
+  async fetch(
+    request: Request,
+    env: TestEnv,
+    ctx: ExecutionContext,
+  ): Promise<Response> {
+    const runners = (
+      ctx as unknown as { exports: { Runner: DurableObjectNamespace } }
+    ).exports.Runner;
     // Otro alumno que ya tiene un trabajo en la instancia 0, sin pasar por el Worker.
     if (new URL(request.url).pathname === "/other-learner") {
       return runners.get(runners.idFromName("instance-0")).fetch(
@@ -84,7 +107,8 @@ export default {
     }
     return real.fetch(request, env as never, ctx);
   },
-  scheduled: (controller: ScheduledController, env: never) => real.scheduled(controller, env),
+  scheduled: (controller: ScheduledController, env: never) =>
+    real.scheduled(controller, env),
 };
 
 export class Runner extends DurableObject {
@@ -93,18 +117,20 @@ export class Runner extends DurableObject {
   private killed = false;
 
   async fetch(request: Request): Promise<Response> {
-    const headers = [...request.headers.keys()].sort();
+    const headers = [...request.headers.keys()].toSorted();
     console.log(
       `FAKE_RUNNER_CALL ${JSON.stringify({ path: new URL(request.url).pathname, headers })}`,
     );
     const { code } = (await request.json()) as { code: string };
-    if (code === "romper-contenedor") throw new Error("ContainerDown: la instancia se cayó");
+    if (code === "romper-contenedor")
+      throw new Error("ContainerDown: la instancia se cayó");
     if (code === "ajeno") {
       this.busy = true;
       this.killed = false;
       await scheduler.wait(900);
       this.busy = false;
-      if (this.killed) throw new Error("ContainerKilled: la instancia se detuvo");
+      if (this.killed)
+        throw new Error("ContainerKilled: la instancia se detuvo");
     } else if (this.busy) {
       // Como runner/server.py: sin ranura libre responde 503 y no espera.
       return Response.json({ error: "ocupado" }, { status: 503 });
