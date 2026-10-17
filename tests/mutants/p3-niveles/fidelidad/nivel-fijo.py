@@ -8,7 +8,7 @@ from qiskit_aer.primitives import SamplerV2
 from qiskit_ibm_runtime.fake_provider import FakeTorino
 
 backend = FakeTorino()
-ruido = NoiseModel.from_backend(backend)
+ruido = NoiseModel.from_backend(backend, thermal_relaxation=False)
 SHOTS = 4000
 
 
