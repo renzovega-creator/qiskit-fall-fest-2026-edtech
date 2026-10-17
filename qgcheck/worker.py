@@ -44,6 +44,24 @@ def run_case(fn):
     return None
 
 
+def run_cases(check_path):
+    tests, hidden = [], 0
+    for fn, shown in spec.load_cases(check_path):
+        message = run_case(fn)
+        if shown is None:
+            hidden += 1
+        tests.append(
+            dict(
+                name=shown or f"caso oculto {hidden}",
+                visible=shown is not None,
+                passed=message is None,
+                message=message,
+                hint=getattr(fn, "qg_hint", None),
+            )
+        )
+    return tests
+
+
 def main(learner_path, check_path, mode, block, out):
     for name in filter(None, block.split(",")):
         sys.modules[name] = None
@@ -59,14 +77,8 @@ def main(learner_path, check_path, mode, block, out):
     tests = []
     if mode == "check" and error is None:
         learner._bind(ns)
-        hidden = 0
         with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
-            for fn, shown in spec.load_cases(check_path):
-                message = run_case(fn)
-                if shown is None:
-                    hidden += 1
-                tests.append(dict(name=shown or f"caso oculto {hidden}", visible=shown is not None,
-                                  passed=message is None, message=message))
+            tests = run_cases(check_path)
     stdout = buf.getvalue()
     if len(stdout) > MAX_STDOUT:
         stdout = stdout[:MAX_STDOUT] + "\n… (salida recortada)"

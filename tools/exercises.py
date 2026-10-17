@@ -7,6 +7,7 @@ Para cada ejercicio comprueba que:
   2. starter.py se ejecuta sin error y falla algún caso: nunca llega resuelto.
   3. `needs` es verdadero. Con needs="qiskit", solution.py pasa sin qiskit_aer. Con needs="aer",
      no pasa sin él.
+  4. Cada `@hint(n)` de check.py nombra una pista que el ejercicio tiene en su lección.
 
 `needs` se lee de site/lessons/*/lesson.json, así que hay que ejecutar lessons_src/build.py antes.
 """
@@ -24,15 +25,20 @@ SITE = ROOT / "site"
 NO_AER = ("qiskit_aer",)
 
 
-def declared():
-    """Devuelve las dependencias declaradas por los ejercicios publicados."""
+def published():
+    """Devuelve los bloques de ejercicio publicados, por id."""
     found = {}
     for f in sorted((SITE / "lessons").glob("*/lesson.json")):
         for beat in json.loads(f.read_text(encoding="utf-8"))["beats"]:
             for blk in walk(beat["scene"]):
                 if blk.get("type") == "exercise":
-                    found[blk["exercise"]] = blk["needs"]
+                    found[blk["exercise"]] = blk
     return found
+
+
+def declared():
+    """Devuelve las dependencias declaradas por los ejercicios publicados."""
+    return {eid: blk["needs"] for eid, blk in published().items()}
 
 
 def failures(result):
@@ -42,13 +48,20 @@ def failures(result):
     return "; ".join(f"{t['name']}: {t['message']}" for t in result["tests"] if not t["passed"]) or "sin casos"
 
 
-def problems(eid, needs):
-    """Devuelve los problemas del ejercicio, si los hay."""
+def problems(eid, needs, hints=None):
+    """Devuelve problemas del ejercicio y valida sus referencias a pistas."""
     d = spec.folder(eid)
     if missing := spec.missing_files(eid):
         return [f"faltan {', '.join(missing)}"]
     solution = (d / "solution.py").read_text(encoding="utf-8")
     found = []
+    if hints is not None:
+        for fn, _ in spec.load_cases(d / "check.py"):
+            number = getattr(fn, "qg_hint", None)
+            if number is not None and number > hints:
+                found.append(
+                    f"{fn.__name__} nombra la pista {number} y el ejercicio tiene {hints}"
+                )
     solved = grade(eid, solution)
     if not solved["passed"]:
         found.append(f"solution.py no pasa: {failures(solved)}")
@@ -69,6 +82,7 @@ def problems(eid, needs):
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     needs = declared()
+    hints = {eid: len(blk["hints"]) for eid, blk in published().items()}
     ids = sys.argv[1:] or sorted(set(needs) | set(spec.all_ids()))
     bad = 0
     for eid in ids:
@@ -77,7 +91,7 @@ def main():
             bad += 1
             continue
         try:
-            found = problems(eid, needs[eid])
+            found = problems(eid, needs[eid], hints.get(eid))
         except ValueError as exc:
             found = [str(exc)]
         for line in found:

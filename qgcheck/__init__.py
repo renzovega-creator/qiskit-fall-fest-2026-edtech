@@ -8,9 +8,10 @@
 
 Cada función `test_*` es un caso. Con `@visible` el alumno ve su nombre y su mensaje; sin él, el
 caso es oculto: el alumno solo ve «caso oculto» y el mensaje del `assert`, así que ese mensaje no
-debe revelar los datos del caso. Lo que el alumno escribió se lee con `learner.<nombre>` dentro
-del caso, no al importar el archivo. Este módulo no importa qiskit hasta que se llama a un
-ayudante, para que build.py pueda leer los casos sin él.
+debe revelar los datos del caso. `@hint(2)` enlaza el caso con la pista 2 del ejercicio (la primera
+es la 1). Si el caso falla, el alumno ve esa pista junto a él. Lo que el alumno escribió se lee con
+`learner.<nombre>` dentro del caso, no al importar el archivo. Este módulo no importa qiskit hasta
+que se llama a un ayudante, para que build.py pueda leer los casos sin él.
 """
 from collections import Counter
 
@@ -22,6 +23,18 @@ def visible(name):
     def mark(fn):
         fn.qg_visible = name
         return fn
+    return mark
+
+
+def hint(number):
+    """Enlaza este caso con la pista `number` (desde 1) de `hints` del ejercicio."""
+    if isinstance(number, bool) or not isinstance(number, int) or number < 1:
+        raise ValueError(f"la pista se numera desde 1, no {number!r}")
+
+    def mark(fn):
+        fn.qg_hint = number
+        return fn
+
     return mark
 
 
