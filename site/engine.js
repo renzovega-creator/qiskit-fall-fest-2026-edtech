@@ -524,7 +524,10 @@
   // Progreso guardado por lección: pasos ya escuchados y último paso visitado.
   const store = {
     get(k, d) { try { const v = localStorage.getItem(`qiskit:${k}:${LID}`); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-    set(k, v) { try { localStorage.setItem(`qiskit:${k}:${LID}`, JSON.stringify(v)); } catch (e) {} }
+    set(k, v) {
+      try { localStorage.setItem(`qiskit:${k}:${LID}`, JSON.stringify(v)); } catch (e) {}
+      QGAccount.changed(`qiskit:${k}:${LID}`);
+    }
   };
   let heard = new Set();
   const markHeard = k => { heard.add(k); store.set('heard', [...heard]); };
@@ -713,6 +716,7 @@
           if (solved) return;
           b.classList.add('picked');
           try { localStorage.setItem(key, String(k)); } catch (e) {}
+          QGAccount.changed(key);
           SFX.play('ok'); say('sol', a.after); done(false);
         };
       });
@@ -755,6 +759,7 @@
       done.add(LID);
       localStorage.setItem('qiskit:done', JSON.stringify([...done]));
     } catch (e) {}
+    QGAccount.changed('qiskit:done');
     $('#end-title').textContent = L.title;
     $('#end-score').textContent = asked ? `Preguntas acertadas al primer intento: ${firstTry} de ${asked}.` : '';
     const ul = $('#end-practice'); ul.textContent = '';
@@ -769,6 +774,7 @@
   // ---------- arranque ----------
   async function init() {
     if (!LID) { location.href = 'index.html'; return; }
+    await QGAccount.ready;
     L = await (await fetch(BASE + 'lesson.json')).json();
     T = await (await fetch(BASE + 'timings.json')).json();
     beats = L.beats;
