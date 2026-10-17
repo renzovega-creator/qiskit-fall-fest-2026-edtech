@@ -105,8 +105,11 @@ function fakeSiteverify(siteverify: Siteverify, down: boolean) {
     siteverify.calls.push(Object.fromEntries(form));
     if (down) return new Response("caído", { status: 502 });
     const secret = form.get("secret") ?? "";
-    if (secret.startsWith("1x")) return Response.json({ success: true, "error-codes": [] });
-    const code = secret.startsWith("3x") ? "timeout-or-duplicate" : "invalid-input-response";
+    if (secret.startsWith("1x"))
+      return Response.json({ success: true, "error-codes": [] });
+    const code = secret.startsWith("3x")
+      ? "timeout-or-duplicate"
+      : "invalid-input-response";
     return Response.json({ success: false, "error-codes": [code] });
   };
 }
@@ -114,12 +117,18 @@ function fakeSiteverify(siteverify: Siteverify, down: boolean) {
 export interface Options {
   // FAKE_SETTLE_FAILS hace fallar el ajuste del presupuesto y FAKE_PICKS elige las
   // instancias del contenedor (test/entry.ts).
-  vars?: Partial<typeof VARS> & { FAKE_SETTLE_FAILS?: string; FAKE_PICKS?: string };
+  vars?: Partial<typeof VARS> & {
+    FAKE_SETTLE_FAILS?: string;
+    FAKE_PICKS?: string;
+  };
   // Sin esto el Worker llama al servicio real de Turnstile.
   siteverify?: "fake" | "down" | "real";
 }
 
-const SCHEMA = readFileSync(path.join(import.meta.dirname, "../src/schema.sql"), "utf8")
+const SCHEMA = readFileSync(
+  path.join(import.meta.dirname, "../src/schema.sql"),
+  "utf8",
+)
   .replace(/^--.*$/gm, "")
   .split(";")
   .map((statement) => statement.trim())
@@ -129,7 +138,10 @@ export async function start(options: Options = {}): Promise<Harness> {
   const logs: string[] = [];
   const siteverify: Siteverify = { calls: [] };
   const provider = new FakeProvider();
-  const verify = fakeSiteverify(siteverify, (options.siteverify ?? "fake") === "down");
+  const verify = fakeSiteverify(
+    siteverify,
+    (options.siteverify ?? "fake") === "down",
+  );
   const mode = options.siteverify ?? "fake";
   const mf = new Miniflare(
     convertV4MiniflareOptions({
@@ -156,9 +168,12 @@ export async function start(options: Options = {}): Promise<Harness> {
         ? {}
         : {
             outboundService: (request: Request) =>
-              provider.owns(new URL(request.url)) ? provider.handle(request) : verify(request),
+              provider.owns(new URL(request.url))
+                ? provider.handle(request)
+                : verify(request),
           }),
-      handleStructuredLogs: (log: { message: string }) => logs.push(log.message),
+      handleStructuredLogs: (log: { message: string }) =>
+        logs.push(log.message),
       logRequests: false,
     }),
   );
@@ -170,7 +185,11 @@ export async function start(options: Options = {}): Promise<Harness> {
     try {
       body = JSON.parse(text);
     } catch {}
-    return { status: response.status, headers: response.headers as unknown as Headers, body };
+    return {
+      status: response.status,
+      headers: response.headers as unknown as Headers,
+      body,
+    };
   };
   const db = await mf.getD1Database("DB");
   for (const statement of SCHEMA) await db.prepare(statement).run();
@@ -182,14 +201,20 @@ export async function start(options: Options = {}): Promise<Harness> {
     purge: async (at = new Date()) => {
       await (await mf.getWorker()).scheduled({ scheduledTime: at });
     },
-    request: async (method, pathname, { ip = "198.51.100.7", headers = {}, body } = {}) =>
+    request: async (
+      method,
+      pathname,
+      { ip = "198.51.100.7", headers = {}, body } = {},
+    ) =>
       reply(
         await mf.dispatchFetch(`http://runner.test${pathname}`, {
           method,
           redirect: "manual",
           headers: {
             "cf-connecting-ip": ip,
-            ...(body === undefined ? {} : { "content-type": "application/json" }),
+            ...(body === undefined
+              ? {}
+              : { "content-type": "application/json" }),
             ...headers,
           },
           ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -199,7 +224,11 @@ export async function start(options: Options = {}): Promise<Harness> {
       reply(
         await mf.dispatchFetch("http://runner.test/run", {
           method: "POST",
-          headers: { "content-type": "application/json", "cf-connecting-ip": ip, ...headers },
+          headers: {
+            "content-type": "application/json",
+            "cf-connecting-ip": ip,
+            ...headers,
+          },
           body: raw ?? JSON.stringify(body),
         }),
       ),
@@ -229,9 +258,11 @@ export async function start(options: Options = {}): Promise<Harness> {
         req.flushHeaders();
       });
     },
-    get: async (pathname) => reply(await mf.dispatchFetch(`http://runner.test${pathname}`)),
+    get: async (pathname) =>
+      reply(await mf.dispatchFetch(`http://runner.test${pathname}`)),
     workerLogs: () => logs.filter((line) => !line.startsWith("FAKE_RUNNER_")),
-    runnerStops: () => logs.filter((line) => line === "FAKE_RUNNER_STOP").length,
+    runnerStops: () =>
+      logs.filter((line) => line === "FAKE_RUNNER_STOP").length,
     runnerCalls: () =>
       logs
         .filter((line) => line.startsWith("FAKE_RUNNER_CALL"))

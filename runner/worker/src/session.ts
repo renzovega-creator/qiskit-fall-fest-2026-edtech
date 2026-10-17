@@ -1,16 +1,23 @@
 const COOKIE = "qg_session";
-const TURNSTILE_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+const TURNSTILE_URL =
+  "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const MAX_TOKEN_CHARS = 2048;
 
 const encoder = new TextEncoder();
 
 function hex(bytes: ArrayBuffer): string {
-  return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return [...new Uint8Array(bytes)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 // HMAC-SHA256 con una clave derivada del secreto de Turnstile y de una etiqueta,
 // para que la cookie y el nombre del limitador no compartan clave.
-export async function mac(secret: string, label: string, message: string): Promise<string> {
+export async function mac(
+  secret: string,
+  label: string,
+  message: string,
+): Promise<string> {
   const root = await crypto.subtle.importKey(
     "raw",
     encoder.encode(secret),
@@ -43,7 +50,10 @@ export async function issueSession(
   return `${COOKIE}=${expires}.${tag}; Max-Age=${maxAge}; Path=/run; HttpOnly; Secure; SameSite=Strict`;
 }
 
-export function getCookie(cookieHeader: string | null, name: string): string | undefined {
+export function getCookie(
+  cookieHeader: string | null,
+  name: string,
+): string | undefined {
   return cookieHeader
     ?.split(";")
     .map((part) => part.trim())
@@ -59,7 +69,8 @@ export async function hasSession(
 ): Promise<boolean> {
   const value = getCookie(cookieHeader, COOKIE);
   const [expires, tag] = value?.split(".") ?? [];
-  if (!expires || !tag || !/^\d+$/.test(expires) || Number(expires) <= now) return false;
+  if (!expires || !tag || !/^\d+$/.test(expires) || Number(expires) <= now)
+    return false;
   const expected = await mac(secret, "session", `${expires}|${ip}`);
   return (
     expected.length === tag.length &&
@@ -70,7 +81,10 @@ export async function hasSession(
 export type Verification = "ok" | "rejected" | "unavailable";
 
 // Solo se envían el secreto y el token; la IP del alumno no sale del Worker.
-export async function verifyTurnstile(secret: string, token: string): Promise<Verification> {
+export async function verifyTurnstile(
+  secret: string,
+  token: string,
+): Promise<Verification> {
   if (token.length > MAX_TOKEN_CHARS) return "rejected";
   try {
     const response = await fetch(TURNSTILE_URL, {

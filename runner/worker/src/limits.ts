@@ -70,7 +70,9 @@ export class ConfigError extends Error {
 function positive(env: Env, name: NumericVar, integer: boolean): number {
   const n = Number(env[name]);
   if (!Number.isFinite(n) || n <= 0 || (integer && !Number.isInteger(n))) {
-    throw new ConfigError(`${name} debe ser un número positivo${integer ? " entero" : ""}`);
+    throw new ConfigError(
+      `${name} debe ser un número positivo${integer ? " entero" : ""}`,
+    );
   }
   return n;
 }

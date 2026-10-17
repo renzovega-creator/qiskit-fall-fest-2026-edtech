@@ -1,0 +1,17 @@
+{
+  "$schema": "./runner/worker/node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 80,
+  "proseWrap": "always",
+  "ignorePatterns": [
+    "site/lessons/**",
+    "site/course.json",
+    "site/editor.js",
+    "content/**",
+    "practica/soluciones/**",
+    ".cache/**",
+    "**/bun.lock",
+    "**/*.html",
+    "**/*.css",
+    "**/*.toml"
+  ]
+}

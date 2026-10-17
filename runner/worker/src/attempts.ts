@@ -39,7 +39,9 @@ export function toAttempt(
   if (!isRecord(result) || typeof result.passed !== "boolean") return null;
 
   const killed =
-    typeof result.killed === "string" && KILLED.has(result.killed) ? result.killed : null;
+    typeof result.killed === "string" && KILLED.has(result.killed)
+      ? result.killed
+      : null;
   let outcome: Attempt["outcome"] = result.passed ? "pass" : "fail";
   let errorKind: string | null = null;
   if (killed === "time") {
@@ -54,7 +56,12 @@ export function toAttempt(
 
   const failed = Array.isArray(result.tests)
     ? result.tests
-        .filter((test) => isRecord(test) && test.passed === false && typeof test.name === "string")
+        .filter(
+          (test) =>
+            isRecord(test) &&
+            test.passed === false &&
+            typeof test.name === "string",
+        )
         .slice(0, MAX_FAILED)
         .map((test) => (test.name as string).slice(0, MAX_CASE_CHARS))
     : [];
