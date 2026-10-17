@@ -280,22 +280,22 @@
   ]
  },
  "q2": {
-  "dur": 8.376,
+  "dur": 4.56,
   "marks": {},
   "cues": [
    [
     0.107,
-    "Otro experimento: vuelve al circuito de Bell y, justo antes de medir, añade una X sobre el qubit uno."
+    "Piensa en el circuito de tres qubits que acabamos de medir."
    ]
   ]
  },
  "mision": {
-  "dur": 28.968,
+  "dur": 23.904,
   "marks": {
-   "n1": 7.374,
-   "n2": 10.601,
-   "n3": 15.682,
-   "check": 21.951
+   "n1": 2.449,
+   "n2": 5.675,
+   "n3": 10.756,
+   "check": 17.026
   },
   "cues": [
    [
@@ -304,23 +304,19 @@
    ],
    [
     2.449,
-    "Abre el cuaderno de práctica de esta lección con el comando de abajo."
-   ],
-   [
-    7.374,
     "Primero reproduces el estado de Bell."
    ],
    [
-    10.601,
+    5.675,
     "Después lo modificas para que los qubits salgan siempre distintos."
    ],
    [
-    15.682,
+    10.756,
     "Y por último creas una función que prepara un estado GHZ de cualquier tamaño."
    ],
    [
-    21.951,
-    "Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde."
+    17.026,
+    "Escribe tu código en el editor y pulsa Comprobar: los casos se corren en esta misma página."
    ]
   ]
  },

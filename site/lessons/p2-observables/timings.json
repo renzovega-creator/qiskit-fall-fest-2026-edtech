@@ -80,6 +80,32 @@
    ]
   ]
  },
+ "promedio": {
+  "dur": 29.304,
+  "marks": {
+   "bucle": 6.369,
+   "res": 16.899,
+   "eje": 21.173
+  },
+  "cues": [
+   [
+    0.107,
+    "Construyamos la magnetización media de tres espines, esta vez sobre el eje Y."
+   ],
+   [
+    6.369,
+    "Es una suma de términos de un solo qubit: una tripleta por espín, con la letra de Pauli, el espín donde actúa y el coeficiente uno entre n."
+   ],
+   [
+    16.899,
+    "Con tres espines, cada término pesa un tercio."
+   ],
+   [
+    21.173,
+    "La letra es el eje: cambiarla por X o por Z promedia las X o las Z, sin tocar nada más."
+   ]
+  ]
+ },
  "descomponer": {
   "dur": 31.536,
   "marks": {

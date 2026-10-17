@@ -1,0 +1,96 @@
+{
+ "repaso1": {
+  "dur": 10.032,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Tres preguntas rápidas de la Parte cuatro, y después una pregunta del proyecto Ising."
+   ],
+   [
+    6.567,
+    "La primera, sobre las primitivas."
+   ]
+  ]
+ },
+ "repaso2": {
+  "dur": 4.152,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Segunda pregunta, sobre el efecto del ruido."
+   ]
+  ]
+ },
+ "repaso3": {
+  "dur": 4.896,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Tercera pregunta, sobre qué método de simulación elegir."
+   ]
+  ]
+ },
+ "validez": {
+  "dur": 19.272,
+  "marks": {
+   "ej": 3.482,
+   "n": 16.8
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora la pregunta del proyecto Ising."
+   ],
+   [
+    3.482,
+    "Simulaste la magnetización con y sin ruido."
+   ],
+   [
+    7.388,
+    "Para saber cuántos pasos pedirle a un QPU, necesitas el instante en que la versión ruidosa se aleja demasiado de la exacta."
+   ],
+   [
+    16.8,
+    "Escribe esa función."
+   ]
+  ]
+ },
+ "cierre": {
+  "dur": 29.496,
+  "marks": {
+   "r1": 2.406,
+   "r2": 7.968,
+   "r3": 12.2,
+   "r4": 17.154
+  },
+  "cues": [
+   [
+    0.107,
+    "Resumen de la parte."
+   ],
+   [
+    2.406,
+    "Estimator da valores esperados; Sampler, cadenas de bits."
+   ],
+   [
+    7.968,
+    "El error de cada puerta multiplica la supervivencia."
+   ],
+   [
+    12.2,
+    "El método stabilizer simula circuitos de Clifford grandes."
+   ],
+   [
+    17.154,
+    "Y el tiempo de validez dice hasta cuándo te puedes fiar de una simulación con ruido."
+   ],
+   [
+    23.084,
+    "Con esto cierras la Parte cuatro; en la siguiente, ejecutar en IBM Quantum."
+   ]
+  ]
+ }
+}

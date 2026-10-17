@@ -1,0 +1,92 @@
+{
+ "repaso1": {
+  "dur": 10.104,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Tres preguntas rápidas de la Parte uno, y después una función del proyecto Ising."
+   ],
+   [
+    6.454,
+    "La primera, sobre el flujo de trabajo."
+   ]
+  ]
+ },
+ "repaso2": {
+  "dur": 5.568,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Segunda pregunta, sobre el estado GHZ de tres qubits."
+   ]
+  ]
+ },
+ "repaso3": {
+  "dur": 3.864,
+  "marks": {},
+  "cues": [
+   [
+    0.107,
+    "Tercera pregunta, sobre las primitivas."
+   ]
+  ]
+ },
+ "paso": {
+  "dur": 16.8,
+  "marks": {
+   "ej": 3.722,
+   "n": 11.393
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora el primer paso del proyecto Ising."
+   ],
+   [
+    3.722,
+    "Dos espines, un campo y un acoplamiento: te toca escribir el circuito de un solo paso de tiempo."
+   ],
+   [
+    11.393,
+    "Se compara con el paso exacto de Trotter, calculado con matrices."
+   ]
+  ]
+ },
+ "cierre": {
+  "dur": 26.616,
+  "marks": {
+   "r1": 2.406,
+   "r2": 5.647,
+   "r3": 10.035,
+   "r4": 14.903
+  },
+  "cues": [
+   [
+    0.107,
+    "Resumen de la parte."
+   ],
+   [
+    2.406,
+    "Todo programa sigue cuatro pasos."
+   ],
+   [
+    5.647,
+    "En hardware solo se ejecutan circuitos ISA."
+   ],
+   [
+    10.035,
+    "En un GHZ, los tres qubits coinciden siempre."
+   ],
+   [
+    14.903,
+    "Y un paso de Trotter aplica una rzz y después una rx por espín."
+   ],
+   [
+    20.833,
+    "Con esto cierras la Parte uno; en la siguiente, los circuitos a fondo."
+   ]
+  ]
+ }
+}

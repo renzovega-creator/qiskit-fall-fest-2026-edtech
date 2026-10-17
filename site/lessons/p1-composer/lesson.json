@@ -893,7 +893,7 @@
   "Escribe en el editor de OpenQASM una puerta propia `ghz a, b, c` y úsala en un circuito de tres qubits.",
   "Guías originales: [composer](https://quantum.cloud.ibm.com/docs/en/guides/composer)"
  ],
- "next": "p2-circuitos",
+ "next": "p1-cierre",
  "voice": "es-PE-AlexNeural",
  "rate": "-4%"
 }

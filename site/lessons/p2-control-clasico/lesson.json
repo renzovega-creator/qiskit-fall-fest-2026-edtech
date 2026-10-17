@@ -646,13 +646,13 @@
      "level": 2,
      "needs": "aer",
      "hints": [
-      "Hoy la X corrige la rama en que la moneda sale 1, y así el bit termina en 0.",
-      "Para terminar en 1, la corrección debe caer en la otra rama.",
-      "Mira con qué valor compara la condición el bit medido."
+      "Sigue las dos ramas de la primera medición hasta la segunda: en cada una, ¿qué lee el bit al final?",
+      "No toques las puertas ni las mediciones: lo único que cambia es la condición del `if_test`.",
+      "La condición es una pareja `(bit, valor)`: el `if_test` se cumple cuando el bit medido vale ese valor."
      ],
      "id": "e2",
      "hidden": true,
-     "starter": "from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister\nfrom qiskit_aer.primitives import SamplerV2\n\nq = QuantumRegister(1, \"q\")\nc = ClassicalRegister(1, \"c\")\nsiempre_uno = QuantumCircuit(q, c)\nsiempre_uno.h(q[0])\nsiempre_uno.measure(q[0], c[0])\nwith siempre_uno.if_test((c[0], 1)):   # ✏️ ¿con qué valor del bit hay que aplicar la X?\n    siempre_uno.x(q[0])\nsiempre_uno.measure(q[0], c[0])\n\nresultado = SamplerV2(seed=11).run([siempre_uno], shots=512).result()\nprint(resultado[0].data.c.get_counts())",
+     "starter": "from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister\nfrom qiskit_aer.primitives import SamplerV2\n\nq = QuantumRegister(1, \"q\")\nc = ClassicalRegister(1, \"c\")\nsiempre_uno = QuantumCircuit(q, c)\nsiempre_uno.h(q[0])\nsiempre_uno.measure(q[0], c[0])\nwith siempre_uno.if_test((c[0], 1)):   # ✏️ cambia solo esta condición\n    siempre_uno.x(q[0])\nsiempre_uno.measure(q[0], c[0])\n\nresultado = SamplerV2(seed=11).run([siempre_uno], shots=512).result()\nprint(resultado[0].data.c.get_counts())",
      "cases": [
       "el resultado final es siempre 1",
       "sigue siendo la moneda: una H y la X dentro del if_test"
@@ -661,17 +661,17 @@
     {
      "type": "exercise",
      "exercise": "p2-control-clasico/hasta-uno",
-     "prompt": "Escribe `hasta_uno()`: devuelve un circuito de 1 qubit `q` y 1 bit `c` (ya creados) que lanza la moneda y repite con `while_loop` hasta medir 1, sin usar ninguna puerta X. Ojo: el bucle repite mientras la condición se cumple, así que la condición es que el bit siga valiendo 0, y el bit debe medirse antes de entrar en el bucle.",
+     "prompt": "Escribe `hasta_uno()`: devuelve un circuito de 1 qubit `q` y 1 bit `c` (ya creados) que lanza la moneda y repite con `while_loop` hasta medir 1, sin usar ninguna puerta X. Ojo: el bucle repite mientras la condición se cumple, no hasta que se cumpla, y el bit debe medirse antes de entrar en el bucle.",
      "level": 3,
      "needs": "aer",
      "hints": [
       "Piensa en un «repetir hasta»: el bucle sigue mientras el resultado todavía no es el que buscas.",
-      "La moneda se lanza una vez antes del bucle y otra vez dentro, para que la condición tenga un valor que comprobar.",
-      "Lo que haces dentro del bucle es lo mismo que fuera."
+      "Primero va una moneda fuera del bucle, para que el bit tenga un valor que comprobar; el cuerpo del bucle lanza la moneda otra vez.",
+      "La condición del bucle es una pareja `(registro, valor)`, igual que la del `if_test`."
      ],
      "id": "e3",
      "hidden": true,
-     "starter": "from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister\nfrom qiskit_aer.primitives import SamplerV2\n\n\ndef hasta_uno():\n    q = QuantumRegister(1, \"q\")\n    c = ClassicalRegister(1, \"c\")\n    qc = QuantumCircuit(q, c)\n    # ✏️ lanza la moneda y repítela mientras c valga 0\n    return qc\n\n\nresultado = SamplerV2(seed=11).run([hasta_uno()], shots=500).result()\nprint(resultado[0].data.c.get_counts())",
+     "starter": "from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister\nfrom qiskit_aer.primitives import SamplerV2\n\n\ndef hasta_uno():\n    q = QuantumRegister(1, \"q\")\n    c = ClassicalRegister(1, \"c\")\n    qc = QuantumCircuit(q, c)\n    # ✏️ tu código aquí\n    return qc\n\n\nresultado = SamplerV2(seed=11).run([hasta_uno()], shots=500).result()\nprint(resultado[0].data.c.get_counts())",
      "cases": [
       "el circuito tiene un while_loop y un bit clásico",
       "el 1 sale del bucle, sin ninguna puerta X",

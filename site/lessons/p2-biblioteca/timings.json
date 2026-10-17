@@ -244,6 +244,41 @@
    ]
   ]
  },
+ "acarreo": {
+  "dur": 28.08,
+  "marks": {
+   "ej": 3.751,
+   "cout": 9.072,
+   "med": 14.847,
+   "res": 20.663
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora una suma que no cabe en el registro."
+   ],
+   [
+    3.751,
+    "Seis más cinco son once, pero tres bits solo llegan hasta siete."
+   ],
+   [
+    9.072,
+    "El bit que falta lo deja el sumador en el qubit cout, el acarreo de salida."
+   ],
+   [
+    14.847,
+    "Por eso medimos b y cout juntos, en un registro clásico de cuatro bits."
+   ],
+   [
+    20.663,
+    "Sale once en los mil veinticuatro disparos."
+   ],
+   [
+    24.244,
+    "Si midiéramos solo b, saldría tres."
+   ]
+  ]
+ },
  "q1": {
   "dur": 3.72,
   "marks": {},

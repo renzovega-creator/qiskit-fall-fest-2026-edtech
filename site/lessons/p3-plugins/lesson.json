@@ -788,7 +788,7 @@
   "Instala `qiskit-ibm-transpiler` y prueba `generate_ai_pass_manager` con el mapa de acoplamiento de `FakeFez`.",
   "Guías originales: [transpiler-plugins](https://quantum.cloud.ibm.com/docs/en/guides/transpiler-plugins) · [create-transpiler-plugin](https://quantum.cloud.ibm.com/docs/en/guides/create-transpiler-plugin) · [ai-transpiler-passes](https://quantum.cloud.ibm.com/docs/en/guides/ai-transpiler-passes)"
  ],
- "next": "p4-primitivas",
+ "next": "p3-cierre",
  "voice": "es-PE-AlexNeural",
  "rate": "-4%"
 }

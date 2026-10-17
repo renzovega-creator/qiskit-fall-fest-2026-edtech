@@ -602,6 +602,30 @@ print(result[0].data.res.get_int_counts())''', id="c", size=19),
              [A("hl", "c", at="add", range="17-19"), A("hl", "c", at="ini", range="5-10"), A("hl", "c", at="regs", range="12-15"),
               A("hl", "c", at="med", lines=[20]), A("hl", "c", at="res", range="22-23"), A("show", "o", at="res")]),
 
+        beat("acarreo", ("", "Una suma que no cabe"),
+             """Ahora una suma que no cabe en el registro. [[ej]]Seis más cinco son once, pero tres bits solo llegan hasta siete. [[cout]]El bit que falta lo deja el sumador en el qubit cout, el acarreo de salida.
+             [[med]]Por eso medimos b y cout juntos, en un registro clásico de cuatro bits. [[res]]Sale once en los mil veinticuatro disparos. Si midiéramos solo b, saldría tres.""",
+             [Code('''from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+from qiskit.circuit.library import FullAdderGate
+from qiskit.primitives import StatevectorSampler
+
+cin = QuantumRegister(1, "cin")
+a = QuantumRegister(3, "a")
+b = QuantumRegister(3, "b")
+cout = QuantumRegister(1, "cout")
+res = ClassicalRegister(4, "res")
+circuit = QuantumCircuit(cin, a, b, cout, res)
+circuit.initialize(6, a)
+circuit.initialize(5, b)
+circuit.append(FullAdderGate(3), circuit.qubits)
+circuit.measure([*b, *cout], res)
+
+result = StatevectorSampler().run([circuit]).result()
+print(result[0].data.res.get_int_counts())''', id="c", size=19),
+              Out("{11: 1024}", id="o", hidden=True, check=True)],
+             [A("hl", "c", at="ej", range="11-12"), A("hl", "c", at="cout", lines=[8]), A("hl", "c", at="med", lines=[14]),
+              A("hl", "c", at="res", range="16-17"), A("show", "o", at="res")]),
+
         beat("q1", ("", "Comprueba"),
              """Una pregunta sobre los circuitos N-local.""",
              [Code('n_local(5, "ry", "cz", reps=2)')],
@@ -652,7 +676,7 @@ print(result[0].data.res.get_int_counts())''', id="c", size=19),
     ],
     sources=["circuit-library"],
     practice=["Dibuja `n_local(3, \"ry\", \"cx\", entanglement=\"linear\", reps=1)` y compáralo con el de la lección.",
-              "Modifica el sumador para calcular 5 + 6. ¿Cuántos bits necesita el resultado? Pista: mide también `cout`."])
+              "Repite la suma de tres bits con 7 + 7. ¿Cuántos bits necesita el resultado y qué registro lo deja?"])
 
 # ------------------------------------------------------------------ 2.5 Operadores
 s_cierre, a_cierre = resumen(["`SparsePauliOp`: suma de cadenas de Pauli · el más usado para observables",
@@ -896,6 +920,18 @@ print(hamiltonian)''', id="c"),
               coeffs=[ 1.+0.j,  1.+0.j,  1.+0.j, -1.+0.j, -1.+0.j, -1.+0.j, -1.+0.j])''', id="o", hidden=True, check=True),
               M(r"M=\tfrac1n\sum_i Z_i", id="m", hidden=True, size=36)],
              [A("hl", "c", at="int", lines=[4]), A("hl", "c", at="campo", lines=[5]), A("show", "o", at="res"), A("show", "m", at="mag")]),
+
+        beat("promedio", ("", "Un observable de n qubits"),
+             """Construyamos la magnetización media de tres espines, esta vez sobre el eje Y. [[bucle]]Es una suma de términos de un solo qubit: una tripleta por espín, con la letra de Pauli, el espín donde actúa y el coeficiente uno entre n.
+             [[res]]Con tres espines, cada término pesa un tercio. [[eje]]La letra es el eje: cambiarla por X o por Z promedia las X o las Z, sin tocar nada más.""",
+             [Code('''n = 3
+axis = "Y"
+mean_y = SparsePauliOp.from_sparse_list(
+    [(axis, [i], 1 / n) for i in range(n)], num_qubits=n)
+print(mean_y)''', id="c", setup="from qiskit.quantum_info import SparsePauliOp"),
+              Out('''SparsePauliOp(['IIY', 'IYI', 'YII'],
+              coeffs=[0.33333333+0.j, 0.33333333+0.j, 0.33333333+0.j])''', id="o", hidden=True, check=True)],
+             [A("hl", "c", at="bucle", range="3-4"), A("show", "o", at="res"), A("hl", "c", at="eje", lines=[2])]),
 
         beat("descomponer", ("", "De matriz a Paulis"),
              """¿Y si tu observable viene como matriz? Las cadenas de Pauli forman una base de las matrices hermíticas, así que siempre se puede descomponer.
@@ -1209,15 +1245,15 @@ circuit.barrier()''', id="c", setup=CONTROL_SETUP),
               Exercise("p2-control-clasico/siempre-uno",
                        "Cambia solo la condición del `if_test` para que el resultado final sea siempre 1.",
                        level=2, needs="aer", id="e2", hidden=True,
-                       hints=["Hoy la X corrige la rama en que la moneda sale 1, y así el bit termina en 0.",
-                              "Para terminar en 1, la corrección debe caer en la otra rama.",
-                              "Mira con qué valor compara la condición el bit medido."]),
+                       hints=["Sigue las dos ramas de la primera medición hasta la segunda: en cada una, ¿qué lee el bit al final?",
+                              "No toques las puertas ni las mediciones: lo único que cambia es la condición del `if_test`.",
+                              "La condición es una pareja `(bit, valor)`: el `if_test` se cumple cuando el bit medido vale ese valor."]),
               Exercise("p2-control-clasico/hasta-uno",
-                       "Escribe `hasta_uno()`: devuelve un circuito de 1 qubit `q` y 1 bit `c` (ya creados) que lanza la moneda y repite con `while_loop` hasta medir 1, sin usar ninguna puerta X. Ojo: el bucle repite mientras la condición se cumple, así que la condición es que el bit siga valiendo 0, y el bit debe medirse antes de entrar en el bucle.",
+                       "Escribe `hasta_uno()`: devuelve un circuito de 1 qubit `q` y 1 bit `c` (ya creados) que lanza la moneda y repite con `while_loop` hasta medir 1, sin usar ninguna puerta X. Ojo: el bucle repite mientras la condición se cumple, no hasta que se cumpla, y el bit debe medirse antes de entrar en el bucle.",
                        level=3, needs="aer", id="e3", hidden=True,
                        hints=["Piensa en un «repetir hasta»: el bucle sigue mientras el resultado todavía no es el que buscas.",
-                              "La moneda se lanza una vez antes del bucle y otra vez dentro, para que la condición tenga un valor que comprobar.",
-                              "Lo que haces dentro del bucle es lo mismo que fuera."])],
+                              "Primero va una moneda fuera del bucle, para que el bit tenga un valor que comprobar; el cuerpo del bucle lanza la moneda otra vez.",
+                              "La condición del bucle es una pareja `(registro, valor)`, igual que la del `if_test`."])],
              [A("show", "e1", at="n1"), A("show", "e2", at="n2"), A("show", "e3", at="n3")]),
 
         beat("reflexion", ("", "Reflexiona"),
@@ -1429,6 +1465,22 @@ with open("test.qpy", "rb") as handle:
 print(len(circuits), circuits[0] == qc)''', id="c", size=23),
               Out("1 True", id="o", hidden=True, check=True)],
              [A("hl", "c", at="dump", range="8-9"), A("hl", "c", at="load", range="11-13"), A("show", "o", at="load", t=1.5)]),
+
+        beat("qpy_memoria", ("", "QPY sin archivo"),
+             """No siempre quieres un archivo en el disco: a veces los bytes van a una base de datos o a una red. [[buf]]io punto BytesIO es un archivo que vive en la memoria, y dump lo acepta como cualquier otro. [[bytes]]Con get value sacas los bytes que escribió.
+             [[load]]Para leer, envuelves esos bytes en otro BytesIO y se lo das a load. [[lista]]La respuesta sigue siendo una lista.""",
+             [Code('''import io
+
+buffer = io.BytesIO()
+qpy.dump(qc, buffer)
+data = buffer.getvalue()
+print(type(data).__name__, len(data) > 0)
+
+restored = qpy.load(io.BytesIO(data))
+print(type(restored).__name__, restored[0] == qc)''', id="c", size=23),
+              Out("bytes True\nlist True", id="o", hidden=True, check=True)],
+             [A("hl", "c", at="buf", lines=[3, 4]), A("hl", "c", at="bytes", lines=[5]), A("hl", "c", at="load", lines=[8]),
+              A("show", "o", at="lista")]),
 
         beat("q2", ("", "Comprueba"),
              """Una pregunta sobre formatos.""",
@@ -1717,4 +1769,76 @@ draw(isa_circuit, style=IQXDebugging(), target=backend.target)''', id="c", size=
     practice=["Grafica el estado de la lección con las cinco funciones y guarda cada figura con `savefig`.",
               "Usa `plot_histogram` con `number_to_keep=3` sobre un circuito aleatorio de 4 qubits."])
 
-LESSONS = [circuitos, medir, orden, biblioteca, operadores, observables, control, qasm, visualizar]
+s_cierre, a_cierre = resumen(["el qubit 0 es el bit menos significativo: va a la derecha de la cadena",
+                              "`n_local` y sus parámetros: una capa de rotaciones más que repeticiones",
+                              "un observable promedio lleva el coeficiente $1/n$ en cada término",
+                              "QPY guarda un circuito en memoria sin perder nada"])
+cierre = lesson(
+    "p2-cierre", "Cierre de la Parte II: repaso y magnetización",
+    "Un repaso corto de la Parte dos y una última función del proyecto Ising: la curva de magnetización de una cadena.",
+    ["recordar el orden de bits, los parámetros de un circuito N-local, los observables promedio y QPY",
+     "calcular la curva de magnetización de una cadena con circuitos de Trotter"],
+    [
+        beat("repaso1", ("", "Repaso: orden de bits"),
+             """Empezamos con cuatro preguntas rápidas de lo que viste en esta parte. La primera, sobre el orden de los bits.""",
+             [Code('''from qiskit import QuantumCircuit
+
+qc = QuantumCircuit(3)
+qc.x(2)
+qc.measure_all()''', id="c", size=26)],
+             ask=choice("Ejecutas el circuito con un Sampler. ¿Qué cadena de bits sale?", ["`001`", "`100`", "`010`"], 1,
+                        "Correcto: la X actúa sobre el qubit 2, el bit más significativo, y las cadenas se escriben con el qubit 0 a la derecha.",
+                        wrong=["Esa sería la X sobre el qubit 0: el qubit 0 es el bit de la derecha.", None,
+                               "Eso sería la X sobre el qubit 1."])),
+
+        beat("repaso2", ("", "Repaso: biblioteca"),
+             """Segunda pregunta, sobre la biblioteca de circuitos.""",
+             [Code('''from qiskit.circuit.library import n_local
+
+circuito = n_local(4, "ry", "cz", reps=2)''', id="c", size=26)],
+             ask=numeric("¿Cuántos parámetros tiene `circuito.num_parameters`?", 12,
+                         "Correcto: con `reps=2` hay tres capas de rotaciones, una más que las repeticiones, y cada una lleva un ángulo por cada uno de los 4 qubits: $3\\cdot4=12$.",
+                         tol=0, hint="Cuenta las capas de rotaciones: hay una más que las repeticiones.")),
+
+        beat("repaso3", ("", "Repaso: observables"),
+             """Tercera pregunta, sobre observables.""",
+             [Code('''from qiskit.quantum_info import SparsePauliOp
+
+terminos = [("Z", [i], 0.25) for i in range(4)]
+Mz = SparsePauliOp.from_sparse_list(terminos, num_qubits=4)''', id="c", size=24)],
+             ask=numeric("`Mz` es la magnetización de 4 espines, el promedio de sus $Z$. Si cada término lleva el mismo coeficiente, ¿cuánto vale?", 0.25,
+                         "Correcto: un promedio de 4 términos lleva $1/4=0.25$ en cada uno. Con ese coeficiente, todos los espines en $|0\\rangle$ dan $\\langle M_Z\\rangle=1$.",
+                         tol=0.001, hint="Los cuatro coeficientes suman 1 cuando todos los espines valen +1.")),
+
+        beat("repaso4", ("", "Repaso: guardar circuitos"),
+             """Última pregunta, sobre cómo guardar un circuito.""",
+             [Code('''import io
+from qiskit import qpy
+
+archivo = io.BytesIO()
+qpy.dump(circuito, archivo)''', id="c", size=26)],
+             ask=choice("Necesitas guardar un circuito en memoria, sin escribir un archivo, y recuperarlo igual. ¿Qué haces?",
+                        ["`qpy.dump` sobre un `io.BytesIO` y después `qpy.load`", "`circuito.draw()` y guardar el texto", "`print(circuito.data)` y volver a escribirlo"], 0,
+                        "Correcto: QPY escribe en cualquier objeto con forma de archivo, y `qpy.load` devuelve una lista de circuitos.",
+                        wrong=[None, "Un dibujo no se puede volver a cargar como circuito.", "Eso es una lista de instrucciones, no un formato que se pueda cargar."])),
+
+        beat("magnetizacion", ("", "Tu turno"),
+             """Ahora una última función del proyecto Ising. [[ej]]Ya tienes el circuito de Trotter y la magnetización de la lección anterior. Te falta la curva: la magnetización en cada instante, desde cero hasta el último paso.
+             [[n]]Se compara con la evolución exacta de la cadena: si tu curva la sigue, el circuito hace lo que debe.""",
+             [Exercise("p2-cierre/curva-trotter",
+                       r"Escribe `curva_trotter(n, J, h, dt, K)`: `n` espines, acoplamiento `J`, campo `h`, paso de tiempo `dt` y `K` pasos. Devuelve una lista de `K + 1` números: el valor esperado de `magnetizacion(n)` en los tiempos $k\,dt$, para $k = 0, \dots, K$, con la cadena empezando en $|0\dots0\rangle$. `trotter(n, J, h, dt, pasos)` y `magnetizacion(n)` ya están escritas. Ojo: el punto $k = 0$ también cuenta, y `expectation_value` devuelve un número complejo.",
+                       level=3, id="e1", hidden=True,
+                       hints=["Hay un valor por cada número de pasos, empezando en cero.",
+                              "Dentro de un bucle sobre `k`, construye el circuito de `k` pasos y conviértelo en un estado.",
+                              "Del estado sale el valor esperado con el método de `Statevector`; quédate con su parte real y añádela a `valores`."])],
+             [A("show", "e1", at="ej")]),
+
+        beat("cierre", ("", "Resumen"),
+             """Resumen de la parte. [[r1]]El qubit cero es el bit de la derecha. [[r2]]Los circuitos N-local tienen una capa de rotaciones más que repeticiones. [[r3]]Un observable promedio lleva uno entre n en cada término.
+             [[r4]]Y QPY guarda un circuito en memoria. Con esto cierras la Parte dos; en la siguiente, la transpilación.""",
+             s_cierre, a_cierre),
+    ],
+    sources=[],
+    practice=["Dibuja la curva de `curva_trotter` junto a la exacta para n = 6 y dt = 0.3. ¿A partir de qué paso se separan?"])
+
+LESSONS = [circuitos, medir, orden, biblioteca, operadores, observables, control, qasm, visualizar, cierre]

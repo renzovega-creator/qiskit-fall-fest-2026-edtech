@@ -624,6 +624,66 @@
    ]
   },
   {
+   "id": "acarreo",
+   "tag": [
+    "2.4",
+    "Una suma que no cabe"
+   ],
+   "say": "Ahora una suma que no cabe en el registro. [[ej]]Seis más cinco son once, pero tres bits solo llegan hasta siete. [[cout]]El bit que falta lo deja el sumador en el qubit cout, el acarreo de salida. [[med]]Por eso medimos b y cout juntos, en un registro clásico de cuatro bits. [[res]]Sale once en los mil veinticuatro disparos. Si midiéramos solo b, saldría tres.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister\nfrom qiskit.circuit.library import FullAdderGate\nfrom qiskit.primitives import StatevectorSampler\n\ncin = QuantumRegister(1, \"cin\")\na = QuantumRegister(3, \"a\")\nb = QuantumRegister(3, \"b\")\ncout = QuantumRegister(1, \"cout\")\nres = ClassicalRegister(4, \"res\")\ncircuit = QuantumCircuit(cin, a, b, cout, res)\ncircuit.initialize(6, a)\ncircuit.initialize(5, b)\ncircuit.append(FullAdderGate(3), circuit.qubits)\ncircuit.measure([*b, *cout], res)\n\nresult = StatevectorSampler().run([circuit]).result()\nprint(result[0].data.res.get_int_counts())",
+     "lang": "python",
+     "id": "c",
+     "size": 19
+    },
+    {
+     "type": "code",
+     "src": "{11: 1024}",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "11-12",
+     "id": "c",
+     "at": "ej"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      8
+     ],
+     "id": "c",
+     "at": "cout"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      14
+     ],
+     "id": "c",
+     "at": "med"
+    },
+    {
+     "do": "hl",
+     "range": "16-17",
+     "id": "c",
+     "at": "res"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "res"
+    }
+   ]
+  },
+  {
    "id": "q1",
    "tag": [
     "2.4",
@@ -844,7 +904,7 @@
  ],
  "practice": [
   "Dibuja `n_local(3, \"ry\", \"cx\", entanglement=\"linear\", reps=1)` y compáralo con el de la lección.",
-  "Modifica el sumador para calcular 5 + 6. ¿Cuántos bits necesita el resultado? Pista: mide también `cout`.",
+  "Repite la suma de tres bits con 7 + 7. ¿Cuántos bits necesita el resultado y qué registro lo deja?",
   "Guías originales: [circuit-library](https://quantum.cloud.ibm.com/docs/en/guides/circuit-library)"
  ],
  "next": "p2-operadores",

@@ -1,0 +1,229 @@
+{
+ "id": "p3-cierre",
+ "part": "Parte III · Transpilación",
+ "section": "3.8",
+ "title": "Cierre de la Parte III: repaso y cuántos pasos caben",
+ "summary": "Un repaso corto de la Parte tres y una pregunta del proyecto Ising: cuántos pasos de Trotter caben en un presupuesto de profundidad.",
+ "goals": [
+  "recordar qué etapa inserta SWAP, cuánto cuesta cada uno y cómo reproducir una transpilación",
+  "medir la profundidad transpilada de un circuito de Trotter para `FakeFez` y decidir cuántos pasos caben"
+ ],
+ "beats": [
+  {
+   "id": "repaso1",
+   "tag": [
+    "3.8",
+    "Repaso: las etapas"
+   ],
+   "say": "Tres preguntas rápidas de la Parte tres, y después una pregunta del proyecto Ising. La primera, sobre las etapas.",
+   "scene": [
+    {
+     "type": "flow",
+     "steps": [
+      {
+       "t": "init",
+       "s": "puertas de 1 y 2 qubits",
+       "color": "blue"
+      },
+      {
+       "t": "layout",
+       "s": "virtuales → físicos",
+       "color": "teal"
+      },
+      {
+       "t": "routing",
+       "s": "insertar SWAP",
+       "color": "teal"
+      },
+      {
+       "t": "translation",
+       "s": "puertas base",
+       "color": "violet"
+      },
+      {
+       "t": "optimization",
+       "s": "reducir puertas",
+       "color": "gold"
+      },
+      {
+       "t": "scheduling",
+       "s": "tiempos y esperas",
+       "color": "red"
+      }
+     ],
+     "id": "f",
+     "numbered": true
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "choice",
+    "prompt": "Una CX actúa sobre dos qubits que el layout colocó lejos uno de otro en el chip. ¿Qué etapa inserta SWAP para acercarlos?",
+    "options": [
+     "init",
+     "layout",
+     "routing",
+     "scheduling"
+    ],
+    "right": 2,
+    "why": "Correcto: el routing inserta SWAP hasta que los dos qubits son vecinos.",
+    "wrong": [
+     "Init solo reduce las puertas a una o dos de qubits.",
+     "Layout elige dónde empieza cada qubit; no mueve qubits durante el circuito.",
+     null,
+     "Scheduling calcula tiempos; no cambia la conectividad."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "repaso2",
+   "tag": [
+    "3.8",
+    "Repaso: coste de un SWAP"
+   ],
+   "say": "Segunda pregunta, sobre el coste de esos SWAP.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "SWAP = CX · CX · CX",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "numeric",
+    "prompt": "El routing inserta 5 SWAP y la base del chip solo tiene CX como puerta de dos qubits. ¿Cuántas CX añaden?",
+    "answer": 15,
+    "why": "Correcto: cada SWAP se traduce a 3 CX, así que 5 SWAP son 15 CX.",
+    "tol": 0,
+    "hint": "Un SWAP no es una puerta base: se traduce a otras."
+   },
+   "align": "top"
+  },
+  {
+   "id": "repaso3",
+   "tag": [
+    "3.8",
+    "Repaso: semilla"
+   ],
+   "say": "Tercera pregunta, sobre reproducir resultados.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "SabreLayout y SabreSwap usan aleatoriedad",
+     "style": "subtitle"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "choice",
+    "prompt": "Transpilas dos veces el mismo circuito con el nivel 3 y obtienes profundidades distintas. ¿Qué fijas para repetir el resultado?",
+    "options": [
+     "`seed_transpiler`",
+     "`shots`",
+     "`optimization_level=0`"
+    ],
+    "right": 0,
+    "why": "Correcto: el layout y el routing de Sabre son estocásticos, y `seed_transpiler` fija su semilla.",
+    "wrong": [
+     null,
+     "`shots` es de las primitivas, no del transpilador.",
+     "Bajar el nivel cambia el circuito; no fija la aleatoriedad."
+    ]
+   },
+   "align": "top"
+  },
+  {
+   "id": "pasos",
+   "tag": [
+    "3.8",
+    "Tu turno"
+   ],
+   "say": "Ahora la pregunta del proyecto Ising. [[ej]]Cada paso de Trotter añade profundidad al circuito transpilado, y un chip real solo aguanta cierta profundidad. [[n]]Escribe una función que diga cuántos pasos caben dentro de un presupuesto.",
+   "scene": [
+    {
+     "type": "exercise",
+     "exercise": "p3-cierre/pasos-maximos",
+     "prompt": "Escribe `pasos_max(n, presupuesto)`: `n` es el número de espines y `presupuesto`, la profundidad máxima permitida. `trotter(n, pasos)` ya está escrita. Transpila para `FakeFez()` con el nivel 3 y `seed_transpiler=1` el circuito de `pasos` desde 1 hasta 10, y devuelve el mayor número de pasos cuya profundidad no supera el presupuesto, o 0 si ni siquiera cabe uno. Ojo: cuenta la profundidad del circuito transpilado, no la del abstracto.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "Necesitas la profundidad transpilada de cada número de pasos antes de poder comparar con el presupuesto.",
+      "Crea el pass manager una sola vez, fuera del bucle, con `generate_preset_pass_manager` y el backend.",
+      "Guarda las profundidades en un diccionario `pasos → profundidad`; el resultado es el mayor `pasos` cuya profundidad cabe, con un valor por defecto de 0."
+     ],
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.fake_provider import FakeFez\n\n\ndef paso(n, J=1.0, h=0.5, dt=0.1):\n    qc = QuantumCircuit(n)\n    for i in range(n - 1):\n        qc.rzz(2 * J * dt, i, i + 1)\n    for i in range(n):\n        qc.rx(2 * h * dt, i)\n    return qc\n\n\ndef trotter(n, pasos):\n    qc = QuantumCircuit(n)\n    for _ in range(pasos):\n        qc.compose(paso(n), inplace=True)\n    return qc\n\n\ndef pasos_max(n, presupuesto):\n    # ✏️ tu código aquí\n    return 0\n\n\nprint(pasos_max(6, 150))",
+     "cases": [
+      "con 6 espines y un presupuesto de 150 caben tantos pasos como indica la profundidad transpilada",
+      "si ni un paso cabe, devuelve 0"
+     ]
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "e1",
+     "at": "ej"
+    }
+   ]
+  },
+  {
+   "id": "cierre",
+   "tag": [
+    "3.8",
+    "Resumen"
+   ],
+   "say": "Resumen de la parte. [[r1]]El routing inserta SWAP. [[r2]]Cada SWAP cuesta tres CX. [[r3]]Fija seed transpiler para repetir un resultado. [[r4]]Y la profundidad transpilada decide cuántos pasos de Trotter caben. Con esto cierras la Parte tres; en la siguiente, las primitivas y la simulación.",
+   "scene": [
+    {
+     "type": "list",
+     "items": [
+      "el routing inserta SWAP para acercar qubits que no son vecinos",
+      "cada SWAP se traduce a 3 CX",
+      "`seed_transpiler` fija el resultado de un transpilador estocástico",
+      "la profundidad transpilada decide cuántos pasos de Trotter caben"
+     ],
+     "id": "r",
+     "stagger": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "item",
+     "i": 0,
+     "id": "r",
+     "at": "r1"
+    },
+    {
+     "do": "item",
+     "i": 1,
+     "id": "r",
+     "at": "r2"
+    },
+    {
+     "do": "item",
+     "i": 2,
+     "id": "r",
+     "at": "r3"
+    },
+    {
+     "do": "item",
+     "i": 3,
+     "id": "r",
+     "at": "r4"
+    }
+   ]
+  }
+ ],
+ "sources": [],
+ "practice": [
+  "Repite `pasos_max` con `FakeSherbrooke` y compara con `FakeFez`: ¿cuántos pasos caben en un presupuesto de 150?",
+  "Guías originales: "
+ ],
+ "next": "p4-primitivas",
+ "voice": "es-PE-AlexNeural",
+ "rate": "-4%"
+}

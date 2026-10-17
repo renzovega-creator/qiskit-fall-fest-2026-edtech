@@ -78,6 +78,13 @@
        "tasks": 3
       }
      ]
+    },
+    {
+     "id": "p1-cierre",
+     "section": "1.6",
+     "title": "Cierre de la Parte I: repaso y un paso de Trotter",
+     "summary": "Un repaso corto de la Parte uno y el primer paso del proyecto Ising: el circuito de un paso de Trotter.",
+     "minutes": 3
     }
    ]
   },
@@ -111,7 +118,7 @@
      "section": "2.4",
      "title": "La biblioteca de circuitos",
      "summary": "Puertas estándar, circuitos N-local, codificación de datos, evolución temporal, circuitos de referencia y aritmética.",
-     "minutes": 9
+     "minutes": 10
     },
     {
      "id": "p2-operadores",
@@ -154,6 +161,13 @@
        "tasks": 3
       }
      ]
+    },
+    {
+     "id": "p2-cierre",
+     "section": "2.10",
+     "title": "Cierre de la Parte II: repaso y magnetización",
+     "summary": "Un repaso corto de la Parte dos y una última función del proyecto Ising: la curva de magnetización de una cadena.",
+     "minutes": 4
     }
    ]
   },
@@ -216,6 +230,13 @@
        "tasks": 3
       }
      ]
+    },
+    {
+     "id": "p3-cierre",
+     "section": "3.8",
+     "title": "Cierre de la Parte III: repaso y cuántos pasos caben",
+     "summary": "Un repaso corto de la Parte tres y una pregunta del proyecto Ising: cuántos pasos de Trotter caben en un presupuesto de profundidad.",
+     "minutes": 3
     }
    ]
   },
@@ -311,6 +332,13 @@
        "tasks": 3
       }
      ]
+    },
+    {
+     "id": "p4-cierre",
+     "section": "4.7",
+     "title": "Cierre de la Parte IV: repaso y tiempo de validez",
+     "summary": "Un repaso corto de la Parte cuatro y una pregunta del proyecto Ising: hasta qué instante una simulación con ruido sigue la curva exacta.",
+     "minutes": 3
     }
    ]
   },

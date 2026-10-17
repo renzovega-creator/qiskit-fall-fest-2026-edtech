@@ -251,6 +251,37 @@
    ]
   ]
  },
+ "qpy_memoria": {
+  "dur": 26.928,
+  "marks": {
+   "buf": 7.317,
+   "bytes": 14.111,
+   "load": 17.819,
+   "lista": 23.593
+  },
+  "cues": [
+   [
+    0.107,
+    "No siempre quieres un archivo en el disco: a veces los bytes van a una base de datos o a una red."
+   ],
+   [
+    7.317,
+    "io punto BytesIO es un archivo que vive en la memoria, y dump lo acepta como cualquier otro."
+   ],
+   [
+    14.111,
+    "Con get value sacas los bytes que escribió."
+   ],
+   [
+    17.819,
+    "Para leer, envuelves esos bytes en otro BytesIO y se lo das a load."
+   ],
+   [
+    23.593,
+    "La respuesta sigue siendo una lista."
+   ]
+  ]
+ },
  "q2": {
   "dur": 3.0,
   "marks": {},

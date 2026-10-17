@@ -667,7 +667,7 @@
   "Prueba `AerSimulator(method=\"matrix_product_state\")` con un GHZ de 60 qubits.",
   "Guías originales: [local-testing-mode](https://quantum.cloud.ibm.com/docs/en/guides/local-testing-mode) · [local-simulators](https://quantum.cloud.ibm.com/docs/en/guides/local-simulators)"
  ],
- "next": "p5-cuenta",
+ "next": "p4-cierre",
  "voice": "es-PE-AlexNeural",
  "rate": "-4%"
 }
