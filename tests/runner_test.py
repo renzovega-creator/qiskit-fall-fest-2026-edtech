@@ -71,6 +71,14 @@ def processes(container):
     return out["stdout"].split()
 
 
+def test_report_keeps_only_a_valid_hint_number():
+    """El informe proviene del código del alumno, así que valida la pista."""
+    import server
+    cases = [{"name": "a", "hint": hint} for hint in (2, 0, True, "1", None)] + [{"name": "b"}]
+    _, tests = server.parse_report(json.dumps({"error": None, "tests": cases}))
+    assert [t["hint"] for t in tests] == [2, None, None, None, None, None]
+
+
 def test_run_returns_the_output_of_both_streams(runner):
     out = run(runner, "import sys\nprint('hola')\nprint('aviso', file=sys.stderr)")
     assert out["passed"] is True
