@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Narration caches hold audio hashes and word timings, and downloaded guides hold example tokens"
+paths = ['''^content/.*\.cache\.json$''', '''^\.cache/''']
