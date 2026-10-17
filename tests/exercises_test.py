@@ -69,6 +69,20 @@ def broken(exercise_id, old, new):
     return code.replace(old, new)
 
 
+def mutant(exercise_id, name):
+    """Devuelve el código equivocado `tests/mutants/<ejercicio>/<nombre>.py`.
+
+    Cada archivo es un programa completo, no un cambio sobre solution.py: así reescribir la
+    solución de referencia no rompe las pruebas.
+    """
+    return (ROOT / "tests" / "mutants" / exercise_id / f"{name}.py").read_text(encoding="utf-8")
+
+
+def mutants_of(exercise_id):
+    folder = ROOT / "tests" / "mutants" / exercise_id
+    return [(exercise_id, path.read_text(encoding="utf-8")) for path in sorted(folder.glob("*.py"))]
+
+
 # (ejercicio, código equivocado, texto esperado en algún mensaje de fallo)
 WRONG = [
     ("p1-quickstart/bell-distinto",
@@ -145,6 +159,31 @@ QPY_ON_DISK = (
     "        nombre = archivo.name\n"
     "    return open(nombre, 'rb').read()")
 
+# Parte 3: (ejercicio, nombre del archivo en tests/mutants/<ejercicio>/, texto esperado en algún mensaje).
+WRONG += [(eid, mutant(eid, name), expected) for eid, name, expected in [
+    ("p3-transpilar/cz-por-nivel", "operador-roto", "ya no implementa el mismo operador"),
+    ("p3-transpilar/pass-manager-completo", "sin-backend", "quedan instrucciones que FakeFez no ejecuta"),
+    ("p3-transpilar/es-isa", "acepta-todo", "acepta un circuito con `h` y `ccx`"),
+    ("p3-etapas/cx-ghz-linea", "suma-uno", "Con n = 8 y nivel = 0 tu función devuelve"),
+    ("p3-etapas/layout-estrella", "layout-identidad", "el routing inserta 1 swap"),
+    ("p3-etapas/mejor-de-semillas", "otro-circuito", "Con otro circuito"),
+    ("p3-niveles/ecr-por-nivel", "cuenta-cx", "el nivel 3 debería usar menos ecr"),
+    ("p3-niveles/aproximar", "exacto", "salen 3 ecr"),
+    ("p3-niveles/fidelidad", "nivel-fijo", "Con el estado marcado 2 y nivel = 0"),
+    ("p3-target/mi-backend", "par-extra", "`MiBackend` admite cz en los pares"),
+    ("p3-target/anillo-averiado", "par-averiado-barato", "usa los pares [(1, 2)]"),
+    ("p3-target/cadena-n", "par-cierra-anillo", "`cz` queda en los pares"),
+    ("p3-pass-managers/traducir-iones", "sin-base", "Quedan las puertas"),
+    ("p3-pass-managers/cancelar-pares", "solo-h", "Con pares = «S, S†» salen"),
+    ("p3-pass-managers/dd-pm", "qubit-4", "Había 0 x"),
+    ("p3-pases-propios/dag-operaciones", "ultimos-qubits", "la Toffoli del resultado actúa en los qubits"),
+    ("p3-pases-propios/swap-a-cx", "sustituye-cx", "el circuito cambia"),
+    ("p3-pases-propios/contar-dos-qubits", "sin-clave-si-cero", "Sin puertas de dos qubits escribe n2q"),
+    ("p3-plugins/listar-metodos", "unitaria-vacia", "`unitaria_metodos` vale []"),
+    ("p3-plugins/routing-method", "basic", "Con metodo = 'basic' salen"),
+    ("p3-plugins/clifford-plugin", "solo-tres", "el resultado queda intacto"),
+]]
+
 # Códigos equivocados que hacen fallar los casos ocultos: (ejercicio, código). Cada mensaje de un
 # caso oculto que falla se compara con la solución de referencia en test_hidden_messages_*.
 MUTANTS = [
@@ -190,6 +229,7 @@ MUTANTS = [
         ("p2-visualizar/dibujo-texto", "circuito.barrier()\n", ""),
         ("p2-visualizar/probabilidad-00", "estado.crx(pi / 2, 0, 1)", "estado.crx(pi, 0, 1)"),
     ]],
+    *[m for eid in sorted(e for e in REAL if e.startswith("p3-")) for m in mutants_of(eid)],
 ]
 
 
@@ -221,7 +261,7 @@ def learner_names(exercise_id):
     """Nombres que el código inicial define: las variables y funciones del alumno."""
     names = set()
     for node in ast.walk(ast.parse(read(exercise_id, "starter.py"))):
-        if isinstance(node, ast.FunctionDef):
+        if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
             names.add(node.name)
         elif isinstance(node, ast.Assign):
             names |= {t.id for t in node.targets if isinstance(t, ast.Name)}
@@ -540,6 +580,12 @@ def test_failure_inside_a_case_is_reported_as_the_learner_code():
 def test_infinite_loop_is_stopped():
     result = grade("p1-quickstart/ghz", "while True:\n    pass\n", timeout=2)
     assert result["error"] == "Tu código tardó más de 2 s y se detuvo." and not result["passed"]
+
+
+def test_importing_qiskit_does_not_use_the_learner_time():
+    code = "import qiskit_ibm_runtime.fake_provider\nprint('listo')\n"
+    result = grade("p1-quickstart/ghz", code, mode="run", timeout=0.5)
+    assert result["passed"] and result["stdout"] == "listo\n", result
 
 
 def test_oversized_code_is_refused():
