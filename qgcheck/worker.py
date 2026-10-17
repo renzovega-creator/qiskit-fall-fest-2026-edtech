@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from qgcheck import learner, spec  # noqa: E402
+from qgcheck import HelperFailure, last_use, learner, spec  # noqa: E402
 
 CODE_NAME = "tu_codigo.py"
 MAX_STDOUT = 10_000
@@ -80,10 +80,12 @@ def describe(exc, source):
 def run_case(fn):
     try:
         fn()
+    except HelperFailure as exc:
+        return f"{exc} Pasó al usar {last_use()}." if last_use() else str(exc)
     except AssertionError as exc:
         return str(exc) or "El caso falló."
     except Exception as exc:
-        return f"Tu código lanzó {type(exc).__name__}: {exc}"
+        return f"Tu código lanzó {type(exc).__name__}: {exc}" + (f" Pasó al usar {last_use()}." if last_use() else "")
     return None
 
 
