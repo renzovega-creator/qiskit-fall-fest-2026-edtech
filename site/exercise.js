@@ -130,20 +130,26 @@
     }
     if (hintBtn) showHints(Math.min(saved.hints || 0, s.hints.length));
 
+    const tally = tests => [[true, 'visibles'], [false, 'ocultos']]
+      .map(([visible, label]) => [tests.filter(t => t.visible === visible), label])
+      .filter(([group]) => group.length)
+      .map(([group, label]) => `${group.filter(t => t.passed).length} de ${group.length} ${label}`)
+      .join(' · ');
+
     function render(res, mode) {
       const tests = res.tests || [];
-      const failed = tests.filter(t => !t.passed).length;
       let cls, msg;
       if (res.error) [cls, msg] = ['bad', 'Tu código tiene un error.'];
       else if (mode === 'run') [cls, msg] = ['ok', 'Se ejecutó sin errores.'];
       else if (res.passed) [cls, msg] = ['ok', '¡Pasa todos los casos!'];
-      else [cls, msg] = ['bad', `Pasan ${tests.length - failed} de ${tests.length} casos.`];
+      else [cls, msg] = ['bad', `Pasan ${tally(tests)}.`];
       note(cls, msg + (res.ms != null ? ` (${seconds(res.ms)})` : ''));
       out.textContent = '';
       if (res.error) {
         text('xerr', res.error);
         const at = /línea (\d+)/.exec(res.error);
         if (at) ed.markError(+at[1]);
+        if (mode === 'check') text('xlabel', 'No se pudo probar tu código: corrige el error y vuelve a comprobar.');
       }
       if (res.stdout) { text('xlabel', 'Salida'); A.el('pre', 'xstdout', out).textContent = res.stdout; }
       else if (mode === 'run' && !res.error) text('xlabel', 'No imprimió nada. Usa print(…) para ver un valor.');
@@ -156,6 +162,12 @@
           A.el('span', 'sr', body).textContent = t.passed ? 'Pasa: ' : 'Falla: ';
           A.el('b', '', body).textContent = t.name;
           if (!t.passed && t.message) text('xmsg', t.message, body);
+          const tip = s.hints?.[t.hint - 1];
+          if (!t.passed && tip) {
+            const d = A.el('div', 'xhint xcasehint', body);
+            A.el('b', '', d).textContent = `Pista ${t.hint}`;
+            A.rich(A.el('div', '', d), tip);
+          }
         });
       }
       if (mode === 'run' && !res.error) text('xlabel', 'Comprobar prueba tu código con los casos del ejercicio.');
