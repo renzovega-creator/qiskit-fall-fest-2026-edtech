@@ -6,7 +6,8 @@
 El resultado:
 
     {"passed": bool, "stdout": str, "error": str | None, "ms": int,
-     "tests": [{"name": str, "visible": bool, "passed": bool, "message": str | None}]}
+     "tests": [{"name": str, "visible": bool, "passed": bool, "message": str | None,
+                "hint": int | None}]}
 
 `mode="run"` solo ejecuta el código y devuelve su salida; `tests` queda vacío.
 `mode="check"` además corre los casos de check.py. Con `block` los módulos nombrados no se pueden

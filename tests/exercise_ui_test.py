@@ -8,15 +8,23 @@ y error, y la comprobación de Turnstile. `--shots` guarda capturas.
 """
 import importlib.util
 import json
+import os
+import shutil
 import sys
+import tempfile
 import threading
 from functools import partial
 from http.server import ThreadingHTTPServer
 from pathlib import Path
+from unittest import mock
 
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from qgcheck import spec  # noqa: E402
+
 DESKTOP = {"viewport": {"width": 1280, "height": 900}}
 MOBILE = {"viewport": {"width": 390, "height": 844}, "is_mobile": True, "has_touch": True, "device_scale_factor": 2}
 
@@ -27,6 +35,17 @@ def ghz(n):
     qc = QuantumCircuit(n)
     qc.h(0)
     qc.cx(0, 1)
+    qc.measure_all()
+    return qc
+"""
+GHZ_CAPPED_AT_FOUR = """from qiskit import QuantumCircuit
+
+
+def ghz(n):
+    qc = QuantumCircuit(n)
+    qc.h(0)
+    for k in range(min(n - 1, 3)):
+        qc.cx(k, k + 1)
     qc.measure_all()
     return qc
 """
@@ -149,6 +168,61 @@ def flow(browser, base, label, ctx, lesson, k, name, wrong, failing_case, shots)
     check(panel.locator(".xsolved").is_visible(), f"{tag}: tras recargar, sigue resuelto")
     check(not errors, f"{tag}: sin errores en consola {errors}")
     page.context.close()
+
+
+def feedback(browser, base, shots):
+    cases = spec.load_cases(spec.folder("p1-quickstart/ghz") / "check.py")
+    page = browser.new_context(**DESKTOP).new_page()
+    panel = open_panel(page, base, "p1-quickstart", 1)
+
+    write(page, panel, "from qiskit import QuantumCircuit\n\n\ndef ghz(n:\n    return QuantumCircuit(n)\n")
+    press(panel, "Comprobar")
+    wait_result(panel)
+    error = panel.locator(".xerr").inner_text()
+    check("SyntaxError" in error and "línea 4" in error, f"error de sintaxis: el panel muestra el error con su línea ({error})")
+    check("No se pudo probar tu código" in panel.locator(".xout").inner_text(), "error de sintaxis: el panel dice que no se pudo probar el código")
+    check(panel.locator(".xtests").count() == 0 and panel.locator(".xtests li").count() == 0, "error de sintaxis: no se muestra ningún caso")
+    check("Pasan" not in panel.locator(".xstatus").inner_text(), "error de sintaxis: no se cuentan casos")
+    shot(page, shots, "escritorio-ghz-sintaxis", panel, results=True)
+
+    visible = sum(shown is not None for _, shown in cases)
+    hidden = len(cases) - visible
+    write(page, panel, GHZ_CAPPED_AT_FOUR)
+    press(panel, "Comprobar")
+    wait_result(panel)
+    status = panel.locator(".xstatus").inner_text()
+    check(f"{visible} de {visible} visibles · 0 de {hidden} ocultos" in status, f"casos ocultos: se cuentan aparte de los visibles ({status})")
+    failing = panel.locator(".xtests li.bad")
+    check(failing.count() == hidden and all("caso oculto" in t for t in failing.all_inner_texts()),
+          "casos ocultos: solo fallan los ocultos")
+    shot(page, shots, "escritorio-ghz-oculto", panel, results=True)
+    page.context.close()
+
+    # El servidor lee el check.py de prueba desde QG_EXERCISES.
+    with tempfile.TemporaryDirectory(prefix="qg-ui-") as scratch, mock.patch.dict(os.environ):
+        # Las fuentes pueden ser de solo lectura; la copia se edita y se borra, así que se deja escribible.
+        copy = Path(scratch) / "exercises"
+        shutil.copytree(ROOT / "exercises", copy, copy_function=shutil.copyfile)
+        for path in [copy, *copy.rglob("*")]:
+            path.chmod(0o755 if path.is_dir() else 0o644)
+        check_file = copy / "p1-quickstart" / "ghz" / "check.py"
+        source = check_file.read_text(encoding="utf-8")
+        check_file.write_text(source.replace("@visible(\"n = 2, 3 y 4\")", "@visible(\"n = 2, 3 y 4\")\n@hint(1)").replace(
+            "from qgcheck import ", "from qgcheck import hint, ", 1), encoding="utf-8")
+        lesson = json.loads((ROOT / "site" / "lessons" / "p1-quickstart" / "lesson.json").read_text(encoding="utf-8"))
+        tip = next(blk["hints"][0] for b in lesson["beats"] for blk in b["scene"] if blk.get("exercise") == "p1-quickstart/ghz")
+        os.environ["QG_EXERCISES"] = str(copy)
+        page = browser.new_context(**DESKTOP).new_page()
+        panel = open_panel(page, base, "p1-quickstart", 1)
+        write(page, panel, GHZ_WITHOUT_CHAIN)
+        press(panel, "Comprobar")
+        wait_result(panel)
+        named = panel.locator(".xtests li.bad", has_text="n = 2, 3 y 4")
+        check(named.locator(".xcasehint").count() == 1 and tip.replace("`", "") in named.locator(".xcasehint").inner_text(),
+              "pista del caso: el caso que falla muestra la pista que nombra")
+        check(panel.locator(".xtests li.bad").locator(".xcasehint").count() == 1, "pista del caso: los casos que no nombran pista no la muestran")
+        check(panel.locator(".xhint:not(.xcasehint)").count() == 0, "pista del caso: no cuenta como pista pedida con el botón")
+        page.context.close()
 
 
 def mobile_layout(browser, base, shots):
@@ -337,6 +411,7 @@ def main():
         for label, ctx in (("escritorio", DESKTOP), ("movil", MOBILE)):
             for lesson, k, name, wrong, case in EXERCISES if label == "escritorio" else EXERCISES[:1]:
                 flow(browser, base, label, ctx, lesson, k, name, wrong, case, shots)
+        feedback(browser, base, shots)
         mobile_layout(browser, base, shots)
         keyboard(browser, base)
         hints(browser, base)

@@ -20,8 +20,8 @@ import sys
 from pathlib import Path
 
 from grader.wire import BROKEN, WireError, decode, encode, receive, send
-from qgcheck import learner, spec
-from qgcheck.worker import CODE_NAME, describe, run_case
+from qgcheck import learner
+from qgcheck.worker import CODE_NAME, describe, run_cases
 
 PR_SET_DUMPABLE = 4
 
@@ -104,14 +104,7 @@ def check(code_path, check_path):
         except AssertionError as e:
             return {"error": str(e), "tests": []}
         learner._bind(names)
-        tests, hidden = [], 0
-        for fn, shown in spec.load_cases(check_path):
-            message = run_case(fn)
-            if shown is None:
-                hidden += 1
-            tests.append(dict(name=shown or f"caso oculto {hidden}", visible=shown is not None,
-                              passed=message is None, message=message))
-        return {"error": None, "tests": tests}
+        return {"error": None, "tests": run_cases(check_path)}
     finally:
         broker.stop()
 

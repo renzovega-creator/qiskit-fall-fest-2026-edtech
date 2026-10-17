@@ -656,6 +656,28 @@ def test_tool_flags_needs_that_does_not_match_the_solution(fixture_dir):
     assert 'needs="aer" pero solution.py pasa sin qiskit_aer' in exercises_tool.problems("leccion/dos", "aer")
 
 
+HINTED_CHECK = (
+    "from qgcheck import hint, learner, visible\n\n\n"
+    "@visible('x vale uno')\n@hint(2)\n"
+    "def test_shown():\n    assert learner.x == 1, 'x debería valer 1'\n\n\n"
+    "@hint(1)\n"
+    "def test_hidden():\n    assert learner.x == 1, 'x debería valer 1'\n\n\n"
+    "def test_plain():\n    assert learner.x == 1, 'x debería valer 1'\n")
+
+
+def test_grade_reports_the_hint_each_case_names(fixture_dir):
+    write_exercise(fixture_dir, "leccion/uno", check=HINTED_CHECK)
+    result = grade("leccion/uno", "x = 0\n")
+    assert [(t["name"], t["hint"]) for t in result["tests"]] == [
+        ("x vale uno", 2), ("caso oculto 1", 1), ("caso oculto 2", None)]
+
+
+def test_tool_flags_a_hint_the_exercise_does_not_have(fixture_dir):
+    write_exercise(fixture_dir, "leccion/uno", check=HINTED_CHECK)
+    assert exercises_tool.problems("leccion/uno", "qiskit", hints=2) == []
+    assert exercises_tool.problems("leccion/uno", "qiskit", hints=1) == ["test_shown nombra la pista 2 y el ejercicio tiene 1"]
+
+
 def test_tool_reports_a_malformed_declared_id(monkeypatch, capsys):
     monkeypatch.setattr(exercises_tool, "declared", lambda: {"Mal/ID": "qiskit"})
     monkeypatch.setattr(sys, "argv", ["exercises.py"])

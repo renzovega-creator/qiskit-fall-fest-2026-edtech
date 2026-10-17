@@ -78,12 +78,13 @@ def parse_report(raw):
     for t in items:
         if not isinstance(t, dict):
             continue
-        name, message = t.get("name"), t.get("message")
+        name, message, hint = t.get("name"), t.get("message"), t.get("hint")
         tests.append({
             "name": name[:MESSAGE_CAP] if isinstance(name, str) else None,
             "visible": t.get("visible") is True,
             "passed": t.get("passed") is True,
             "message": message[:MESSAGE_CAP] if isinstance(message, str) else None,
+            "hint": hint if type(hint) is int and hint >= 1 else None,
         })
     return error and error[:MESSAGE_CAP], tests
 

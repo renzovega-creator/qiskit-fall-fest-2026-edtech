@@ -30,13 +30,15 @@ Responde 200 con:
       "name": "n = 2, 3 y 4",
       "visible": true,
       "passed": false,
-      "message": "Con n = 2 salen ['00'], y deberían salir solo 00 y 11."
+      "message": "Con n = 2 salen ['00'], y deberían salir solo 00 y 11.",
+      "hint": 1
     },
     {
       "name": "caso oculto 1",
       "visible": false,
       "passed": false,
-      "message": "Con otros tamaños de n no salen solo 00…0 y 11…1."
+      "message": "Con otros tamaños de n no salen solo 00…0 y 11…1.",
+      "hint": null
     }
   ],
   "ms": 2438,
@@ -53,6 +55,8 @@ Responde 200 con:
 - `error` es el error del código del alumno, con su línea, o el motivo por el
   que el corredor lo detuvo. Con un error, `tests` está vacío.
 - `tests` está vacío con `mode: "run"`. Un caso oculto se llama `caso oculto N`.
+  `hint` es el número de la pista que nombra el caso, o `null`
+  ([exercises.md](exercises.md)).
 - `killed` es `time`, `memory`, `disk` u `output` cuando el corredor mató el
   trabajo por ese límite, y `null` si no.
 - `ms` es el tiempo del trabajo dentro del corredor. `peak_mb` es la mayor suma
