@@ -4,27 +4,33 @@ de la lección (las de opción primero mal y luego bien) y pasa al siguiente pas
     python -m http.server 8810 -d site          # en otra terminal
     uv run --group tools python tools/playtest.py [lección]
 
-Usa el Chromium de Playwright (si falta: uv run --group tools playwright install chromium).
+Usa el Chromium de Playwright, que instala `mise run install`.
 Deja capturas en shots/. PLAYTEST_URL cambia la dirección del servidor.
 """
+
+import io
 import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Page, sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
 SHOTS = ROOT / "shots"
 
 
-def answerable(lesson):
+def answerable(lesson: dict[str, Any]) -> list[tuple[int, dict[str, Any]]]:
     """(índice de beat, pregunta) de las preguntas con respuesta correcta que se pueden contestar."""
-    return [(n, b["ask"]) for n, b in enumerate(lesson["beats"])
-            if b.get("ask", {}).get("kind") in ("choice", "numeric")]
+    return [
+        (n, b["ask"])
+        for n, b in enumerate(lesson["beats"])
+        if b.get("ask", {}).get("kind") in ("choice", "numeric")
+    ]
 
 
-def answer(pg, n, ask):
+def answer(pg: Page, n: int, ask: dict[str, Any]) -> None:
     pg.locator("#timeline .seg").nth(n).click()
     pg.wait_for_selector("#ask.on", timeout=60000)
     if ask["kind"] == "choice":
@@ -40,11 +46,14 @@ def answer(pg, n, ask):
     pg.wait_for_timeout(1000)
 
 
-def main():
+def main() -> None:
     lesson_id = sys.argv[1] if len(sys.argv) > 1 else "p6-panorama"
     base_url = os.environ.get("PLAYTEST_URL", "http://localhost:8810").rstrip("/")
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    lesson = json.loads((ROOT / "site" / "lessons" / lesson_id / "lesson.json").read_text(encoding="utf-8"))
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    lesson = json.loads(
+        (ROOT / "site" / "lessons" / lesson_id / "lesson.json").read_text(encoding="utf-8")
+    )
     SHOTS.mkdir(exist_ok=True)
     with sync_playwright() as p:
         b = p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
@@ -65,7 +74,12 @@ def main():
         pg.screenshot(path=str(SHOTS / "play-2.png"))
         pg.click("#next")
         pg.wait_for_timeout(1500)
-        print("fin visible:", pg.is_visible("#end"), "|", pg.inner_text("#end-score") if pg.is_visible("#end") else "")
+        print(
+            "fin visible:",
+            pg.is_visible("#end"),
+            "|",
+            pg.inner_text("#end-score") if pg.is_visible("#end") else "",
+        )
         pg.screenshot(path=str(SHOTS / "play-3.png"))
         print("errores:", errs or "ninguno")
         b.close()

@@ -21,6 +21,7 @@ El proceso aparte limita el tiempo y mantiene el intérprete del alumno lejos de
 un aislamiento de seguridad. Quien exponga esto en red debe correrlo en un contenedor sin red,
 con memoria y procesos limitados.
 """
+
 import json
 import os
 import signal
@@ -28,7 +29,9 @@ import subprocess
 import sys
 import tempfile
 import time
+from collections.abc import Iterable
 from pathlib import Path
+from typing import Any
 
 from qgcheck import spec
 
@@ -39,7 +42,7 @@ POLL = 0.02
 WORKER = Path(__file__).with_name("worker.py")
 
 
-def _wait(proc, ready, timeout):
+def _wait(proc: subprocess.Popen[bytes], ready: Path, timeout: float) -> bool:
     """Espera a que termine el proceso. Devuelve False si agotó el arranque o el tiempo del código.
 
     El worker importa Qiskit y crea `ready` antes de ejecutar el código del alumno; los `timeout`
@@ -60,11 +63,19 @@ def _wait(proc, ready, timeout):
             return False
 
 
-def _answer(error, t0, stdout=""):
-    return dict(passed=False, stdout=stdout, error=error, tests=[], ms=round((time.monotonic() - t0) * 1000))
+def _answer(error: str, t0: float, stdout: str = "") -> dict[str, Any]:
+    return dict(
+        passed=False, stdout=stdout, error=error, tests=[], ms=round((time.monotonic() - t0) * 1000)
+    )
 
 
-def grade(exercise_id, code, mode="check", block=(), timeout=TIMEOUT):
+def grade(
+    exercise_id: str,
+    code: str,
+    mode: str = "check",
+    block: Iterable[str] = (),
+    timeout: float = TIMEOUT,
+) -> dict[str, Any]:
     t0 = time.monotonic()
     if mode not in ("run", "check"):
         raise ValueError(f"modo inválido: {mode!r}")
@@ -73,17 +84,31 @@ def grade(exercise_id, code, mode="check", block=(), timeout=TIMEOUT):
         raise ValueError(f"ejercicio desconocido: {exercise_id!r}")
     if len(code.encode("utf-8")) > MAX_CODE:
         return _answer(f"El código supera {MAX_CODE // 1000} KB.", t0)
-    with tempfile.TemporaryDirectory(prefix="qg-") as tmp:
-        tmp = Path(tmp)
+    with tempfile.TemporaryDirectory(prefix="qg-") as tmp_name:
+        tmp = Path(tmp_name)
         (tmp / "learner.py").write_text(code, encoding="utf-8")
         out = tmp / "result.json"
         ready = tmp / "result.json.ready"
         env = {"PATH": os.environ.get("PATH", ""), "HOME": str(tmp), "MPLBACKEND": "Agg"}
         with open(tmp / "stderr.txt", "w+", encoding="utf-8", errors="replace") as errors:
             proc = subprocess.Popen(
-                [sys.executable, "-I", str(WORKER), str(tmp / "learner.py"), str(d / "check.py"), mode, ",".join(block), str(out)],
-                cwd=tmp, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=errors,
-                start_new_session=True)
+                [
+                    sys.executable,
+                    "-I",
+                    str(WORKER),
+                    str(tmp / "learner.py"),
+                    str(d / "check.py"),
+                    mode,
+                    ",".join(block),
+                    str(out),
+                ],
+                cwd=tmp,
+                env=env,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=errors,
+                start_new_session=True,
+            )
             if not _wait(proc, ready, timeout):
                 os.killpg(proc.pid, signal.SIGKILL)
                 proc.wait()
@@ -94,7 +119,9 @@ def grade(exercise_id, code, mode="check", block=(), timeout=TIMEOUT):
             err = errors.read()
         if not out.exists():
             # Sin resultado, el proceso terminó antes de completar la ejecución.
-            return _answer("El código no terminó: se quedó sin memoria o el proceso se cerró.", t0, err[-500:])
-        result = json.loads(out.read_text(encoding="utf-8"))
+            return _answer(
+                "El código no terminó: se quedó sin memoria o el proceso se cerró.", t0, err[-500:]
+            )
+        result: dict[str, Any] = json.loads(out.read_text(encoding="utf-8"))
     result["ms"] = round((time.monotonic() - t0) * 1000)
     return result

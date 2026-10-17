@@ -3,6 +3,7 @@
 Cada mensaje es JSON precedido por su longitud en 4 bytes. El canal admite
 valores básicos, arrays numéricos y circuitos QPY, pero nunca deserializa código.
 """
+
 import base64
 import io
 import json
@@ -10,6 +11,7 @@ import os
 import re
 import struct
 import sys
+from typing import Any
 
 MESSAGE_CAP = 4 * 2**20
 DTYPE = re.compile(r"[<>|=]?[biufc]\d{1,2}")
@@ -20,7 +22,7 @@ class WireError(Exception):
     """El otro extremo cerró el canal o envió algo que no es un mensaje válido."""
 
 
-def encode(value):
+def encode(value: Any) -> Any:
     if value is None or isinstance(value, (bool, int, float, str)):
         return value
     if isinstance(value, list):
@@ -49,12 +51,13 @@ def encode(value):
     raise TypeError(f"un valor de tipo {type(value).__name__}")
 
 
-def decode(obj):
+def decode(obj: Any) -> Any:
     if isinstance(obj, list):
         return [decode(v) for v in obj]
     if not isinstance(obj, dict):
         return obj
-    kind, v = obj.get("$"), obj.get("v")
+    kind: Any = obj.get("$")
+    v: Any = obj.get("v")
     if kind == "tuple":
         return tuple(decode(x) for x in v)
     if kind == "dict":
@@ -75,20 +78,20 @@ def decode(obj):
     raise WireError("un valor con un tipo desconocido")
 
 
-def send(fd, message):
+def send(fd: int, message: dict[str, Any]) -> None:
     data = json.dumps(message).encode("utf-8")
     if len(data) > MESSAGE_CAP:
         raise WireError("mensaje demasiado grande")
     view = memoryview(struct.pack(">I", len(data)) + data)
     try:
         while view:
-            view = view[os.write(fd, view):]
+            view = view[os.write(fd, view) :]
     except OSError as e:
         raise WireError(f"no se pudo escribir: {e}") from e
 
 
-def _read(fd, size):
-    chunks = []
+def _read(fd: int, size: int) -> bytes:
+    chunks: list[bytes] = []
     while size:
         try:
             chunk = os.read(fd, min(size, 65536))
@@ -101,7 +104,7 @@ def _read(fd, size):
     return b"".join(chunks)
 
 
-def receive(fd):
+def receive(fd: int) -> dict[str, Any]:
     (size,) = struct.unpack(">I", _read(fd, 4))
     if size > MESSAGE_CAP:
         raise WireError("mensaje demasiado grande")

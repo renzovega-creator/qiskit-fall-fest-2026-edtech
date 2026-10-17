@@ -21,19 +21,26 @@ import json
 import re
 import subprocess
 import sys
+from collections.abc import Callable, Sequence
 from pathlib import Path
+from typing import Any
 
 import edge_tts
 
 sys.path.insert(0, str(Path(__file__).parent))
-from pronunciacion import limpiar, pronunciable  # noqa: E402
+from pronunciacion import limpiar, pronunciable
 
 MARK = re.compile(r"\[\[(\w+)\]\]")
 
 
-def split_marks(raw):
+Words = Sequence[tuple[float, str]]
+
+
+def split_marks(raw: str) -> tuple[str, dict[str, int]]:
     """Texto limpio y {marca: posición de carácter en el texto limpio}."""
-    marks, clean, pos = {}, [], 0
+    marks: dict[str, int] = {}
+    clean: list[str] = []
+    pos = 0
     for i, part in enumerate(MARK.split(raw)):
         if i % 2:
             if part in marks:
@@ -45,9 +52,10 @@ def split_marks(raw):
     return "".join(clean), marks
 
 
-def locator(clean, words):
+def locator(clean: str, words: Words) -> Callable[[int], float | None]:
     """f(pos): segundo en que empieza la primera palabra en o después de pos."""
-    cursor, located = 0, []
+    cursor = 0
+    located: list[tuple[int, float]] = []
     for t, w in words:
         i = clean.find(w, cursor)
         if i < 0:
@@ -57,44 +65,46 @@ def locator(clean, words):
     return lambda pos: next((round(t, 3) for i, t in located if i >= pos), None)
 
 
-def sentences(text):
+def sentences(text: str) -> list[tuple[int, str]]:
     """Pares (inicio, oración) del texto, partiendo en . ? ! y antes de ¿ ¡."""
-    out, start = [], 0
-    for m in list(re.finditer(r"[.?!¿¡]\s+", text)) + [None]:
-        if m and m.group()[0] in "¿¡":  # esos signos abren la oración siguiente
-            end = m.start()
-        else:
-            end = m.end() if m else len(text)
+    out: list[tuple[int, str]] = []
+    start = 0
+    for m in [*re.finditer(r"[.?!¿¡]\s+", text), None]:
+        end = len(text) if m is None else m.start() if m.group()[0] in "¿¡" else m.end()
+        # Los signos ¿ ¡ abren la oración siguiente.
         if text[start:end].strip():
             out.append((start, text[start:end].strip()))
         start = end
     return out
 
 
-def cues(spoken, words, shown):
+def cues(spoken: str, words: Words, shown: str) -> list[list[Any]]:
     """Subtítulos: tiempos del texto pronunciado, texto de la versión que se muestra."""
     at = locator(spoken, words)
     timed, texts = sentences(spoken), sentences(shown)
     if len(timed) != len(texts):  # no debería pasar: el diccionario no toca la puntuación
         texts = timed
-    return [[at(start) or 0, text] for (start, _), (_, text) in zip(timed, texts)]
+    return [[at(start) or 0, text] for (start, _), (_, text) in zip(timed, texts, strict=True)]
 
 
-def speakable_marked(raw):
+def speakable_marked(raw: str) -> str:
     """Aplica el diccionario de pronunciación sin tocar las marcas [[nombre]]."""
     parts = MARK.split(raw)
     return "".join(f"[[{p}]]" if i % 2 else pronunciable(p) for i, p in enumerate(parts))
 
 
-def duration(mp3):
+def duration(mp3: Path) -> float:
     r = subprocess.run(
         ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(mp3)],
-        capture_output=True, text=True, check=True)
+        capture_output=True,
+        text=True,
+        check=True,
+    )
     return round(float(r.stdout), 3)
 
 
-async def synth(text, voice, rate, path):
-    words = []
+async def synth(text: str, voice: str, rate: str, path: Path) -> list[tuple[float, str]]:
+    words: list[tuple[float, str]] = []
     comm = edge_tts.Communicate(text, voice, rate=rate, boundary="WordBoundary")
     with open(path, "wb") as f:
         async for chunk in comm.stream():
@@ -105,7 +115,7 @@ async def synth(text, voice, rate, path):
     return words
 
 
-async def main(lesson_dir):
+async def main(lesson_dir: str) -> None:
     root = Path(lesson_dir)
     spec = json.loads((root / "lesson.json").read_text(encoding="utf-8"))
     out = root / "audio"
@@ -118,10 +128,10 @@ async def main(lesson_dir):
     clips = {b["id"]: b["say"] for b in spec["beats"]}
     clips.update(spec.get("extras", {}))
 
-    timings = {}
+    timings: dict[str, Any] = {}
     for cid, raw in clips.items():
         shown, _ = split_marks(limpiar(raw))
-        clean, marks = split_marks(speakable_marked(raw))   # lo que dice la voz
+        clean, marks = split_marks(speakable_marked(raw))
         key = hashlib.sha1(f"{voice}|{rate}|{clean}".encode()).hexdigest()
         mp3 = out / f"{cid}.mp3"
         old = cache.get(cid)
@@ -139,7 +149,9 @@ async def main(lesson_dir):
         cache[cid] = entry
         timings[cid] = {"dur": duration(mp3), "marks": mt, "cues": cues(clean, words, shown)}
         cache_path.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
-    (root / "timings.json").write_text(json.dumps(timings, ensure_ascii=False, indent=1), encoding="utf-8")
+    (root / "timings.json").write_text(
+        json.dumps(timings, ensure_ascii=False, indent=1), encoding="utf-8"
+    )
     print(f"listo: {len(timings)} clips")
 
 

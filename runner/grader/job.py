@@ -12,14 +12,18 @@ aquí. `qgcheck.learner` se enlaza a un espacio de nombres cuyas funciones son
 llamadas al intermediario, así que el código del alumno nunca comparte proceso,
 canal ni estado con los casos. Entre procesos solo viajan datos (`wire.py`).
 """
+
 import ctypes
 import json
 import os
 import subprocess
 import sys
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 from grader.wire import BROKEN, WireError, decode, encode, receive, send
+
 from qgcheck import learner
 from qgcheck.worker import CODE_NAME, describe, run_cases
 
@@ -29,30 +33,54 @@ PR_SET_DUMPABLE = 4
 class Broker:
     """Cliente del intermediario del alumno."""
 
-    def __init__(self, path):
+    def __init__(self, path: str) -> None:
         requests_r, self._requests = os.pipe()
         self._responses, responses_w = os.pipe()
         env = {k: v for k, v in os.environ.items() if not k.startswith("QG_")}
         self._proc = subprocess.Popen(
-            [sys.executable, "-u", "-P", "-m", "grader.broker", path, str(requests_r), str(responses_w)],
-            env=env, pass_fds=(requests_r, responses_w),
+            [
+                sys.executable,
+                "-u",
+                "-P",
+                "-m",
+                "grader.broker",
+                path,
+                str(requests_r),
+                str(responses_w),
+            ],
+            env=env,
+            pass_fds=(requests_r, responses_w),
         )
         os.close(requests_r)
         os.close(responses_w)
         self._broken = False
 
-    def stop(self):
+    def stop(self) -> None:
         os.close(self._requests)
         os.close(self._responses)
         self._proc.kill()
         self._proc.wait()
 
-    def request(self, op, name=None, args=(), kwargs=None):
+    def request(
+        self,
+        op: str,
+        name: str | None = None,
+        args: Sequence[Any] = (),
+        kwargs: dict[str, Any] | None = None,
+    ) -> Any:
         """Devuelve el valor de la petición; el texto del fallo es el de un `AssertionError`."""
         if self._broken:
             raise AssertionError(BROKEN)
         try:
-            send(self._requests, {"op": op, "name": name, "args": encode(list(args)), "kwargs": encode(kwargs or {})})
+            send(
+                self._requests,
+                {
+                    "op": op,
+                    "name": name,
+                    "args": encode(list(args)),
+                    "kwargs": encode(kwargs or {}),
+                },
+            )
             reply = receive(self._responses)
             if "error" in reply:
                 raise AssertionError(str(reply["error"]))
@@ -61,7 +89,7 @@ class Broker:
             raise
         except (WireError, KeyError, TypeError, ValueError, RecursionError, ImportError):
             self._broken = True
-            raise AssertionError(BROKEN)
+            raise AssertionError(BROKEN) from None
 
 
 class Names:
@@ -71,23 +99,31 @@ class Names:
     es una llamada al intermediario; el valor de otro nombre se pide una vez.
     """
 
-    def __init__(self, broker, kinds):
-        if not (isinstance(kinds, dict) and all(isinstance(k, str) and isinstance(v, bool) for k, v in kinds.items())):
+    def __init__(self, broker: Broker, kinds: Any) -> None:
+        if not (
+            isinstance(kinds, dict)
+            and all(isinstance(k, str) and isinstance(v, bool) for k, v in kinds.items())
+        ):
             raise AssertionError(BROKEN)
-        self._broker, self._kinds, self._values = broker, kinds, {}
+        self._broker, self._kinds = broker, kinds
+        self._values: dict[str, Any] = {}
 
-    def __contains__(self, name):
+    def __contains__(self, name: str) -> bool:
         return name in self._kinds
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Any:
         if self._kinds[name]:
-            return lambda *args, **kwargs: self._broker.request("call", name, args, kwargs)
+
+            def call(*args: Any, **kwargs: Any) -> Any:
+                return self._broker.request("call", name, args, kwargs)
+
+            return call
         if name not in self._values:
             self._values[name] = self._broker.request("get", name)
         return self._values[name]
 
 
-def run(code_path):
+def run(code_path: str) -> dict[str, Any]:
     source = Path(code_path).read_text(encoding="utf-8")
     try:
         exec(compile(source, CODE_NAME, "exec"), {"__name__": "__main__"})
@@ -96,7 +132,7 @@ def run(code_path):
     return {"error": None, "tests": []}
 
 
-def check(code_path, check_path):
+def check(code_path: str, check_path: str) -> dict[str, Any]:
     broker = Broker(code_path)
     try:
         try:
@@ -109,7 +145,7 @@ def check(code_path, check_path):
         broker.stop()
 
 
-def main(mode, code_path, check_path=None):
+def main(mode: str, code_path: str, check_path: str = "") -> None:
     if mode == "check":
         # Mismo uid que el alumno: sin esto podría leer o escribir la memoria de este proceso.
         ctypes.CDLL(None).prctl(PR_SET_DUMPABLE, 0, 0, 0, 0)

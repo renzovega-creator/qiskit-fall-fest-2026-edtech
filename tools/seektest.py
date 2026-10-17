@@ -5,16 +5,19 @@
 
 Por defecto usa el tercer paso («construir») de p1-composer, una lista que se va mostrando.
 """
+
 import sys
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
 SHOTS = Path(__file__).resolve().parent.parent / "shots"
-VISIBLE_ITEMS = "[...document.querySelectorAll('#scene li')].filter(li => !li.classList.contains('hid')).length"
+VISIBLE_ITEMS = (
+    "[...document.querySelectorAll('#scene li')].filter(li => !li.classList.contains('hid')).length"
+)
 
 
-def main():
+def main() -> None:
     lesson = sys.argv[1] if len(sys.argv) > 1 else "p1-composer"
     step = int(sys.argv[2]) if len(sys.argv) > 2 else 2
     url = f"http://localhost:8810/lesson.html?l={lesson}"
@@ -29,11 +32,17 @@ def main():
         pg.click("#go")
         pg.wait_for_timeout(2500)
         box = pg.locator("#timeline .seg").nth(step).bounding_box()
+        assert box is not None
         pg.mouse.click(box["x"] + box["width"] * 0.6, box["y"] + box["height"] / 2)
         pg.wait_for_timeout(1500)
-        t = pg.evaluate("[window.__nar.currentTime, window.__nar.duration]")
+        t = pg.evaluate("[window.QGNarration.currentTime, window.QGNarration.duration]")
         print("audio en", [round(x, 2) for x in t])
-        print("tag:", pg.inner_text("#tag"), "| ítems visibles de la lista:", pg.evaluate(VISIBLE_ITEMS))
+        print(
+            "tag:",
+            pg.inner_text("#tag"),
+            "| ítems visibles de la lista:",
+            pg.evaluate(VISIBLE_ITEMS),
+        )
         print("subtítulo:", pg.inner_text("#caption")[:80])
         pg.screenshot(path=str(SHOTS / "seek-1.png"))
         pg.keyboard.press("Shift+ArrowLeft")
@@ -42,11 +51,17 @@ def main():
         pg.click("#fwd5")
         pg.wait_for_timeout(800)
         print("tras +5 s, tag:", pg.inner_text("#tag"))
-        done = pg.evaluate("[...document.querySelectorAll('#timeline .seg')].map(s => s.className).join(' | ')")
+        done = pg.evaluate(
+            "[...document.querySelectorAll('#timeline .seg')].map(s => s.className).join(' | ')"
+        )
         print("segmentos:", done[:160])
         pg.goto(url)
         pg.wait_for_timeout(1000)
-        print("botón continuar:", pg.is_visible("#resume"), pg.inner_text("#resume") if pg.is_visible("#resume") else "")
+        print(
+            "botón continuar:",
+            pg.is_visible("#resume"),
+            pg.inner_text("#resume") if pg.is_visible("#resume") else "",
+        )
         print("errores:", errs or "ninguno")
         b.close()
 

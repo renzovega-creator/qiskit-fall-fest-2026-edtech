@@ -5,6 +5,7 @@
 `sandbox.py` lo lanza como root. Fija los rlimits, baja de uid, limita los
 sockets a AF_UNIX con seccomp y ejecuta el comando. Si falla el `exec`, no arranca.
 """
+
 import ctypes
 import os
 import platform
@@ -35,7 +36,7 @@ ARCHES = {
 }
 
 
-def socket_filter():
+def socket_filter() -> tuple[bytes, int]:
     """Deja pasar todo salvo socket(dominio != AF_UNIX), que da EACCES."""
     machine = platform.machine()
     if machine not in ARCHES:
@@ -44,21 +45,21 @@ def socket_filter():
     # Cada tupla contiene código, jt, jf y k.
     # Los saltos son relativos a la instrucción siguiente.
     prog = [
-        (BPF_LD_W_ABS, 0, 0, 4),                     # 0 arch
-        (BPF_JEQ_K, 0, 7, arch),                     # 1 otra arquitectura: matar
-        (BPF_LD_W_ABS, 0, 0, 0),                     # 2 número de llamada
-        (BPF_JGE_K, 3, 0, X32_SYSCALL_BIT),          # 3 ABI x32: denegar
-        (BPF_JEQ_K, 0, 3, sys_socket),               # 4 no es socket: permitir
-        (BPF_LD_W_ABS, 0, 0, 16),                    # 5 args[0], el dominio
-        (BPF_JEQ_K, 1, 0, AF_UNIX),                  # 6 AF_UNIX: permitir
-        (BPF_RET_K, 0, 0, RET_ERRNO | EACCES),       # 7 denegar
-        (BPF_RET_K, 0, 0, RET_ALLOW),                # 8 permitir
-        (BPF_RET_K, 0, 0, RET_KILL_PROCESS),         # 9 matar
+        (BPF_LD_W_ABS, 0, 0, 4),  # 0 arch
+        (BPF_JEQ_K, 0, 7, arch),  # 1 otra arquitectura: matar
+        (BPF_LD_W_ABS, 0, 0, 0),  # 2 número de llamada
+        (BPF_JGE_K, 3, 0, X32_SYSCALL_BIT),  # 3 ABI x32: denegar
+        (BPF_JEQ_K, 0, 3, sys_socket),  # 4 no es socket: permitir
+        (BPF_LD_W_ABS, 0, 0, 16),  # 5 args[0], el dominio
+        (BPF_JEQ_K, 1, 0, AF_UNIX),  # 6 AF_UNIX: permitir
+        (BPF_RET_K, 0, 0, RET_ERRNO | EACCES),  # 7 denegar
+        (BPF_RET_K, 0, 0, RET_ALLOW),  # 8 permitir
+        (BPF_RET_K, 0, 0, RET_KILL_PROCESS),  # 9 matar
     ]
     return b"".join(struct.pack("=HBBI", *ins) for ins in prog), len(prog)
 
 
-def install_seccomp():
+def install_seccomp() -> None:
     libc = ctypes.CDLL(None, use_errno=True)
     if libc.prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0:
         raise OSError(ctypes.get_errno(), "PR_SET_NO_NEW_PRIVS")
@@ -73,11 +74,11 @@ def install_seccomp():
         raise OSError(ctypes.get_errno(), "PR_SET_SECCOMP")
 
 
-def main():
+def main() -> None:
     argv = sys.argv[1:]
     sep = argv.index("--")
     uid, cpu_s, data_b, fsize_b, nproc = map(int, argv[:sep])
-    cmd = argv[sep + 1:]
+    cmd = argv[sep + 1 :]
 
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     resource.setrlimit(resource.RLIMIT_CPU, (cpu_s, cpu_s))

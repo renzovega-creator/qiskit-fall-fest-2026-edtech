@@ -6,6 +6,8 @@ se vigilan los límites que el kernel no aplica solo: reloj, memoria total,
 tamaño del directorio y volumen de salida. Al terminar se matan todos los procesos de ese
 uid y se borran sus archivos, también los de /scratch, /tmp, /var/tmp y /dev/shm.
 """
+
+import contextlib
 import os
 import shutil
 import signal
@@ -14,6 +16,7 @@ import sys
 import tempfile
 import threading
 import time
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -47,7 +50,7 @@ class Outcome:
     ms: int
 
 
-def _pids_of(uid):
+def _pids_of(uid: int) -> Iterator[int]:
     for name in os.listdir("/proc"):
         if not name.isdigit():
             continue
@@ -58,7 +61,7 @@ def _pids_of(uid):
             continue
 
 
-def _rss_bytes(uid):
+def _rss_bytes(uid: int) -> int:
     """Memoria residente de los procesos de `uid`."""
     total = 0
     for pid in _pids_of(uid):
@@ -70,7 +73,7 @@ def _rss_bytes(uid):
     return total
 
 
-def kill_uid(uid):
+def kill_uid(uid: int) -> None:
     """Mata todos los procesos de `uid`, también los que hicieron setsid."""
     deadline = time.monotonic() + 3
     while time.monotonic() < deadline:
@@ -78,18 +81,16 @@ def kill_uid(uid):
         if not pids:
             return
         for pid in pids:
-            try:
+            with contextlib.suppress(OSError):
                 os.kill(pid, signal.SIGKILL)
-            except OSError:
-                pass
         time.sleep(0.01)
 
 
-def _tree_bytes(root):
+def _tree_bytes(root: Path) -> int | None:
     """Bytes en disco bajo `root`; None si hay demasiadas entradas."""
     total = 0
     seen = 0
-    stack = [root]
+    stack = [str(root)]
     while stack:
         try:
             with os.scandir(stack.pop()) as it:
@@ -106,7 +107,7 @@ def _tree_bytes(root):
     return total
 
 
-def _remove_owned(uid, root):
+def _remove_owned(uid: int, root: str) -> None:
     """Borra de `root` lo que pertenece a `uid`, sin seguir enlaces."""
     for dirpath, dirnames, filenames in os.walk(root, topdown=False, followlinks=False):
         for name in filenames + dirnames:
@@ -122,7 +123,7 @@ def _remove_owned(uid, root):
                 continue
 
 
-def _drain(fd, cap, box, over):
+def _drain(fd: int, cap: int, box: bytearray, over: threading.Event) -> None:
     while True:
         try:
             chunk = os.read(fd, 65536)
@@ -143,17 +144,17 @@ class _Scan(threading.Thread):
     el reloj de `run_job` sigue su curso. `killed` se escribe antes de `tripped`.
     """
 
-    def __init__(self, uid, work, limits):
+    def __init__(self, uid: int, work: Path, limits: Limits) -> None:
         super().__init__(daemon=True)
         self.uid, self.work = uid, work
         self.mem_cap = limits.mem_mb * 2**20
         self.disk_cap = limits.scratch_mb * 2**20
         self.peak = 0
-        self.killed = None
+        self.killed: str | None = None
         self.tripped = threading.Event()
         self.stopped = threading.Event()
 
-    def run(self):
+    def run(self) -> None:
         next_disk = 0.0
         while not self.stopped.wait(POLL_S):
             rss = _rss_bytes(self.uid)
@@ -170,11 +171,18 @@ class _Scan(threading.Thread):
                 return
 
 
-def slot_uid(slot):
+def slot_uid(slot: int) -> int:
     return UID_BASE + slot
 
 
-def run_job(slot, files, argv, limits, env, report=False):
+def run_job(
+    slot: int,
+    files: Mapping[str, str],
+    argv: Sequence[str],
+    limits: Limits,
+    env: Mapping[str, str],
+    report: bool = False,
+) -> Outcome:
     """Ejecuta `argv` con `files` escritos en un directorio nuevo.
 
     `argv` y los valores de `env` pueden usar `{dir}`, la ruta del directorio.
@@ -211,11 +219,18 @@ def run_job(slot, files, argv, limits, env, report=False):
         }
         cmd = [a.replace("{dir}", str(work)) for a in argv]
         launch = [
-            sys.executable, "-S", str(APP / "launcher.py"),
-            str(uid), str(int(limits.wall_s) + 2), str(limits.mem_mb * 2**20),
-            str(limits.file_mb * 2**20), str(limits.nproc), "--", *cmd,
+            sys.executable,
+            "-S",
+            str(APP / "launcher.py"),
+            str(uid),
+            str(int(limits.wall_s) + 2),
+            str(limits.mem_mb * 2**20),
+            str(limits.file_mb * 2**20),
+            str(limits.nproc),
+            "--",
+            *cmd,
         ]
-        pass_fds = ()
+        pass_fds: tuple[int, ...] = ()
         rep_r = rep_w = None
         if report:
             rep_r, rep_w = os.pipe()
@@ -223,17 +238,25 @@ def run_job(slot, files, argv, limits, env, report=False):
             pass_fds = (rep_w,)
 
         proc = subprocess.Popen(
-            launch, cwd=work, env=child_env, stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            start_new_session=True, pass_fds=pass_fds,
+            launch,
+            cwd=work,
+            env=child_env,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+            pass_fds=pass_fds,
         )
         if rep_w is not None:
             os.close(rep_w)
+        assert proc.stdout is not None
 
         over = threading.Event()
         out, rep = bytearray(), bytearray()
         readers = [
-            threading.Thread(target=_drain, args=(proc.stdout.fileno(), limits.out_bytes, out, over)),
+            threading.Thread(
+                target=_drain, args=(proc.stdout.fileno(), limits.out_bytes, out, over)
+            ),
         ]
         if rep_r is not None:
             readers.append(threading.Thread(target=_drain, args=(rep_r, REPORT_CAP, rep, over)))
@@ -242,7 +265,7 @@ def run_job(slot, files, argv, limits, env, report=False):
 
         scan = _Scan(uid, work, limits)
         scan.start()
-        killed = None
+        killed: str | None = None
         deadline = start + limits.wall_s
         while proc.poll() is None:
             if over.is_set():
@@ -255,10 +278,8 @@ def run_job(slot, files, argv, limits, env, report=False):
                 break
             time.sleep(POLL_S)
 
-        try:
+        with contextlib.suppress(OSError):
             os.killpg(proc.pid, signal.SIGKILL)
-        except OSError:
-            pass
         proc.wait()
         scan.stopped.set()
         kill_uid(uid)

@@ -4,15 +4,17 @@
     python tools/fetch_docs.py && uv run python tools/extract.py
 Las celdas de código van entre ```python y sus salidas de texto entre ```salida (las imágenes se omiten).
 """
+
 import json
 from pathlib import Path
+from typing import Any
 
 CACHE = Path(__file__).resolve().parent.parent / ".cache" / "qiskit-docs"
 SRC, OUT = CACHE / "docs" / "guides", CACHE / "text"
 
 
-def notebook_text(f):
-    parts = []
+def notebook_text(f: Path) -> str:
+    parts: list[Any] = []
     for c in json.loads(f.read_text(encoding="utf-8"))["cells"]:
         src = "".join(c["source"])
         if c["cell_type"] == "markdown":
@@ -28,7 +30,7 @@ def notebook_text(f):
     return "\n\n".join(parts)
 
 
-def main():
+def main() -> None:
     if not SRC.is_dir():
         raise SystemExit(f"falta {SRC}: ejecuta python tools/fetch_docs.py")
     OUT.mkdir(parents=True, exist_ok=True)
