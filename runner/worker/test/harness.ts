@@ -85,6 +85,8 @@ export interface Harness {
   ): Promise<number>;
   provider: FakeProvider;
   db: D1Database;
+  // Origen HTTP del Worker, para un navegador.
+  origin(): Promise<string>;
   purge(at?: Date): Promise<void>;
   // Líneas escritas por el Worker en Workers Logs.
   workerLogs(): string[];
@@ -176,6 +178,7 @@ export async function start(options: Options = {}): Promise<Harness> {
     siteverify,
     provider,
     db,
+    origin: async () => (await mf.ready).origin,
     purge: async (at = new Date()) => {
       await (await mf.getWorker()).scheduled({ scheduledTime: at });
     },

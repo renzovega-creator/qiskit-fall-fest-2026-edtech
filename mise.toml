@@ -15,7 +15,7 @@ description = "Fail without writing if the committed site JSON differs from the 
 run = "uv run python lessons_src/build.py --check"
 
 [tasks.test]
-description = "Run practice notebooks with solutions and controls at both bounds, check every exercise, run its tests, then drive the exercise editor and the project panel in a browser"
+description = "Run practice notebooks with solutions and controls at both bounds, check every exercise, run its tests, then drive the exercise editor, the project panel and the optional account in a browser"
 run = [
   "uv run python tools/practica.py",
   "uv run python tools/exercises.py",
@@ -23,6 +23,7 @@ run = [
   "uv run pytest tests/dashboard_test.py",
   "uv run --group tools python tests/exercise_ui_test.py",
   "uv run --group tools python tests/proyecto_test.py",
+  "uv run --group tools python tests/account_ui_test.py",
 ]
 
 [tasks.runner]

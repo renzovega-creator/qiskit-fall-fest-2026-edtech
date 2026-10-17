@@ -7,18 +7,18 @@ carpeta y por dónde pasa una lección.
 
 ## Quién posee qué
 
-| Carpeta        | Contenido                                                                                                                                                |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lessons_src/` | Las lecciones como código Python y el programa que las convierte en JSON.                                                                                |
-| `tools/`       | Programas auxiliares: guías originales, narración, comprobaciones y pruebas de navegador.                                                                |
-| `site/`        | La página estática: portada, reproductor de lecciones y los datos que lee.                                                                               |
-| `tests/`       | Pruebas de navegador (`theme_test.py`, `proyecto_test.py`, `exercise_ui_test.py`) de ejercicios (`exercises_test.py`) y del corredor (`runner_test.py`). |
-| `practica/`    | Los cuadernos marimo de las misiones y sus soluciones.                                                                                                   |
-| `exercises/`   | Los ejercicios de código: código inicial, solución y casos de cada uno.                                                                                  |
-| `editor/`      | El paquete que compila `site/editor.js`, el editor de los ejercicios.                                                                                    |
-| `qgcheck/`     | El corrector de ejercicios: lee `exercises/`, ejecuta el código de un alumno y devuelve el resultado de cada caso.                                       |
-| `content/`     | La caché de la síntesis de voz.                                                                                                                          |
-| `runner/`      | El corredor de código del alumno: imagen, servidor `/run` y Worker. [runner.md](runner.md)                                                               |
+| Carpeta        | Contenido                                                                                                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `lessons_src/` | Las lecciones como código Python y el programa que las convierte en JSON.                                                                                                      |
+| `tools/`       | Programas auxiliares: guías originales, narración, comprobaciones y pruebas de navegador.                                                                                      |
+| `site/`        | La página estática: portada, reproductor de lecciones y los datos que lee.                                                                                                     |
+| `tests/`       | Pruebas de navegador (`theme_test.py`, `proyecto_test.py`, `exercise_ui_test.py`, `account_ui_test.py`) de ejercicios (`exercises_test.py`) y del corredor (`runner_test.py`). |
+| `practica/`    | Los cuadernos marimo de las misiones y sus soluciones.                                                                                                                         |
+| `exercises/`   | Los ejercicios de código: código inicial, solución y casos de cada uno.                                                                                                        |
+| `editor/`      | El paquete que compila `site/editor.js`, el editor de los ejercicios.                                                                                                          |
+| `qgcheck/`     | El corrector de ejercicios: lee `exercises/`, ejecuta el código de un alumno y devuelve el resultado de cada caso.                                                             |
+| `content/`     | La caché de la síntesis de voz.                                                                                                                                                |
+| `runner/`      | El corredor de código del alumno: imagen, servidor `/run` y Worker. [runner.md](runner.md)                                                                                     |
 
 ### `lessons_src/`
 

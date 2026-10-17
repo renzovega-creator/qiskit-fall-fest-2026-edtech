@@ -80,7 +80,19 @@
 .theme-ctl button { width: 34px; font-size: 15px; }
 .theme-ctl select:hover, .theme-ctl button:hover { color: var(--ink); border-color: var(--line-strong); }
 .theme-ctl option { color: var(--ink); background: var(--card); }
+.acct { position: relative; }
+.acct > button, .acct-menu button { font: 500 13px var(--sans); cursor: pointer; }
+.acct > button { height: 34px; padding: 0 12px; border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 999px; white-space: nowrap; }
+.acct > button:hover { color: var(--ink); border-color: var(--line-strong); }
+.acct-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; width: 260px; display: grid; gap: 6px; padding: 12px; background: var(--card); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 12px 32px -12px #0008; }
+.acct-menu[hidden] { display: none; }
+.acct-menu p { margin: 0 0 4px; color: var(--muted); font: 400 13px/1.45 var(--sans); }
+.acct-menu button { height: 36px; border: 1px solid var(--line); background: var(--bg2); color: var(--ink); border-radius: 8px; }
+.acct-menu button:hover { border-color: var(--line-strong); }
+.acct-menu button.danger { color: var(--bad); }
+.acct-menu a { color: var(--muted); font: 500 13px var(--sans); text-decoration: underline; text-underline-offset: 2px; padding-top: 4px; }
 @media (max-width: 600px) {
+  .acct > button { height: 30px; padding: 0 8px; }
   .theme-ctl select { appearance: none; width: 34px; padding: 0; color: transparent;
     background: radial-gradient(circle, var(--acc) 0 6px, transparent 7px) center / auto no-repeat var(--card); }
 }

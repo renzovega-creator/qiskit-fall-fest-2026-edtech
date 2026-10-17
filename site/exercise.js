@@ -3,7 +3,9 @@
 // spec: exercise (id) · prompt · level · hints · starter · cases (nombres de los casos visibles)
 // Ejecutar y Comprobar envían el código a /run en el mismo origen que la página.
 // La primera petición de una sesión puede requerir Turnstile y repetir la petición con el token.
-// El código, las pistas vistas y si está resuelto se guardan en el navegador, en qiskit:exercise:<id>.
+// El navegador guarda el código, las pistas vistas y el estado de resolución en
+// qiskit:exercise:<id>. `at` registra la última edición del código.
+// Con cuenta, account.js también envía esos datos al servidor.
 (() => {
   'use strict';
   const CALL_TIMEOUT_MS = 30000;
@@ -52,7 +54,11 @@
 
   const progress = {
     get(id) { try { return JSON.parse(localStorage.getItem(`qiskit:exercise:${id}`)) || {}; } catch (e) { return {}; } },
-    set(id, patch) { try { localStorage.setItem(`qiskit:exercise:${id}`, JSON.stringify({ ...progress.get(id), ...patch })); } catch (e) {} },
+    set(id, patch) {
+      const key = `qiskit:exercise:${id}`;
+      try { localStorage.setItem(key, JSON.stringify({ ...progress.get(id), ...patch, ...('code' in patch && { at: Date.now() }) })); } catch (e) {}
+      QGAccount.changed(key);
+    },
   };
   const seconds = ms => `${(ms / 1000).toFixed(1).replace('.', ',')} s`;
 

@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="index.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
 <script src="theme.js"></script>
+<script src="account.js"></script>
 <script src="notebooks.js"></script>
 </head>
 <body>
@@ -20,6 +21,7 @@
     <span class="pill">Qiskit · en español</span>
     <span class="sp"></span>
     <span class="pill" id="prog"></span>
+    <div data-account></div>
     <div data-theme-ctl></div>
   </header>
 
@@ -61,7 +63,7 @@
 const $ = s => document.querySelector(s);
 const LS = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} QGAccount.changed(k); },
 };
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // texto con `código`, **negrita** y $matemáticas$
@@ -200,6 +202,7 @@ async function renderRepaso(course, doneSet) {
 
 // ---------- curso ----------
 (async () => {
+  await QGAccount.ready;
   const doneSet = new Set(LS.get('qiskit:done', []));
   const course = await (await fetch('course.json')).json();
   const all = course.parts.flatMap(p => p.lessons);
