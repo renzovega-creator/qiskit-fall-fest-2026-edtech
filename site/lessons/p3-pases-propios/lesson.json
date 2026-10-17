@@ -569,46 +569,80 @@
     "3.6",
     "Tu turno"
    ],
-   "say": "Ahora te toca. [[n1]]Primero, convierte un circuito en DAG, añade puertas al principio y al final, y vuelve al circuito; apuesta antes cuántas H tendrá. [[n2]]Después, completa un pase de transformación que sustituye cada SWAP por tres CNOT. [[n3]]Y por último, escribe tú un pase de análisis que cuenta las puertas de dos qubits y las guarda en el property set.",
+   "say": "Ahora te toca. [[n1]]Primero, escribe la función que convierte un circuito en DAG, añade puertas al principio y al final, y vuelve al circuito. [[n2]]Después, completa un pase de transformación que sustituye cada SWAP por tres CNOT. [[n3]]Y por último, escribe tú un pase de análisis que cuenta las puertas de dos qubits y las guarda en el property set.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p3-pases-propios.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Añade puertas con `apply_operation_back` y `apply_operation_front`."
-      },
-      {
-       "level": 2,
-       "text": "Completa un `TransformationPass` que sustituye cada `swap` por 3 `cx`."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `ContarDosQubits`, un `AnalysisPass` que guarda `n2q`."
-      }
+     "type": "exercise",
+     "exercise": "p3-pases-propios/dag-operaciones",
+     "prompt": "Completa `envolver(circuito)`: convierte el circuito en DAG, añade una `H` al final sobre el qubit 0 y una Toffoli (`CCXGate`) al principio sobre los qubits 0, 1 y 2, y vuelve al circuito. Trampa: los qubits que recibe el DAG son sus propios objetos (`dag.qubits`), no los de un registro que tú llames `q`.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "Un DAG permite añadir operaciones por los dos extremos sin recorrer el circuito.",
+      "Hay un método para añadir al final y otro para añadir al principio; los dos reciben la puerta y sus `qargs`.",
+      "Los qubits que pasas son objetos del DAG, como `dag.qubits[0]`, no números."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister\nfrom qiskit.circuit.library import CCXGate, HGate\nfrom qiskit.converters import circuit_to_dag, dag_to_circuit\n\n\ndef envolver(circuito):\n    dag = circuit_to_dag(circuito)\n    # ✏️ añade una H al final sobre el qubit 0 y una Toffoli al principio sobre los qubits 0, 1 y 2\n    return dag_to_circuit(dag)\n\n\nq = QuantumRegister(3, \"q\")\nc = ClassicalRegister(3, \"c\")\ncirc = QuantumCircuit(q, c)\ncirc.h(q[0])\ncirc.cx(q[0], q[1])\ncirc.measure(q[0], c[0])\nwith circ.if_test((c, 2)):\n    circ.rz(0.5, q[1])\nprint(dict(envolver(circ).count_ops()))",
+     "cases": [
+      "la H va al final y la Toffoli al principio",
+      "el resultado conserva la medición y el bloque if"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p3-pases-propios/swap-a-cx",
+     "prompt": "Cambia `SwapACx` para que sustituya cada `swap` por tres `cx`: (0, 1), (1, 0) y (0, 1), sobre los dos qubits del mini DAG `reg`. La comprobación exige el mismo operador y ningún `swap`.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "Un SWAP intercambia dos qubits, y lo mismo se logra con tres CNOT que alternan quién es el control.",
+      "El cambio va dentro del mini DAG `mini`, en lugar de la línea que añade `SwapGate()`.",
+      "Añade cada `CXGate()` con `apply_operation_back`, con los dos qubits de `reg` en el orden (control, objetivo)."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.circuit import QuantumRegister\nfrom qiskit.circuit.library import CXGate, SwapGate\nfrom qiskit.dagcircuit import DAGCircuit\nfrom qiskit.transpiler import PassManager\nfrom qiskit.transpiler.basepasses import TransformationPass\n\n\nclass SwapACx(TransformationPass):\n    def run(self, dag):\n        for nodo in dag.op_nodes():\n            if nodo.name != \"swap\":\n                continue\n            mini = DAGCircuit()\n            reg = QuantumRegister(2)\n            mini.add_qreg(reg)\n            mini.apply_operation_back(SwapGate(), [reg[0], reg[1]])   # ✏️ cámbialo por tres CX\n            dag.substitute_node_with_dag(nodo, mini)\n        return dag\n\n\nqc = QuantumCircuit(3)\nqc.h(0)\nqc.swap(0, 1)\nqc.cx(1, 2)\nqc.swap(1, 2)\nprint(dict(PassManager([SwapACx()]).run(qc).count_ops()))",
+     "cases": [
+      "ningún swap y el mismo operador",
+      "cada swap se convierte en tres cx"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p3-pases-propios/contar-dos-qubits",
+     "prompt": "Escribe `ContarDosQubits`, un `AnalysisPass` cuyo método `run(self, dag)` cuenta las puertas de exactamente dos qubits de `dag` y guarda el número en `self.property_set[\"n2q\"]`, sin tocar el DAG. Trampas: si no hay ninguna, guarda 0 (no dejes la clave sin escribir), y una Toffoli tiene tres qubits, así que no cuenta.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "Un pase de análisis lee el DAG y deja su resultado en el `property_set`; no lo modifica.",
+      "El DAG sabe filtrar sus operaciones por número de qubits.",
+      "`dag.two_qubit_ops()` devuelve las operaciones de dos qubits; el `property_set` se usa como un diccionario."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.transpiler import PassManager\nfrom qiskit.transpiler.basepasses import AnalysisPass\n\n\nclass ContarDosQubits(AnalysisPass):\n    def run(self, dag):\n        pass  # ✏️ cuenta las puertas de dos qubits y guárdalas en self.property_set[\"n2q\"]\n\n\nqc = QuantumCircuit(3)\nqc.h(0)\nqc.cx(0, 1)\nqc.cz(1, 2)\nqc.swap(0, 2)\npm = PassManager([ContarDosQubits()])\npm.run(qc)\nprint(\"n2q:\", pm.property_set.get(\"n2q\"))",
+     "cases": [
+      "cuenta las puertas de dos qubits",
+      "no cambia el circuito"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]

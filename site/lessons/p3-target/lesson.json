@@ -655,25 +655,25 @@
    "scene": [
     {
      "type": "text",
-     "text": "Quieres que el transpilador evite un par de qubits que sabes que está averiado.",
+     "text": "Un backend es un `Target` más la forma de ejecutar circuitos.",
      "style": "body"
     }
    ],
    "actions": [],
    "ask": {
     "kind": "choice",
-    "prompt": "¿Qué cambias?",
+    "prompt": "¿Qué parte del backend no puede cambiar el circuito transpilado?",
     "options": [
-     "el `Target`: no añades la puerta de dos qubits en ese par",
+     "el `Target`",
      "el método `run`",
-     "`max_circuits`"
+     "las puertas que declara el `Target`"
     ],
-    "right": 0,
-    "why": "Correcto: si la instrucción no está en el `Target` para ese par, el transpilador nunca la usará allí.",
+    "right": 1,
+    "why": "Correcto: `run` solo envía trabajos al dispositivo; el transpilador lee el `Target`, no `run`.",
     "wrong": [
+     "El `Target` es justo lo que lee el transpilador: si cambia, cambia el resultado.",
      null,
-     "`run` envía trabajos; no influye en la transpilación.",
-     "`max_circuits` solo limita cuántos circuitos van en un trabajo."
+     "Esas puertas son parte del `Target`: cambian el resultado."
     ]
    },
    "align": "top"
@@ -684,46 +684,78 @@
     "3.4",
     "Tu turno"
    ],
-   "say": "Ahora te toca. [[n1]]Primero, construye el backend de tres qubits de la lección y mira en qué puertas traduce una CX entre los extremos. [[n2]]Después, en un anillo de cuatro qubits, quita del Target el par averiado para que el transpilador lo esquive. [[n3]]Y por último, escribe una función que construye un Target para una cadena de cualquier tamaño.",
+   "say": "Ahora te toca. [[n1]]Primero, completa el backend de tres qubits de la lección para que traduzca una CX entre los extremos sin SWAP. [[n2]]Después, en un anillo de cuatro qubits, quita del Target el par averiado para que el transpilador lo esquive. [[n3]]Y por último, escribe una función que construye un Target para una cadena de cualquier tamaño.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p3-target.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Crea `MiBackend` y transpila una CX entre los qubits 0 y 2."
-      },
-      {
-       "level": 2,
-       "text": "Quita del `Target` el par averiado de un anillo de 4 qubits."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `cadena(n)`: un `Target` con `cz` solo entre vecinos."
-      }
+     "type": "exercise",
+     "exercise": "p3-target/mi-backend",
+     "prompt": "`MiBackend` es la cadena de tres qubits 0-1-2 de la lección: ya tiene `rz`, `sx`, `x` y la medición, pero a `cz` le falta un par. Complétalo y transpila una `cx` entre los qubits 0 y 2: no debe salir ningún `swap`.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "Un `Target` solo conoce las conexiones que le declares: la cadena 0-1-2 tiene dos enlaces.",
+      "La puerta `CZGate()` se añade con un diccionario cuyas claves son las tuplas de qubits donde existe.",
+      "Cada clave es un par `(a, b)` y su valor, un `InstructionProperties`."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit, transpile\nfrom qiskit.circuit import Measure, Parameter\nfrom qiskit.circuit.library import CZGate, RZGate, SXGate, XGate\nfrom qiskit.providers import BackendV2, Options\nfrom qiskit.transpiler import InstructionProperties, Target\n\n\nclass MiBackend(BackendV2):\n    def __init__(self):\n        super().__init__(name=\"mi_backend\")\n        self._target = Target(\"cadena de 3\", num_qubits=3)\n        self._target.add_instruction(\n            RZGate(Parameter(\"t\")),\n            {(q,): InstructionProperties(error=0.0, duration=0.0) for q in range(3)},\n        )\n        for gate in (XGate(), SXGate(), Measure()):\n            self._target.add_instruction(gate, {(q,): None for q in range(3)})\n        # ✏️ la cadena es 0-1-2: ¿qué pares de `cz` faltan?\n        self._target.add_instruction(CZGate(), {(0, 1): InstructionProperties(error=5e-3)})\n\n    @property\n    def target(self):\n        return self._target\n\n    @property\n    def max_circuits(self):\n        return None\n\n    @classmethod\n    def _default_options(cls):\n        return Options(shots=1024)\n\n    def run(self, circuit, **kwargs):\n        raise NotImplementedError\n\n\ncx_lejana = QuantumCircuit(3)\ncx_lejana.h(0)\ncx_lejana.cx(0, 2)\nprint(sorted(transpile(cx_lejana, MiBackend(), seed_transpiler=1).count_ops()))",
+     "cases": [
+      "una CX entre los extremos no necesita SWAP",
+      "un GHZ de 3 qubits cabe en la cadena sin SWAP"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p3-target/anillo-averiado",
+     "prompt": "El anillo de 4 qubits sale de `errores_cz`, que da el error de cada par. La tabla dice que el par (1, 2) es casi perfecto, pero tú sabes que está averiado. Cambia `errores_cz` para que el transpilador nunca use ese par.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "El transpilador se fía de la tabla: solo deja de usar un par si dejas de ofrecérselo.",
+      "Lo que no está en el `Target` no existe para el transpilador; piensa en qué pares declaras para `cz`.",
+      "El diccionario `errores_cz` tiene una entrada por par."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.circuit import Measure, Parameter\nfrom qiskit.circuit.library import CZGate, RZGate, SXGate, XGate\nfrom qiskit.transpiler import InstructionProperties, Target, generate_preset_pass_manager\n\nerrores_cz = {\n    (0, 1): 5e-3,\n    (1, 2): 1e-4,   # ✏️ este par está averiado\n    (2, 3): 5e-3,\n    (3, 0): 5e-3,\n}\n\nanillo = Target(\"anillo de 4\", num_qubits=4)\nanillo.add_instruction(RZGate(Parameter(\"t\")), {(q,): InstructionProperties(error=0.0, duration=0.0) for q in range(4)})\nfor puerta in (XGate(), SXGate(), Measure()):\n    anillo.add_instruction(puerta, {(q,): None for q in range(4)})\nanillo.add_instruction(CZGate(), {par: InstructionProperties(error=e) for par, e in errores_cz.items()})\n\nbell = QuantumCircuit(2)\nbell.h(0)\nbell.cx(0, 1)\nisa = generate_preset_pass_manager(3, target=anillo, seed_transpiler=1).run(bell)\nprint(\"pares de dos qubits usados:\", [tuple(isa.find_bit(q).index for q in i.qubits) for i in isa.data if i.operation.num_qubits == 2])",
+     "cases": [
+      "el transpilador nunca usa el par (1, 2)"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p3-target/cadena-n",
+     "prompt": "Escribe `cadena(n)`: devuelve un `Target` de `n` qubits con `rz`, `sx`, `x` y `measure` en cada qubit, y `cz` **solo** entre vecinos (0–1, 1–2…). `n` es el número de qubits y vale 3 o más. Trampa: una cadena de `n` qubits tiene `n - 1` pares vecinos, no `n`, y la comprobación exige que un GHZ de `n` qubits se transpile sin ningún SWAP.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "La cadena es un camino: cada qubit se conecta con el siguiente y con nadie más.",
+      "`rz` ya está añadida en todos los qubits; `sx`, `x` y `measure` se añaden igual, y `cz` solo en los pares vecinos.",
+      "Las puertas de un qubit llevan un diccionario con claves `(q,)`; `cz` lleva uno con claves `(a, b)`. El valor de cada clave puede ser `None` o un `InstructionProperties`."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "from qiskit.circuit import Measure, Parameter\nfrom qiskit.circuit.library import CZGate, RZGate, SXGate, XGate\nfrom qiskit.transpiler import InstructionProperties, Target\n\n\ndef cadena(n):\n    target = Target(f\"cadena de {n}\", num_qubits=n)\n    target.add_instruction(RZGate(Parameter(\"t\")), {(q,): None for q in range(n)})\n    # ✏️ añade `sx`, `x` y `measure` en todos los qubits\n    # ✏️ añade `cz` solo entre vecinos: (0, 1), (1, 2)…\n    return target\n\n\nprint(sorted(cadena(4).operation_names))",
+     "cases": [
+      "un GHZ de 3 qubits se transpila sin SWAP"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]

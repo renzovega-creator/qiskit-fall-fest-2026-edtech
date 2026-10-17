@@ -552,46 +552,78 @@
     "3.7",
     "Tu turno"
    ],
-   "say": "Ahora te toca. [[n1]]Primero, lista los métodos que Qiskit ya trae para Clifford, unitarias y routing. [[n2]]Después, cambia el método de routing de una cuadrícula para quitar CNOT. [[n3]]Y por último, escribe tu propio plugin de síntesis de Clifford, que se rinde con más de tres qubits y deja pasar al siguiente método.",
+   "say": "Ahora te toca. [[n1]]Primero, escribe las tres llamadas que listan los métodos que Qiskit ya trae para Clifford, unitarias y routing. [[n2]]Después, cambia el método de routing de una cuadrícula para quitar CNOT. [[n3]]Y por último, escribe tu propio plugin de síntesis de Clifford, que se rinde con más de tres qubits y deja pasar al siguiente método.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p3-plugins.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Lista los plugins de Clifford, de unitarias y de routing."
-      },
-      {
-       "level": 2,
-       "text": "Cambia `routing_method` para bajar a 55 CNOT o menos."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `MiClifford.run`: sintetiza hasta 3 qubits y devuelve `None` si no."
-      }
+     "type": "exercise",
+     "exercise": "p3-plugins/listar-metodos",
+     "prompt": "Guarda en `clifford_metodos`, `unitaria_metodos` y `routing_metodos` los nombres de los métodos registrados para sintetizar un Clifford, para sintetizar una unitaria y para el routing. Las funciones que los listan ya están importadas.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "Qiskit guarda los plugins en un registro que se consulta por tipo de objeto o por etapa.",
+      "Las tres funciones importadas devuelven listas de nombres; cada una sirve para una de las tres variables.",
+      "Se llaman con paréntesis: dos reciben un nombre entre comillas (el objeto o la etapa) y una no recibe nada."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit.transpiler.passes.synthesis.plugin import (\n    high_level_synthesis_plugin_names,\n    unitary_synthesis_plugin_names,\n)\nfrom qiskit.transpiler.preset_passmanagers.plugin import list_stage_plugins\n\nclifford_metodos = []   # ✏️ los métodos para sintetizar un Clifford\nunitaria_metodos = []   # ✏️ los métodos para sintetizar una unitaria\nrouting_metodos = []    # ✏️ los métodos para el routing\n\nprint(\"clifford:\", clifford_metodos)\nprint(\"unitaria:\", unitaria_metodos)\nprint(\"routing: \", routing_metodos)",
+     "cases": [
+      "`clifford_metodos` lista los métodos para sintetizar un Clifford"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p3-plugins/routing-method",
+     "prompt": "Cambia `metodo` por otro método de routing de la lista del ejercicio anterior, para que el circuito aleatorio salga con 55 CNOT o menos sobre la cuadrícula de 3×3. Con `basic` salen 79.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "`basic` inserta SWAP sin mirar qué puertas vienen después; otros métodos sí lo hacen.",
+      "Elige un nombre de la lista de métodos de routing; uno de ellos, `none`, no sirve porque no enruta.",
+      "Cambia solo la cadena de `metodo` y mira cuántas CNOT imprime."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit.circuit.random import random_circuit\nfrom qiskit.transpiler import CouplingMap, generate_preset_pass_manager\n\ncuadricula = CouplingMap.from_grid(3, 3)\naleatorio = random_circuit(9, 6, max_operands=2, seed=3)\nmetodo = \"basic\"  # ✏️ prueba otro método de routing\npm_routing = generate_preset_pass_manager(\n    2, coupling_map=cuadricula, basis_gates=[\"cx\", \"rz\", \"sx\", \"x\"],\n    routing_method=metodo, seed_transpiler=0)\ncx_routing = pm_routing.run(aleatorio).count_ops().get(\"cx\", 0)\nprint(metodo, \"→\", cx_routing, \"CNOT\")",
+     "cases": [
+      "55 CNOT o menos"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p3-plugins/clifford-plugin",
+     "prompt": "Completa `MiClifford.run`: recibe en `high_level_object` el `Clifford`; `coupling_map`, `target`, `qubits` y `options` describen el chip y las opciones del método, y este plugin no los usa. Si el `Clifford` tiene 3 qubits o menos, devuelve su circuito con `synth_clifford_bm`; si tiene más, devuelve `None` para que el transpilador pruebe el siguiente método. Trampa: `None` es la señal de «paso»; no lances un error ni devuelvas un circuito vacío.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "Un plugin de síntesis recibe el objeto de alto nivel y devuelve un circuito, o `None` si se rinde.",
+      "Dentro de `run`, decide según `high_level_object.num_qubits`.",
+      "`synth_clifford_bm` recibe el Clifford y devuelve su circuito."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.quantum_info import Clifford, random_clifford\nfrom qiskit.synthesis import synth_clifford_bm\nfrom qiskit.transpiler import PassManager\nfrom qiskit.transpiler.passes import HighLevelSynthesis\nfrom qiskit.transpiler.passes.synthesis.high_level_synthesis import HLSConfig\nfrom qiskit.transpiler.passes.synthesis.plugin import HighLevelSynthesisPlugin\n\n\nclass MiClifford(HighLevelSynthesisPlugin):\n    def run(self, high_level_object, coupling_map=None, target=None, qubits=None, **options):\n        return None  # ✏️ sintetiza con synth_clifford_bm si num_qubits <= 3\n\n\ndef sintetiza(cl, metodos):\n    qc = QuantumCircuit(cl.num_qubits)\n    qc.append(cl, range(cl.num_qubits))\n    return PassManager([HighLevelSynthesis(hls_config=HLSConfig(clifford=metodos))]).run(qc)\n\n\nfor n in (3, 4):\n    print(n, \"qubits:\", dict(sintetiza(random_clifford(n, seed=1), [(MiClifford(), {})]).count_ops()))",
+     "cases": [
+      "un Clifford de 3 qubits se sintetiza y es equivalente",
+      "uno de 5 qubits queda intacto"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]

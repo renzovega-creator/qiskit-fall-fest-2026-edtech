@@ -220,7 +220,7 @@
    "scene": [
     {
      "type": "text",
-     "text": "Quieres un pase que se ejecute justo después de elegir el layout y antes de insertar SWAP.",
+     "text": "Quieres un pase que se ejecute justo después de calcular los tiempos de cada puerta.",
      "style": "body"
     }
    ],
@@ -229,18 +229,18 @@
     "kind": "choice",
     "prompt": "¿Qué atributo asignas?",
     "options": [
-     "`pre_layout`",
-     "`post_layout`",
-     "`pre_init`",
-     "`post_routing`"
+     "`pre_scheduling`",
+     "`post_scheduling`",
+     "`post_init`",
+     "`pre_init`"
     ],
     "right": 1,
-    "why": "Correcto: `post_layout` corre tras la etapa de layout y antes de `pre_routing` y `routing`.",
+    "why": "Correcto: `post_scheduling` corre tras la etapa de scheduling, cuando ya existen las esperas.",
     "wrong": [
-     "`pre_layout` va antes de elegir el layout.",
+     "`pre_scheduling` va antes de calcular los tiempos.",
      null,
-     "`pre_init` es lo primero de todo.",
-     "`post_routing` va después de insertar SWAP."
+     "`post_init` va justo después de la etapa init, mucho antes.",
+     "`pre_init` es lo primero de todo."
     ]
    },
    "align": "top"
@@ -414,46 +414,79 @@
     "3.5",
     "Tu turno"
    ],
-   "say": "Ahora te toca. [[n1]]Primero, arma un pass manager que traduce a las puertas de un computador de iones atrapados. [[n2]]Después, mete un pase de cancelación en la etapa pre layout de uno prediseñado. [[n3]]Y por último, construye tú el pass manager de desacoplamiento dinámico sobre un circuito ya programado, y comprueba que no cambia el operador.",
+   "say": "Ahora te toca. [[n1]]Primero, arma un pass manager que traduce a las puertas de un computador de iones atrapados. [[n2]]Después, cambia el pase de cancelación que vive en la etapa pre layout de uno prediseñado. [[n3]]Y por último, construye tú el pass manager de desacoplamiento dinámico sobre un circuito ya programado, y comprueba que no cambia el operador.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p3-pass-managers.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Arma un `PassManager` que traduce a `rx`, `ry` y `rxx`."
-      },
-      {
-       "level": 2,
-       "text": "Asigna `pm.pre_layout` con `InverseCancellation` en el nivel 0."
-      },
-      {
-       "level": 3,
-       "text": "Construye `dd_pm` con `ALAPScheduleAnalysis` y `PadDynamicalDecoupling`."
-      }
+     "type": "exercise",
+     "exercise": "p3-pass-managers/traducir-iones",
+     "prompt": "Completa `traducir`, un pass manager que traduce un circuito a las puertas de un computador de iones atrapados: `rx`, `ry` y `rxx`. Ya reúne las puertas de dos qubits en bloques y consolida cada bloque en una unitaria; falta el pase que escribe esa unitaria con `puertas_iones`.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "Consolidar deja una puerta `unitary`, que todavía no es ninguna puerta base.",
+      "Hay un pase de síntesis que convierte una unitaria en puertas de un conjunto dado.",
+      "El pase se llama `UnitarySynthesis` y va al final de la lista, después de consolidar."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.transpiler import PassManager\nfrom qiskit.transpiler.passes import Collect2qBlocks, ConsolidateBlocks, UnitarySynthesis\n\npuertas_iones = [\"rx\", \"ry\", \"rxx\"]\ntraducir = PassManager([\n    Collect2qBlocks(),\n    ConsolidateBlocks(basis_gates=puertas_iones),\n    # ✏️ falta el pase que escribe cada unitaria con `puertas_iones`\n])\n\ncircuito_hcx = QuantumCircuit(2)\ncircuito_hcx.h(0)\ncircuito_hcx.cx(0, 1)\ncircuito_hcx.cx(1, 0)\nprint(sorted(traducir.run(circuito_hcx).count_ops()))",
+     "cases": [
+      "solo quedan rx, ry y rxx",
+      "el operador no cambia"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p3-pass-managers/cancelar-pares",
+     "prompt": "`pm_nivel0.pre_layout` cancela pares T y T†, pero este circuito tiene otros: una `S` seguida de `S†` y dos `H` seguidas. Cambia el pase para que, con el nivel 0, el circuito dé lo mismo que el que no los tiene.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "`InverseCancellation` solo cancela los pares que le nombras.",
+      "La `H` es su propia inversa; `S` y `S†` se anulan entre sí.",
+      "Cada elemento de la lista es una puerta sola, si es su propia inversa, o una tupla con una puerta y su inversa."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.circuit.library import TdgGate, TGate\nfrom qiskit.transpiler import PassManager, generate_preset_pass_manager\nfrom qiskit.transpiler.passes import InverseCancellation\nfrom qiskit_ibm_runtime.fake_provider import FakeFez\n\ncon_pares = QuantumCircuit(2)\ncon_pares.h(0)\ncon_pares.s(0)\ncon_pares.sdg(0)\ncon_pares.cx(0, 1)\ncon_pares.h(1)\ncon_pares.h(1)\ncon_pares.x(1)\n\nsin_pares = QuantumCircuit(2)\nsin_pares.h(0)\nsin_pares.cx(0, 1)\nsin_pares.x(1)\n\nfez = FakeFez()\npm_nivel0 = generate_preset_pass_manager(0, backend=fez, seed_transpiler=1)\n# ✏️ estos pares ya no son los del circuito\npm_nivel0.pre_layout = PassManager([InverseCancellation([(TGate(), TdgGate())])])\n\npuertas_con = dict(pm_nivel0.run(con_pares).count_ops())\npuertas_ref = dict(generate_preset_pass_manager(0, backend=fez, seed_transpiler=1).run(sin_pares).count_ops())\nprint(\"con pares:\", puertas_con, \"· sin pares:\", puertas_ref)",
+     "cases": [
+      "el circuito con pares da lo mismo que el que no los tiene"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p3-pass-managers/dd-pm",
+     "prompt": "Rellena `dd_pm` con **dos pases**, en este orden: `ALAPScheduleAnalysis` y `PadDynamicalDecoupling`. Los dos reciben `target=objetivo`, y el segundo, además, `dd_sequence` con la secuencia X, X. El circuito `programado` ya tiene tiempos asignados. Trampa: el análisis de tiempos va antes del relleno; al revés, el relleno no sabe cuánto dura cada espera.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "El relleno de DD necesita saber cuánto dura cada espera, y ese dato lo produce un análisis previo.",
+      "Los dos pases viven en `qiskit.transpiler.passes.scheduling` y se ejecutan en el orden en que los pones en la lista.",
+      "El análisis recibe `target=`; el relleno recibe `target=` y `dd_sequence=`, una lista con dos puertas `X`."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.circuit.library import XGate\nfrom qiskit.providers.fake_provider import GenericBackendV2\nfrom qiskit.transpiler import PassManager, generate_preset_pass_manager\nfrom qiskit.transpiler.passes.scheduling import ALAPScheduleAnalysis, PadDynamicalDecoupling\n\nbackend5 = GenericBackendV2(5, seed=1)\nobjetivo = backend5.target\n\nghz5 = QuantumCircuit(5)\nghz5.h(0)\nghz5.cx(0, range(1, 5))\nprogramado = generate_preset_pass_manager(\n    1, backend=backend5, scheduling_method=\"asap\", seed_transpiler=1234\n).run(ghz5)\n\ndd_pm = PassManager([\n    # ✏️ análisis de tiempos y relleno con la secuencia X, X\n])\ncon_dd = dd_pm.run(programado)\nprint(\"x antes:\", programado.count_ops().get(\"x\", 0), \"· x después:\", con_dd.count_ops().get(\"x\", 0))",
+     "cases": [
+      "el pass manager añade puertas X en las esperas",
+      "el operador no cambia"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]
