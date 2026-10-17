@@ -87,12 +87,14 @@ def test_larger():          # sin @visible: el caso es oculto
 Los ayudantes de [`qgcheck/__init__.py`](../qgcheck/__init__.py) importan Qiskit
 solo cuando se llaman:
 
-| Ayudante               | Devuelve                                                                          |
-| ---------------------- | --------------------------------------------------------------------------------- |
-| `counts(circuito)`     | Conteos del primer registro clásico con `StatevectorSampler`.                     |
-| `aer_counts(circuito)` | Lo mismo con el `SamplerV2` de Aer, para circuitos con control de flujo.          |
-| `gates(circuito)`      | `Counter` de nombres de operación, con las de dentro de `if_test` y `while_loop`. |
-| `state(circuito)`      | `Statevector` del circuito sin sus mediciones finales.                            |
+| Ayudante                        | Devuelve                                                                                                      |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `counts(circuito)`              | Conteos del primer registro clásico con `StatevectorSampler`.                                                 |
+| `aer_counts(circuito)`          | Lo mismo con el `SamplerV2` de Aer, para circuitos con control de flujo.                                      |
+| `gates(circuito)`               | `Counter` de nombres de operación, con las de dentro de `if_test` y `while_loop`.                             |
+| `state(circuito)`               | `Statevector` del circuito sin sus mediciones finales.                                                        |
+| `unsupported(circuito, target)` | Lista de las instrucciones que el `Target` no admite donde están, como `['cz en 0-2']`.                       |
+| `operator(circuito)`            | `Operator` sobre los qubits virtuales: aplica el layout de un circuito transpilado, aunque sea de 156 qubits. |
 
 ## Reglas de contenido
 
@@ -164,8 +166,13 @@ además corre los casos. Devuelve:
   en una línea, por ejemplo
   `NameError: name 'y' is not defined (línea 2: print(y))`. Un tiempo agotado no
   tiene línea. Con un error, `tests` queda vacío.
-- El código no puede pesar más de 20 000 bytes y se detiene a los 10 s. La
-  salida se corta a 10 000 caracteres.
+- El código no puede pesar más de 20 000 bytes y se detiene a los 10 s. Esos 10
+  s cuentan desde que el proceso terminó de importar los módulos de `qiskit`,
+  `qiskit_aer`, `qiskit_ibm_runtime`, `numpy`, `scipy`, `matplotlib`,
+  `rustworkx` y `sympy` que el código importa (`PRELOAD_ROOTS` en
+  `qgcheck/worker.py`); otra biblioteca se importa dentro de los 10 s. El
+  arranque tiene su propio tope de 60 s. La salida se corta a 10 000
+  caracteres.
 - El parámetro `block=("qiskit_aer",)` hace que esos módulos no se puedan
   importar en el proceso del alumno.
 - `grade` no aísla al alumno del equipo: no limita memoria, procesos ni red, y
@@ -264,7 +271,10 @@ por eso va después de `build.py`. Por cada ejercicio comprueba que:
 
 [`tests/exercises_test.py`](../tests/exercises_test.py) corre cada ejercicio con
 su solución y con una solución equivocada que debe fallar con un mensaje útil, y
-prueba el corrector, lo que publica `build.py`, las comprobaciones y `serve.py`.
+con los programas equivocados de `tests/mutants/<ejercicio>/` (los que hacen
+fallar cada caso oculto; son programas completos, sin depender del texto de
+`solution.py`), y prueba el corrector, lo que publica `build.py`, las
+comprobaciones y `serve.py`.
 [`tests/exercise_ui_test.py`](../tests/exercise_ui_test.py) abre las lecciones
 en el navegador contra `serve.py`: escribe código equivocado y ve fallar un
 caso, lo corrige y lo ve pasar, recarga y comprueba que el progreso sigue.
