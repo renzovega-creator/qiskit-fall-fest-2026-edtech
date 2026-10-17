@@ -70,10 +70,11 @@ clips cuyo texto cambió.
 mise run check
 ```
 
-Descarga las guías si faltan, reconstruye las lecciones, ejecuta los cuadernos
-con y sin sus soluciones, corrige los ejercicios de código y ejecuta el código
-Python que muestran las lecciones. La definición de cada paso está en
-[`mise.toml`](mise.toml).
+Descarga las guías si faltan, comprueba que los JSON de `site/` coincidan con lo
+que genera `build.py` (si están desactualizados, falla y `mise run build` los
+regenera), ejecuta los cuadernos con y sin sus soluciones, corrige los
+ejercicios de código y ejecuta el código Python que muestran las lecciones. La
+definición de cada paso está en [`mise.toml`](mise.toml).
 
 ## Más
 
