@@ -3,8 +3,14 @@
     python -I worker.py learner.py check.py run|check módulos,a,bloquear result.json
 
 Lo lanza qgcheck.runner.grade. Escribe el resultado como JSON en el último argumento.
+
+Antes de ejecutar nada importa las bibliotecas científicas que el código y los casos usan, y crea
+`result.json.ready`. El reloj de `grade` empieza con ese archivo: cargar Qiskit no gasta el tiempo
+del alumno, que no depende de si el equipo tenía los módulos en caché.
 """
+import ast
 import contextlib
+import importlib
 import io
 import json
 import sys
@@ -17,6 +23,43 @@ from qgcheck import learner, spec  # noqa: E402
 
 CODE_NAME = "tu_codigo.py"
 MAX_STDOUT = 10_000
+# Solo se precargan estas bibliotecas: el alumno no puede alargar el arranque con un import propio.
+PRELOAD_ROOTS = {"qiskit", "qiskit_aer", "qiskit_ibm_runtime", "numpy", "scipy", "matplotlib", "rustworkx", "sympy"}
+# Módulos que los ayudantes de qgcheck importan al llamarlos, por el nombre con que check.py los pide.
+HELPER_MODULES = {
+    "counts": "qiskit.primitives",
+    "aer_counts": "qiskit_aer.primitives",
+    "state": "qiskit.quantum_info",
+    "operator": "qiskit.quantum_info",
+}
+
+
+def imported_modules(source):
+    """Módulos que el código importa en cualquier punto, y los que necesitan los ayudantes de qgcheck que pide."""
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return set()
+    found = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            found.update(a.name for a in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            found.add(node.module)
+            if node.module == "qgcheck":
+                found.update(HELPER_MODULES[a.name] for a in node.names if a.name in HELPER_MODULES)
+            else:
+                found.update(f"{node.module}.{a.name}" for a in node.names)
+    return found
+
+
+def preload(*sources):
+    """Importa los módulos de PRELOAD_ROOTS que usan los códigos dados. Un fallo lo muestra el código al importar."""
+    wanted = set().union(*map(imported_modules, sources))
+    for name in sorted(wanted):
+        if name.split(".")[0] in PRELOAD_ROOTS:
+            with contextlib.suppress(Exception):
+                importlib.import_module(name)
 
 
 def describe(exc, source):
@@ -66,6 +109,8 @@ def main(learner_path, check_path, mode, block, out):
     for name in filter(None, block.split(",")):
         sys.modules[name] = None
     source = Path(learner_path).read_text(encoding="utf-8")
+    preload(source, Path(check_path).read_text(encoding="utf-8"))
+    Path(out + ".ready").touch()
     ns = {"__name__": "__main__"}
     buf = io.StringIO()
     error = None

@@ -162,7 +162,7 @@
     "3.3",
     "Grado de aproximación"
    ],
-   "say": "Se puede ir más allá. approximation degree indica cuánto debe parecerse el circuito al original: uno, el valor por defecto, es exacto; valores menores permiten aproximar. [[ej]]Con cero coma noventa y nueve, el nivel tres usa solo dos ECR. [[fid]]La fidelidad de esa síntesis baja a cero coma noventa y nueve dos: introduces un error pequeño a cambio de una puerta ruidosa menos, que en hardware real puede costar más. [[qv]]Esta técnica se usó para aumentar el volumen cuántico de los equipos de IBM.",
+   "say": "Se puede ir más allá. approximation degree indica cuánto debe parecerse el circuito al original: uno, el valor por defecto, es exacto; valores menores permiten aproximar. [[ej]]Con esta unitaria y cero coma noventa y nueve, el nivel tres usa solo dos ECR. [[fid]]La fidelidad de esa síntesis baja a cero coma noventa y nueve dos: introduces un error pequeño a cambio de una puerta ruidosa menos, que en hardware real puede costar más. [[qv]]Esta técnica se usó para aumentar el volumen cuántico de los equipos de IBM.",
    "scene": [
     {
      "type": "code",
@@ -498,7 +498,7 @@
    "scene": [
     {
      "type": "text",
-     "text": "Con `approximation_degree=0.99` ahorras una ECR, pero la síntesis tiene fidelidad 0,992.",
+     "text": "Aproximar la síntesis quita una ECR, pero la fidelidad de la síntesis baja a 0,992.",
      "style": "body"
     }
    ],
@@ -527,46 +527,79 @@
     "3.3",
     "Tu turno"
    ],
-   "say": "Ahora te toca. [[n1]]Primero, cuenta las ECR de la unitaria con SWAP en cada nivel. [[n2]]Después, usa el grado de aproximación para quitar una ECR de más. [[n3]]Y por último, escribe una función que pruebe los cuatro niveles y te devuelva el más bajo que logre el menor número de puertas de dos qubits.",
+   "say": "Ahora te toca. [[n1]]Primero, escribe la función que cuenta las ECR de la unitaria con SWAP en cada nivel. [[n2]]Después, usa el grado de aproximación para quitar una ECR de más. [[n3]]Y por último, simula con ruido el algoritmo de Grover y mide cuánta fidelidad gana cada nivel.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p3-niveles.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Cuenta las `ecr` de la unitaria con SWAP en los niveles 0 a 3."
-      },
-      {
-       "level": 2,
-       "text": "Ajusta `approximation_degree` para que baje a 2 `ecr`."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `mejor_nivel(qc, backend)`: el nivel más bajo con menos puertas de dos qubits."
-      }
+     "type": "exercise",
+     "exercise": "p3-niveles/ecr-por-nivel",
+     "prompt": "Completa `ecr_por_nivel(circuito)`: transpila `circuito` para `FakeSherbrooke` con cada nivel, de 0 a 3 y con `seed_transpiler=12345`, y devuelve una lista con las `ecr` de cada resultado, en ese orden. Después mira en qué nivel baja la cuenta.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "Hay un pass manager por nivel: repite lo mismo cuatro veces cambiando solo el nivel.",
+      "Recorre `range(4)`; la `ecr` es la puerta de dos qubits de este chip, así que búscala por nombre en las cuentas del circuito transpilado.",
+      "`count_ops()` devuelve un diccionario nombre → cuenta; si la puerta no aparece, la cuenta es 0."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.circuit.library import UnitaryGate\nfrom qiskit.quantum_info import random_unitary\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.fake_provider import FakeSherbrooke\n\nbackend = FakeSherbrooke()\n\n\ndef unitaria_y_swap(semilla):\n    qc = QuantumCircuit(2)\n    qc.append(UnitaryGate(random_unitary(4, seed=semilla)), range(2))\n    qc.swap(0, 1)\n    return qc\n\n\ndef ecr_por_nivel(circuito):\n    # ✏️ devuelve [ecr con el nivel 0, con el 1, con el 2, con el 3]; transpila con seed_transpiler=12345\n    return []\n\n\nprint(ecr_por_nivel(unitaria_y_swap(12345)))",
+     "cases": [
+      "devuelve una cuenta por cada nivel, de 0 a 3",
+      "los niveles altos fusionan la unitaria y el SWAP"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p3-niveles/aproximar",
+     "prompt": "Con el nivel 3, la unitaria con SWAP de este ejercicio sale con 3 `ecr`. Cambia `grado` (el `approximation_degree`) para que salgan 2 o menos. El 0,99 de la lección dejaba 2 `ecr` con otra unitaria; con esta no basta, y un grado demasiado bajo aproxima tanto que el circuito deja de parecerse a la unitaria: no bajes de 0,9.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "`approximation_degree` vale 1.0 cuando la síntesis es exacta; un valor menor deja que el transpilador cambie exactitud por menos puertas.",
+      "Prueba valores entre 1 y 0,9 y mira cuántas `ecr` imprime cada uno.",
+      "Cambia solo `grado`: busca el valor más alto que lleve a 2 `ecr`."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.circuit.library import UnitaryGate\nfrom qiskit.quantum_info import random_unitary\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.fake_provider import FakeSherbrooke\n\nbackend = FakeSherbrooke()\n\nqc = QuantumCircuit(2)\nqc.append(UnitaryGate(random_unitary(4, seed=99)), range(2))\nqc.swap(0, 1)\n\ngrado = 1.0   # ✏️ 1.0 es exacto; un valor menor permite aproximar\n\npm = generate_preset_pass_manager(3, backend=backend, approximation_degree=grado, seed_transpiler=12345)\nprint(\"ecr:\", pm.run(qc).count_ops().get(\"ecr\", 0))",
+     "cases": [
+      "el nivel 3 usa 2 ecr o menos"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p3-niveles/fidelidad",
+     "prompt": "Completa `fidelidad(circuito, nivel)`: transpila `medido` para `FakeTorino` con ese `nivel` y `seed_transpiler=0`, simúlalo con `SamplerV2` de Aer, con el ruido `ruido` y `SHOTS` repeticiones, y devuelve la fidelidad de Hellinger entre lo medido y la distribución `ideal`. Trampa: `hellinger_fidelity` espera probabilidades y `get_counts()` da conteos; divide cada conteo entre `SHOTS`.",
+     "level": 3,
+     "needs": "aer",
+     "hints": [
+      "Un simulador con ruido muestra cuánto daña cada nivel: más puertas de dos qubits acumulan más ruido.",
+      "Pasa `medido` transpilado a `SamplerV2` de `qiskit_aer.primitives`, con el modelo de ruido en `backend_options`; el registro de `measure_all` se llama `meas`.",
+      "`hellinger_fidelity(p, q)` compara dos diccionarios de probabilidades; los conteos de `get_counts()` hay que dividirlos primero."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.circuit.library import DiagonalGate, grover_operator\nfrom qiskit.quantum_info import Statevector, hellinger_fidelity\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_aer.noise import NoiseModel\nfrom qiskit_aer.primitives import SamplerV2\nfrom qiskit_ibm_runtime.fake_provider import FakeTorino\n\nbackend = FakeTorino()\nruido = NoiseModel.from_backend(backend)\nSHOTS = 4000\n\n\ndef grover3():\n    qc = QuantumCircuit(3)\n    qc.h([0, 1, 2])\n    qc = qc.compose(grover_operator(DiagonalGate([1] * 7 + [-1])))\n    return qc\n\n\ndef fidelidad(circuito, nivel):\n    ideal = Statevector.from_instruction(circuito).probabilities_dict()\n    medido = circuito.measure_all(inplace=False)\n    # ✏️ transpila `medido` con ese nivel (seed_transpiler=0), simúlalo con ruido y compara con `ideal`\n    return 0.0\n\n\nprint(\"nivel 3:\", round(fidelidad(grover3(), 3), 3))",
+     "cases": [
+      "la fidelidad está entre 0 y 1",
+      "el nivel 3 se acerca a la distribución ideal"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]

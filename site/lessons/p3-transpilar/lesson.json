@@ -632,46 +632,80 @@
     "3.1",
     "Tu turno"
    ],
-   "say": "Ahora te toca. [[n1]]Primero, transpila el circuito de la lección con los cuatro niveles y mira cuántas puertas cz sobreviven; apuesta antes de ejecutar. [[n2]]Después, arregla un pass manager al que le falta el backend, y por eso no produce un circuito ISA. [[n3]]Y por último, escribe tú mismo la función que decide si un circuito es ISA, consultando el Target.",
+   "say": "Ahora te toca. [[n1]]Primero, escribe la función que transpila el circuito de la lección con un nivel dado, y compara las cz de los cuatro niveles. [[n2]]Después, arregla un pass manager al que le falta el backend, y por eso no produce un circuito ISA. [[n3]]Y por último, escribe tú mismo la función que decide si un circuito es ISA, consultando el Target.",
    "scene": [
     {
-     "type": "mission",
-     "notebook": "practica/p3-transpilar.py",
-     "tasks": [
-      {
-       "level": 1,
-       "text": "Transpila `h` + `ccx` para `FakeFez` con los niveles 0 a 3 y compara las `cz`."
-      },
-      {
-       "level": 2,
-       "text": "Arregla un pass manager sin `backend` para que el circuito salga ISA."
-      },
-      {
-       "level": 3,
-       "text": "Escribe `es_isa(circuito, target)` con `target.instruction_supported`."
-      }
+     "type": "exercise",
+     "exercise": "p3-transpilar/cz-por-nivel",
+     "prompt": "Completa `transpilar(circuito, nivel)`: transpila `circuito` para `FakeFez` con ese nivel de optimización y `seed_transpiler=1`, y devuelve el circuito ISA. Después compara cuántas `cz` quedan del nivel 0 al 3.",
+     "level": 1,
+     "needs": "qiskit",
+     "hints": [
+      "Transpilar es construir el pass manager del nivel pedido para ese chip y ejecutarlo sobre el circuito.",
+      "El pass manager prediseñado vive en `qiskit.transpiler`; se construye con el nivel y el backend, y la semilla fija el resultado del routing.",
+      "`generate_preset_pass_manager` recibe el nivel, `backend=` y `seed_transpiler=`; el circuito transpilado sale de su método `run`."
      ],
-     "id": "m",
-     "stagger": true
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.fake_provider import FakeFez\n\nbackend = FakeFez()\n\nqc = QuantumCircuit(3)\nqc.h(0)\nqc.ccx(0, 1, 2)\n\n\ndef transpilar(circuito, nivel):\n    # ✏️ crea el pass manager con ese nivel, el backend y seed_transpiler=1, y córrelo con el circuito\n    return circuito\n\n\nfor nivel in range(4):\n    isa = transpilar(qc, nivel)\n    print(f\"nivel {nivel}: profundidad {isa.depth()}, {isa.count_ops().get('cz', 0)} cz\")",
+     "cases": [
+      "el resultado solo usa instrucciones de FakeFez",
+      "el circuito sigue haciendo lo mismo"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p3-transpilar/pass-manager-completo",
+     "prompt": "`pass_manager(nivel)` devuelve un pass manager con el nivel y la semilla ya puestos, pero el circuito que produce no es ISA. Arréglalo para que lo sea en los cuatro niveles.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "Un pass manager solo adapta el circuito a lo que sabe del chip; si no le dices cuál es, no hay puertas base ni conectividad.",
+      "El chip se entrega al construir el pass manager, no al ejecutarlo.",
+      "`generate_preset_pass_manager` acepta el argumento `backend=`."
+     ],
+     "id": "e2",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.fake_provider import FakeFez\n\nbackend = FakeFez()\n\nqc = QuantumCircuit(3)\nqc.h(0)\nqc.ccx(0, 1, 2)\n\n\ndef pass_manager(nivel):\n    # ✏️ este pass manager no sabe nada del chip: ¿qué le falta?\n    return generate_preset_pass_manager(optimization_level=nivel, seed_transpiler=1)\n\n\nprint(sorted(pass_manager(1).run(qc).count_ops()))",
+     "cases": [
+      "el circuito sale ISA para FakeFez",
+      "el circuito sigue haciendo lo mismo"
+     ]
+    },
+    {
+     "type": "exercise",
+     "exercise": "p3-transpilar/es-isa",
+     "prompt": "Escribe `es_isa(circuito, target)`: devuelve `True` solo si **cada** instrucción de `circuito` está permitida por `target` en los qubits donde está. `circuito` es un `QuantumCircuit` cuyos qubits ya son los físicos y `target` es el `Target` del backend. Trampa: preguntar solo por el nombre de la puerta no basta, porque una `cz` puede existir en el chip y no entre esos dos qubits; hay que pasar también los qubits.",
+     "level": 3,
+     "needs": "qiskit",
+     "hints": [
+      "El Target no solo conoce puertas: conoce en qué qubits puede aplicarse cada una.",
+      "Recorre `circuito.data`; cada instrucción trae su operación y sus qubits, y el índice de un qubit sale de `circuito.find_bit`.",
+      "`target.instruction_supported` recibe el nombre de la operación y la tupla de índices de sus qubits."
+     ],
+     "id": "e3",
+     "hidden": true,
+     "starter": "from qiskit import QuantumCircuit\nfrom qiskit.transpiler import generate_preset_pass_manager\nfrom qiskit_ibm_runtime.fake_provider import FakeFez\n\nbackend = FakeFez()\n\nqc = QuantumCircuit(3)\nqc.h(0)\nqc.ccx(0, 1, 2)\n\n\ndef es_isa(circuito, target):\n    # ✏️ recorre circuito.data y pregunta al target por cada instrucción\n    return False\n\n\nisa = generate_preset_pass_manager(1, backend=backend, seed_transpiler=1).run(qc)\nprint(\"transpilado:\", es_isa(isa, backend.target), \"· original:\", es_isa(qc, backend.target))",
+     "cases": [
+      "acepta un circuito transpilado para FakeFez",
+      "rechaza el circuito original, con h y ccx"
+     ]
     }
    ],
    "actions": [
     {
-     "do": "item",
-     "i": 0,
-     "id": "m",
+     "do": "show",
+     "id": "e1",
      "at": "n1"
     },
     {
-     "do": "item",
-     "i": 1,
-     "id": "m",
+     "do": "show",
+     "id": "e2",
      "at": "n2"
     },
     {
-     "do": "item",
-     "i": 2,
-     "id": "m",
+     "do": "show",
+     "id": "e3",
      "at": "n3"
     }
    ]
