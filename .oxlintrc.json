@@ -1,0 +1,22 @@
+{
+  "$schema": "./runner/worker/node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "env": {
+    "browser": true,
+    "es2022": true
+  },
+  "overrides": [
+    {
+      "files": ["runner/worker/test/**"],
+      "rules": {
+        "eslint/no-await-in-loop": "off",
+        "unicorn/consistent-function-scoping": "off"
+      }
+    }
+  ],
+  "ignorePatterns": ["site/editor.js", ".cache/**", "**/node_modules/**"]
+}
