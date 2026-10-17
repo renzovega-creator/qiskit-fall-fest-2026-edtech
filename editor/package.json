@@ -2,9 +2,6 @@
   "name": "qg-editor",
   "private": true,
   "type": "module",
-  "scripts": {
-    "build": "esbuild src/index.js --bundle --minify --format=iife --target=es2020 --outfile=../site/editor.js"
-  },
   "dependencies": {
     "@codemirror/commands": "6.11.1",
     "@codemirror/lang-python": "6.2.1",
