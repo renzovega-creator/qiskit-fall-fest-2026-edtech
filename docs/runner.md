@@ -136,6 +136,9 @@ corredor protege el anfitrión y la corrección, no la clave de respuestas.
 | `runner/worker/src/contract.ts`      | La forma de un id de ejercicio.                                                  |
 | `runner/worker/src/log.ts`           | Las únicas líneas que el Worker escribe en su registro.                          |
 | `runner/worker/test/`                | Las pruebas del Worker con un contenedor y un proveedor OAuth falsos.            |
+| `runner/worker/test/serve.ts`        | El mismo Worker en local, para las pruebas de navegador de la cuenta.            |
+| `site/account.js`                    | El cliente de la cuenta: el menú, la unión al cargar y el envío al escribir.     |
+| `site/privacidad.html`               | La página de privacidad.                                                         |
 | [`deploy.md`](deploy.md)             | Los pasos para publicar una copia propia.                                        |
 | `exercises/<lección>/<ejercicio>/`   | La imagen solo lleva `check.py` de cada uno.                                     |
 
@@ -183,6 +186,12 @@ contenedor falso, que una petición rechazada no lo alcanza. También recorren e
 inicio de sesión, los [endpoints de la cuenta](#cuentas), lo que se guarda de
 cada ejecución y la limpieza diaria. Dos pruebas llaman al `siteverify` real con
 las claves de prueba y se saltan si no hay red.
+
+`tests/account_ui_test.py` arranca `runner/worker/test/serve.ts`, que sirve ese
+mismo Worker en local con el proveedor falso, y lo recorre con un navegador:
+termina una lección y falla una comprobación sin cuenta, entra, abre otro
+navegador con la misma cuenta, borra la cuenta y mira qué queda en el servidor y
+en el navegador. Se ejecuta dentro de `mise run test`.
 
 ## Cloudflare Containers
 
@@ -338,6 +347,42 @@ minuto y `RATE_PER_DAY` por día, y responde 429 `rate_auth` al pasarse. Cada
 endpoint de `/api` cuenta contra el límite por usuario de
 [Límite por IP](#límite-por-ip).
 
+### En el sitio
+
+[`site/account.js`](../site/account.js) es el cliente. Pone el menú _Entrar_ en
+la cabecera de la portada, de las lecciones y de
+[`privacidad.html`](../site/privacidad.html), la página que dice qué se guarda,
+cuánto tiempo y cómo borrarlo.
+
+- Sin cuenta, la página no hace ninguna petición salvo `/run`. Lo que mira para
+  saberlo es la marca `qiskit:cuenta` de `localStorage`.
+- _Entrar con Google_ y _Entrar con GitHub_ van a `/auth/<proveedor>` con
+  `return` igual a la página actual más `#cuenta`. Al volver, ese `#cuenta` hace
+  que la página deje la marca y junte el progreso.
+- Con la marca, cada carga manda todo el progreso del navegador a
+  `POST /api/merge` y guarda la respuesta antes de que la página lo lea. Espera
+  4 segundos como mucho; si el Worker no responde, la página sigue con lo local.
+  La primera vez que entras, esa misma llamada junta lo que ya había en el
+  navegador con lo de la cuenta.
+- Cada cambio se manda después, en `PUT /api/progress`, 1,5 segundos después del
+  último y siempre al cerrar o ocultar la página. Sin red, el cambio queda en
+  `localStorage` y la siguiente carga lo junta.
+- Cada `qiskit:exercise:<id>` lleva `at`, la hora de la última edición del
+  código. Solo cambia al cambiar el código, no con las pistas ni las
+  comprobaciones. Así gana la copia más reciente al juntar.
+- Se sincronizan las lecciones hechas, el código, las pistas y las
+  comprobaciones de cada ejercicio y las claves de `kv` de la tabla de arriba.
+  El texto de las reflexiones (`qiskit:reflect`) no sale del navegador. Un valor
+  que el Worker rechazaría (un código de más de 20 000 bytes, por ejemplo) se
+  omite del cuerpo, porque rechazaría todo el cuerpo.
+- _Cerrar sesión_ llama a `POST /auth/logout` y _Borrar mi cuenta_, tras una
+  confirmación, a `DELETE /api/me`. Ninguna de las dos toca lo que hay en el
+  navegador. Una respuesta 401 quita la marca.
+
+El progreso local pasa a la cuenta con la que se entra, sea cual sea. En un
+equipo compartido, quien entra después junta lo que dejó quien usó el navegador
+antes.
+
 ### Datos que se guardan
 
 El Worker no guarda correo, nombre, avatar ni contraseña: no los pide al
@@ -382,16 +427,17 @@ petición con sesión de cuenta, y se anota a lo sumo una vez al día.
 
 `tools/dashboard.py` lee la base con `wrangler d1 execute` y no escribe nada.
 `uv run python tools/dashboard.py --database-id <uuid>` lee la base remota, con
-la sesión de `bunx wrangler login` (en `runner/worker`) o `CLOUDFLARE_API_TOKEN`,
-y `--local` lee la copia local de `--persist-to`. Imprime, para el periodo de
-`--since` a `--until` (días UTC, por defecto los últimos 30), los usuarios
-nuevos, los que intentaron algo y los intentos con y sin cuenta; las lecciones
-terminadas por lección; los ejercicios con más comprobaciones fallidas y los
-casos que más fallan; y los ejercicios aprobados con más pistas abiertas. Una
-comprobación fallida es un intento `check` que no acabó en `pass`, y cuenta
-también sin cuenta. Las lecciones terminadas y las pistas salen de las tablas de
-una cuenta, así que no cuentan a nadie anónimo. `--json` imprime lo mismo como
-JSON y `--limit` fija las filas de cada ranking (10 por defecto).
+la sesión de `bunx wrangler login` (en `runner/worker`) o
+`CLOUDFLARE_API_TOKEN`, y `--local` lee la copia local de `--persist-to`.
+Imprime, para el periodo de `--since` a `--until` (días UTC, por defecto los
+últimos 30), los usuarios nuevos, los que intentaron algo y los intentos con y
+sin cuenta; las lecciones terminadas por lección; los ejercicios con más
+comprobaciones fallidas y los casos que más fallan; y los ejercicios aprobados
+con más pistas abiertas. Una comprobación fallida es un intento `check` que no
+acabó en `pass`, y cuenta también sin cuenta. Las lecciones terminadas y las
+pistas salen de las tablas de una cuenta, así que no cuentan a nadie anónimo.
+`--json` imprime lo mismo como JSON y `--limit` fija las filas de cada ranking
+(10 por defecto).
 
 ### Variables y secretos
 
