@@ -1,6 +1,7 @@
 """Genera site/lessons/<id>/lesson.json y site/course.json a partir de plan.py y de los módulos parte*.py.
 
     python lessons_src/build.py              # escribe los JSON y comprueba la cobertura de las guías
+    python lessons_src/build.py --check      # no escribe: falla si los JSON de site/ no coinciden con lo que se generaría
     python lessons_src/build.py --tts        # además genera la narración (necesita uv, red y ffprobe)
 
 La cobertura se comprueba contra .cache/qiskit-docs.
@@ -154,9 +155,7 @@ def main():
             check(les)
             publish_exercises(les, exercises)
             ordered.append(les)
-            out = SITE / "lessons" / lid
-            out.mkdir(parents=True, exist_ok=True)
-            tf = out / "timings.json"
+            tf = SITE / "lessons" / lid / "timings.json"
             beat_ids = {b["id"] for b in les["beats"]}
             if tf.exists():
                 secs = sum(v["dur"] for key, v in json.loads(tf.read_text(encoding="utf-8")).items() if key in beat_ids)
@@ -172,10 +171,22 @@ def main():
     ERRORS.extend(f"exercises/{eid} no aparece en ninguna lección" for eid in sorted(set(spec.all_ids()) - exercises))
     if ERRORS:
         raise SystemExit("\n".join(ERRORS))
+    outputs = {}
     for a, b in zip(ordered, ordered[1:] + [None]):
         a["next"] = b["id"] if b else None
-        (SITE / "lessons" / a["id"] / "lesson.json").write_text(json.dumps(a, ensure_ascii=False, indent=1), encoding="utf-8")
-    (SITE / "course.json").write_text(json.dumps(course, ensure_ascii=False, indent=1), encoding="utf-8")
+        outputs[SITE / "lessons" / a["id"] / "lesson.json"] = json.dumps(a, ensure_ascii=False, indent=1)
+    outputs[SITE / "course.json"] = json.dumps(course, ensure_ascii=False, indent=1)
+    if "--check" in sys.argv:
+        stale = [p.relative_to(ROOT).as_posix() for p, text in outputs.items()
+                 if not p.exists() or p.read_text(encoding="utf-8") != text]
+        if stale:
+            raise SystemExit(f"{len(stale)} archivos generados desactualizados; ejecuta `mise run build` y súbelos:\n  "
+                             + "\n  ".join(stale))
+        print(f"{len(outputs)} archivos generados al día")
+        return
+    for path, text in outputs.items():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
     total = sum(len(p["lessons"]) for p in PARTS)
     print(f"{len(ordered)} de {total} lecciones escritas, {sum(len(l['beats']) for l in ordered)} pasos; "
           f"cobertura de las {len(toc_pages())} guías: completa")

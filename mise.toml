@@ -10,6 +10,10 @@ run = "python tools/fetch_docs.py"
 description = "Rebuild site/lessons/*/lesson.json and site/course.json and check guide coverage"
 run = "uv run python lessons_src/build.py"
 
+[tasks.generated]
+description = "Fail without writing if the committed site JSON differs from the build output"
+run = "uv run python lessons_src/build.py --check"
+
 [tasks.test]
 description = "Run practice notebooks with solutions and controls at both bounds, check every exercise, run its tests, then drive the exercise editor and the project panel in a browser"
 run = [
@@ -34,10 +38,10 @@ description = "Run the Python code shown in every lesson and compare the checked
 run = "uv run python tools/verify.py"
 
 [tasks.check]
-description = "Fetch the guides, rebuild the lessons, run the notebooks and the lesson code"
+description = "Fetch guides, verify generated lessons, run notebooks, and run lesson code. Writes nothing tracked."
 run = [
   { task = "fetch" },
-  { task = "build" },
+  { task = "generated" },
   { task = "test" },
   { task = "verify" },
 ]
