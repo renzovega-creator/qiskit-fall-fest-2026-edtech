@@ -9,17 +9,20 @@ el contraste WCAG AA de cada token de texto y la portada pidiendo los lesson.jso
 --shots guarda una captura por página, paleta, modo y tamaño. --table imprime los contrastes
 mínimos en Markdown.
 """
+
 import argparse
 import json
 import re
 import sys
 import threading
 import time
+from collections.abc import Sequence
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from typing import Any
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 
 SITE = Path(__file__).resolve().parent.parent / "site"
 PALETAS = ["fosforo", "cobre", "medianoche"]
@@ -27,30 +30,43 @@ MODOS = ["dark", "light"]
 TAMANOS = {"1366x768": (1366, 768), "390x844": (390, 844)}
 LECCIONES = ["p1-quickstart", "p3-target", "p6-panorama"]
 
-TEXTO = ["ink", "fg-soft", "card-text", "muted", "acc", "acc2", "gold", "red", "blue", "teal", "violet", "green"]
+TEXTO = [
+    "ink",
+    "fg-soft",
+    "card-text",
+    "muted",
+    "acc",
+    "acc2",
+    "gold",
+    "red",
+    "blue",
+    "teal",
+    "violet",
+    "green",
+]
 SUPERFICIES = ["bg", "bg2", "card", "stage"]
 GRAFICOS = ["axis", "wire"]
 DEMORA_LESSON_JSON = 0.4
 
 
 class Handler(SimpleHTTPRequestHandler):
-    def log_message(self, *a):
+    def log_message(self, format: str, *args: object) -> None:
         pass
 
-    def do_GET(self):
+    def do_GET(self) -> None:
         if self.path.endswith("/lesson.json"):
             time.sleep(DEMORA_LESSON_JSON)
         super().do_GET()
 
 
-def serve():
+def serve() -> tuple[ThreadingHTTPServer, str]:
     srv = ThreadingHTTPServer(("127.0.0.1", 0), partial(Handler, directory=str(SITE)))
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     return srv, f"http://127.0.0.1:{srv.server_address[1]}"
 
 
-def luminancia(rgb):
-    def lin(c):
+def luminancia(rgb: Sequence[float]) -> float:
+    def lin(c: float) -> float:
         c /= 255
         return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
 
@@ -58,12 +74,12 @@ def luminancia(rgb):
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
 
-def contraste(a, b):
+def contraste(a: Sequence[float], b: Sequence[float]) -> float:
     x, y = sorted((luminancia(a), luminancia(b)), reverse=True)
     return (x + 0.05) / (y + 0.05)
 
 
-def parse_color(s):
+def parse_color(s: str) -> tuple[float, ...]:
     m = re.match(r"rgba?\(([^)]*)\)", s)
     if m:
         return tuple(float(v) for v in re.split(r"[ ,/]+", m.group(1).strip())[:3])
@@ -84,30 +100,36 @@ RESOLVER = """names => {
 
 
 class Report:
-    def __init__(self):
-        self.fallos = []
+    def __init__(self) -> None:
+        self.fallos: list[str] = []
         self.pruebas = 0
 
-    def check(self, ok, msg):
+    def check(self, ok: bool, msg: str) -> None:
         self.pruebas += 1
         if not ok:
             self.fallos.append(msg)
 
 
-def nueva_pagina(browser, size, paleta, modo, extra_storage=None):
+def nueva_pagina(
+    browser: Browser,
+    size: tuple[int, int],
+    paleta: str,
+    modo: str,
+    extra_storage: dict[str, str] | None = None,
+) -> tuple[BrowserContext, Page, list[str]]:
     ctx = browser.new_context(viewport={"width": size[0], "height": size[1]})
     storage = {"qiskit:paleta": paleta, "qiskit:theme": modo, **(extra_storage or {})}
     ctx.add_init_script(
-        "for (const [k, v] of Object.entries(%s)) localStorage.setItem(k, v);" % json.dumps(storage)
+        f"for (const [k, v] of Object.entries({json.dumps(storage)})) localStorage.setItem(k, v);"
     )
     pg = ctx.new_page()
-    errores = []
+    errores: list[str] = []
     pg.on("pageerror", lambda e: errores.append(f"pageerror: {e}"))
     pg.on("console", lambda m: errores.append(f"console: {m.text}") if m.type == "error" else None)
     return ctx, pg, errores
 
 
-def fuera_del_stage(pg):
+def fuera_del_stage(pg: Page) -> Any:
     return pg.evaluate(
         """() => {
           const s = document.querySelector('#stage').getBoundingClientRect();
@@ -119,30 +141,42 @@ def fuera_del_stage(pg):
     )
 
 
-def visitar(rep, browser, base, shots, ultimos):
-    marcas = {}
+def visitar(
+    rep: Report, browser: Browser, base: str, shots: str | None, ultimos: dict[str, int]
+) -> None:
+    marcas: dict[tuple[str, str, str, bool], Any] = {}
     for paleta in PALETAS:
         for modo in MODOS:
             for tam, size in TAMANOS.items():
                 etiqueta = f"{paleta}/{modo}/{tam}"
                 paginas = [("index", f"{base}/index.html")]
                 for lid in LECCIONES:
-                    paginas += [(f"{lid}-b0", f"{base}/lesson.html?l={lid}&beat=0"),
-                                (f"{lid}-bN", f"{base}/lesson.html?l={lid}&beat={ultimos[lid]}")]
+                    paginas += [
+                        (f"{lid}-b0", f"{base}/lesson.html?l={lid}&beat=0"),
+                        (f"{lid}-bN", f"{base}/lesson.html?l={lid}&beat={ultimos[lid]}"),
+                    ]
                 for nombre, url in paginas:
                     ctx, pg, errores = nueva_pagina(browser, size, paleta, modo)
                     pg.goto(url)
                     pg.wait_for_selector("[data-theme-ctl] select")
                     pg.wait_for_timeout(1500 if nombre == "index" else 900)
                     rep.check(not errores, f"{etiqueta} {nombre}: {errores}")
-                    attrs = pg.evaluate("[document.documentElement.dataset.paleta, document.documentElement.dataset.theme]")
+                    attrs = pg.evaluate(
+                        "[document.documentElement.dataset.paleta, document.documentElement.dataset.theme]"
+                    )
                     rep.check(attrs == [paleta, modo], f"{etiqueta} {nombre}: atributos {attrs}")
                     if nombre != "index":
                         fuera = fuera_del_stage(pg)
-                        rep.check(not fuera, f"{etiqueta} {nombre}: bloques fuera de #stage {fuera}")
-                    marcas.setdefault((paleta, modo, tam, nombre.startswith("index")), pg.evaluate(
-                        "[document.querySelector('.brand').textContent.trim(), getComputedStyle(document.querySelector('.brand')).fontFamily,"
-                        " getComputedStyle(document.body).fontFamily]"))
+                        rep.check(
+                            not fuera, f"{etiqueta} {nombre}: bloques fuera de #stage {fuera}"
+                        )
+                    marcas.setdefault(
+                        (paleta, modo, tam, nombre.startswith("index")),
+                        pg.evaluate(
+                            "[document.querySelector('.brand').textContent.trim(), getComputedStyle(document.querySelector('.brand')).fontFamily,"
+                            " getComputedStyle(document.body).fontFamily]"
+                        ),
+                    )
                     if shots:
                         d = Path(shots) / paleta / modo
                         d.mkdir(parents=True, exist_ok=True)
@@ -151,11 +185,14 @@ def visitar(rep, browser, base, shots, ultimos):
     for (paleta, modo, tam, es_index), valor in marcas.items():
         otro = marcas[(paleta, modo, tam, not es_index)]
         rep.check(valor[0] == "Qubit a qubit", f"marca {valor[0]!r}")
-        rep.check(valor[1] == otro[1], f"la fuente de la marca difiere entre páginas: {valor[1]} / {otro[1]}")
+        rep.check(
+            valor[1] == otro[1],
+            f"la fuente de la marca difiere entre páginas: {valor[1]} / {otro[1]}",
+        )
 
 
-def contrastes(rep, browser, base):
-    tabla = {}
+def contrastes(rep: Report, browser: Browser, base: str) -> dict[tuple[str, str, str], float]:
+    tabla: dict[tuple[str, str, str], float] = {}
     for paleta in PALETAS:
         for modo in MODOS:
             ctx, pg, _ = nueva_pagina(browser, (1366, 768), paleta, modo)
@@ -178,7 +215,7 @@ def contrastes(rep, browser, base):
     return tabla
 
 
-def imprimir_tabla(tabla):
+def imprimir_tabla(tabla: dict[tuple[str, str, str], float]) -> None:
     cols = [(p, m) for p in PALETAS for m in MODOS]
     filas = [*TEXTO, "acc-ink/acc", *GRAFICOS]
     print("| token | " + " | ".join(f"{p} {m}" for p, m in cols) + " |")
@@ -187,50 +224,78 @@ def imprimir_tabla(tabla):
         print(f"| `{f}` | " + " | ".join(f"{tabla[(f, p, m)]:.2f}" for p, m in cols) + " |")
 
 
-def paleta_guardada_una_vez(rep, browser, base):
+def paleta_guardada_una_vez(rep: Report, browser: Browser, base: str) -> None:
     ctx = browser.new_context(viewport={"width": 1366, "height": 768})
     pg = ctx.new_page()
     pg.goto(f"{base}/index.html")
     pg.wait_for_selector("[data-theme-ctl] select")
-    rep.check(pg.evaluate("document.documentElement.dataset.paleta") == "fosforo", "la paleta por defecto no es fosforo")
+    rep.check(
+        pg.evaluate("document.documentElement.dataset.paleta") == "fosforo",
+        "la paleta por defecto no es fosforo",
+    )
     pg.select_option("[data-theme-ctl] select", "cobre")
-    rep.check(pg.evaluate("localStorage.getItem('qiskit:paleta')") == "cobre", "la portada no guardó la paleta")
+    rep.check(
+        pg.evaluate("localStorage.getItem('qiskit:paleta')") == "cobre",
+        "la portada no guardó la paleta",
+    )
     acc = pg.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--acc').trim()")
     rep.check(acc == "#ff8a4c" or acc == "#bd3f0c", f"--acc no cambió con la paleta: {acc}")
     pg.goto(f"{base}/lesson.html?l=p1-quickstart&beat=0")
     pg.wait_for_selector("[data-theme-ctl] select")
-    rep.check(pg.evaluate("document.documentElement.dataset.paleta") == "cobre", "el reproductor no leyó la paleta guardada")
-    rep.check(pg.evaluate("document.querySelector('[data-theme-ctl] select').value") == "cobre", "el selector del reproductor no muestra la paleta")
+    rep.check(
+        pg.evaluate("document.documentElement.dataset.paleta") == "cobre",
+        "el reproductor no leyó la paleta guardada",
+    )
+    rep.check(
+        pg.evaluate("document.querySelector('[data-theme-ctl] select').value") == "cobre",
+        "el selector del reproductor no muestra la paleta",
+    )
     pg.select_option("[data-theme-ctl] select", "medianoche")
     pg.goto(f"{base}/index.html")
     pg.wait_for_selector("[data-theme-ctl] select")
-    rep.check(pg.evaluate("document.documentElement.dataset.paleta") == "medianoche", "la portada no leyó la paleta elegida en el reproductor")
+    rep.check(
+        pg.evaluate("document.documentElement.dataset.paleta") == "medianoche",
+        "la portada no leyó la paleta elegida en el reproductor",
+    )
     pg.click("[data-theme-ctl] button")
-    rep.check(pg.evaluate("localStorage.getItem('qiskit:theme')") in ("light", "dark"), "el botón de modo no guardó el modo")
+    rep.check(
+        pg.evaluate("localStorage.getItem('qiskit:theme')") in ("light", "dark"),
+        "el botón de modo no guardó el modo",
+    )
     ctx.close()
 
 
-def repaso_en_paralelo(rep, browser, base):
-    hechas = json.dumps(["p1-quickstart", "p1-instalar", "p1-composer", "p1-patrones", "p3-target", "p6-panorama"])
-    ctx, pg, errores = nueva_pagina(browser, (1366, 768), "fosforo", "dark", {"qiskit:done": hechas})
+def repaso_en_paralelo(rep: Report, browser: Browser, base: str) -> float:
+    hechas = json.dumps(
+        ["p1-quickstart", "p1-instalar", "p1-composer", "p1-patrones", "p3-target", "p6-panorama"]
+    )
+    ctx, pg, errores = nueva_pagina(
+        browser, (1366, 768), "fosforo", "dark", {"qiskit:done": hechas}
+    )
     t0 = time.time()
     pg.goto(f"{base}/index.html")
     pg.wait_for_selector("#repaso .rq", timeout=15000)
     dt = time.time() - t0
     n = len(json.loads(hechas))
-    rep.check(dt < DEMORA_LESSON_JSON * (n - 1), f"el repaso tardó {dt:.2f} s con {n} lecciones de {DEMORA_LESSON_JSON} s: pide en serie")
+    rep.check(
+        dt < DEMORA_LESSON_JSON * (n - 1),
+        f"el repaso tardó {dt:.2f} s con {n} lecciones de {DEMORA_LESSON_JSON} s: pide en serie",
+    )
     rep.check(not errores, f"repaso: {errores}")
     ctx.close()
     return dt
 
 
-def main():
+def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--shots")
     ap.add_argument("--table", action="store_true")
     args = ap.parse_args()
     srv, base = serve()
-    ultimos = {l: len(json.loads((SITE / "lessons" / l / "lesson.json").read_text())["beats"]) - 1 for l in LECCIONES}
+    ultimos = {
+        lid: len(json.loads((SITE / "lessons" / lid / "lesson.json").read_text())["beats"]) - 1
+        for lid in LECCIONES
+    }
     rep = Report()
     with sync_playwright() as p:
         browser = p.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])

@@ -2,14 +2,17 @@
 
     uv run pytest tests/dashboard_test.py
 
-Necesita `bun install` en runner/worker, que trae wrangler; sin él, se omite.
+Necesita `mise run install`, que trae wrangler a runner/worker; sin él, se omite.
 """
+
 import datetime
 import json
 import shutil
 import subprocess
 import sys
+from collections.abc import Iterable
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -19,30 +22,38 @@ TOOL = ROOT / "tools" / "dashboard.py"
 
 pytestmark = pytest.mark.skipif(
     not shutil.which("bunx") or not (WORKER / "node_modules" / ".bin" / "wrangler").exists(),
-    reason="falta bun o wrangler: ejecuta `bun install` en runner/worker",
+    reason="falta bun o wrangler: ejecuta `mise run install`",
 )
 
 
-def at(day, hour=12):
+def at(day: int, hour: int = 12) -> int:
     """Segundos Unix de un día de octubre de 2026 a una hora UTC."""
-    moment = datetime.datetime(2026, 10, day, hour, tzinfo=datetime.timezone.utc)
+    moment = datetime.datetime(2026, 10, day, hour, tzinfo=datetime.UTC)
     return int(moment.timestamp())
 
 
-def epoch_day(day):
+def epoch_day(day: int) -> int:
     return at(day, 0) // 86400
 
 
-def attempt(day, user, exercise, mode, outcome, failed=(), hints=0):
-    failed = json.dumps(list(failed)).replace("'", "''")
+def attempt(
+    day: int,
+    user: str | None,
+    exercise: str,
+    mode: str,
+    outcome: str,
+    failed: Iterable[str] = (),
+    hints: int = 0,
+) -> str:
+    cases = json.dumps(list(failed)).replace("'", "''")
     who = f"'{user}'" if user else "NULL"
     return (
         "INSERT INTO attempts (at, user_id, exercise, mode, outcome, failed, hints, ms, code_bytes) "
-        f"VALUES ({at(day)}, {who}, '{exercise}', '{mode}', '{outcome}', '{failed}', {hints}, 10, 100)"
+        f"VALUES ({at(day)}, {who}, '{exercise}', '{mode}', '{outcome}', '{cases}', {hints}, 10, 100)"
     )
 
 
-def state(user, exercise, hints, passed, day):
+def state(user: str, exercise: str, hints: int, passed: int, day: int) -> str:
     return (
         "INSERT INTO exercise_state (user_id, exercise, hints, checks, passed, updated_at) "
         f"VALUES ('{user}', '{exercise}', {hints}, 1, {passed}, {at(day) * 1000})"
@@ -82,7 +93,7 @@ SEED = [
 
 PERIOD = ["--since", "2026-10-05", "--until", "2026-10-11"]
 
-EXPECTED = {
+EXPECTED: dict[str, Any] = {
     "period": {"since": "2026-10-05", "until": "2026-10-11"},
     "summary": {"new_users": 2, "active_users": 2, "attempts": 9, "anonymous_attempts": 3},
     "completions": [
@@ -132,7 +143,7 @@ ejercicio  aprobaron  pistas  por alumno
 p1/ghz             2       5         2.5"""
 
 
-def wrangler(persist, *args):
+def wrangler(persist: Path, *args: str) -> None:
     config = persist / "wrangler.json"
     config.write_text(
         json.dumps(
@@ -140,7 +151,11 @@ def wrangler(persist, *args):
                 "name": "qg-dashboard-test",
                 "compatibility_date": "2026-10-01",
                 "d1_databases": [
-                    {"binding": "DB", "database_name": "test", "database_id": "0" * 8 + "-0000-0000-0000-" + "0" * 12}
+                    {
+                        "binding": "DB",
+                        "database_name": "test",
+                        "database_id": "0" * 8 + "-0000-0000-0000-" + "0" * 12,
+                    }
                 ],
             }
         )
@@ -152,7 +167,7 @@ def wrangler(persist, *args):
 
 
 @pytest.fixture(scope="module")
-def persist(tmp_path_factory):
+def persist(tmp_path_factory: pytest.TempPathFactory) -> Path:
     path = tmp_path_factory.mktemp("d1")
     wrangler(path, "--file", str(WORKER / "src" / "schema.sql"))
     seed = path / "seed.sql"
@@ -161,37 +176,42 @@ def persist(tmp_path_factory):
     return path / "state"
 
 
-def dashboard(persist, *args):
+def dashboard(persist: Path, *args: str) -> str:
     cmd = [sys.executable, str(TOOL), "--local", "--persist-to", str(persist), "--database", "test"]
     done = subprocess.run([*cmd, *args], capture_output=True, text=True)
     assert done.returncode == 0, done.stdout + done.stderr
     return done.stdout
 
 
-def test_json_rows(persist):
+def test_json_rows(persist: Path) -> None:
     out = json.loads(dashboard(persist, "--json", *PERIOD))
     assert out == EXPECTED
 
 
-def test_text_report(persist):
+def test_text_report(persist: Path) -> None:
     assert dashboard(persist, *PERIOD).rstrip("\n") == TEXT
 
 
-def test_limit_cuts_every_ranking(persist):
+def test_limit_cuts_every_ranking(persist: Path) -> None:
     out = json.loads(dashboard(persist, "--json", "--limit", "1", *PERIOD))
     assert out["failed_checks"] == EXPECTED["failed_checks"][:1]
     assert out["failed_cases"] == EXPECTED["failed_cases"][:1]
     assert out["completions"] == EXPECTED["completions"]
 
 
-def test_empty_period_prints_zeros(persist):
+def test_empty_period_prints_zeros(persist: Path) -> None:
     out = json.loads(dashboard(persist, "--json", "--since", "2026-09-01", "--until", "2026-09-02"))
-    assert out["summary"] == {"new_users": 0, "active_users": 0, "attempts": 0, "anonymous_attempts": 0}
+    assert out["summary"] == {
+        "new_users": 0,
+        "active_users": 0,
+        "attempts": 0,
+        "anonymous_attempts": 0,
+    }
     assert out["completions"] == out["failed_checks"] == out["failed_cases"] == []
     assert out["hints_before_pass"] == []
 
 
-def test_remote_needs_a_database_id():
+def test_remote_needs_a_database_id() -> None:
     done = subprocess.run([sys.executable, str(TOOL)], capture_output=True, text=True)
     assert done.returncode == 2
     assert "--database-id" in done.stderr

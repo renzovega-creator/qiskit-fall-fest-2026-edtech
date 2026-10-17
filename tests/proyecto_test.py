@@ -6,6 +6,7 @@ Para cada hito n, guarda los hitos anteriores como hechos en `qiskit:hitos` y ca
 portada. El comando mostrado coincide con el cuaderno enlazado por `missions[].notebook` en
 course.json. La pista usa la misma condición y la consola no debe registrar errores.
 """
+
 import json
 import sys
 import threading
@@ -13,24 +14,30 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Page, sync_playwright
 
 SITE = Path(__file__).resolve().parent.parent / "site"
 HITOS = 10
 
 
 class Handler(SimpleHTTPRequestHandler):
-    def log_message(self, *a):
+    def log_message(self, format: str, *args: object) -> None:
         pass
 
 
-def serve():
+def serve() -> tuple[ThreadingHTTPServer, str]:
     srv = ThreadingHTTPServer(("127.0.0.1", 0), partial(Handler, directory=str(SITE)))
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     return srv, f"http://127.0.0.1:{srv.server_address[1]}"
 
 
-def cuadernos_enlazados():
+def vigilar(pg: Page, errores: list[str]) -> None:
+    """Anota en `errores` los errores de página y de consola."""
+    pg.on("pageerror", lambda e: errores.append(f"pageerror: {e}"))
+    pg.on("console", lambda m: errores.append(f"console: {m.text}") if m.type == "error" else None)
+
+
+def cuadernos_enlazados() -> set[str]:
     curso = json.loads((SITE / "course.json").read_text())
     return {
         m["notebook"]
@@ -40,10 +47,10 @@ def cuadernos_enlazados():
     }
 
 
-def main():
+def main() -> None:
     enlazados = cuadernos_enlazados()
     abiertos = [n for n in range(1, HITOS + 1) if f"practica/proyecto/hito{n}.py" in enlazados]
-    fallos = []
+    fallos: list[str] = []
     srv, base = serve()
     with sync_playwright() as p:
         browser = p.chromium.launch()
@@ -52,12 +59,11 @@ def main():
             esperado = nb in enlazados
             ctx = browser.new_context(viewport={"width": 1366, "height": 768})
             ctx.add_init_script(
-                "localStorage.setItem('qiskit:hitos', %s);" % json.dumps(json.dumps(list(range(1, n))))
+                f"localStorage.setItem('qiskit:hitos', {json.dumps(json.dumps(list(range(1, n))))});"
             )
             pg = ctx.new_page()
-            errores = []
-            pg.on("pageerror", lambda e: errores.append(f"pageerror: {e}"))
-            pg.on("console", lambda m: errores.append(f"console: {m.text}") if m.type == "error" else None)
+            errores: list[str] = []
+            vigilar(pg, errores)
             pg.goto(f"{base}/index.html")
             pg.wait_for_selector("#track .hito")
             comandos = pg.locator("#hito .cmd code").all_text_contents()
