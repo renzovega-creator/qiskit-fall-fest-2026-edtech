@@ -71,7 +71,11 @@ def test_larger():          # sin @visible: el caso es oculto
   dentro del caso, no al importar `check.py`: `build.py` importa el archivo para
   leer los casos y `learner` aún no tiene el código de ningún alumno.
 - Cualquier excepción distinta de `AssertionError` en un caso falla con «Tu
-  código lanzó `<Tipo>`: `<mensaje>`».
+  código lanzó `<Tipo>`: `<mensaje>`». Si el caso había llamado a una función
+  del alumno, añade «Pasó al usar `ghz(7)`.» con esa última llamada, para que un
+  caso oculto diga con qué entrada falló aunque el `assert` no llegara a
+  escribirse. Los ayudantes de `qgcheck` fallan igual: `counts` sin mediciones
+  da «El circuito no mide ningún qubit… Pasó al usar `ghz(7)`.».
 - Compara estados, no texto de circuitos: `state(circuito).equiv(...)` quita las
   mediciones finales. Para muestreos usa una semilla fija y una tolerancia de al
   menos cuatro desviaciones típicas.
@@ -121,6 +125,11 @@ contiene.
 5. **Un paso con `Exercise` no habla de cuaderno ni de «marca verde».** El
    ejercicio se comprueba con el botón **Comprobar** de la propia página. Esas
    palabras son de `Mission`, que remite a un cuaderno de marimo.
+6. **Una parte con hito de proyecto en el navegador termina en una lección
+   `pN-cierre`.** Tiene un repaso corto, con preguntas `choice` y `numeric` de
+   las lecciones de la parte, y un ejercicio de nivel 3 sacado del hito, con
+   `solution.py` con la misma lógica que la solución del hito. Las partes cuyo
+   hito necesita una cuenta o un QPU no tienen lección de cierre.
 
 ## Corregir código
 
@@ -171,8 +180,7 @@ además corre los casos. Devuelve:
   `qiskit_aer`, `qiskit_ibm_runtime`, `numpy`, `scipy`, `matplotlib`,
   `rustworkx` y `sympy` que el código importa (`PRELOAD_ROOTS` en
   `qgcheck/worker.py`); otra biblioteca se importa dentro de los 10 s. El
-  arranque tiene su propio tope de 60 s. La salida se corta a 10 000
-  caracteres.
+  arranque tiene su propio tope de 60 s. La salida se corta a 10 000 caracteres.
 - El parámetro `block=("qiskit_aer",)` hace que esos módulos no se puedan
   importar en el proceso del alumno.
 - `grade` no aísla al alumno del equipo: no limita memoria, procesos ni red, y
@@ -273,8 +281,9 @@ por eso va después de `build.py`. Por cada ejercicio comprueba que:
 su solución y con una solución equivocada que debe fallar con un mensaje útil, y
 con los programas equivocados de `tests/mutants/<ejercicio>/` (los que hacen
 fallar cada caso oculto; son programas completos, sin depender del texto de
-`solution.py`), y prueba el corrector, lo que publica `build.py`, las
-comprobaciones y `serve.py`.
+`solution.py`), y comprueba que todo caso oculto que falla con el código inicial
+o con una solución equivocada nombra su entrada. También prueba el corrector, lo
+que publica `build.py`, las comprobaciones y `serve.py`.
 [`tests/exercise_ui_test.py`](../tests/exercise_ui_test.py) abre las lecciones
 en el navegador contra `serve.py`: escribe código equivocado y ve fallar un
 caso, lo corrige y lo ve pasar, recarga y comprueba que el progreso sigue.

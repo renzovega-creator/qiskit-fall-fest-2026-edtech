@@ -6,7 +6,7 @@ c = ClassicalRegister(1, "c")
 siempre_uno = QuantumCircuit(q, c)
 siempre_uno.h(q[0])
 siempre_uno.measure(q[0], c[0])
-with siempre_uno.if_test((c[0], 1)):   # ✏️ ¿con qué valor del bit hay que aplicar la X?
+with siempre_uno.if_test((c[0], 1)):   # ✏️ cambia solo esta condición
     siempre_uno.x(q[0])
 siempre_uno.measure(q[0], c[0])
 

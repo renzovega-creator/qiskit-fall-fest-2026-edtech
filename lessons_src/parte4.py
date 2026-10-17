@@ -1,6 +1,6 @@
 """Parte IV · Primitivas y simulación."""
 from lib import (T, M, L, Row, Box, A, shows, beat, choice, numeric, reveal, lesson,
-                 Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph, predict, reflect, Mission)
+                 Code, Out, Sh, Circ, G, Hist, Table, Flow, Graph, predict, reflect, Mission, Exercise)
 from parte2 import resumen
 
 # ------------------------------------------------------------------ 4.1 Primitivas
@@ -916,4 +916,55 @@ for mitigation in (False, True):
     practice=["Repite la prueba de mitigación con `FakeBelemV2` y un GHZ de 5 qubits midiendo $\\langle Z_0Z_4\\rangle$.",
               "Prueba `AerSimulator(method=\"matrix_product_state\")` con un GHZ de 60 qubits."])
 
-LESSONS = [primitivas, pubs, exacta, aer, clifford, local]
+s_cierre, a_cierre = resumen(["Estimator da valores esperados; Sampler, cadenas de bits",
+                              "el error despolarizante de una puerta multiplica la supervivencia: $(1-p)^{n}$",
+                              "el método `stabilizer` simula circuitos de Clifford con muchos qubits",
+                              "`tiempo_de_validez` marca hasta cuándo te puedes fiar de una simulación con ruido"])
+cierre = lesson(
+    "p4-cierre", "Cierre de la Parte IV: repaso y tiempo de validez",
+    "Un repaso corto de la Parte cuatro y una pregunta del proyecto Ising: hasta qué instante una simulación con ruido sigue la curva exacta.",
+    ["recordar qué primitiva usar, cómo crece el efecto del ruido y cuándo sirve el método `stabilizer`",
+     "calcular el primer instante en que una medida se aleja de la referencia más que una tolerancia"],
+    [
+        beat("repaso1", ("", "Repaso: primitivas"),
+             """Tres preguntas rápidas de la Parte cuatro, y después una pregunta del proyecto Ising. La primera, sobre las primitivas.""",
+             [T("Sampler → cadenas de bits · Estimator → valores esperados", "subtitle")],
+             ask=choice("Quieres la magnetización de una cadena de espines en un instante, es decir, el valor esperado de un observable. ¿Qué primitiva usas?",
+                        ["Estimator", "Sampler"], 0,
+                        "Correcto: Estimator devuelve valores esperados directamente.",
+                        wrong=[None, "Sampler devuelve cadenas de bits, no valores esperados."])),
+
+        beat("repaso2", ("", "Repaso: ruido"),
+             """Segunda pregunta, sobre el efecto del ruido.""",
+             [T("Cada puerta ruidosa multiplica la supervivencia por $1-p$", "subtitle")],
+             ask=numeric("Un circuito tiene 20 CX y cada una se ensucia con probabilidad $p=0.02$. ¿Qué probabilidad aproximada de que ningún error ocurra? (de 0 a 1)", 0.668,
+                         "Correcto: $0.98^{20}\\approx0.668$.", tol=0.02, hint="Calcula $(1-0.02)^{20}$.")),
+
+        beat("repaso3", ("", "Repaso: simulación de Clifford"),
+             """Tercera pregunta, sobre qué método de simulación elegir.""",
+             [T("H, S y CX son puertas de Clifford", "subtitle")],
+             ask=choice("Tu circuito tiene 40 qubits y solo usa H, S y CX, y luego mide. ¿Qué método de `AerSimulator` usas?",
+                        ["`statevector`", "`stabilizer`", "`density_matrix`"], 1,
+                        "Correcto: los circuitos de Clifford se simulan con el formalismo estabilizador sin guardar $2^{40}$ amplitudes.",
+                        wrong=["Guardar $2^{40}$ amplitudes no cabe en la memoria de un equipo normal.", None,
+                               "La matriz de densidad necesita aún más memoria que el vector de estado."])),
+
+        beat("validez", ("", "Tu turno"),
+             """Ahora la pregunta del proyecto Ising. [[ej]]Simulaste la magnetización con y sin ruido. Para saber cuántos pasos pedirle a un QPU, necesitas el instante en que la versión ruidosa se aleja demasiado de la exacta. [[n]]Escribe esa función.""",
+             [Exercise("p4-cierre/tiempo-de-validez",
+                       "Escribe `tiempo_de_validez(tiempos, referencia, medida, tol)`: `tiempos`, `referencia` y `medida` son listas de la misma longitud, y `tol` es la tolerancia. Devuelve el primer tiempo en que la diferencia absoluta entre `medida` y `referencia` es mayor que `tol`, o `None` si nunca ocurre. Ojo: la comparación es estricta, y la medida puede quedar por encima o por debajo de la referencia.",
+                       level=3, id="e1", hidden=True,
+                       hints=["Recorre los instantes en orden y para en el primero que cumpla la condición.",
+                              "Las tres listas avanzan juntas; `zip` las recorre a la vez.",
+                              "Compara el valor absoluto de la diferencia con `tol`, devuelve el tiempo dentro del bucle y deja `None` para cuando el bucle termina."])],
+             [A("show", "e1", at="ej")]),
+
+        beat("cierre", ("", "Resumen"),
+             """Resumen de la parte. [[r1]]Estimator da valores esperados; Sampler, cadenas de bits. [[r2]]El error de cada puerta multiplica la supervivencia. [[r3]]El método stabilizer simula circuitos de Clifford grandes.
+             [[r4]]Y el tiempo de validez dice hasta cuándo te puedes fiar de una simulación con ruido. Con esto cierras la Parte cuatro; en la siguiente, ejecutar en IBM Quantum.""",
+             s_cierre, a_cierre),
+    ],
+    sources=[],
+    practice=["Calcula `tiempo_de_validez` para tolerancias de 0.02, 0.05 y 0.1 sobre la misma curva ruidosa. ¿Cómo cambia el instante?"])
+
+LESSONS = [primitivas, pubs, exacta, aer, clifford, local, cierre]

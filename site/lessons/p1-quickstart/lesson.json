@@ -723,11 +723,11 @@
     "1.4",
     "Comprueba"
    ],
-   "say": "Otro experimento: vuelve al circuito de Bell y, justo antes de medir, añade una X sobre el qubit uno.",
+   "say": "Piensa en el circuito de tres qubits que acabamos de medir.",
    "scene": [
     {
      "type": "circuit",
-     "qubits": 2,
+     "qubits": 3,
      "ops": [
       {
        "g": "h",
@@ -743,9 +743,10 @@
        ]
       },
       {
-       "g": "x",
+       "g": "cx",
        "q": [
-        1
+        1,
+        2
        ]
       },
       {
@@ -765,29 +766,36 @@
         1
        ],
        "c": 1
+      },
+      {
+       "g": "measure",
+       "q": [
+        2
+       ],
+       "c": 2
       }
      ],
-     "clbits": 2,
+     "clbits": 3,
      "creg": "meas"
     }
    ],
    "actions": [],
    "ask": {
     "kind": "choice",
-    "prompt": "¿Qué cadenas de bits aparecen ahora?",
+    "prompt": "Mides los tres qubits y el qubit 2 da `1`. ¿Qué dan el qubit 0 y el qubit 1?",
     "options": [
-     "`'00'` y `'11'`",
-     "`'01'` y `'10'`",
-     "solo `'10'`",
-     "las cuatro, por igual"
+     "`0` y `0`",
+     "`1` y `1`",
+     "cada uno al azar",
+     "el qubit 1 da `1` y el qubit 0 queda al azar"
     ],
     "right": 1,
-    "why": "Correcto: la X invierte el qubit 1, que es el bit de la **izquierda**: $00\\to10$ y $11\\to01$. Siguen anticorrelacionados al 50 %.",
+    "why": "Correcto: las dos CNOT copian el valor del qubit 0 al 1 y de ahí al 2, así que los tres coinciden siempre. Si el 2 vale 1, los otros dos también.",
     "wrong": [
-     "La X cambia el qubit 1 en ambos términos.",
+     "Saldría una cadena con un solo `1`, y esa nunca aparece.",
      null,
-     "El qubit 0 sigue siendo aleatorio.",
-     "Los dos qubits siguen correlacionados: solo cambia cuál correlación."
+     "Los tres qubits están correlacionados: no son monedas independientes.",
+     "La primera CNOT hace que el qubit 1 copie al qubit 0: los dos coinciden siempre."
     ]
    },
    "align": "top"
@@ -798,7 +806,7 @@
     "1.4",
     "Tu turno"
    ],
-   "say": "Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero reproduces el estado de Bell. [[n2]]Después lo modificas para que los qubits salgan siempre distintos. [[n3]]Y por último creas una función que prepara un estado GHZ de cualquier tamaño. [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.",
+   "say": "Ahora te toca a ti. [[n1]]Primero reproduces el estado de Bell. [[n2]]Después lo modificas para que los qubits salgan siempre distintos. [[n3]]Y por último creas una función que prepara un estado GHZ de cualquier tamaño. [[check]]Escribe tu código en el editor y pulsa Comprobar: los casos se corren en esta misma página.",
    "scene": [
     {
      "type": "mission",
@@ -819,8 +827,9 @@
      "level": 2,
      "needs": "qiskit",
      "hints": [
-      "Hoy los dos qubits salen iguales. Necesitas que uno de ellos se invierta.",
-      "La puerta `X` invierte un qubit. Pon `anti.x(...)` antes de medir."
+      "Hoy los dos qubits salen iguales. Necesitas una puerta que invierta uno de ellos, de 0 a 1 y de 1 a 0: el NOT cuántico, la puerta `X`.",
+      "Va después de la CNOT y antes de `measure_all()`, donde está el comentario.",
+      "Es una puerta de un solo qubit: lleva un único argumento, el qubit que invierte."
      ],
      "id": "e2",
      "hidden": true,
@@ -834,13 +843,13 @@
     {
      "type": "exercise",
      "exercise": "p1-quickstart/ghz",
-     "prompt": "Escribe `ghz(n)`: un circuito de `n` qubits, medido con `measure_all()`, que solo da `00…0` o `11…1`.",
+     "prompt": "Escribe `ghz(n)`: `n` es el número de qubits (2 o más). Devuelve un `QuantumCircuit` de `n` qubits, medido con `measure_all()`, que solo da `00…0` o `11…1`. Ojo: el GHZ de la lección tiene 3 qubits escritos a mano; el tuyo debe valer para cualquier `n`.",
      "level": 3,
      "needs": "qiskit",
      "hints": [
-      "Empieza con una Hadamard en el qubit 0.",
-      "Un bucle `for` encadena CNOTs de `k` a `k + 1`.",
-      "Cada CNOT toma como control el qubit `k` y como objetivo el `k + 1`."
+      "Un GHZ pone un qubit en superposición y propaga esa correlación al resto, de uno en uno.",
+      "Después de la superposición, un bucle recorre los pares de qubits vecinos: una cadena de `n` qubits tiene `n - 1` pares.",
+      "En cada vuelta va una sola puerta de dos qubits, y sus dos argumentos se calculan con el contador del bucle."
      ],
      "id": "e3",
      "hidden": true,

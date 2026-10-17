@@ -13,6 +13,8 @@ es la 1). Si el caso falla, el alumno ve esa pista junto a él. Lo que el alumno
 `learner.<nombre>` dentro del caso, no al importar el archivo. Este módulo no importa qiskit hasta
 que se llama a un ayudante, para que build.py pueda leer los casos sin él.
 """
+import functools
+import inspect
 from collections import Counter
 
 from qgcheck.runner import grade  # noqa: F401
@@ -38,6 +40,34 @@ def hint(number):
     return mark
 
 
+class HelperFailure(AssertionError):
+    """Un fallo que un ayudante de qgcheck detecta sin conocer la entrada del caso."""
+
+
+_last_use = {"name": None, "call": None}
+
+
+def last_use():
+    """Cómo se usó por última vez el código del alumno: `ghz(7)` o, si no era una función, `MiBackend`."""
+    return _last_use["call"] or (f"`{_last_use['name']}`" if _last_use["name"] else None)
+
+
+def _shown(value):
+    text = repr(value)
+    if " at 0x" in text:
+        return type(value).__name__
+    return text if len(text) <= 40 else text[:37] + "..."
+
+
+def _recorded(name, fn):
+    @functools.wraps(fn)
+    def call(*args, **kwargs):
+        shown = [*map(_shown, args), *(f"{k}={_shown(v)}" for k, v in kwargs.items())]
+        _last_use["call"] = f"`{name}({', '.join(shown)})`"
+        return fn(*args, **kwargs)
+    return call
+
+
 class _Learner:
     """Accede a los nombres definidos por el código del alumno."""
 
@@ -46,6 +76,7 @@ class _Learner:
 
     def _bind(self, ns):
         object.__setattr__(self, "_ns", ns)
+        _last_use.update(name=None, call=None)
 
     def __getattr__(self, name):
         ns = object.__getattribute__(self, "_ns")
@@ -53,7 +84,9 @@ class _Learner:
             raise RuntimeError("learner solo existe mientras qgcheck corrige el código de un alumno")
         if name not in ns:
             raise AssertionError(f"Falta definir `{name}` en tu código.")
-        return ns[name]
+        _last_use.update(name=name, call=None)
+        value = ns[name]
+        return _recorded(name, value) if inspect.isfunction(value) else value
 
 
 learner = _Learner()
@@ -63,7 +96,7 @@ def _first_register(result, what):
     data = result[0].data
     names = list(data.keys())
     if not names:
-        raise AssertionError(f"{what} no mide ningún qubit: falta `measure_all()` o una medición.")
+        raise HelperFailure(f"{what} no mide ningún qubit: falta `measure_all()` o una medición.")
     return data[names[0]]
 
 

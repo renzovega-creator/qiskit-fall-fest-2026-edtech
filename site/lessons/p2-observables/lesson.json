@@ -162,6 +162,52 @@
    ]
   },
   {
+   "id": "promedio",
+   "tag": [
+    "2.6",
+    "Un observable de n qubits"
+   ],
+   "say": "Construyamos la magnetización media de tres espines, esta vez sobre el eje Y. [[bucle]]Es una suma de términos de un solo qubit: una tripleta por espín, con la letra de Pauli, el espín donde actúa y el coeficiente uno entre n. [[res]]Con tres espines, cada término pesa un tercio. [[eje]]La letra es el eje: cambiarla por X o por Z promedia las X o las Z, sin tocar nada más.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "n = 3\naxis = \"Y\"\nmean_y = SparsePauliOp.from_sparse_list(\n    [(axis, [i], 1 / n) for i in range(n)], num_qubits=n)\nprint(mean_y)",
+     "lang": "python",
+     "id": "c",
+     "setup": "from qiskit.quantum_info import SparsePauliOp"
+    },
+    {
+     "type": "code",
+     "src": "SparsePauliOp(['IIY', 'IYI', 'YII'],\n              coeffs=[0.33333333+0.j, 0.33333333+0.j, 0.33333333+0.j])",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "range": "3-4",
+     "id": "c",
+     "at": "bucle"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "res"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      2
+     ],
+     "id": "c",
+     "at": "eje"
+    }
+   ]
+  },
+  {
    "id": "descomponer",
    "tag": [
     "2.6",

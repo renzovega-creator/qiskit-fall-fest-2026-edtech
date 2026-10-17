@@ -1,7 +1,7 @@
 # Qiskit en español: las guías de IBM Quantum, narradas
 
 Curso en español, narrado y con animaciones, sobre las guías de IBM Quantum y
-Qiskit. Son 63 lecciones en diez partes, desde qué es Qiskit hasta
+Qiskit. Son 67 lecciones en diez partes, desde qué es Qiskit hasta
 organizaciones y seguridad. Cada lección es una secuencia de pasos con voz,
 subtítulos, código que se ejecuta y preguntas. Algunas traen una misión en un
 cuaderno de práctica.

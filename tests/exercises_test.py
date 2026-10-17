@@ -141,6 +141,10 @@ WRONG = [
         ("p2-visualizar/dibujo-texto", "plot_barriers=False", "plot_barriers=True", "Todavía se ven las barreras"),
         ("p2-visualizar/probabilidad-00", "prediccion = 0.5", "prediccion = 0.25", "Tu apuesta está lejos"),
         ("p2-control-clasico/corregir-moneda", 'prediccion = "0"', 'prediccion = "azar"', "Sigue las dos ramas"),
+        ("p2-cierre/curva-trotter", "range(K + 1)", "range(K)", "Con n = 4 y K = 20, `curva_trotter` devuelve 20 valores"),
+        ("p1-cierre/paso-trotter", "rzz(2 * J * dt", "rzz(J * dt", "Los ángulos de tu circuito son [0.1, 0.1, 0.1]"),
+        ("p3-cierre/pasos-maximos", "d <= presupuesto", "d < presupuesto", "`pasos_max` devuelve"),
+        ("p4-cierre/tiempo-de-validez", "abs(med - ref) > tol", "abs(med - ref) >= tol", "`tiempo_de_validez` devuelve 1"),
     ]],
 ]
 
@@ -228,6 +232,15 @@ MUTANTS = [
         ("p2-visualizar/barras-esperados", "return res.data.evs.flatten()", "return res.data.evs.flatten() * 0"),
         ("p2-visualizar/dibujo-texto", "circuito.barrier()\n", ""),
         ("p2-visualizar/probabilidad-00", "estado.crx(pi / 2, 0, 1)", "estado.crx(pi, 0, 1)"),
+        ("p2-cierre/curva-trotter", "range(K + 1)", "range(K)"),
+        ("p2-cierre/curva-trotter", "trotter(n, J, h, dt, k)", "trotter(n, 1.0, h, dt, k)"),
+        ("p1-cierre/paso-trotter", "rzz(2 * J * dt", "rzz(J * dt"),
+        ("p1-cierre/paso-trotter", "rx(2 * h * dt, 0)", "rx(h * dt, 0)"),
+        ("p3-cierre/pasos-maximos", "d <= presupuesto", "d < presupuesto"),
+        ("p3-cierre/pasos-maximos", "range(1, 11)", "range(1, 9)"),
+        ("p3-cierre/pasos-maximos", "generate_preset_pass_manager(3,", "generate_preset_pass_manager(0,"),
+        ("p4-cierre/tiempo-de-validez", "abs(med - ref) > tol", "abs(med - ref) >= tol"),
+        ("p4-cierre/tiempo-de-validez", "abs(med - ref)", "med - ref"),
     ]],
     *[m for eid in sorted(e for e in REAL if e.startswith("p3-")) for m in mutants_of(eid)],
 ]
@@ -271,6 +284,20 @@ def learner_names(exercise_id):
 def names_its_input(exercise_id, message):
     """Un mensaje nombra su entrada con `n = 7` o con el nombre del alumno entre comillas invertidas."""
     return bool(re.search(r"\b\w+ = \S", message)) or any(f"`{name}" in message for name in learner_names(exercise_id))
+
+
+def graded_attempts(exercise_id):
+    """El código inicial y cada código equivocado de WRONG para este ejercicio."""
+    return [read(exercise_id, "starter.py"), *(code for eid, code, *_ in WRONG if eid == exercise_id)]
+
+
+@pytest.mark.parametrize("exercise_id", REAL)
+def test_graded_hidden_messages_name_their_input(exercise_id):
+    """Lo que `grade` devuelve para un caso oculto que falla dice con qué entrada falló."""
+    for code in graded_attempts(exercise_id):
+        for test in failed(grade(exercise_id, code)):
+            if not test["visible"]:
+                assert names_its_input(exercise_id, test["message"]), f"{test['name']} no nombra su entrada: {test['message']}"
 
 
 # Un `assert` de un caso mira el código del alumno a través de estas expresiones, y lleva escritos
@@ -575,6 +602,13 @@ def test_runtime_error_names_the_learner_line():
 def test_failure_inside_a_case_is_reported_as_the_learner_code():
     result = grade("p1-quickstart/ghz", "def ghz(n):\n    raise ValueError('no sé')\n")
     assert any("Tu código lanzó ValueError: no sé" in t["message"] for t in failed(result))
+    assert all("Pasó al usar `ghz(" in t["message"] for t in failed(result)), [t["message"] for t in failed(result)]
+
+
+def test_circuit_without_measurement_names_the_call_that_built_it():
+    result = grade("p1-quickstart/ghz", "from qiskit import QuantumCircuit\ndef ghz(n):\n    return QuantumCircuit(n)\n")
+    messages = [t["message"] for t in failed(result) if not t["visible"]]
+    assert any("no mide ningún qubit" in m and "Pasó al usar `ghz(" in m for m in messages), messages
 
 
 def test_infinite_loop_is_stopped():

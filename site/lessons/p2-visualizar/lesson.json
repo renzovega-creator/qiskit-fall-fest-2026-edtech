@@ -921,7 +921,7 @@
   "Usa `plot_histogram` con `number_to_keep=3` sobre un circuito aleatorio de 4 qubits.",
   "Guías originales: [visualize-circuits](https://quantum.cloud.ibm.com/docs/en/guides/visualize-circuits) · [plot-quantum-states](https://quantum.cloud.ibm.com/docs/en/guides/plot-quantum-states) · [visualize-results](https://quantum.cloud.ibm.com/docs/en/guides/visualize-results) · [visualize-circuit-timing](https://quantum.cloud.ibm.com/docs/en/guides/visualize-circuit-timing)"
  ],
- "next": "p3-transpilar",
+ "next": "p2-cierre",
  "voice": "es-PE-AlexNeural",
  "rate": "-4%"
 }

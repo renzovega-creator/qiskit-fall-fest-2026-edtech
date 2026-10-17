@@ -454,6 +454,63 @@
    ]
   },
   {
+   "id": "qpy_memoria",
+   "tag": [
+    "2.8",
+    "QPY sin archivo"
+   ],
+   "say": "No siempre quieres un archivo en el disco: a veces los bytes van a una base de datos o a una red. [[buf]]io punto BytesIO es un archivo que vive en la memoria, y dump lo acepta como cualquier otro. [[bytes]]Con get value sacas los bytes que escribió. [[load]]Para leer, envuelves esos bytes en otro BytesIO y se lo das a load. [[lista]]La respuesta sigue siendo una lista.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "import io\n\nbuffer = io.BytesIO()\nqpy.dump(qc, buffer)\ndata = buffer.getvalue()\nprint(type(data).__name__, len(data) > 0)\n\nrestored = qpy.load(io.BytesIO(data))\nprint(type(restored).__name__, restored[0] == qc)",
+     "lang": "python",
+     "id": "c",
+     "size": 23
+    },
+    {
+     "type": "code",
+     "src": "bytes True\nlist True",
+     "lang": "out",
+     "id": "o",
+     "hidden": true,
+     "check": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "hl",
+     "lines": [
+      3,
+      4
+     ],
+     "id": "c",
+     "at": "buf"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      5
+     ],
+     "id": "c",
+     "at": "bytes"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      8
+     ],
+     "id": "c",
+     "at": "load"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "lista"
+    }
+   ]
+  },
+  {
    "id": "q2",
    "tag": [
     "2.8",

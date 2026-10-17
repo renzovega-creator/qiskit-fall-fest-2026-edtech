@@ -1,6 +1,7 @@
 """Parte I · Primeros pasos: qué es Qiskit, patrones, instalación, quickstart y Composer."""
 from lib import (T, M, L, Row, Box, A, shows, beat, choice, numeric, reveal, lesson,
                  Code, Out, Sh, Circ, G, Hist, Table, Flow, predict, reflect, Mission, Exercise)
+from parte2 import resumen
 
 # ------------------------------------------------------------------ 1.1 Qué es Qiskit
 que_es = lesson(
@@ -601,28 +602,32 @@ print(StatevectorSampler().run([qc]).result()[0].data.meas.get_counts())""", id=
              [A("gate", "q", at="cx", i=2), A("hl", "c", at="cx", lines=[4]), A("show", "o", at="res")]),
 
         beat("q2", ("", "Comprueba"),
-             """Otro experimento: vuelve al circuito de Bell y, justo antes de medir, añade una X sobre el qubit uno.""",
-             [Circ(2, [G("h", 0), G("cx", 0, 1), G("x", 1), G("barrier"), G("measure", 0, c=0), G("measure", 1, c=1)], clbits=2, creg="meas")],
-             ask=choice("¿Qué cadenas de bits aparecen ahora?",
-                        ["`'00'` y `'11'`", "`'01'` y `'10'`", "solo `'10'`", "las cuatro, por igual"], 1,
-                        "Correcto: la X invierte el qubit 1, que es el bit de la **izquierda**: $00\\to10$ y $11\\to01$. Siguen anticorrelacionados al 50 %.",
-                        wrong=["La X cambia el qubit 1 en ambos términos.", None, "El qubit 0 sigue siendo aleatorio.", "Los dos qubits siguen correlacionados: solo cambia cuál correlación."])),
+             """Piensa en el circuito de tres qubits que acabamos de medir.""",
+             [Circ(3, [G("h", 0), G("cx", 0, 1), G("cx", 1, 2), G("barrier"), G("measure", 0, c=0), G("measure", 1, c=1), G("measure", 2, c=2)],
+                   clbits=3, creg="meas")],
+             ask=choice("Mides los tres qubits y el qubit 2 da `1`. ¿Qué dan el qubit 0 y el qubit 1?",
+                        ["`0` y `0`", "`1` y `1`", "cada uno al azar", "el qubit 1 da `1` y el qubit 0 queda al azar"], 1,
+                        "Correcto: las dos CNOT copian el valor del qubit 0 al 1 y de ahí al 2, así que los tres coinciden siempre. Si el 2 vale 1, los otros dos también.",
+                        wrong=["Saldría una cadena con un solo `1`, y esa nunca aparece.", None,
+                               "Los tres qubits están correlacionados: no son monedas independientes.",
+                               "La primera CNOT hace que el qubit 1 copie al qubit 0: los dos coinciden siempre."])),
 
         beat("mision", ("", "Tu turno"),
-             """Ahora te toca a ti. Abre el cuaderno de práctica de esta lección con el comando de abajo. [[n1]]Primero reproduces el estado de Bell. [[n2]]Después lo modificas para que los qubits salgan siempre distintos. [[n3]]Y por último creas una función que prepara un estado GHZ de cualquier tamaño.
-             [[check]]Cada misión tiene una comprobación que se actualiza sola mientras escribes: busca la marca verde.""",
+             """Ahora te toca a ti. [[n1]]Primero reproduces el estado de Bell. [[n2]]Después lo modificas para que los qubits salgan siempre distintos. [[n3]]Y por último creas una función que prepara un estado GHZ de cualquier tamaño.
+             [[check]]Escribe tu código en el editor y pulsa Comprobar: los casos se corren en esta misma página.""",
              [Mission("practica/p1-quickstart.py", [(1, "Ejecuta el estado de Bell y lee sus conteos.")], id="m", stagger=True),
               Exercise("p1-quickstart/bell-distinto",
                        r"Prepara $\tfrac{1}{\sqrt2}(|01\rangle+|10\rangle)$ añadiendo una sola puerta al circuito.",
                        level=2, id="e2", hidden=True,
-                       hints=["Hoy los dos qubits salen iguales. Necesitas que uno de ellos se invierta.",
-                              "La puerta `X` invierte un qubit. Pon `anti.x(...)` antes de medir."]),
+                       hints=["Hoy los dos qubits salen iguales. Necesitas una puerta que invierta uno de ellos, de 0 a 1 y de 1 a 0: el NOT cuántico, la puerta `X`.",
+                              "Va después de la CNOT y antes de `measure_all()`, donde está el comentario.",
+                              "Es una puerta de un solo qubit: lleva un único argumento, el qubit que invierte."]),
               Exercise("p1-quickstart/ghz",
-                       "Escribe `ghz(n)`: un circuito de `n` qubits, medido con `measure_all()`, que solo da `00…0` o `11…1`.",
+                       "Escribe `ghz(n)`: `n` es el número de qubits (2 o más). Devuelve un `QuantumCircuit` de `n` qubits, medido con `measure_all()`, que solo da `00…0` o `11…1`. Ojo: el GHZ de la lección tiene 3 qubits escritos a mano; el tuyo debe valer para cualquier `n`.",
                        level=3, id="e3", hidden=True,
-                       hints=["Empieza con una Hadamard en el qubit 0.",
-                              "Un bucle `for` encadena CNOTs de `k` a `k + 1`.",
-                              "Cada CNOT toma como control el qubit `k` y como objetivo el `k + 1`."])],
+                       hints=["Un GHZ pone un qubit en superposición y propaga esa correlación al resto, de uno en uno.",
+                              "Después de la superposición, un bucle recorre los pares de qubits vecinos: una cadena de `n` qubits tiene `n - 1` pares.",
+                              "En cada vuelta va una sola puerta de dos qubits, y sus dos argumentos se calculan con el contador del bucle."])],
              [A("item", "m", at="n1", i=0), A("show", "e2", at="n2"), A("show", "e3", at="n3")]),
 
         beat("proyecto", ("", "Tu proyecto: una cadena de espines"),
@@ -809,4 +814,55 @@ measure q -> c;""", "qasm", id="c", reveal=True, size=27)],
     practice=["Abre [Composer](https://quantum.cloud.ibm.com/composer), construye el estado de Bell y compara su q-esfera con la del circuito H, H, CZ.",
               "Escribe en el editor de OpenQASM una puerta propia `ghz a, b, c` y úsala en un circuito de tres qubits."])
 
-LESSONS = [que_es, patrones, instalar, quickstart, composer]
+s_cierre, a_cierre = resumen(["todo programa sigue cuatro pasos: mapear, optimizar, ejecutar y posprocesar",
+                              "un circuito ISA usa las puertas base y la conectividad del chip",
+                              "en un GHZ los tres qubits coinciden siempre",
+                              "un paso de Trotter aplica `rzz` y después `rx`, con ángulos de $2\\cdot J\\,dt$ y $2\\cdot h\\,dt$"])
+cierre = lesson(
+    "p1-cierre", "Cierre de la Parte I: repaso y un paso de Trotter",
+    "Un repaso corto de la Parte uno y el primer paso del proyecto Ising: el circuito de un paso de Trotter.",
+    ["recordar el patrón de cuatro pasos, qué es un circuito ISA y cómo se correlacionan los qubits de un GHZ",
+     "escribir el circuito de un paso de Trotter para dos espines"],
+    [
+        beat("repaso1", ("", "Repaso: el patrón"),
+             """Tres preguntas rápidas de la Parte uno, y después una función del proyecto Ising. La primera, sobre el flujo de trabajo.""",
+             [T("Mapear · Optimizar · Ejecutar · Posprocesar", "subtitle")],
+             ask=choice("Tienes un circuito abstracto con una Hadamard y una CNOT, y quieres que el chip de IBM lo ejecute. ¿En qué paso del patrón lo adaptas a las puertas y la conectividad del chip?",
+                        ["Mapear", "Optimizar", "Ejecutar", "Posprocesar"], 1,
+                        "Correcto: el paso de optimizar produce el circuito ISA, con las puertas base y los pares de qubits que el chip permite.",
+                        wrong=["Mapear solo expresa el problema como circuitos y operadores.", None,
+                               "Ejecutar recibe un circuito que ya debe ser ISA.", "Posprocesar trabaja con resultados, no con circuitos."])),
+
+        beat("repaso2", ("", "Repaso: GHZ"),
+             """Segunda pregunta, sobre el estado GHZ de tres qubits.""",
+             [Circ(3, [G("h", 0), G("cx", 0, 1), G("cx", 1, 2), G("barrier"), G("measure", 0, c=0), G("measure", 1, c=1), G("measure", 2, c=2)], clbits=3, creg="meas")],
+             ask=numeric("Mides el circuito muchas veces. ¿Cuántas cadenas de bits distintas aparecen?", 2,
+                         "Correcto: solo `000` y `111`, porque las dos CNOT copian el valor del qubit 0 a los otros dos.",
+                         tol=0, hint="Los tres qubits coinciden siempre.")),
+
+        beat("repaso3", ("", "Repaso: Estimator"),
+             """Tercera pregunta, sobre las primitivas.""",
+             [T("Sampler → cadenas de bits · Estimator → valores esperados", "subtitle")],
+             ask=choice("Quieres el valor esperado de $Z_0Z_1$ en el estado de Bell. ¿Qué primitiva usas?", ["Sampler", "Estimator"], 1,
+                        "Correcto: Estimator devuelve el valor esperado de un observable directamente; con Sampler tendrías que reconstruirlo a partir de las cadenas de bits.",
+                        wrong=["Sampler devuelve cadenas de bits, no valores esperados."])),
+
+        beat("paso", ("", "Tu turno"),
+             """Ahora el primer paso del proyecto Ising. [[ej]]Dos espines, un campo y un acoplamiento: te toca escribir el circuito de un solo paso de tiempo. [[n]]Se compara con el paso exacto de Trotter, calculado con matrices.""",
+             [Exercise("p1-cierre/paso-trotter",
+                       r"Completa `paso_trotter(J, h, dt)`: `J` es el acoplamiento, `h` el campo y `dt` el paso de tiempo. Devuelve un circuito de 2 qubits con una `rzz` entre los dos y después una `rx` en cada uno, de modo que sea el paso de Trotter de $H = J\,Z_0Z_1 + h\,(X_0 + X_1)$. Ojo: `rzz(θ, a, b)` aplica $e^{-i\frac{θ}{2}Z_aZ_b}$ y `rx(θ, q)` aplica $e^{-i\frac{θ}{2}X_q}$, así que el ángulo que escribes no es $J\,dt$ a secas.",
+                       level=3, id="e1", hidden=True,
+                       hints=["Compara el exponente que quieres con el que aplica la puerta: el ángulo es un múltiplo de $J\\,dt$ o de $h\\,dt$.",
+                              "Son tres líneas: el ángulo de la `rzz` depende de `J` y `dt`; los de las dos `rx`, de `h` y `dt`.",
+                              "Cada ángulo es un producto de tres factores; la `rzz` y las `rx` llevan el mismo número delante."])],
+             [A("show", "e1", at="ej")]),
+
+        beat("cierre", ("", "Resumen"),
+             """Resumen de la parte. [[r1]]Todo programa sigue cuatro pasos. [[r2]]En hardware solo se ejecutan circuitos ISA. [[r3]]En un GHZ, los tres qubits coinciden siempre.
+             [[r4]]Y un paso de Trotter aplica una rzz y después una rx por espín. Con esto cierras la Parte uno; en la siguiente, los circuitos a fondo.""",
+             s_cierre, a_cierre),
+    ],
+    sources=[],
+    practice=["Ejecuta `paso_trotter(1.0, 0.5, 0.1)` con `Statevector` y compara su estado con el de la evolución exacta de $H$."])
+
+LESSONS = [que_es, patrones, instalar, quickstart, composer, cierre]
