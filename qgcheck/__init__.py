@@ -95,3 +95,46 @@ def state(circuit):
     """Devuelve el statevector del circuito sin mediciones finales."""
     from qiskit.quantum_info import Statevector
     return Statevector(circuit.remove_final_measurements(inplace=False))
+
+
+def unsupported(circuit, target):
+    """Lista las instrucciones del circuito que el target no admite donde están: ['h en 0', 'cz en 0-2']."""
+    found = []
+    for inst in circuit.data:
+        at = tuple(circuit.find_bit(q).index for q in inst.qubits)
+        if not target.instruction_supported(inst.operation.name, at):
+            found.append(f"{inst.operation.name} en {'-'.join(map(str, at))}")
+    return found
+
+
+def operator(circuit):
+    """Devuelve el operador de un circuito sobre los qubits virtuales del circuito original.
+
+    Si el circuito está transpilado, aplica el layout inicial y el final para que se pueda comparar
+    con el operador del original. Solo construye la matriz de los qubits que el circuito toca, así
+    que sirve con un circuito transpilado a un chip de 156 qubits.
+    """
+    import numpy as np
+    from qiskit import QuantumCircuit
+    from qiskit.quantum_info import Operator
+
+    body = circuit.remove_final_measurements(inplace=False)
+    layout = body.layout
+    if layout is None:
+        return Operator(body)
+    first, last = layout.initial_index_layout(filter_ancillas=True), layout.final_index_layout()
+    touched = {body.find_bit(q).index for inst in body.data for q in inst.qubits}
+    used = sorted(touched | set(first) | set(last))
+    at = {physical: k for k, physical in enumerate(used)}
+    small = QuantumCircuit(len(used))
+    for inst in body.data:
+        small.append(inst.operation, [at[body.find_bit(q).index] for q in inst.qubits])
+    n = len(first)
+
+    def index(places, x):
+        return sum(((x >> v) & 1) << at[places[v]] for v in range(n))
+
+    full = Operator(small).data
+    rows = [index(last, y) for y in range(2**n)]
+    cols = [index(first, x) for x in range(2**n)]
+    return Operator(full[np.ix_(rows, cols)])
