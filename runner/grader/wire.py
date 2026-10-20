@@ -18,6 +18,12 @@ DTYPE = re.compile(r"[<>|=]?[biufc]\d{1,2}")
 BROKEN = "Tu código terminó o rompió el canal antes de dar un resultado."
 
 
+def _qpy_bytes(circuit: Any, qpy: Any) -> bytes:
+    buffer = io.BytesIO()
+    qpy.dump(circuit, buffer)
+    return buffer.getvalue()
+
+
 class WireError(Exception):
     """El otro extremo cerró el canal o envió algo que no es un mensaje válido."""
 
@@ -43,11 +49,19 @@ def encode(value: Any) -> Any:
             return {"$": "array", "dtype": value.dtype.str, "v": encode(value.tolist())}
     if "qiskit" in sys.modules:
         from qiskit import QuantumCircuit, qpy
+        from qiskit.quantum_info import SparsePauliOp  # type: ignore[attr-defined]
 
         if isinstance(value, QuantumCircuit):
-            buffer = io.BytesIO()
-            qpy.dump(value, buffer)
-            return {"$": "circuit", "v": base64.b64encode(buffer.getvalue()).decode("ascii")}
+            data = _qpy_bytes(value, qpy)
+            try:
+                qpy.load(io.BytesIO(data))
+            except Exception:
+                # qpy.dump acepta circuitos que qpy.load no lee. Se reintenta
+                # con el circuito descompuesto en puertas básicas.
+                data = _qpy_bytes(value.decompose(), qpy)
+            return {"$": "circuit", "v": base64.b64encode(data).decode("ascii")}
+        if isinstance(value, SparsePauliOp):
+            return {"$": "sparse_pauli_op", "v": encode(value.to_list())}
     raise TypeError(f"un valor de tipo {type(value).__name__}")
 
 
@@ -75,6 +89,10 @@ def decode(obj: Any) -> Any:
         from qiskit import qpy
 
         return qpy.load(io.BytesIO(base64.b64decode(v, validate=True)))[0]
+    if kind == "sparse_pauli_op":
+        from qiskit.quantum_info import SparsePauliOp  # type: ignore[attr-defined]
+
+        return SparsePauliOp.from_list(decode(v))
     raise WireError("un valor con un tipo desconocido")
 
 
