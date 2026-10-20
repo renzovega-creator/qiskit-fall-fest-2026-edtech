@@ -61,7 +61,7 @@ export default defineConfig({
       // El secreto del widget de Turnstile no se escribe aquí: se crea en la cuenta.
       TURNSTILE_SECRET: bindings.secret(),
       // La clave del sitio es pública y se copia desde el widget de Turnstile.
-      TURNSTILE_SITE_KEY: bindings.text(""),
+      TURNSTILE_SITE_KEY: bindings.text("0x4AAAAAAFeMJBfEJZkBlG8m"),
       RATE_PER_MINUTE: bindings.text("30"),
       RATE_PER_DAY: bindings.text("1000"),
       MAX_CODE_BYTES: bindings.text("20000"),
