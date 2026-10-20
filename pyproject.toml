@@ -5,7 +5,7 @@ description = "Curso interactivo en español sobre las guías de IBM Quantum / Q
 requires-python = ">=3.11"
 dependencies = [
   "qiskit[visualization,qasm3-import]>=2.5.2",
-  "qiskit-aer~=0.17",
+  "qiskit-aer~=0.18.0",
   "qiskit-ibm-runtime>=0.50",
   "qiskit-mitigation~=0.1",
   "qiskit-addon-utils~=0.4.0",
@@ -13,7 +13,7 @@ dependencies = [
   "pylatexenc",
   "ipython",
   "samplomatic",
-  "marimo>=0.25.1",
+  "marimo>=0.25.2",
   "nbformat>=5.11.1",
   "qiskit-addon-obp>=0.3.0",
 ]
