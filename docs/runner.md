@@ -609,10 +609,10 @@ siguientes ejecuciones la mandan solas y no vuelven a llamar a Turnstile.
 | 403       | `turnstile_failed`      | «No pasó la comprobación de que eres una persona. Recarga la página e inténtalo de nuevo.»             |
 | 503       | `turnstile_unavailable` | «No se pudo comprobar que eres una persona. Vuelve a intentarlo en unos segundos.» (`Retry-After: 10`) |
 
-| Variable             | Valor | Significa                               |
-| -------------------- | ----- | --------------------------------------- |
-| `SESSION_HOURS`      | 8     | Duración de la sesión verificada.       |
-| `TURNSTILE_SITE_KEY` | —     | La clave pública del widget. Sin valor. |
+| Variable             | Valor         | Significa                                                          |
+| -------------------- | ------------- | ------------------------------------------------------------------ |
+| `SESSION_HOURS`      | 8             | Duración de la sesión verificada.                                  |
+| `TURNSTILE_SITE_KEY` | configuración | La clave pública del widget configurada en `cloudflare.config.ts`. |
 
 `TURNSTILE_SECRET` es un secreto del Worker (`bindings.secret()`), no un valor
 del repositorio. La clave del sitio no es secreta: el Worker se la da a la

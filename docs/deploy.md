@@ -20,7 +20,7 @@ va en el repositorio ni en un archivo que subas a git.
 
 ```sh
 cd runner/worker
-bun install
+bun install --frozen-lockfile
 bunx cf auth login
 ```
 
@@ -55,14 +55,15 @@ la base (`bunx cf d1 delete <uuid>`), crea otra y aplica el archivo de nuevo.
 ## 3. Crea el widget de Turnstile
 
 ```sh
-bunx cf turnstile widgets create --name qiskit-guides --domains <host> --widget-mode managed
+bunx cf turnstile widgets create --body '{"name":"qiskit-guides","domains":["<host>"],"mode":"managed","region":"world"}'
 ```
 
 De la respuesta copia dos valores:
 
 - La clave del sitio (`sitekey`) es pública. Escríbela en `TURNSTILE_SITE_KEY`
   de `cloudflare.config.ts`.
-- El secreto (`secret`) se guarda en el paso 7 como `TURNSTILE_SECRET`.
+- El secreto (`secret`) se guarda sin imprimirlo. Lo introducirás como
+  `TURNSTILE_SECRET` en el archivo temporal del paso 6.
 
 ## 4. Crea el cliente de Google
 
@@ -98,36 +99,50 @@ Qué pide el Worker a cada proveedor está en [Entrar](runner.md#entrar).
 
 ## 6. Despliega
 
-El primer despliegue sube también el secreto de Turnstile. `--secrets-file` lee
-un `.env` que se borra enseguida.
+El primer despliegue exige los cinco secretos. `--secrets-file` lee un `.env`
+que se borra enseguida. Introduce el secreto de Turnstile que copiaste en el
+paso 3 sin mostrarlo en la terminal. Los cuatro valores de OAuth son los de los
+pasos 4 y 5.
 
 ```sh
 bunx cf deploy --dry-run   # construye la imagen y el Worker, no sube nada
 umask 077
-read -rs -p 'Secreto de Turnstile: ' secret && printf 'TURNSTILE_SECRET=%s\n' "$secret" > "$TMPDIR/secrets.env"
+read -r -p 'Google Client ID: ' GOOGLE_CLIENT_ID
+read -rs -p 'Google Client secret: ' GOOGLE_CLIENT_SECRET
+printf '\n'
+read -r -p 'GitHub Client ID: ' GITHUB_CLIENT_ID
+read -rs -p 'GitHub Client secret: ' GITHUB_CLIENT_SECRET
+printf '\n'
+read -rs -p 'Secreto de Turnstile: ' TURNSTILE_SECRET
+printf '\n'
+printf 'GOOGLE_CLIENT_ID=%s\nGOOGLE_CLIENT_SECRET=%s\nGITHUB_CLIENT_ID=%s\nGITHUB_CLIENT_SECRET=%s\nTURNSTILE_SECRET=%s\n' \
+  "$GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_SECRET" "$GITHUB_CLIENT_ID" \
+  "$GITHUB_CLIENT_SECRET" "$TURNSTILE_SECRET" > "$TMPDIR/secrets.env"
 bunx cf deploy --secrets-file "$TMPDIR/secrets.env"
 rm "$TMPDIR/secrets.env"
+unset GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET TURNSTILE_SECRET
 ```
 
 Para publicar un cambio de las lecciones o del Worker, vuelve a ejecutar
 `bunx cf deploy`.
 
-## 7. Guarda los secretos de OAuth
+## 7. Rota un secreto
 
-El Worker ya existe, así que se le pueden añadir los cuatro secretos. Repite el
-comando con cada nombre:
+Después del primer despliegue, rota un secreto con `cf workers secrets update`.
+Este comando no sustituye al archivo del primer despliegue. Repite el comando
+con cada nombre que quieras cambiar:
 
 ```sh
 read -rs -p 'Valor: ' value && bunx cf workers secrets update <NAME> --worker <worker> --text "$value"
 ```
 
-| `<NAME>`               | Valor                                       |
-| ---------------------- | ------------------------------------------- |
-| `GOOGLE_CLIENT_ID`     | El Client ID del paso 4.                    |
-| `GOOGLE_CLIENT_SECRET` | El Client secret del paso 4.                |
-| `GITHUB_CLIENT_ID`     | El Client ID del paso 5.                    |
-| `GITHUB_CLIENT_SECRET` | El client secret del paso 5.                |
-| `TURNSTILE_SECRET`     | Solo para cambiarlo: el secreto del paso 3. |
+| `<NAME>`               | Valor                        |
+| ---------------------- | ---------------------------- |
+| `GOOGLE_CLIENT_ID`     | El Client ID del paso 4.     |
+| `GOOGLE_CLIENT_SECRET` | El Client secret del paso 4. |
+| `GITHUB_CLIENT_ID`     | El Client ID del paso 5.     |
+| `GITHUB_CLIENT_SECRET` | El client secret del paso 5. |
+| `TURNSTILE_SECRET`     | El secreto del paso 3.       |
 
 Sin `--text` la CLI no envía ningún valor. Cada comando crea una versión nueva
 del Worker. Mientras falte el cliente de un proveedor, `/auth/<proveedor>`
@@ -145,8 +160,12 @@ curl -sI https://<host>/auth/github | grep -i '^location'
 `/health` responde 200 y `/api/me` responde `{"signedIn":false}`. Las dos
 últimas imprimen una dirección de `accounts.google.com` y de `github.com` con
 `redirect_uri=https://<host>/auth/<proveedor>/callback`. Esa dirección debe ser
-la que registraste en los pasos 4 y 5, letra por letra. Después abre el sitio,
-entra con cada proveedor y ejecuta un ejercicio.
+la que registraste en los pasos 4 y 5, letra por letra.
+
+Abre cualquier página de lección con un ejercicio en `<host>` y pulsa
+**Ejecutar**. El navegador obtiene el token de Turnstile, repite el `POST /run`
+con ese token y debe recibir 200 con la salida del programa. Después entra con
+cada proveedor y ejecuta un ejercicio.
 
 El cron diario de [Retención](runner.md#retención) se declara en
 `cloudflare.config.ts` y se despliega con el Worker.
