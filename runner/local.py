@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parent.parent
 IMAGE = "qg-runner"
 INTERNAL_NET = "qg-runner-internal"
 PORT = 8080
-CAPS = ("SETUID", "SETGID", "KILL", "CHOWN", "FOWNER", "DAC_OVERRIDE")
+CAPS = ("SETUID", "SETGID", "KILL", "CHOWN", "FOWNER", "DAC_OVERRIDE", "SYS_PTRACE")
 
 
 def docker(*args: str, check: bool = True, capture: bool = True) -> str:
@@ -82,7 +82,12 @@ class Container:
         return docker("exec", self.name, *argv)
 
 
-def start(image: str = IMAGE, runtime: str | None = None, egress: bool = False) -> Container:
+def start(
+    image: str = IMAGE,
+    runtime: str | None = None,
+    egress: bool = False,
+    caps: tuple[str, ...] = CAPS,
+) -> Container:
     """Arranca el contenedor, construyendo antes la imagen si falta, y espera a /health.
 
     Con `egress=True` usa la red por defecto de Docker, que sí sale a internet.
@@ -97,7 +102,7 @@ def start(image: str = IMAGE, runtime: str | None = None, egress: bool = False) 
         if docker("network", "ls", "-q", "--filter", f"name=^{INTERNAL_NET}$") == "":
             docker("network", "create", "--internal", INTERNAL_NET)
     name = f"qg-runner-{uuid.uuid4().hex[:8]}"
-    caps = [a for c in CAPS for a in ("--cap-add", c)]
+    cap_args = [a for c in caps for a in ("--cap-add", c)]
     docker(
         "run",
         "-d",
@@ -123,7 +128,7 @@ def start(image: str = IMAGE, runtime: str | None = None, egress: bool = False) 
         "256",
         "--cap-drop",
         "ALL",
-        *caps,
+        *cap_args,
         "--security-opt",
         "no-new-privileges",
         image,

@@ -58,9 +58,13 @@ Responde 200 con:
   `hint` es el número de la pista que nombra el caso, o `null`
   ([exercises.md](exercises.md)).
 - `killed` es `time`, `memory`, `disk` u `output` cuando el corredor mató el
-  trabajo por ese límite, y `null` si no.
+  trabajo por ese límite, y `null` si no. Es `scan` si falló la lectura de
+  memoria o disco que vigila los límites: sin poder medir, el corredor mata el
+  trabajo en vez de dejarlo correr sin tope, y escribe el error en su salida.
 - `ms` es el tiempo del trabajo dentro del corredor. `peak_mb` es la mayor suma
-  de memoria residente de los procesos del trabajo.
+  de la memoria proporcional (PSS) de los procesos del trabajo, medida cada 0,5
+  s y cuando la memoria residente pasa del tope: una página compartida entre
+  procesos se reparte entre ellos, así que cuenta una vez.
 
 Otras respuestas llevan `{"error": "..."}`: 400 si la petición no es válida, 404
 si el ejercicio no existe, 413 si el código pasa de 20 000 bytes o el cuerpo de
@@ -73,7 +77,7 @@ responde 200.
 | Límite                | Valor              | Cómo se aplica                                                               |
 | --------------------- | ------------------ | ---------------------------------------------------------------------------- |
 | Tiempo                | 10 s               | `sandbox.py` mata el grupo de procesos y todo proceso del mismo uid.         |
-| Memoria               | 512 MB             | `sandbox.py` suma la memoria residente cada 20 ms y mata al pasar el tope.   |
+| Memoria               | 512 MB             | `sandbox.py` vigila cada 20 ms y mata si la memoria proporcional (PSS) pasa. |
 | Directorio de trabajo | 64 MB              | `sandbox.py` mide el disco cada 100 ms; un archivo no pasa de 16 MB.         |
 | Procesos e hilos      | 64                 | `RLIMIT_NPROC` sobre el uid de la ranura.                                    |
 | Salida                | 64 KiB             | `sandbox.py` mata el trabajo al pasarse.                                     |
@@ -152,8 +156,9 @@ Construye la imagen `qg-runner` si hace falta (`python runner/local.py build`),
 la arranca y escribe su URL. Usa gVisor (`runsc`) si Docker lo tiene registrado
 y `runc` si no; `--runtime` lo fuerza. El contenedor va en una red interna de
 Docker, sin salida a internet, con el sistema de archivos de solo lectura y sin
-más capacidades que `SETUID`, `SETGID`, `KILL`, `CHOWN`, `FOWNER` y
-`DAC_OVERRIDE`. Se alcanza por su IP, lo que funciona en Linux.
+más capacidades que `SETUID`, `SETGID`, `KILL`, `CHOWN`, `FOWNER`,
+`DAC_OVERRIDE` y `SYS_PTRACE` (el corredor la usa para leer la memoria de los
+procesos del alumno). Se alcanza por su IP, lo que funciona en Linux.
 
 ```sh
 curl -s $URL/run -d '{"code": "print(2 + 2)"}'
@@ -403,13 +408,13 @@ Cada respuesta 200 de `/run` escribe una fila en `attempts`, a partir del JSON
 que devolvió el contenedor, que es quien califica el código. La fila lleva el
 momento, el `user_id` (`NULL` sin cuenta), el ejercicio, el modo, el resultado
 (`pass`, `fail`, `error` o `timeout`), los nombres de los casos que fallaron, el
-nombre de la excepción de Python (o `other`, o `killed_memory`, `killed_disk` o
-`killed_output`), las pistas que la página dice haber usado (cabecera `X-Hints`,
-un dígito del 0 al 9), `ms` y el tamaño del código en bytes. No lleva el código,
-`stdout`, el texto del error ni el `message` de un caso, que pueden repetir lo
-que escribió el alumno. Solo se anota una ejecución con `mode` `run` o `check` y
-un `exercise` con la forma de un valor del contrato. Un fallo al escribir la
-fila se registra y la respuesta no cambia.
+nombre de la excepción de Python (o `other`, o `killed_memory`, `killed_disk`,
+`killed_output` o `killed_scan`), las pistas que la página dice haber usado
+(cabecera `X-Hints`, un dígito del 0 al 9), `ms` y el tamaño del código en
+bytes. No lleva el código, `stdout`, el texto del error ni el `message` de un
+caso, que pueden repetir lo que escribió el alumno. Solo se anota una ejecución
+con `mode` `run` o `check` y un `exercise` con la forma de un valor del
+contrato. Un fallo al escribir la fila se registra y la respuesta no cambia.
 
 ### Retención
 

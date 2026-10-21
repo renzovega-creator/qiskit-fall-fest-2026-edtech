@@ -16,6 +16,7 @@ import sys
 import tempfile
 import threading
 import time
+import traceback
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,6 +27,7 @@ UID_BASE = 20000
 SHARED_DIRS = ("/scratch", "/tmp", "/var/tmp", "/dev/shm")
 PAGE = os.sysconf("SC_PAGE_SIZE")
 POLL_S = 0.02
+PEAK_POLL_S = 0.5
 DISK_POLL_S = 0.1
 MAX_ENTRIES = 5000
 REPORT_CAP = 2**20
@@ -62,13 +64,37 @@ def _pids_of(uid: int) -> Iterator[int]:
 
 
 def _rss_bytes(uid: int) -> int:
-    """Memoria residente de los procesos de `uid`."""
+    """Memoria residente de los procesos de `uid`.
+
+    Es una cota superior del PSS y permite evitar la lectura costosa de PSS.
+    """
     total = 0
     for pid in _pids_of(uid):
         try:
             with open(f"/proc/{pid}/statm") as f:
                 total += int(f.read().split()[1]) * PAGE
         except (OSError, ValueError, IndexError):
+            continue
+    return total
+
+
+def _pss_bytes(uid: int) -> int:
+    """Memoria proporcional (PSS) de los procesos de `uid`.
+
+    Una página compartida entre procesos se reparte entre ellos. El proceso
+    del alumno comparte memoria con el broker y no la cuenta dos veces. Leer
+    `smaps_rollup` entre uids exige `CAP_SYS_PTRACE`; sin ella la lectura falla
+    con `PermissionError` en vez de contar cero.
+    """
+    total = 0
+    for pid in _pids_of(uid):
+        try:
+            with open(f"/proc/{pid}/smaps_rollup") as f:
+                for line in f:
+                    if line.startswith("Pss:"):
+                        total += int(line.split()[1]) * 1024
+                        break
+        except (FileNotFoundError, ProcessLookupError):
             continue
     return total
 
@@ -155,20 +181,39 @@ class _Scan(threading.Thread):
         self.stopped = threading.Event()
 
     def run(self) -> None:
-        next_disk = 0.0
+        next_disk = next_peak = 0.0
         while not self.stopped.wait(POLL_S):
-            rss = _rss_bytes(self.uid)
-            self.peak = max(self.peak, rss)
-            reason = "memory" if rss > self.mem_cap else None
-            if reason is None and time.monotonic() >= next_disk:
-                next_disk = time.monotonic() + DISK_POLL_S
-                used = _tree_bytes(self.work)
-                if used is None or used > self.disk_cap:
-                    reason = "disk"
+            try:
+                reason, next_disk, next_peak = self._pass(next_disk, next_peak)
+            except Exception:
+                # Sin vigilancia no hay límites. El trabajo se mata, no sigue.
+                traceback.print_exc()
+                reason = "scan"
             if reason:
                 self.killed = reason
                 self.tripped.set()
                 return
+
+    def _pass(self, next_disk: float, next_peak: float) -> tuple[str | None, float, float]:
+        """Una vuelta de vigilancia: devuelve el motivo de la muerte y las próximas citas.
+
+        El PSS nunca pasa del RSS, así que mientras el RSS cabe en el tope el
+        trabajo no puede pasarlo y basta el RSS. El PSS se lee al pasar el RSS
+        del tope para decidir, y cada `PEAK_POLL_S` para anotar el pico.
+        """
+        now = time.monotonic()
+        if _rss_bytes(self.uid) > self.mem_cap or now >= next_peak:
+            pss = _pss_bytes(self.uid)
+            next_peak = time.monotonic() + PEAK_POLL_S
+            self.peak = max(self.peak, pss)
+            if pss > self.mem_cap:
+                return "memory", next_disk, next_peak
+        if now >= next_disk:
+            next_disk = time.monotonic() + DISK_POLL_S
+            used = _tree_bytes(self.work)
+            if used is None or used > self.disk_cap:
+                return "disk", next_disk, next_peak
+        return None, next_disk, next_peak
 
 
 def slot_uid(slot: int) -> int:
@@ -188,7 +233,8 @@ def run_job(
     `argv` y los valores de `env` pueden usar `{dir}`, la ruta del directorio.
     Con `report=True` el hijo hereda un pipe, cuyo número va en QG_REPORT_FD.
     La salida estándar y la de errores van juntas, en el orden en que se escribieron.
-    `killed` es `time`, `memory`, `disk` u `output` si el trabajo pasó ese límite.
+    `killed` es `time`, `memory`, `disk` u `output` si el trabajo pasó ese límite,
+    o `scan` si la vigilancia falló y el trabajo se mató sin poder medirlo.
     """
     uid = slot_uid(slot)
     start = time.monotonic()

@@ -101,6 +101,7 @@ def stopped(killed: str) -> str:
         "memory": f"Tu código usó más de {LIMITS.mem_mb} MB de memoria y se detuvo.",
         "disk": f"Tu código escribió más de {LIMITS.scratch_mb} MB y se detuvo.",
         "output": f"Tu código imprimió más de {LIMITS.out_bytes // 1024} KiB y se detuvo.",
+        "scan": "El corredor no pudo vigilar la memoria ni el disco de tu código y lo detuvo. Inténtalo de nuevo.",
     }[killed]
 
 

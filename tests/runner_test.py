@@ -409,6 +409,62 @@ def test_memory_cap(runner: local.Container, code: str) -> None:
     assert health(runner) == 200
 
 
+def test_job_is_killed_when_the_scan_cannot_read_memory() -> None:
+    try:
+        local.docker("info")
+    except (OSError, subprocess.CalledProcessError) as e:
+        pytest.skip(f"Docker no responde: {e}")
+    blind = local.start(caps=tuple(c for c in local.CAPS if c != "SYS_PTRACE"))
+    try:
+        out = run(blind, "import time\ntime.sleep(8)\nprint('siguió')")
+        assert out["killed"] == "scan"
+        assert out["passed"] is False
+        assert "no pudo vigilar" in out["error"]
+        assert "siguió" not in out["stdout"]
+        assert out["ms"] < 3_000
+        assert health(blind) == 200
+        again = run(blind, "import time\ntime.sleep(8)\nprint('siguió')")
+        assert again["killed"] == "scan"
+        assert "siguió" not in again["stdout"]
+    finally:
+        blind.stop()
+
+
+def test_memory_cap_counts_every_process_of_the_job(runner: local.Container) -> None:
+    out = run(
+        runner,
+        "import os, time\n"
+        "for _ in range(2):\n"
+        "    if os.fork() == 0:\n"
+        "        x = bytearray(300 << 20)\n"
+        "        x[::4096] = b'1' * len(x[::4096])\n"
+        "        time.sleep(10)\n"
+        "        os._exit(0)\n"
+        "time.sleep(10)\n",
+    )
+    assert out["killed"] == "memory"
+    assert out["peak_mb"] < 700
+    assert out["ms"] < 5_000
+    assert health(runner) == 200
+
+
+def test_peak_counts_a_page_shared_with_a_forked_process_once(runner: local.Container) -> None:
+    out = run(
+        runner,
+        "import os, time\n"
+        "x = bytearray(200 << 20)\n"
+        "x[::4096] = b'1' * len(x[::4096])\n"
+        "pid = os.fork()\n"
+        "if pid == 0:\n"
+        "    time.sleep(1)\n"
+        "    os._exit(0)\n"
+        "time.sleep(0.5)\n"
+        "os.waitpid(pid, 0)\n",
+    )
+    assert out["passed"], out
+    assert 200 <= out["peak_mb"] < 300
+
+
 def test_job_runs_without_privileges(runner: local.Container) -> None:
     out = run(
         runner,

@@ -18,7 +18,7 @@ export interface Attempt {
 
 const MAX_FAILED = 50;
 const MAX_CASE_CHARS = 120;
-const KILLED = new Set(["time", "memory", "disk", "output"]);
+const KILLED = new Set(["time", "memory", "disk", "output", "scan"]);
 // El nombre de una excepción de Python; cualquier otro texto de error es «other».
 const EXCEPTION = /^([A-Za-z]{1,40}(?:Error|Exception))\b/;
 
