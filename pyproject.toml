@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Curso interactivo en español sobre las guías de IBM Quantum / Qiskit"
 requires-python = ">=3.11"
 dependencies = [
-  "qiskit[visualization,qasm3-import]>=2.5.2",
+  "qiskit[visualization,qasm3-import]>=2.5.2,<2.6",
   "qiskit-aer~=0.18.0",
   "qiskit-ibm-runtime>=0.50",
   "qiskit-mitigation~=0.1",
