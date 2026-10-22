@@ -145,6 +145,12 @@ cmp "$out" ../site/editor.js
 description = "Check that the shipped site files match their sources"
 depends = ["build:*"]
 
+[tasks.deploy]
+description = "Copy KaTeX and the fonts into site/vendor, then run cf deploy in runner/worker with the given arguments"
+depends = ["generate:vendor"]
+dir = "runner/worker"
+run = "bunx cf deploy"
+
 [tasks.check]
 description = "Run lint, typecheck, test and build. Writes nothing tracked."
 depends = ["lint", "typecheck", "test", "build"]

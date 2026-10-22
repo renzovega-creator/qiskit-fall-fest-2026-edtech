@@ -1,5 +1,5 @@
-// Copies KaTeX and the fonts from node_modules into the folder given as the
-// first argument, so the site serves them itself.
+// Copy KaTeX and the fonts into the output directory so the site serves them
+// itself.
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,11 +8,11 @@ if (!process.argv[2]) throw new Error("usage: node vendor.js OUTPUT_DIR");
 const out = resolve(process.argv[2]);
 const modules = join(dirname(fileURLToPath(import.meta.url)), "node_modules");
 
-// Spanish needs only these two Unicode ranges.
+// The site needs only these Unicode ranges.
 const SUBSETS = new Set(["latin", "latin-ext"]);
 
-// Each family keeps the name the site's CSS already uses. The variable fonts
-// replace the static weights the pages asked for.
+// Keep the family names used by the site's CSS. Variable fonts replace the
+// static weights requested by the pages.
 const FONTS = [
   {
     family: "Bricolage Grotesque",
@@ -56,8 +56,7 @@ const faces = (
 ).flat();
 await writeFile(join(out, "fonts.css"), `${faces.join("\n\n")}\n`);
 
-// Every browser that runs the site reads woff2, so the woff and ttf fallbacks
-// KaTeX lists are dropped.
+// Browsers use woff2 here, so drop the woff and ttf fallbacks from KaTeX's CSS.
 const dist = join(modules, "katex", "dist");
 const katexCss = (await readFile(join(dist, "katex.min.css"), "utf8")).replace(
   /,url\(fonts\/[^)]+\.woff\) format\("woff"\),url\(fonts\/[^)]+\.ttf\) format\("truetype"\)/g,
