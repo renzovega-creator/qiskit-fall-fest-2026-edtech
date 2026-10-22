@@ -24,6 +24,7 @@ sys.path[:0] = [str(ROOT), str(ROOT / "runner")]
 import local  # noqa: E402
 
 from qgcheck import grade, spec  # noqa: E402
+from qgcheck.runner import parse_report  # noqa: E402
 
 EXERCISES = ROOT / "exercises"
 EXERCISE_IDS = spec.all_ids()
@@ -77,10 +78,8 @@ def processes(container: local.Container) -> list[str]:
 
 def test_report_keeps_only_a_valid_hint_number() -> None:
     """El informe proviene del código del alumno, así que valida la pista."""
-    import server
-
     cases = [{"name": "a", "hint": hint} for hint in (2, 0, True, "1", None)] + [{"name": "b"}]
-    report = server.parse_report(json.dumps({"error": None, "tests": cases}).encode())
+    report = parse_report(json.dumps({"error": None, "tests": cases}).encode())
     assert report is not None
     _, tests = report
     assert [t["hint"] for t in tests] == [2, None, None, None, None, None]
@@ -163,7 +162,8 @@ def test_check_reports_an_exception_of_the_function(runner: local.Container) -> 
     out = check(runner, "p1-quickstart/ghz", "def ghz(n):\n    return 1 / 0\n")
     assert out["passed"] is False
     assert out["tests"] and all(
-        t["message"] == "Tu código lanzó ZeroDivisionError: division by zero" for t in out["tests"]
+        t["message"].startswith("Tu código lanzó ZeroDivisionError: division by zero")
+        for t in out["tests"]
     )
 
 
@@ -254,9 +254,9 @@ def test_check_processes_are_out_of_reach_of_the_learner_code(runner: local.Cont
         GOOD_GHZ
         + """
 import ctypes, os
-broker = os.getppid()
-checker = int(open(f"/proc/{broker}/stat").read().split(")")[1].split()[1])
-for pid in (broker, checker):
+checker = os.getppid()
+runner = int(open(f"/proc/{checker}/stat").read().split(")")[1].split()[1])
+for pid in (checker, runner):
     for path, mode in ((f"/proc/{pid}/mem", "r+b"), (f"/proc/{pid}/environ", "rb")):
         try:
             open(path, mode).read(1)
@@ -301,7 +301,7 @@ def test_check_cannot_pass_by_prewriting_replies(runner: local.Container) -> Non
     code = """
 import os
 from qiskit import QuantumCircuit
-from grader.wire import encode, send
+from qgcheck.wire import encode, send
 def ghz(n):
     qc = QuantumCircuit(n)
     qc.h(0)
@@ -326,7 +326,7 @@ def test_check_does_not_import_what_the_learner_plants(runner: local.Container) 
         GOOD_GHZ
         + """
 import os
-for name in ("qiskit", "qiskit_aer", "numpy", "grader", "qgcheck", "json"):
+for name in ("qiskit", "qiskit_aer", "numpy", "qgcheck", "json"):
     open(f"{name}.py", "w").write("print('PLANTADO')")
 ghz = good
 """

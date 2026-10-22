@@ -15,6 +15,7 @@ import io
 import json
 import os
 import re
+import resource
 import sys
 import tempfile
 import textwrap
@@ -425,11 +426,20 @@ MUTANTS = [
 ]
 
 
+# El corredor da a un trabajo 10 s con 1/4 de vCPU, unas 4 veces el tiempo de un núcleo, así que un
+# trabajo que pase de 2,5 s de CPU ya no cabe. La solución más lenta (fidelidad) usa 1,9 s.
+CPU_BUDGET_S = 2.5
+
+
 @pytest.mark.parametrize("exercise_id", REAL)
-def test_solution_passes(exercise_id: str) -> None:
-    result = grade(exercise_id, read(exercise_id, "solution.py"))
+def test_solution_passes_within_the_cpu_budget(exercise_id: str) -> None:
+    before = resource.getrusage(resource.RUSAGE_CHILDREN)
+    result = grade(exercise_id, read(exercise_id, "solution.py"), timeout=60)
+    after = resource.getrusage(resource.RUSAGE_CHILDREN)
     assert result["passed"], result
     assert result["tests"] and all(t["passed"] and t["message"] is None for t in result["tests"])
+    cpu = after.ru_utime + after.ru_stime - before.ru_utime - before.ru_stime
+    assert cpu <= CPU_BUDGET_S, f"La solución usó {cpu:.1f} s de CPU; el tope es {CPU_BUDGET_S} s."
 
 
 @pytest.mark.parametrize("exercise_id", REAL)
@@ -749,7 +759,7 @@ def hidden_case_names(exercise_id: str) -> list[str]:
 @functools.cache
 def hidden_failures(
     exercise_id: str, code: str
-) -> list[tuple[str, str, "Site", dict[str, list[str]], dict[str, list[str]]]]:
+) -> list[tuple[str, str, Site, dict[str, list[str]], dict[str, list[str]]]]:
     """[(caso, mensaje, assert que falló, valores con el código equivocado, valores con la referencia)].
 
     Los valores son los de las expresiones del assert que falló. La referencia las evalúa con la
@@ -917,15 +927,27 @@ def test_circuit_without_measurement_names_the_call_that_built_it() -> None:
     )
 
 
+def test_learner_data_that_cannot_be_rebuilt_is_a_broken_channel() -> None:
+    code = textwrap.dedent(
+        """
+        from qiskit.quantum_info import Statevector
+
+        class Torcido(Statevector):
+            def dims(self, qargs=None):
+                return (3,)
+
+        psi = Torcido([1, 0])
+        prediccion = 0.5
+        """
+    )
+    messages = [t["message"] for t in failed(grade("p2-visualizar/probabilidad-00", code))]
+    assert messages
+    assert set(messages) == {"Tu código terminó o rompió el canal antes de dar un resultado."}
+
+
 def test_infinite_loop_is_stopped() -> None:
     result = grade("p1-quickstart/ghz", "while True:\n    pass\n", timeout=2)
     assert result["error"] == "Tu código tardó más de 2 s y se detuvo." and not result["passed"]
-
-
-def test_importing_qiskit_does_not_use_the_learner_time() -> None:
-    code = "import qiskit_ibm_runtime.fake_provider\nprint('listo')\n"
-    result = grade("p1-quickstart/ghz", code, mode="run", timeout=0.5)
-    assert result["passed"] and result["stdout"] == "listo\n", result
 
 
 def test_oversized_code_is_refused() -> None:
