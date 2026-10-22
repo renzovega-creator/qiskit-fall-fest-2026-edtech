@@ -26,7 +26,7 @@ def git(*args: str, capture: bool = False) -> str:
 def current() -> str | None:
     try:
         return git("rev-parse", "HEAD", capture=True).strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except subprocess.CalledProcessError, FileNotFoundError:
         return None
 
 
