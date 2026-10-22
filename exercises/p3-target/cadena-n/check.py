@@ -1,7 +1,7 @@
 from qiskit import QuantumCircuit
 from qiskit.transpiler import generate_preset_pass_manager
 
-from qgcheck import learner, visible
+from qgcheck import inside, learner, visible
 
 ALLOWED = {"cz", "rz", "sx", "x", "measure", "barrier"}
 
@@ -16,6 +16,13 @@ def ghz(n, measure=True):
     return qc
 
 
+@inside
+def cz_pairs(n):
+    target = learner.cadena(n)
+    return sorted(target["cz"]) if "cz" in target else []
+
+
+@inside
 def isa(n, circuit, seed=1):
     return generate_preset_pass_manager(1, target=learner.cadena(n), seed_transpiler=seed).run(circuit)
 
@@ -35,6 +42,5 @@ def test_ghz_up_to_6():
 
 def test_cz_only_between_neighbours():
     for n in (5, 7):
-        target = learner.cadena(n)
-        pairs = sorted(target["cz"]) if "cz" in target else []
+        pairs = cz_pairs(n)
         assert all(abs(a - b) == 1 for a, b in pairs) and len(pairs) >= n - 1, f"Con n = {n}, `cz` queda en los pares {pairs}."

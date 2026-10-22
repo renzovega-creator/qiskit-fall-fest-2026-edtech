@@ -2,7 +2,7 @@ import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import SparsePauliOp, Statevector
 
-from qgcheck import learner, visible
+from qgcheck import inside, learner, visible
 
 
 def bell():
@@ -23,6 +23,7 @@ def exact(circuit, labels):
     return np.array([state.expectation_value(SparsePauliOp(label)).real for label in labels])
 
 
+@inside
 def bars(circuit, labels):
     axes = learner.graficar(circuit, labels)
     axes.figure.canvas.draw()

@@ -1,7 +1,7 @@
 from qiskit import QuantumCircuit
 from qiskit.transpiler import generate_preset_pass_manager
 
-from qgcheck import learner, visible
+from qgcheck import inside, learner, visible
 
 
 def bell():
@@ -23,6 +23,7 @@ def used_pairs(isa):
     return sorted({tuple(sorted(isa.find_bit(q).index for q in inst.qubits)) for inst in isa.data if inst.operation.num_qubits == 2})
 
 
+@inside
 def run(circuit, seed, level=3):
     return generate_preset_pass_manager(level, target=learner.anillo, seed_transpiler=seed).run(circuit)
 
@@ -39,6 +40,11 @@ def test_other_seeds_and_levels():
         assert (1, 2) not in pairs, f"Con seed = {seed} y nivel = {level} usa los pares {pairs}."
 
 
+@inside
+def ring_pairs():
+    return sorted(learner.anillo["cz"])
+
+
 def test_rest_of_the_ring_stays():
-    pairs = sorted(learner.anillo["cz"])
+    pairs = ring_pairs()
     assert {(0, 1), (2, 3), (3, 0)} <= set(pairs), f"El `anillo` solo admite cz en los pares {pairs}."

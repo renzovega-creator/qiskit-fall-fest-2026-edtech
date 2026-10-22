@@ -2,17 +2,20 @@ from qiskit import QuantumCircuit
 from qiskit.transpiler import generate_preset_pass_manager
 from qiskit_ibm_runtime.fake_provider import FakeFez
 
-from qgcheck import learner, visible
+from qgcheck import inside, learner, visible
 
 FEZ = FakeFez()
 
 
-def ops(pm, circuit):
-    return dict(pm.run(circuit).count_ops())
+@inside
+def learner_ops(circuit):
+    return dict(learner.pm_nivel0.run(circuit).count_ops())
 
 
 def plain(circuit):
-    return ops(generate_preset_pass_manager(0, backend=FEZ, seed_transpiler=1), circuit)
+    return dict(
+        generate_preset_pass_manager(0, backend=FEZ, seed_transpiler=1).run(circuit).count_ops()
+    )
 
 
 def build(with_s, with_h):
@@ -51,15 +54,15 @@ def test_pairs_cancel():
     ref.h(0)
     ref.cx(0, 1)
     ref.x(1)
-    got = ops(learner.pm_nivel0, qc)
+    got = learner_ops(qc)
     assert got == plain(ref), f"Salen las puertas {got}."
 
 
 def test_s_pairs_only():
-    got = ops(learner.pm_nivel0, build(True, False))
+    got = learner_ops(build(True, False))
     assert got == plain(stripped()), f"Con pares = «S, S†» salen las puertas {got}."
 
 
 def test_h_pairs_only():
-    got = ops(learner.pm_nivel0, build(False, True))
+    got = learner_ops(build(False, True))
     assert got == plain(stripped()), f"Con pares = «H, H» salen las puertas {got}."

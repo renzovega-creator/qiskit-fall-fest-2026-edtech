@@ -2,7 +2,7 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator
 from qiskit.transpiler import PassManager
 
-from qgcheck import learner, visible
+from qgcheck import inside, learner, visible
 
 
 def with_swaps(pairs, n=3):
@@ -14,6 +14,7 @@ def with_swaps(pairs, n=3):
     return qc
 
 
+@inside
 def run(circuit):
     return PassManager([learner.SwapACx()]).run(circuit)
 

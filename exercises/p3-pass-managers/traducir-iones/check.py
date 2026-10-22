@@ -1,9 +1,14 @@
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator
 
-from qgcheck import learner, visible
+from qgcheck import inside, learner, visible
 
 IONS = {"rx", "ry", "rxx"}
+
+
+@inside
+def translated(circuit):
+    return learner.traducir.run(circuit)
 
 
 def hcx():
@@ -35,19 +40,19 @@ def hcz():
 
 @visible("solo quedan rx, ry y rxx")
 def test_gate_set():
-    names = sorted(learner.traducir.run(hcx()).count_ops())
+    names = sorted(translated(hcx()).count_ops())
     assert set(names) <= IONS and "rxx" in names, f"Quedan las puertas {names}."
 
 
 @visible("el operador no cambia")
 def test_operator():
-    out = learner.traducir.run(hcx())
+    out = translated(hcx())
     assert Operator(out).equiv(Operator(hcx())), "El circuito traducido tiene otro operador."
 
 
 def test_three_qubits():
     qc = three_qubits()
-    out = learner.traducir.run(qc)
+    out = translated(qc)
     names = sorted(out.count_ops())
     assert set(names) <= IONS, f"Con circuito = tres_qubits quedan las puertas {names}."
     assert Operator(out).equiv(Operator(qc)), "Con circuito = tres_qubits cambia el operador."
@@ -55,7 +60,7 @@ def test_three_qubits():
 
 def test_other_circuit():
     qc = hcz()
-    out = learner.traducir.run(qc)
+    out = translated(qc)
     names = sorted(out.count_ops())
     assert set(names) <= IONS, f"Con circuito = hcz quedan las puertas {names}."
     assert Operator(out).equiv(Operator(qc)), "Con circuito = hcz cambia el operador."

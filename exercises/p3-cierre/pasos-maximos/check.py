@@ -6,6 +6,8 @@ from qiskit_ibm_runtime.fake_provider import FakeFez
 
 from qgcheck import learner, visible
 
+BACKEND = FakeFez()
+
 
 def step(n):
     qc = QuantumCircuit(n)
@@ -19,7 +21,7 @@ def step(n):
 @functools.cache
 def depths(n):
     """Profundidad transpilada (nivel 3, FakeFez, seed_transpiler=1) de 1 a 10 pasos."""
-    pm = generate_preset_pass_manager(3, backend=FakeFez(), seed_transpiler=1)
+    pm = generate_preset_pass_manager(3, backend=BACKEND, seed_transpiler=1)
     out = {}
     for pasos in range(1, 11):
         qc = QuantumCircuit(n)

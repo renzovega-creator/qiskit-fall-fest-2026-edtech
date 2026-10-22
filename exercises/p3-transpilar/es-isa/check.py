@@ -2,7 +2,7 @@ from qiskit import QuantumCircuit
 from qiskit.transpiler import generate_preset_pass_manager
 from qiskit_ibm_runtime.fake_provider import FakeFez
 
-from qgcheck import learner, visible
+from qgcheck import inside, learner, visible
 
 BACKEND = FakeFez()
 TARGET = BACKEND.target
@@ -18,8 +18,13 @@ def toffoli():
     return qc
 
 
+@inside
+def accepted(circuit):
+    return bool(learner.es_isa(circuit, TARGET))
+
+
 def verdict(circuit):
-    return "acepta" if learner.es_isa(circuit, TARGET) else "rechaza"
+    return "acepta" if accepted(circuit) else "rechaza"
 
 
 @visible("acepta un circuito transpilado para FakeFez")

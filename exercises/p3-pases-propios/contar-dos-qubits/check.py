@@ -1,9 +1,10 @@
 from qiskit import QuantumCircuit
 from qiskit.transpiler import PassManager
 
-from qgcheck import learner, visible
+from qgcheck import inside, learner, visible
 
 
+@inside
 def counted(circuit):
     pm = PassManager([learner.ContarDosQubits()])
     out = pm.run(circuit)
