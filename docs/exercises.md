@@ -290,6 +290,18 @@ mise run generate:editor
 `mise run build:editor` falla si `site/editor.js` no coincide con el paquete que
 saldría de `editor/src/`.
 
+### Actualizar KaTeX y las tipografías
+
+`site/vendor/` guarda KaTeX y las fuentes Bricolage Grotesque, Inter y JetBrains
+Mono, copiados de los paquetes npm `katex` y `@fontsource-variable/*` de
+`editor/package.json`. Git lo ignora: `mise run install` lo genera con
+`editor/vendor.js`. Para cambiar una versión:
+
+```sh
+bun add --cwd editor --exact katex@<versión>
+mise run generate:vendor
+```
+
 ## Comprobar los ejercicios
 
 ```sh
@@ -322,4 +334,7 @@ caso, lo corrige y lo ve pasar, recarga y comprueba que el progreso sigue.
 También escribe un error de sintaxis y un `ghz` que solo falla casos ocultos, y
 comprueba lo que muestra el panel. Lo repite en un móvil, y prueba el teclado,
 las pistas, el timeout, los errores y la comprobación de Turnstile, con un
-widget de prueba. `mise run test:ui` ejecuta las pruebas del navegador.
+widget de prueba. `mise run test:ui` ejecuta las pruebas del navegador. Todas
+usan [`tests/offline.py`](../tests/offline.py): el navegador aborta cualquier
+petición que no vaya a `127.0.0.1` o `localhost` y la prueba termina con error
+que nombra la dirección.

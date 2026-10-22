@@ -104,8 +104,9 @@ Otros tokens, como `--fg-soft`, `--line-strong`, `--wire`, `--emph-bg`,
   el estilo de `theme.css`, en las dos páginas. En el reproductor, en pantallas
   de 600 px o menos, el punto se oculta para dejar sitio al título.
 - Los títulos usan `--display` (Bricolage Grotesque), el texto `--sans` (Inter)
-  y el código `--mono` (JetBrains Mono). Las dos páginas piden las tres familias
-  con el mismo enlace de Google Fonts. Las fórmulas usan las fuentes de KaTeX.
+  y el código `--mono` (JetBrains Mono). Las tres páginas las cargan de
+  `site/vendor/fonts.css`, en variable y solo con los rangos `latin` y
+  `latin-ext`. Las fórmulas usan las fuentes de KaTeX.
 
 ## Contraste
 

@@ -124,7 +124,10 @@ unset GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GITHUB_CLIENT_ID GITHUB_CLIENT_SECRE
 ```
 
 Para publicar un cambio de las lecciones o del Worker, vuelve a ejecutar
-`bunx cf deploy`.
+`bunx cf deploy`. Sube `site/` tal como está en tu equipo, con KaTeX y las
+tipografías de `site/vendor/`, que Git no guarda. Si la carpeta falta o
+cambiaste una versión de `editor/package.json`, ejecuta antes
+`mise run generate:vendor`.
 
 ## 7. Rota un secreto
 

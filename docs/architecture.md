@@ -15,7 +15,7 @@ carpeta y por dónde pasa una lección.
 | `tests/`       | Pruebas de navegador (`theme_test.py`, `proyecto_test.py`, `exercise_ui_test.py`, `account_ui_test.py`) de ejercicios (`exercises_test.py`) y del corredor (`runner_test.py`). |
 | `practica/`    | Los cuadernos marimo de las misiones y sus soluciones.                                                                                                                         |
 | `exercises/`   | Los ejercicios de código: código inicial, solución y casos de cada uno.                                                                                                        |
-| `editor/`      | El paquete que compila `site/editor.js`, el editor de los ejercicios.                                                                                                          |
+| `editor/`      | El paquete que compila `site/editor.js` y copia KaTeX y las tipografías a `site/vendor/`.                                                                                      |
 | `qgcheck/`     | El corrector de ejercicios: lee `exercises/`, ejecuta el código de un alumno y devuelve el resultado de cada caso.                                                             |
 | `content/`     | La caché de la síntesis de voz.                                                                                                                                                |
 | `runner/`      | El corredor de código del alumno: imagen, servidor `/run` y Worker. [runner.md](runner.md)                                                                                     |
@@ -61,8 +61,13 @@ comprueba la cobertura. Para actualizar las guías se cambia ese hash, se ejecut
   el repaso.
 - `lesson.html` carga `engine.js`, el reproductor, con los estilos de `app.css`.
   `blocks.js` dibuja los bloques propios del curso, `exercise.js` el bloque de
-  ejercicio y `sfx.js` los sonidos. Las fórmulas las dibuja KaTeX, que se
-  descarga de un CDN.
+  ejercicio y `sfx.js` los sonidos. Las fórmulas las dibuja KaTeX, que sale de
+  `vendor/`. Las dos páginas cargan KaTeX con `defer`, antes que sus propios
+  scripts.
+- `vendor/` son KaTeX y las tres tipografías, copiados de `editor/node_modules`
+  por `editor/vendor.js`. Git los ignora y `mise run install` los genera.
+  Ninguna página pide nada a otro sitio salvo el script de Turnstile, que
+  `exercise.js` descarga de Cloudflare cuando el corredor lo exige.
 - `editor.js` es el editor CodeMirror 6 de los ejercicios, empaquetado desde
   `editor/`. Se describe en [exercises.md](exercises.md#editor-en-la-lección).
 - `theme.css` y `theme.js` son el tema de las dos páginas: colores, fuentes, y

@@ -19,7 +19,8 @@ mise run install
 ```
 
 Instala las dependencias de Python y de JavaScript desde sus archivos de
-bloqueo, el Chromium de Playwright y las guías originales de Qiskit.
+bloqueo, copia KaTeX y las tipografías a `site/vendor/`, y descarga el Chromium
+de Playwright y las guías originales de Qiskit.
 
 ## Ver el curso
 
@@ -29,10 +30,10 @@ uv run python tools/serve.py
 
 Abre <http://localhost:8810/>. La portada muestra las lecciones por parte y tu
 progreso. Una lección se abre en `lesson.html?l=<id>`, por ejemplo
-<http://localhost:8810/lesson.html?l=p1-quickstart>. Las fórmulas se cargan de
-un CDN, así que la página necesita conexión a internet. `tools/serve.py` sirve
-`site/` y además corrige los ejercicios de código de las lecciones; ver
-[docs/exercises.md](docs/exercises.md).
+<http://localhost:8810/lesson.html?l=p1-quickstart>. Las fórmulas y las
+tipografías salen del propio sitio, así que la página no necesita internet.
+`tools/serve.py` sirve `site/` y además corrige los ejercicios de código de las
+lecciones; ver [docs/exercises.md](docs/exercises.md).
 
 ## Abrir un cuaderno de práctica
 
