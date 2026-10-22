@@ -91,22 +91,48 @@ trabajos a la vez como ranuras tiene (`QG_JOBS`, por defecto 1); el ciclo de las
 ranuras está en [architecture.md](architecture.md#runner). Los demás valores se
 cambian con `QG_WALL_S`, `QG_MEM_MB` y `QG_SCRATCH_MB`.
 
-Con `mode: "run"` el código del alumno corre en el proceso del trabajo. Con
-`mode: "check"` hay tres tipos de proceso del mismo uid. `grader.job` es el
-comprobador: importa `check.py` y corre sus casos con `qgcheck`. Su hijo
-`grader.broker` es un intermediario que no ejecuta código del alumno: por cada
-acceso a `learner.<nombre>` que hace un caso (qué nombres hay, el valor de uno o
-su llamada) hace un `fork`, y el hijo cierra todos los descriptores salvo un
-pipe propio de esa petición, ejecuta el código del alumno desde cero, responde y
-escribe un único mensaje por ese pipe. Entre procesos solo viajan datos:
-números, textos, listas, arreglos de NumPy y circuitos en QPY. El comprobador y
-el intermediario se declaran no volcables, así que el alumno no lee ni escribe
-su memoria ni abre sus descriptores. El alumno decide el valor que devuelve cada
-petición, lo calcule su función o no, y los casos juzgan ese valor; no puede
-adelantar respuestas ni tocar el resultado de los casos. Como cada petición
-vuelve a ejecutar el código, el estado de nivel superior no pasa de una a otra y
-su salida solo se muestra en la primera. El alumno sí puede leer `check.py`: el
-corredor protege el anfitrión y la corrección, no la clave de respuestas.
+El trabajo es `python -u -P -m qgcheck.job`, el mismo que lanza
+[`qgcheck.grade`](exercises.md#corregir-código) en tu equipo sin los límites de
+arriba. Con `mode: "run"` el código del alumno corre en ese proceso. Con
+`mode: "check"` hay dos procesos del mismo uid:
+
+- El comprobador (`qgcheck/job.py`) corre los casos de `check.py`. Antes de
+  importar nada instala el filtro de importaciones diferidas de Python
+  (`sys.set_lazy_imports_filter`) para `qiskit_ibm_runtime` y
+  `qiskit_mitigation`: sus clientes y `scipy` se cargan al usarlos, no al
+  importar el paquete. Después se declara no volcable e importa las bibliotecas
+  de `PRELOAD_ROOTS` (`qgcheck/source.py`) que usan el código del alumno y
+  `check.py`.
+- El proceso del alumno (`qgcheck/host.py`) es un `fork` del comprobador, hecho
+  antes de leer `check.py`, así que hereda las bibliotecas ya cargadas y ninguna
+  respuesta. Cierra todos los descriptores salvo su extremo de un `socketpair`
+  con el comprobador, ejecuta el código del alumno una vez y atiende las
+  peticiones una a una en ese mismo proceso: el estado de nivel superior pasa de
+  una a otra, como en el intérprete del alumno, y su salida se muestra una vez.
+  No bifurca por petición porque el código del alumno ya puede haber creado
+  hilos (Qiskit los crea al transpilar) y el hijo de un proceso con hilos se
+  bloquea.
+
+Cada acceso a `learner.<nombre>` de un caso es una petición por el socket: qué
+nombres hay, el valor de uno o su llamada. Los mensajes son JSON con la longitud
+delante (`qgcheck/wire.py`, hasta 4 MiB) y llevan un `id` que el comprobador
+sortea en cada petición. Solo viajan datos: números, textos, listas, tuplas,
+diccionarios con claves de texto, `bytes`, arreglos de NumPy, `Statevector`,
+`Operator`, `SparsePauliOp` y `QuantumCircuit` en QPY. Nunca se deserializa
+código. Un caso que necesita pasar o recibir otra cosa (una clase, un
+`PassManager`, un `Target`, unos ejes) la maneja en una función de `check.py`
+marcada con `@inside`, que corre en el proceso del alumno y devuelve datos
+([exercises.md](exercises.md#escribir-checkpy)).
+
+El comprobador se declara no volcable y el proceso del alumno nace de él antes
+de que exista ningún valor esperado, así que el alumno no lee ni escribe la
+memoria del comprobador ni abre sus descriptores, y su único canal es el socket.
+El alumno decide el valor que devuelve cada petición, lo calcule su función o
+no, y los casos juzgan ese valor fuera de su proceso. Como no conoce el `id`
+hasta recibir la petición, no puede dejar respuestas escritas para las
+siguientes: el comprobador descarta toda respuesta que no repita el `id` y la
+trata como un canal roto. El alumno sí puede leer `check.py`: el corredor
+protege el anfitrión y la corrección, no la clave de respuestas.
 
 ## Archivos
 
@@ -115,7 +141,9 @@ corredor protege el anfitrión y la corrección, no la clave de respuestas.
 | `runner/server.py`                   | El servidor HTTP y la validación de la petición.                                               |
 | `runner/sandbox.py`                  | Lanza el trabajo y vigila tiempo, memoria, disco y salida.                                     |
 | `runner/launcher.py`                 | Fija los rlimits, baja de uid e instala el filtro seccomp antes del `exec`.                    |
-| `runner/grader/`                     | El comprobador (`job.py`), el intermediario del alumno y su formato de mensajes.               |
+| `qgcheck/job.py`                     | El trabajo: el comprobador de `check` y la ejecución de `run`.                                 |
+| `qgcheck/host.py`                    | El proceso del alumno de `check`.                                                              |
+| `qgcheck/wire.py`                    | El formato de mensajes entre esos dos procesos.                                                |
 | `qgcheck/`                           | El corrector de [exercises.md](exercises.md). La imagen lo copia sin cambios.                  |
 | `runner/Dockerfile`                  | La imagen. Python y uv salen de `mise.toml`; las bibliotecas, del grupo `runner` de `uv.lock`. |
 | `runner/local.py`                    | Construye la imagen y la ejecuta con Docker y las banderas de aislamiento.                     |

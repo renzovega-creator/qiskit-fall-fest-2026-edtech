@@ -75,6 +75,33 @@ def test_larger():  # sin @visible: el caso es oculto
   definió, el caso falla con «Falta definir `<nombre>` en tu código.». Se lee
   dentro del caso, no al importar `check.py`: `build.py` importa el archivo para
   leer los casos y `learner` aún no tiene el código de ningún alumno.
+- El código del alumno corre en otro proceso y a los casos solo llegan datos:
+  números, textos, listas, tuplas, diccionarios con claves de texto, `bytes`,
+  arreglos de NumPy, `Statevector`, `Operator`, `SparsePauliOp` y
+  `QuantumCircuit`. Un valor de otro tipo falla con «`<nombre>` contiene un
+  valor de tipo `<Tipo>` que no se puede comprobar.». Un caso que necesita pasar
+  una clase, un `PassManager` o un `Target`, o leer unos ejes, lo hace en una
+  función de `check.py` con `@inside`: corre en el proceso del alumno, lee
+  `learner` de ahí y recibe y devuelve datos.
+
+  ```python
+  from qgcheck import inside, learner, visible
+
+
+  @inside
+  def swaps_left(circuit):
+      return PassManager([learner.SwapACx()]).run(circuit).count_ops().get("swap", 0)
+
+
+  @visible("ningún swap")
+  def test_no_swap():
+      assert swaps_left(circuit_with_swaps()) == 0, "Todavía quedan swaps."
+  ```
+
+  El alumno puede alterar lo que corre en su proceso, así que una función
+  `@inside` solo obtiene datos: la comparación con lo esperado y el `assert` van
+  fuera de ella.
+
 - Cualquier excepción distinta de `AssertionError` en un caso falla con «Tu
   código lanzó `<Tipo>`: `<mensaje>`». Si el caso había llamado a una función
   del alumno, añade «Pasó al usar `ghz(7)`.» con esa última llamada, para que un
@@ -145,9 +172,9 @@ grade("p1-quickstart/ghz", codigo, mode="check")
 ```
 
 [`qgcheck/runner.py`](../qgcheck/runner.py) escribe el código en un directorio
-temporal y lo ejecuta con [`qgcheck/worker.py`](../qgcheck/worker.py) en un
-proceso aparte. `mode="run"` solo ejecuta el código del alumno; `mode="check"`
-además corre los casos. Devuelve:
+temporal y lo ejecuta con [`qgcheck/job.py`](../qgcheck/job.py) en un proceso
+aparte, el mismo trabajo que lanza el corredor. `mode="run"` solo ejecuta el
+código del alumno; `mode="check"` además corre los casos. Devuelve:
 
 ```json
 {
@@ -181,17 +208,14 @@ además corre los casos. Devuelve:
   `NameError: name 'y' is not defined (línea 2: print(y))`. Un tiempo agotado no
   tiene línea. Con un error, `tests` queda vacío.
 - El código no puede pesar más de 20 000 bytes y se detiene a los 10 s. Esos 10
-  s cuentan desde que el proceso terminó de importar los módulos de `qiskit`,
-  `qiskit_aer`, `qiskit_ibm_runtime`, `numpy`, `scipy`, `matplotlib`,
-  `rustworkx` y `sympy` que el código importa (`PRELOAD_ROOTS` en
-  `qgcheck/worker.py`); otra biblioteca se importa dentro de los 10 s. El
-  arranque tiene su propio tope de 60 s. La salida se corta a 10 000 caracteres.
+  s cuentan desde que arranca el proceso, con las bibliotecas que importan el
+  código y los casos incluidas. Si imprime más de 64 KiB, se detiene.
 - El parámetro `block=("qiskit_aer",)` hace que esos módulos no se puedan
   importar en el proceso del alumno.
-- `grade` no aísla al alumno del equipo: no limita memoria, procesos ni red, y
-  el código del alumno corre en el mismo intérprete que los casos. Un servicio
-  expuesto a internet debe correrlo en un contenedor sin red y con límites:
-  [runner.md](runner.md) lo hace.
+- `grade` no aísla al alumno del equipo: no limita memoria, procesos ni red. El
+  código del alumno corre en un proceso distinto del que corre los casos, pero
+  con el mismo usuario. Un servicio expuesto a internet debe correrlo en un
+  contenedor sin red y con límites: [runner.md](runner.md) lo hace.
 
 ## Editor en la lección
 

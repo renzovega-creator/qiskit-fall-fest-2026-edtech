@@ -86,9 +86,9 @@ para comprobar que todas las verificaciones dan ✅.
 
 `exercises/<lección>/<ejercicio>/` guarda `starter.py`, `solution.py` y
 `check.py`. `qgcheck/spec.py` los localiza, `qgcheck/runner.py` lanza
-`qgcheck/worker.py` en un proceso aparte con el código del alumno, y
-`qgcheck/__init__.py` ofrece a `check.py` sus ayudantes. El formato, el
-resultado de `grade()` y las comprobaciones están en
+`qgcheck/job.py` en un proceso aparte (que a su vez lanza `qgcheck/host.py` con
+el código del alumno), y `qgcheck/__init__.py` ofrece a `check.py` sus
+ayudantes. El formato, el resultado de `grade()` y las comprobaciones están en
 [exercises.md](exercises.md). `site/exercise.js` dibuja el editor de cada
 ejercicio y llama a `POST /run` en su propio origen.
 
