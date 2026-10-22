@@ -12,6 +12,19 @@ debe revelar los datos del caso. `@hint(2)` enlaza el caso con la pista 2 del ej
 es la 1). Si el caso falla, el alumno ve esa pista junto a él. Lo que el alumno escribió se lee con
 `learner.<nombre>` dentro del caso, no al importar el archivo. Este módulo no importa qiskit hasta
 que se llama a un ayudante, para que build.py pueda leer los casos sin él.
+
+El código del alumno corre en otro proceso y solo viajan datos: números, textos, listas, tuplas,
+diccionarios, bytes, arreglos de NumPy, `Statevector`, `Operator`, `SparsePauliOp` y
+`QuantumCircuit`. Un caso
+que necesita pasar al código del alumno un objeto que no es un dato, o usar uno que devuelve (una
+clase, un `PassManager`, un `Target`, unos ejes de matplotlib), lo hace en una función de check.py
+marcada con `@inside`. Esa función corre en el proceso del alumno, lee `learner` de ahí y recibe y
+devuelve datos. El caso, fuera, compara con los valores esperados:
+
+    @inside
+    def pairs(circuit):
+        out = PassManager([learner.SwapACx()]).run(circuit)
+        return out.count_ops()["swap"]
 """
 
 import functools
@@ -53,6 +66,30 @@ def hint(number: int) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     return mark
 
 
+_remote: Callable[[str, tuple[Any, ...], dict[str, Any]], Any] | None = None
+
+
+class LearnerError(Exception):
+    """Una excepción que lanzó el código del alumno en otro proceso."""
+
+
+def inside(fn: Callable[..., Any]) -> Callable[..., Any]:
+    """Marca una función de check.py que corre en el proceso del alumno.
+
+    Fuera de ese proceso la llamada viaja hasta él y devuelve el valor.
+    Los argumentos y el valor deben ser datos serializables.
+    """
+
+    @functools.wraps(fn)
+    def call(*args: Any, **kwargs: Any) -> Any:
+        if _remote is None:
+            return fn(*args, **kwargs)
+        return _remote(fn.__name__, args, kwargs)
+
+    call.qg_inside = True  # type: ignore[attr-defined]
+    return call
+
+
 class HelperFailure(AssertionError):
     """Un fallo que un ayudante de qgcheck detecta sin conocer la entrada del caso."""
 
@@ -63,6 +100,10 @@ _last_use: dict[str, str | None] = {"name": None, "call": None}
 def last_use() -> str | None:
     """Cómo se usó por última vez el código del alumno: `ghz(7)` o, si no era una función, `MiBackend`."""
     return _last_use["call"] or (f"`{_last_use['name']}`" if _last_use["name"] else None)
+
+
+def _note_use(text: str) -> None:
+    _last_use["call"] = text
 
 
 def _shown(value: Any) -> str:
@@ -88,7 +129,13 @@ class _Learner:
     def __init__(self) -> None:
         object.__setattr__(self, "_ns", None)
 
-    def _bind(self, ns: Names | None) -> None:
+    def _bind(
+        self,
+        ns: Names | None,
+        remote: Callable[[str, tuple[Any, ...], dict[str, Any]], Any] | None = None,
+    ) -> None:
+        global _remote
+        _remote = remote
         object.__setattr__(self, "_ns", ns)
         _last_use.update(name=None, call=None)
 

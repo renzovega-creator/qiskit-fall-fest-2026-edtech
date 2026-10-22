@@ -5,7 +5,7 @@
 
 El resultado:
 
-    {"passed": bool, "stdout": str, "error": str | None, "ms": int,
+    {"passed": bool, "stdout": str, "error": str | None, "ms": int, "killed": str | None,
      "tests": [{"name": str, "visible": bool, "passed": bool, "message": str | None,
                 "hint": int | None}]}
 
@@ -13,21 +13,21 @@ El resultado:
 `mode="check"` además corre los casos de check.py. Con `block` los módulos nombrados no se pueden
 importar en el proceso del alumno.
 
-`timeout` mide la ejecución del código y de los casos. El proceso importa antes las bibliotecas que
-ese código usa (ver worker.py) y ese arranque, que depende de la caché del equipo, tiene su tope
-aparte, STARTUP.
-
-El proceso aparte limita el tiempo y mantiene el intérprete del alumno lejos del que llama; no es
-un aislamiento de seguridad. Quien exponga esto en red debe correrlo en un contenedor sin red,
-con memoria y procesos limitados.
+`grade` lanza `python -m qgcheck.job`, el mismo trabajo que el corredor (runner/server.py) lanza con
+límites de uid, memoria y red. `timeout` cuenta desde el arranque del proceso, con las bibliotecas
+incluidas. Aquí el trabajo corre con tu usuario, sin esos límites: mantiene el intérprete del alumno
+lejos del que llama, no es un aislamiento de seguridad. Quien exponga esto en red debe usar el
+corredor, en un contenedor sin red.
 """
 
+import contextlib
 import json
 import os
 import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from collections.abc import Iterable
 from pathlib import Path
@@ -37,36 +37,120 @@ from qgcheck import spec
 
 MAX_CODE = 20_000
 TIMEOUT = 10
-STARTUP = 60
+OUT_BYTES = 64 * 1024
+REPORT_CAP = 2**20
+MESSAGE_CAP = 500
 POLL = 0.02
-WORKER = Path(__file__).with_name("worker.py")
+ROOT = Path(__file__).resolve().parent.parent
+NOT_FINISHED = "El código no terminó: se quedó sin memoria o el proceso se cerró."
 
 
-def _wait(proc: subprocess.Popen[bytes], ready: Path, timeout: float) -> bool:
-    """Espera a que termine el proceso. Devuelve False si agotó el arranque o el tiempo del código.
+def job_argv(mode: str, code_path: str, check_path: str | None = None) -> list[str]:
+    return [
+        sys.executable,
+        "-u",
+        "-P",
+        "-m",
+        "qgcheck.job",
+        mode,
+        code_path,
+        *([check_path] if check_path else []),
+    ]
 
-    El worker importa Qiskit y crea `ready` antes de ejecutar el código del alumno; los `timeout`
-    segundos cuentan desde ese archivo, y el arranque tiene su propio tope, STARTUP.
-    """
-    launched = time.monotonic()
-    started = None
+
+def job_env(work: str, path: str) -> dict[str, str]:
+    return {
+        "PATH": path,
+        "HOME": work,
+        "TMPDIR": work,
+        "MPLCONFIGDIR": work,
+        "LANG": "C.UTF-8",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONUNBUFFERED": "1",
+        "PYTHONPATH": str(ROOT),
+        "MPLBACKEND": "Agg",
+        "OMP_NUM_THREADS": "2",
+        "OPENBLAS_NUM_THREADS": "2",
+    }
+
+
+def drain(fd: int, cap: int, box: bytearray, over: threading.Event) -> None:
     while True:
         try:
-            proc.wait(timeout=POLL)
-            return True
-        except subprocess.TimeoutExpired:
-            pass
-        now = time.monotonic()
-        if started is None and ready.exists():
-            started = now
-        if now > (started + timeout if started else launched + STARTUP):
-            return False
+            chunk = os.read(fd, 65536)
+        except OSError:
+            break
+        if not chunk:
+            break
+        room = cap - len(box)
+        box.extend(chunk[:room])
+        if len(chunk) > room:
+            over.set()
 
 
-def _answer(error: str, t0: float, stdout: str = "") -> dict[str, Any]:
-    return dict(
-        passed=False, stdout=stdout, error=error, tests=[], ms=round((time.monotonic() - t0) * 1000)
-    )
+def parse_report(raw: bytes) -> tuple[str | None, list[dict[str, Any]]] | None:
+    """Valida lo que escribió el trabajo; en `run` lo controla el alumno.
+
+    Devuelve (error, casos), o None si no hay un informe válido.
+    """
+    try:
+        report = json.loads(raw)
+        error, items = report["error"], report["tests"]
+    except ValueError, KeyError, TypeError:
+        return None
+    if not (error is None or isinstance(error, str)) or not isinstance(items, list):
+        return None
+    tests: list[dict[str, Any]] = []
+    for t in items:
+        if not isinstance(t, dict):
+            continue
+        name, message, hint = t.get("name"), t.get("message"), t.get("hint")
+        tests.append(
+            {
+                "name": name[:MESSAGE_CAP] if isinstance(name, str) else None,
+                "visible": t.get("visible") is True,
+                "passed": t.get("passed") is True,
+                "message": message[:MESSAGE_CAP] if isinstance(message, str) else None,
+                "hint": hint if type(hint) is int and hint >= 1 else None,
+            }
+        )
+    return error and error[:MESSAGE_CAP], tests
+
+
+def stopped(killed: str, wall_s: float, mem_mb: int, scratch_mb: int, out_bytes: int) -> str:
+    return {
+        "time": f"Tu código tardó más de {wall_s:g} s y se detuvo.",
+        "memory": f"Tu código usó más de {mem_mb} MB de memoria y se detuvo.",
+        "disk": f"Tu código escribió más de {scratch_mb} MB y se detuvo.",
+        "output": f"Tu código imprimió más de {out_bytes // 1024} KiB y se detuvo.",
+        "scan": "El corredor no pudo vigilar la memoria ni el disco de tu código y lo detuvo. Inténtalo de nuevo.",
+    }[killed]
+
+
+def result(
+    mode: str, raw: bytes, output: str, killed: str | None, why: str | None, ms: int
+) -> dict[str, Any]:
+    report = parse_report(raw)
+    error: str | None
+    tests: list[dict[str, Any]]
+    if killed:
+        error, tests = why, []
+    elif report is None:
+        error, tests = NOT_FINISHED, []
+    else:
+        error, tests = report
+    if mode == "run":
+        tests = []
+    return {
+        "passed": error is None
+        and (mode == "run" or (bool(tests) and all(t["passed"] for t in tests))),
+        "stdout": output,
+        "error": error,
+        "tests": tests,
+        "ms": ms,
+        "killed": killed,
+    }
 
 
 def grade(
@@ -76,52 +160,68 @@ def grade(
     block: Iterable[str] = (),
     timeout: float = TIMEOUT,
 ) -> dict[str, Any]:
-    t0 = time.monotonic()
+    start = time.monotonic()
     if mode not in ("run", "check"):
         raise ValueError(f"modo inválido: {mode!r}")
     d = spec.folder(exercise_id)
     if not d.is_dir():
         raise ValueError(f"ejercicio desconocido: {exercise_id!r}")
     if len(code.encode("utf-8")) > MAX_CODE:
-        return _answer(f"El código supera {MAX_CODE // 1000} KB.", t0)
-    with tempfile.TemporaryDirectory(prefix="qg-") as tmp_name:
-        tmp = Path(tmp_name)
-        (tmp / "learner.py").write_text(code, encoding="utf-8")
-        out = tmp / "result.json"
-        ready = tmp / "result.json.ready"
-        env = {"PATH": os.environ.get("PATH", ""), "HOME": str(tmp), "MPLBACKEND": "Agg"}
-        with open(tmp / "stderr.txt", "w+", encoding="utf-8", errors="replace") as errors:
-            proc = subprocess.Popen(
-                [
-                    sys.executable,
-                    "-I",
-                    str(WORKER),
-                    str(tmp / "learner.py"),
-                    str(d / "check.py"),
-                    mode,
-                    ",".join(block),
-                    str(out),
-                ],
-                cwd=tmp,
-                env=env,
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
-                stderr=errors,
-                start_new_session=True,
-            )
-            if not _wait(proc, ready, timeout):
-                os.killpg(proc.pid, signal.SIGKILL)
-                proc.wait()
-                if ready.exists():
-                    return _answer(f"Tu código tardó más de {timeout} s y se detuvo.", t0)
-                return _answer(f"El corredor tardó más de {STARTUP} s en arrancar.", t0)
-            errors.seek(0)
-            err = errors.read()
-        if not out.exists():
-            # Sin resultado, el proceso terminó antes de completar la ejecución.
-            return _answer(
-                "El código no terminó: se quedó sin memoria o el proceso se cerró.", t0, err[-500:]
-            )
-        result: dict[str, Any] = json.loads(out.read_text(encoding="utf-8"))
-    result["ms"] = round((time.monotonic() - t0) * 1000)
-    return result
+        return dict(
+            passed=False,
+            stdout="",
+            error=f"El código supera {MAX_CODE // 1000} KB.",
+            tests=[],
+            ms=0,
+            killed=None,
+        )
+    with tempfile.TemporaryDirectory(prefix="qg-") as work:
+        main = Path(work) / "main.py"
+        main.write_text(code, encoding="utf-8")
+        report_r, report_w = os.pipe()
+        env = job_env(work, os.environ.get("PATH", ""))
+        env |= {"QG_REPORT_FD": str(report_w), "QG_BLOCK": ",".join(block)}
+        proc = subprocess.Popen(
+            job_argv(mode, str(main), str(d / "check.py") if mode == "check" else None),
+            cwd=work,
+            env=env,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+            pass_fds=(report_w,),
+        )
+        os.close(report_w)
+        assert proc.stdout is not None
+        over = threading.Event()
+        out, report = bytearray(), bytearray()
+        readers = [
+            threading.Thread(target=drain, args=(proc.stdout.fileno(), OUT_BYTES, out, over)),
+            threading.Thread(target=drain, args=(report_r, REPORT_CAP, report, over)),
+        ]
+        for t in readers:
+            t.start()
+        killed: str | None = None
+        while proc.poll() is None and not killed:
+            if over.is_set():
+                killed = "output"
+            elif time.monotonic() > start + timeout:
+                killed = "time"
+            else:
+                time.sleep(POLL)
+        with contextlib.suppress(OSError):
+            os.killpg(proc.pid, signal.SIGKILL)
+        proc.wait()
+        for t in readers:
+            t.join(timeout=2)
+        proc.stdout.close()
+        os.close(report_r)
+    why = killed and stopped(killed, timeout, 0, 0, OUT_BYTES)
+    return result(
+        mode,
+        bytes(report),
+        out.decode("utf-8", "replace"),
+        killed,
+        why,
+        round((time.monotonic() - start) * 1000),
+    )

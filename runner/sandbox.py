@@ -21,6 +21,8 @@ from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
+from qgcheck.runner import REPORT_CAP, drain, job_env
+
 APP = Path(__file__).resolve().parent
 SCRATCH_ROOT = Path(os.environ.get("QG_SCRATCH", "/scratch"))
 UID_BASE = 20000
@@ -30,7 +32,6 @@ POLL_S = 0.02
 PEAK_POLL_S = 0.5
 DISK_POLL_S = 0.1
 MAX_ENTRIES = 5000
-REPORT_CAP = 2**20
 
 
 @dataclass(frozen=True)
@@ -73,7 +74,7 @@ def _rss_bytes(uid: int) -> int:
         try:
             with open(f"/proc/{pid}/statm") as f:
                 total += int(f.read().split()[1]) * PAGE
-        except (OSError, ValueError, IndexError):
+        except OSError, ValueError, IndexError:
             continue
     return total
 
@@ -82,7 +83,8 @@ def _pss_bytes(uid: int) -> int:
     """Memoria proporcional (PSS) de los procesos de `uid`.
 
     Una página compartida entre procesos se reparte entre ellos. El proceso
-    del alumno comparte memoria con el broker y no la cuenta dos veces. Leer
+    del alumno comparte memoria con el verificador, del que se bifurcó, y no la
+    cuenta dos veces. Leer
     `smaps_rollup` entre uids exige `CAP_SYS_PTRACE`; sin ella la lectura falla
     con `PermissionError` en vez de contar cero.
     """
@@ -94,7 +96,7 @@ def _pss_bytes(uid: int) -> int:
                     if line.startswith("Pss:"):
                         total += int(line.split()[1]) * 1024
                         break
-        except (FileNotFoundError, ProcessLookupError):
+        except FileNotFoundError, ProcessLookupError:
             continue
     return total
 
@@ -147,20 +149,6 @@ def _remove_owned(uid: int, root: str) -> None:
                     os.unlink(path)
             except OSError:
                 continue
-
-
-def _drain(fd: int, cap: int, box: bytearray, over: threading.Event) -> None:
-    while True:
-        try:
-            chunk = os.read(fd, 65536)
-        except OSError:
-            break
-        if not chunk:
-            break
-        room = cap - len(box)
-        box.extend(chunk[:room])
-        if len(chunk) > room:
-            over.set()
 
 
 class _Scan(threading.Thread):
@@ -249,18 +237,7 @@ def run_job(
             os.chown(path, uid, uid)
 
         child_env = {
-            "PATH": "/usr/local/bin:/usr/bin:/bin",
-            "HOME": str(work),
-            "TMPDIR": str(work),
-            "MPLCONFIGDIR": str(work),
-            "LANG": "C.UTF-8",
-            "PYTHONDONTWRITEBYTECODE": "1",
-            "PYTHONNOUSERSITE": "1",
-            "PYTHONUNBUFFERED": "1",
-            "PYTHONPATH": str(APP),
-            "MPLBACKEND": "Agg",
-            "OMP_NUM_THREADS": "2",
-            "OPENBLAS_NUM_THREADS": "2",
+            **job_env(str(work), "/usr/local/bin:/usr/bin:/bin"),
             **{k: v.replace("{dir}", str(work)) for k, v in env.items()},
         }
         cmd = [a.replace("{dir}", str(work)) for a in argv]
@@ -301,11 +278,11 @@ def run_job(
         out, rep = bytearray(), bytearray()
         readers = [
             threading.Thread(
-                target=_drain, args=(proc.stdout.fileno(), limits.out_bytes, out, over)
+                target=drain, args=(proc.stdout.fileno(), limits.out_bytes, out, over)
             ),
         ]
         if rep_r is not None:
-            readers.append(threading.Thread(target=_drain, args=(rep_r, REPORT_CAP, rep, over)))
+            readers.append(threading.Thread(target=drain, args=(rep_r, REPORT_CAP, rep, over)))
         for t in readers:
             t.start()
 

@@ -3,7 +3,6 @@
 !pyproject.toml
 !uv.lock
 !runner/*.py
-!runner/grader
 !qgcheck
 !exercises
 **/__pycache__

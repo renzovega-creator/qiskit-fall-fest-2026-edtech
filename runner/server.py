@@ -8,7 +8,6 @@ docs/architecture.md. Si no queda una ranura libre, responde 503.
 import json
 import os
 import queue
-import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -16,12 +15,11 @@ from typing import Any
 import sandbox
 
 from qgcheck import spec
-from qgcheck.runner import MAX_CODE
+from qgcheck.runner import MAX_CODE, job_argv, result, stopped
 
 PORT = int(os.environ.get("PORT", "8080"))
 # Un carácter de control ocupa 6 bytes escapado en JSON; el resto es la envoltura.
 MAX_BODY_BYTES = 6 * MAX_CODE + 1024
-NOT_FINISHED = "El código no terminó: se quedó sin memoria o el proceso se cerró."
 LIMITS = sandbox.Limits(
     wall_s=float(os.environ.get("QG_WALL_S", "10")),
     mem_mb=int(os.environ.get("QG_MEM_MB", "512")),
@@ -30,7 +28,6 @@ LIMITS = sandbox.Limits(
 FREE_SLOTS: queue.Queue[int] = queue.Queue()
 for _slot in range(int(os.environ.get("QG_JOBS", "1"))):
     FREE_SLOTS.put(_slot)
-MESSAGE_CAP = 500
 
 
 class BadRequest(Exception):
@@ -66,71 +63,13 @@ def parse_request(raw: bytes) -> tuple[str, str, Path | None]:
     return code, mode, check
 
 
-def parse_report(raw: bytes) -> tuple[str | None, list[dict[str, Any]]] | None:
-    """Valida lo que escribió el trabajo; en `run` lo controla el alumno.
-
-    Devuelve (error, casos), o None si no hay un informe válido.
-    """
-    try:
-        report = json.loads(raw)
-        error, items = report["error"], report["tests"]
-    except (ValueError, KeyError, TypeError):
-        return None
-    if not (error is None or isinstance(error, str)) or not isinstance(items, list):
-        return None
-    tests: list[dict[str, Any]] = []
-    for t in items:
-        if not isinstance(t, dict):
-            continue
-        name, message, hint = t.get("name"), t.get("message"), t.get("hint")
-        tests.append(
-            {
-                "name": name[:MESSAGE_CAP] if isinstance(name, str) else None,
-                "visible": t.get("visible") is True,
-                "passed": t.get("passed") is True,
-                "message": message[:MESSAGE_CAP] if isinstance(message, str) else None,
-                "hint": hint if type(hint) is int and hint >= 1 else None,
-            }
-        )
-    return error and error[:MESSAGE_CAP], tests
-
-
-def stopped(killed: str) -> str:
-    return {
-        "time": f"Tu código tardó más de {LIMITS.wall_s:g} s y se detuvo.",
-        "memory": f"Tu código usó más de {LIMITS.mem_mb} MB de memoria y se detuvo.",
-        "disk": f"Tu código escribió más de {LIMITS.scratch_mb} MB y se detuvo.",
-        "output": f"Tu código imprimió más de {LIMITS.out_bytes // 1024} KiB y se detuvo.",
-        "scan": "El corredor no pudo vigilar la memoria ni el disco de tu código y lo detuvo. Inténtalo de nuevo.",
-    }[killed]
-
-
 def execute(slot: int, code: str, mode: str, check: Path | None) -> dict[str, Any]:
-    argv = [sys.executable, "-u", "-P", "-m", "grader.job", mode, "{dir}/main.py"]
-    if check:
-        argv.append(str(check))
+    argv = job_argv(mode, "{dir}/main.py", str(check) if check else None)
     out = sandbox.run_job(slot, {"main.py": code}, argv, LIMITS, {}, report=True)
-    report = parse_report(out.report)
-    error: str | None
-    tests: list[dict[str, Any]]
-    if out.killed:
-        error, tests = stopped(out.killed), []
-    elif report is None:
-        error, tests = NOT_FINISHED, []
-    else:
-        error, tests = report
-    if mode == "run":
-        tests = []
-    return {
-        "passed": error is None
-        and (mode == "run" or (bool(tests) and all(t["passed"] for t in tests))),
-        "stdout": out.output,
-        "error": error,
-        "tests": tests,
-        "ms": out.ms,
-        "killed": out.killed,
-        "peak_mb": out.peak_mb,
-    }
+    why = out.killed and stopped(
+        out.killed, LIMITS.wall_s, LIMITS.mem_mb, LIMITS.scratch_mb, LIMITS.out_bytes
+    )
+    return result(mode, out.report, out.output, out.killed, why, out.ms) | {"peak_mb": out.peak_mb}
 
 
 class Handler(BaseHTTPRequestHandler):

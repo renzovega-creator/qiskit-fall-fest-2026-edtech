@@ -10,6 +10,7 @@ import os
 import re
 from collections.abc import Callable
 from pathlib import Path
+from types import ModuleType
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -39,15 +40,18 @@ def missing_files(exercise_id: str) -> list[str]:
     return [f for f in FILES if not (d / f).is_file()]
 
 
-def load_cases(check_path: Path) -> list[tuple[Callable[..., Any], str | None]]:
-    """[(función, nombre visible o None)] de cada test_* de check.py, en el orden en que se definen.
-
-    Importar check.py no debe leer `learner` ni correr código del alumno.
-    """
+def load_module(check_path: Path) -> ModuleType:
+    """Importa check.py, que no debe leer `learner` ni correr código del alumno al importarse."""
     spec = importlib.util.spec_from_file_location("check", check_path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    return module
+
+
+def load_cases(check_path: Path) -> list[tuple[Callable[..., Any], str | None]]:
+    """[(función, nombre visible o None)] de cada test_* de check.py, en el orden en que se definen."""
+    module = load_module(check_path)
     return [
         (fn, getattr(fn, "qg_visible", None))
         for name, fn in vars(module).items()

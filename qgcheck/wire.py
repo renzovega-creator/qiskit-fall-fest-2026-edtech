@@ -1,7 +1,6 @@
 """Formato de mensajes de datos entre el comprobador y el proceso del alumno.
 
-Cada mensaje es JSON precedido por su longitud en 4 bytes. El canal admite
-valores básicos, arrays numéricos y circuitos QPY, pero nunca deserializa código.
+Los mensajes llevan longitud, son JSON y nunca deserializan código.
 """
 
 import base64
@@ -41,6 +40,8 @@ def encode(value: Any) -> Any:
         return {"$": "dict", "v": {k: encode(v) for k, v in value.items()}}
     if isinstance(value, complex):
         return {"$": "complex", "v": [value.real, value.imag]}
+    if isinstance(value, bytes):
+        return {"$": "bytes", "v": base64.b64encode(value).decode("ascii")}
     np = sys.modules.get("numpy")
     if np is not None:
         if isinstance(value, np.generic):
@@ -49,7 +50,11 @@ def encode(value: Any) -> Any:
             return {"$": "array", "dtype": value.dtype.str, "v": encode(value.tolist())}
     if "qiskit" in sys.modules:
         from qiskit import QuantumCircuit, qpy
-        from qiskit.quantum_info import SparsePauliOp  # type: ignore[attr-defined]
+        from qiskit.quantum_info import (  # type: ignore[attr-defined]
+            Operator,
+            SparsePauliOp,
+            Statevector,
+        )
 
         if isinstance(value, QuantumCircuit):
             data = _qpy_bytes(value, qpy)
@@ -62,6 +67,15 @@ def encode(value: Any) -> Any:
             return {"$": "circuit", "v": base64.b64encode(data).decode("ascii")}
         if isinstance(value, SparsePauliOp):
             return {"$": "sparse_pauli_op", "v": encode(value.to_list())}
+        if isinstance(value, Statevector):
+            return {"$": "statevector", "v": encode(value.data), "dims": list(value.dims())}
+        if isinstance(value, Operator):
+            return {
+                "$": "operator",
+                "v": encode(value.data),
+                "in": list(value.input_dims()),
+                "out": list(value.output_dims()),
+            }
     raise TypeError(f"un valor de tipo {type(value).__name__}")
 
 
@@ -85,6 +99,16 @@ def decode(obj: Any) -> Any:
         if not DTYPE.fullmatch(dtype):
             raise WireError(f"dtype no admitido: {dtype!r}")
         return np.array(decode(v), dtype=dtype)
+    if kind == "bytes":
+        return base64.b64decode(v, validate=True)
+    if kind == "statevector":
+        from qiskit.quantum_info import Statevector
+
+        return Statevector(decode(v), dims=tuple(obj["dims"]))
+    if kind == "operator":
+        from qiskit.quantum_info import Operator
+
+        return Operator(decode(v), input_dims=tuple(obj["in"]), output_dims=tuple(obj["out"]))
     if kind == "circuit":
         from qiskit import qpy
 
