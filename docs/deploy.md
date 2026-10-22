@@ -105,7 +105,7 @@ paso 3 sin mostrarlo en la terminal. Los cuatro valores de OAuth son los de los
 pasos 4 y 5.
 
 ```sh
-bunx cf deploy --dry-run   # construye la imagen y el Worker, no sube nada
+mise run deploy --dry-run   # construye la imagen y el Worker, no sube nada
 umask 077
 read -r -p 'Google Client ID: ' GOOGLE_CLIENT_ID
 read -rs -p 'Google Client secret: ' GOOGLE_CLIENT_SECRET
@@ -118,16 +118,13 @@ printf '\n'
 printf 'GOOGLE_CLIENT_ID=%s\nGOOGLE_CLIENT_SECRET=%s\nGITHUB_CLIENT_ID=%s\nGITHUB_CLIENT_SECRET=%s\nTURNSTILE_SECRET=%s\n' \
   "$GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_SECRET" "$GITHUB_CLIENT_ID" \
   "$GITHUB_CLIENT_SECRET" "$TURNSTILE_SECRET" > "$TMPDIR/secrets.env"
-bunx cf deploy --secrets-file "$TMPDIR/secrets.env"
+mise run deploy --secrets-file "$TMPDIR/secrets.env"
 rm "$TMPDIR/secrets.env"
 unset GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET TURNSTILE_SECRET
 ```
 
 Para publicar un cambio de las lecciones o del Worker, vuelve a ejecutar
-`bunx cf deploy`. Sube `site/` tal como está en tu equipo, con KaTeX y las
-tipografías de `site/vendor/`, que Git no guarda. Si la carpeta falta o
-cambiaste una versión de `editor/package.json`, ejecuta antes
-`mise run generate:vendor`.
+`mise run deploy`.
 
 ## 7. Rota un secreto
 

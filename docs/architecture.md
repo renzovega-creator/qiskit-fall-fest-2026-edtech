@@ -65,9 +65,10 @@ comprueba la cobertura. Para actualizar las guías se cambia ese hash, se ejecut
   `vendor/`. Las dos páginas cargan KaTeX con `defer`, antes que sus propios
   scripts.
 - `vendor/` son KaTeX y las tres tipografías, copiados de `editor/node_modules`
-  por `editor/vendor.js`. Git los ignora y `mise run install` los genera.
-  Ninguna página pide nada a otro sitio salvo el script de Turnstile, que
-  `exercise.js` descarga de Cloudflare cuando el corredor lo exige.
+  por `editor/vendor.js`. Git los ignora; `mise run install` y `mise run deploy`
+  los generan de nuevo y borran antes lo que hubiera. Ninguna página pide nada a
+  otro sitio salvo el script de Turnstile, que `exercise.js` descarga de
+  Cloudflare cuando el corredor lo exige.
 - `editor.js` es el editor CodeMirror 6 de los ejercicios, empaquetado desde
   `editor/`. Se describe en [exercises.md](exercises.md#editor-en-la-lección).
 - `theme.css` y `theme.js` son el tema de las dos páginas: colores, fuentes, y
