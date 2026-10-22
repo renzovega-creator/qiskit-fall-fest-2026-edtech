@@ -1,9 +1,7 @@
-"""Falla las pruebas de navegador si la página pide una dirección externa.
+"""Fail browser tests when a page requests an external address.
 
-`new_context` aborta y anota las peticiones que no van a 127.0.0.1 o
-localhost. Las rutas específicas de cada prueba se evalúan antes que esta,
-así que aquí solo llegan las peticiones que nadie atendió. `verify` hace
-fallar la prueba si hubo alguna.
+Test-specific routes run before this catch-all route. Unhandled requests are
+therefore the only requests recorded here.
 """
 
 import sys
@@ -34,7 +32,6 @@ def new_context(browser: Browser, **options: Any) -> BrowserContext:
 
 
 def verify() -> None:
-    """Termina con error si algún navegador pidió una dirección que no es local."""
     if external:
         urls = "\n".join(f"  {url}" for url in sorted(set(external)))
         sys.exit(f"Las pruebas pidieron direcciones fuera del equipo:\n{urls}")
