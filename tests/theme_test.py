@@ -22,6 +22,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
+from offline import new_context, verify
 from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 
 SITE = Path(__file__).resolve().parent.parent / "site"
@@ -117,7 +118,7 @@ def nueva_pagina(
     modo: str,
     extra_storage: dict[str, str] | None = None,
 ) -> tuple[BrowserContext, Page, list[str]]:
-    ctx = browser.new_context(viewport={"width": size[0], "height": size[1]})
+    ctx = new_context(browser, viewport={"width": size[0], "height": size[1]})
     storage = {"qiskit:paleta": paleta, "qiskit:theme": modo, **(extra_storage or {})}
     ctx.add_init_script(
         f"for (const [k, v] of Object.entries({json.dumps(storage)})) localStorage.setItem(k, v);"
@@ -225,7 +226,7 @@ def imprimir_tabla(tabla: dict[tuple[str, str, str], float]) -> None:
 
 
 def paleta_guardada_una_vez(rep: Report, browser: Browser, base: str) -> None:
-    ctx = browser.new_context(viewport={"width": 1366, "height": 768})
+    ctx = new_context(browser, viewport={"width": 1366, "height": 768})
     pg = ctx.new_page()
     pg.goto(f"{base}/index.html")
     pg.wait_for_selector("[data-theme-ctl] select")
@@ -305,6 +306,7 @@ def main() -> None:
         visitar(rep, browser, base, args.shots, ultimos)
         browser.close()
     srv.shutdown()
+    verify()
     if args.table:
         imprimir_tabla(tabla)
     print(f"repaso con 6 lecciones de {DEMORA_LESSON_JSON} s cada una: {dt:.2f} s")

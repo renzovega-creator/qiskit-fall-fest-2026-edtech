@@ -25,6 +25,8 @@ from playwright.sync_api import Browser, Locator, Page, Route, sync_playwright
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from offline import new_context, verify  # noqa: E402
+
 from qgcheck import spec  # noqa: E402
 
 DESKTOP: dict[str, Any] = {"viewport": {"width": 1280, "height": 900}}
@@ -166,7 +168,7 @@ def flow(
 ) -> None:
     """Equivocado, falla un caso; corregido, pasa; tras recargar, el progreso sigue."""
     solution = read(lesson, name, "solution.py")
-    page = browser.new_context(**ctx).new_page()
+    page = new_context(browser, **ctx).new_page()
     errors: list[str] = []
     page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
     page.on("pageerror", lambda e: errors.append(str(e)))
@@ -210,7 +212,7 @@ def flow(
 
 def feedback(browser: Browser, base: str, shots: str | None) -> None:
     cases = spec.load_cases(spec.folder("p1-quickstart/ghz") / "check.py")
-    page = browser.new_context(**DESKTOP).new_page()
+    page = new_context(browser, **DESKTOP).new_page()
     panel = open_panel(page, base, "p1-quickstart", 1)
 
     write(
@@ -284,7 +286,7 @@ def feedback(browser: Browser, base: str, shots: str | None) -> None:
             if blk.get("exercise") == "p1-quickstart/ghz"
         )
         os.environ["QG_EXERCISES"] = str(copy)
-        page = browser.new_context(**DESKTOP).new_page()
+        page = new_context(browser, **DESKTOP).new_page()
         panel = open_panel(page, base, "p1-quickstart", 1)
         write(page, panel, GHZ_WITHOUT_CHAIN)
         press(panel, "Comprobar")
@@ -313,7 +315,7 @@ def height(button: Locator) -> float:
 
 
 def mobile_layout(browser: Browser, base: str, shots: str | None) -> None:
-    page = browser.new_context(**MOBILE).new_page()
+    page = new_context(browser, **MOBILE).new_page()
     panel = open_panel(page, base, "p1-quickstart", 1)
     panel.scroll_into_view_if_needed()
     box = panel.bounding_box()
@@ -342,7 +344,7 @@ def mobile_layout(browser: Browser, base: str, shots: str | None) -> None:
 
 
 def keyboard(browser: Browser, base: str) -> None:
-    page = browser.new_context(**DESKTOP).new_page()
+    page = new_context(browser, **DESKTOP).new_page()
     panel = open_panel(page, base, "p1-quickstart", 1)
     editor = panel.locator(".cm-content")
     write(page, panel, "x")
@@ -391,7 +393,7 @@ def keyboard(browser: Browser, base: str) -> None:
 
 
 def hints(browser: Browser, base: str) -> None:
-    page = browser.new_context(**DESKTOP).new_page()
+    page = new_context(browser, **DESKTOP).new_page()
     panel = open_panel(page, base, "p1-quickstart", 1)
     lesson = json.loads(
         (ROOT / "site" / "lessons" / "p1-quickstart" / "lesson.json").read_text(encoding="utf-8")
@@ -420,7 +422,7 @@ def hints(browser: Browser, base: str) -> None:
 
 
 def theme(browser: Browser, base: str) -> None:
-    page = browser.new_context(**DESKTOP).new_page()
+    page = new_context(browser, **DESKTOP).new_page()
     paint = "e => getComputedStyle(e).backgroundColor"
     probe = """() => { const d = document.createElement('div'); d.style.background = 'var(--code-bg)'; document.body.append(d);
                  const c = getComputedStyle(d).backgroundColor; d.remove(); return c; }"""
@@ -439,7 +441,7 @@ def theme(browser: Browser, base: str) -> None:
 
 def states(browser: Browser, base: str) -> None:
     """Cargando, tiempo agotado del código, y errores del corredor."""
-    page = browser.new_context(**DESKTOP).new_page()
+    page = new_context(browser, **DESKTOP).new_page()
     panel = open_panel(page, base, "p1-quickstart", 1)
     write(page, panel, "while True:\n    pass")
     press(panel, "Ejecutar")
@@ -478,7 +480,7 @@ def states(browser: Browser, base: str) -> None:
     )
     page.context.close()
 
-    page = browser.new_context(**DESKTOP).new_page()
+    page = new_context(browser, **DESKTOP).new_page()
     page.clock.install()
     panel = open_panel(page, base, "p1-quickstart", 1)
     held: list[Route] = []
@@ -511,7 +513,7 @@ FAKE_TURNSTILE = """window.turnstile = {
 
 def turnstile(browser: Browser, base: str) -> None:
     """Comprueba la petición inicial de Turnstile y la sesión que deja abierta."""
-    page = browser.new_context(**DESKTOP).new_page()
+    page = new_context(browser, **DESKTOP).new_page()
     sent: list[str | None] = []
     scripts: list[str] = []
     session: list[str] = []
@@ -561,7 +563,7 @@ def turnstile(browser: Browser, base: str) -> None:
 
     page.context.close()
 
-    page = browser.new_context(**DESKTOP).new_page()
+    page = new_context(browser, **DESKTOP).new_page()
     page.route(
         "**/run",
         lambda r: r.fulfill(status=403, content_type="application/json", body=json.dumps(refusal)),
@@ -602,6 +604,7 @@ def main() -> None:
         states(browser, base)
         turnstile(browser, base)
         browser.close()
+    verify()
     print(f"\n{len(failures)} fallos" if failures else "\ntodo bien")
     sys.exit(1 if failures else 0)
 

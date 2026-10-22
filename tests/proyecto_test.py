@@ -14,6 +14,7 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from offline import new_context, verify
 from playwright.sync_api import Page, sync_playwright
 
 SITE = Path(__file__).resolve().parent.parent / "site"
@@ -57,7 +58,7 @@ def main() -> None:
         for n in range(1, HITOS + 1):
             nb = f"practica/proyecto/hito{n}.py"
             esperado = nb in enlazados
-            ctx = browser.new_context(viewport={"width": 1366, "height": 768})
+            ctx = new_context(browser, viewport={"width": 1366, "height": 768})
             ctx.add_init_script(
                 f"localStorage.setItem('qiskit:hitos', {json.dumps(json.dumps(list(range(1, n))))});"
             )
@@ -82,6 +83,7 @@ def main() -> None:
             ctx.close()
         browser.close()
     srv.shutdown()
+    verify()
     print(f"hitos abiertos según course.json: {abiertos}")
     print(f"{HITOS} hitos comprobados, {len(fallos)} fallos")
     for f in fallos:

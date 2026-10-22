@@ -32,6 +32,7 @@ from exercise_ui_test import (
     wait_result,
     write,
 )
+from offline import new_context, verify
 
 WORKER = ROOT / "runner" / "worker"
 LESSON = "p1-quickstart"
@@ -88,7 +89,7 @@ def last_beat(lesson: str) -> int:
 
 def new_page(browser: Browser, site: str, control: str) -> Tab:
     """Un navegador nuevo: el widget de Turnstile y la pantalla del proveedor son falsos."""
-    context = browser.new_context(**DESKTOP)
+    context = new_context(browser, **DESKTOP)
     context.route(
         "https://challenges.cloudflare.com/turnstile/v0/api.js*",
         lambda r: r.fulfill(content_type="text/javascript", body=FAKE_TURNSTILE),
@@ -266,6 +267,7 @@ def main() -> None:
     finally:
         worker.terminate()
         worker.wait(timeout=30)
+    verify()
     print(f"\n{len(failures)} fallos" if failures else "\ntodo bien")
     sys.exit(1 if failures else 0)
 
