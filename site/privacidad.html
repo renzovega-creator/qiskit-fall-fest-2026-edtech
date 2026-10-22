@@ -4,8 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacidad · Qubit a qubit</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="vendor/fonts.css">
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="index.css">
 <script src="theme.js"></script>
@@ -53,7 +52,7 @@
     <h2>Al ejecutar código</h2>
     <p>Ejecutar o comprobar un ejercicio envía tu código a nuestro servidor, que lo ejecuta y devuelve el resultado. El código no se guarda por eso. Sí se anota, con o sin cuenta, una fila por ejecución: el momento, el ejercicio, si pasó o falló, los nombres de los casos que fallaron, el tipo de error, cuántas pistas habías visto, cuánto tardó y cuántos bytes ocupaba el código. No lleva el código ni lo que imprimió. Si tenías cuenta, la fila apunta a ella; si no, no apunta a nadie. Se borra a los 180 días. Con cuenta, borrar la cuenta borra también estas filas.</p>
     <p>No guardamos tu dirección IP. Para limitar el uso abusivo, el servidor cuenta las peticiones con un código derivado de la IP o de la cuenta que cambia cada día y no permite volver a ella. Sin cuenta, la primera ejecución pide una comprobación de Cloudflare Turnstile para saber que eres una persona, y el servidor te da una cookie <code>qg_session</code> de 8 horas que no te identifica.</p>
-    <p>La página carga además las tipografías de Google Fonts y las fórmulas de KaTeX desde cdnjs. Esos servicios ven tu dirección IP cuando la abres.</p>
+    <p>Las tipografías y las fórmulas de KaTeX salen de este mismo sitio, sin servicios de terceros. El script de Cloudflare Turnstile se descarga de Cloudflare solo cuando hace falta la comprobación, y Cloudflare ve entonces tu dirección IP.</p>
 
     <h2>Cómo borrar tus datos</h2>
     <ul>

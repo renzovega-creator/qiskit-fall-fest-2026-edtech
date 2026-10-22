@@ -10,10 +10,11 @@ UV_LOCKED = "1"
 _.path = ["runner/worker/node_modules/.bin", "editor/node_modules/.bin"]
 
 [tasks.install]
-description = "Install Python and JavaScript dependencies from the lockfiles, the Playwright browser and the upstream guides"
+description = "Install Python and JavaScript dependencies from the lockfiles, the site's KaTeX and fonts, the Playwright browser and the upstream guides"
 run = [
   "uv sync --locked --all-groups",
   "bun install --cwd editor --frozen-lockfile",
+  "mise run generate:vendor",
   "bun install --cwd runner/worker --frozen-lockfile",
   "uv run --group tools playwright install ${CI:+--with-deps} chromium",
   "uv run python tools/fetch_docs.py",
@@ -116,6 +117,11 @@ run = "uv run python lessons_src/build.py"
 description = "Rewrite site/editor.js from editor/src"
 dir = "editor"
 run = "esbuild src/index.js --bundle --minify --format=iife --target=es2020 --outfile=../site/editor.js"
+
+[tasks."generate:vendor"]
+description = "Copy KaTeX and the fonts from editor/node_modules into site/vendor, which git ignores"
+dir = "editor"
+run = "node vendor.js ../site/vendor"
 
 [tasks.generate]
 description = "Rewrite every generated file under site/"

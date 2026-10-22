@@ -6,6 +6,7 @@
     "site/lessons/**",
     "site/course.json",
     "site/editor.js",
+    "site/vendor/**",
     "content/**",
     "practica/soluciones/**",
     ".cache/**",

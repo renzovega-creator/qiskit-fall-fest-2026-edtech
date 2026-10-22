@@ -18,5 +18,10 @@
       }
     }
   ],
-  "ignorePatterns": ["site/editor.js", ".cache/**", "**/node_modules/**"]
+  "ignorePatterns": [
+    "site/editor.js",
+    "site/vendor/**",
+    ".cache/**",
+    "**/node_modules/**"
+  ]
 }

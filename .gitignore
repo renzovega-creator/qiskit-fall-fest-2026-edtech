@@ -1,4 +1,5 @@
 .cache/
+site/vendor/
 shots/
 __pycache__/
 .venv/
