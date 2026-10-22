@@ -18,9 +18,14 @@ va en el repositorio ni en un archivo que subas a git.
   `runner/worker/cloudflare.config.ts` lee con `mise current`.
 - Una cuenta de Google y una de GitHub, para registrar los clientes OAuth.
 
+Desde la raíz del repositorio, instala las dependencias. `mise run install`
+instala las del editor y las del Worker, que traen la CLI `cf`. Durante el
+despliegue, `mise run deploy` copia KaTeX y las tipografías del editor a
+`site/vendor/`. Los pasos siguientes se ejecutan en `runner/worker`.
+
 ```sh
+mise run install
 cd runner/worker
-bun install --frozen-lockfile
 bunx cf auth login
 ```
 
