@@ -1,6 +1,8 @@
+# check=skip=InvalidDefaultArgInFrom
 # Contexto de construcción: la raíz del repositorio. Las versiones de Python y de
-# uv son argumentos sin valor por defecto; salen de mise.toml (`mise current`) y
-# las pasan runner/local.py y runner/worker/cloudflare.config.ts.
+# uv son argumentos sin valor por defecto a propósito; salen de mise.toml
+# (`mise current`) y las pasan runner/local.py y runner/worker/cloudflare.config.ts.
+# Un valor por defecto sería una segunda copia que se desfasa.
 #   docker build -f runner/Dockerfile -t qg-runner \
 #     --build-arg PYTHON_VERSION=$(mise current python) \
 #     --build-arg UV_VERSION=$(mise current uv) .
