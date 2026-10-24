@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Qubit a qubit</title>
+<title>Del ML al QML</title>
 <link rel="stylesheet" href="vendor/fonts.css">
 <link rel="stylesheet" href="vendor/katex/katex.min.css">
 <link rel="stylesheet" href="theme.css">
@@ -16,8 +16,8 @@
 <body>
 <div class="wrap">
   <header class="bar">
-    <a class="brand" href="index.html"><span class="dot"></span>Qubit a qubit</a>
-    <span class="pill">Qiskit · en español</span>
+    <a class="brand" href="index.html"><span class="dot"></span>Del ML al QML</a>
+    <span class="pill">QML con Qiskit · en español</span>
     <span class="sp"></span>
     <span class="pill" id="prog"></span>
     <div data-account></div>
@@ -26,12 +26,17 @@
 
   <section class="hero">
     <div>
-      <h1>Aprende Qiskit<br><span>haciendo</span>, qubit a qubit.</h1>
-      <p class="lead">Lecciones animadas y narradas que recorren todas las guías de IBM Quantum. En cada una predices, practicas en tu cuaderno y reflexionas; a lo largo del curso construyes un experimento real.</p>
+      <h1>Del ML al QML,<br><span>un par</span> a la vez.</h1>
+      <p class="lead">Cada lección toma un concepto de estadística o machine learning que ya conoces y lo empareja con su gemelo cuántico en Qiskit. Predices antes de ver, lo programas con Qiskit real y repasas 5 minutos al día.</p>
       <div class="next" id="next"></div>
       <div class="stats" id="stats"></div>
     </div>
     <svg class="bloch" viewBox="-170 -170 340 340" id="bloch" aria-hidden="true"></svg>
+  </section>
+
+  <section class="blk">
+    <div class="sh"><h2>Reto del día</h2><span class="note" id="rtnote">predice un número; Qiskit lo mide</span></div>
+    <div class="panel" id="reto"></div>
   </section>
 
   <div class="two">
@@ -40,21 +45,21 @@
       <div class="panel" id="repaso"></div>
     </section>
     <section class="blk">
-      <div class="sh"><h2>Proyecto Ising</h2><span class="note">una cadena de espines, de la pizarra al QPU</span></div>
+      <div class="sh"><h2>Tu nivel</h2><span class="note" id="racha"></span></div>
       <div class="panel">
-        <div class="track" id="track"></div>
+        <div class="track" id="track" style="grid-template-columns:repeat(3, 1fr)"></div>
         <div class="hcur" id="hito"></div>
       </div>
     </section>
   </div>
 
   <section class="blk">
-    <div class="sh"><h2>El curso</h2><span class="note">10 partes · basado en las guías oficiales de IBM Quantum</span></div>
+    <div class="sh"><h2>Los pares</h2><span class="note">un concepto clásico ↔ su equivalente cuántico por lección</span></div>
     <div class="parts" id="parts"></div>
   </section>
 
   <footer>
-    Contenido basado en las <a href="https://quantum.cloud.ibm.com/docs/en/guides">guías de IBM Quantum</a> (CC BY-SA 4.0). Todo el código se ejecutó con Qiskit 2.5.
+    Hecho con el motor de lecciones de <a href="https://github.com/PedroRojasF/qiskit-guides-compartido">qiskit-guides</a>. Todo el código se ejecutó con Qiskit 2.5 y Qiskit Machine Learning 0.9.
   </footer>
 </div>
 
@@ -100,48 +105,89 @@ function rich(s) {
   requestAnimationFrame(frame);
 })();
 
-// ---------- proyecto Ising ----------
-const HITOS = [
-  { n: 1, part: 1, t: 'Dos espines y un paso de tiempo', d: 'Crea tu cuenta de IBM Quantum, escribe el Hamiltoniano y construye un paso de Trotter.', nb: 'practica/proyecto/hito1.py' },
-  { n: 2, part: 2, t: 'Muchos pasos y la magnetización', d: 'Encadena pasos de Trotter con parámetros y define los observables de magnetización.' },
-  { n: 3, part: 3, t: 'Transpilar para un procesador', d: 'Lleva el circuito a FakeFez y mide cómo crece la profundidad con el tiempo.' },
-  { n: 4, part: 4, t: 'Exacto frente a ruidoso', d: 'Magnetización en el tiempo: simulación exacta y con el modelo de ruido de Aer.' },
-  { n: 5, part: 5, t: 'Primera ejecución real', d: 'Tu cadena en un QPU de IBM, con un presupuesto de un minuto.' },
-  { n: 6, part: 6, t: 'Mitigar el ruido', d: 'Sin mitigación, TREX y ZNE: ¿cuánto te acercas al valor exacto?' },
-  { n: 7, part: 7, t: 'Puertas fraccionales', d: 'RZZ nativas y modo batch; segunda ejecución real.' },
-  { n: 8, part: 8, t: 'Menos profundidad', d: 'Recorta el circuito con un addon (OBP o AQC-Tensor).' },
-  { n: 9, part: 9, t: 'Código moderno', d: 'Migra a las primitivas del lado del cliente y empaqueta el experimento.' },
-  { n: 10, part: 10, t: 'Informe final', d: 'Gráficas, conclusiones y citas, listo para compartir.' },
-];
-function renderProyecto(course) {
-  const done = LS.get('qiskit:hitos', []);
-  const linkedNotebooks = new Set(course.parts.flatMap(p => p.lessons).flatMap(l => l.missions || []).map(m => m.notebook));
-  const notebookForHito = h => { const notebook = `practica/proyecto/hito${h.n}.py`; return linkedNotebooks.has(notebook) ? notebook : null; };
-  const cur = HITOS.find(h => !done.includes(h.n)) || HITOS[HITOS.length - 1];
+// ---------- nivel: cada par completado sube un nivel; el siguiente par se ve bloqueado ----------
+const PROXIMOS = [{ title: 'Nivel 3 · Gradientes', desc: 'Descenso de gradiente ↔ regla de parameter-shift y EstimatorQNN.' }];
+const hoy = () => new Date().toLocaleDateString('en-CA');
+function renderNivel(course, doneSet) {
+  const niveles = [...course.parts.map(p => ({ title: p.title, desc: p.desc, ids: p.lessons.map(l => l.id) })), ...PROXIMOS.map(p => ({ ...p, ids: null }))];
+  const hecho = n => n.ids && n.ids.every(id => doneSet.has(id));
+  const actual = niveles.findIndex(n => !hecho(n));
   const track = $('#track'); track.textContent = '';
-  HITOS.forEach(h => {
+  niveles.forEach((n, i) => {
     const d = document.createElement('div');
-    d.className = 'hito' + (done.includes(h.n) ? ' done' : notebookForHito(h) ? ' open' : '');
-    d.textContent = h.n; d.title = `Hito ${h.n} · ${h.t}`;
+    d.className = 'hito' + (hecho(n) ? ' done' : i === actual && n.ids ? ' open' : '');
+    d.textContent = n.ids ? i + 1 : '🔒'; d.title = n.title;
     track.appendChild(d);
   });
-  const partTitle = course.parts[cur.part - 1].title.split(' · ')[1];
+  const cur = niveles[actual < 0 ? niveles.length - 1 : actual];
   const box = $('#hito');
-  box.innerHTML = `<div class="k">Hito ${cur.n} de 10 · Parte ${cur.part}</div><h3></h3><p></p>`;
-  box.querySelector('h3').textContent = cur.t; box.querySelector('p').textContent = cur.d;
-  const currentNotebook = notebookForHito(cur);
-  if (currentNotebook) {
-    const cmd = `uv run marimo edit ${currentNotebook}`;
-    const row = document.createElement('div'); row.className = 'cmd';
-    row.innerHTML = `<code></code><button>Copiar</button><button class="chk">Marcar como hecho</button>`;
-    row.querySelector('code').textContent = cmd;
-    row.children[1].onclick = e => navigator.clipboard?.writeText(cmd).then(() => { e.target.textContent = 'Copiado ✓'; });
-    row.children[2].onclick = () => { LS.set('qiskit:hitos', [...new Set([...done, cur.n])]); renderProyecto(course); };
-    window.notebookHelp(row);
-    box.appendChild(row);
-  } else {
-    const p = document.createElement('p'); p.textContent = `Se abre cuando llegues a la Parte ${cur.part} (${partTitle}).`; box.appendChild(p);
-  }
+  box.innerHTML = `<div class="k"></div><h3></h3><p></p>`;
+  box.querySelector('.k').textContent = cur.ids ? `Estás en el ${cur.title.split(' · ')[0].toLowerCase()}` : 'Todos los pares disponibles, completados';
+  box.querySelector('h3').textContent = cur.ids ? cur.title.split(' · ')[1] : `Próximamente: ${cur.title.split(' · ')[1]}`;
+  box.querySelector('p').textContent = cur.desc;
+  const r = LS.get('qiskit:racha', { dia: '', n: 0 });
+  const vigente = r.dia === hoy() || r.dia === new Date(Date.now() - 864e5).toLocaleDateString('en-CA');
+  $('#racha').textContent = vigente && r.n ? `${r.n} ${r.n === 1 ? 'día seguido' : 'días seguidos'} de repaso` : 'repasa hoy para empezar tu racha';
+}
+// ---------- reto del día: el mismo para todos en una fecha; predices y Qiskit mide con POST /run ----------
+const SHOTS = (theta, shots) => `import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.primitives import StatevectorSampler
+qc = QuantumCircuit(1)
+qc.ry(${theta}, 0)
+qc.measure_all()
+res = StatevectorSampler(seed=SEMILLA).run([qc], shots=${shots}).result()
+print(res[0].data.meas.get_counts().get("1", 0))`;
+const RETOS = [
+  { de: 'q1-montecarlo', p: 'Aplicas $R_Y(\\pi/2)$ a $|0\\rangle$ y mides **400 shots**. ¿Cuántos `1` saldrán?', code: SHOTS('np.pi / 2', 400), tol: 20,
+    why: '$P(1)=\\sin^2(\\pi/4)=1/2$: se esperan 200, con un error típico de $\\sqrt{400\\cdot\\tfrac12\\cdot\\tfrac12}=10$.' },
+  { de: 'q1-montecarlo', p: 'Aplicas $R_Y(2\\pi/3)$ y mides **200 shots**. ¿Cuántos `1` saldrán?', code: SHOTS('2 * np.pi / 3', 200), tol: 12,
+    why: '$P(1)=\\sin^2(\\pi/3)=3/4$: se esperan 150, con un error típico de $\\sqrt{200\\cdot\\tfrac34\\cdot\\tfrac14}\\approx 6$.' },
+  { de: 'q1-montecarlo', p: 'Aplicas $R_Y(\\pi/3)$ y mides **1000 shots**. ¿Cuántos `1` saldrán?', code: SHOTS('np.pi / 3', 1000), tol: 27,
+    why: '$P(1)=\\sin^2(\\pi/6)=1/4$: se esperan 250, con un error típico de $\\sqrt{1000\\cdot\\tfrac14\\cdot\\tfrac34}\\approx 14$.' },
+  { de: 'q2-kernel', p: 'Kernel cuántico con `zz_feature_map(2, reps=1)`: ¿cuánto vale $k(x,x\')$ para $x=[0.2,\\,0.7]$ y $x\'=[0.9,\\,0.1]$? (dos decimales)', tol: 0.1,
+    code: `from qiskit.circuit.library import zz_feature_map
+from qiskit.quantum_info import Statevector
+m = zz_feature_map(2, reps=1)
+e = lambda x: Statevector(m.assign_parameters(x))
+print(round(abs(e([0.9, 0.1]).inner(e([0.2, 0.7]))) ** 2, 4))`,
+    why: 'Los puntos están lejos, así que el solapamiento es bajo; el RBF con $\\gamma=0.5$ daría 0.65 para el mismo par.' },
+];
+async function renderReto(course, doneSet) {
+  const box = $('#reto'), dia = Math.floor(Date.now() / 864e5);
+  const pool = RETOS.filter(r => doneSet.has(r.de));
+  const reto = (pool.length ? pool : RETOS.filter(r => r.de === RETOS[0].de))[dia % (pool.length || 3)];
+  const st = LS.get('qiskit:reto', {});
+  box.innerHTML = `<div class="rq"><div class="from">Hoy · ${new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' })}</div><div class="p">${rich(reto.p)}</div>
+    <div class="num"><input inputmode="decimal" placeholder="Tu predicción"><button>Predecir y medir</button></div><div class="fb"></div></div>`;
+  const inp = box.querySelector('input'), btn = box.querySelector('button'), fb = box.querySelector('.fb');
+  const mostrar = (pred, med) => {
+    const ok = Math.abs(pred - med) <= reto.tol;
+    fb.innerHTML = `${ok ? '✓' : '✗'} Predijiste <b>${pred}</b>; Qiskit midió <b>${med}</b>. ${ok ? 'Dentro del margen.' : `Fuera del margen (±${reto.tol}).`}<br>${rich(reto.why)}<br><span class="mono">vuelve mañana por otro reto</span>`;
+    inp.value = pred; inp.disabled = btn.disabled = true;
+  };
+  if (st.dia === hoy()) return mostrar(st.pred, st.med);
+  const go = async () => {
+    const pred = Number(inp.value.replace(',', '.'));
+    if (!isFinite(pred) || inp.value.trim() === '') return;
+    btn.disabled = true; fb.textContent = 'Midiendo con Qiskit…';
+    try {
+      const res = await (await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exercise: 'q1-montecarlo/estimar-p', mode: 'run', code: reto.code.replace('SEMILLA', String(dia)) }) })).json();
+      const med = Number((res.stdout || '').trim());
+      if (res.error || !isFinite(med)) throw new Error(res.error || 'sin salida');
+      LS.set('qiskit:reto', { dia: hoy(), pred, med });
+      sumarRacha(); renderNivel(course, doneSet);
+      mostrar(pred, med);
+    } catch (e) { btn.disabled = false; fb.textContent = 'No se pudo medir: abre el curso con tools/serve.py para ejecutar Qiskit.'; }
+  };
+  btn.onclick = go; inp.onkeydown = e => { if (e.key === 'Enter') go(); };
+}
+function sumarRacha() {
+  const r = LS.get('qiskit:racha', { dia: '', n: 0 });
+  if (r.dia === hoy()) return;
+  const ayer = new Date(Date.now() - 864e5).toLocaleDateString('en-CA');
+  LS.set('qiskit:racha', { dia: hoy(), n: r.dia === ayer ? r.n + 1 : 1 });
 }
 
 // ---------- repaso espaciado (1, 3, 7 y 21 días; lo que fallas vuelve mañana) ----------
@@ -157,7 +203,7 @@ async function renderRepaso(course, doneSet) {
     for (const b of L.beats) {
       if (!b.ask || !['choice', 'numeric'].includes(b.ask.kind)) continue;
       const id = `${l.id}:${b.id}`, st = state[id];
-      if (!st || st.due <= now) items.push({ id, l, a: b.ask, st, due: st ? st.due : 0 });
+      if (!st || st.due <= now) items.push({ id, l, a: b.ask, st, due: st ? st.due : 0, course, doneSet });
     }
   }
   items.sort((x, y) => x.due - y.due || Math.random() - .5);
@@ -170,6 +216,7 @@ async function renderRepaso(course, doneSet) {
     const nb = ok ? Math.min(prev.box + 1, GAPS.length - 1) : 0;
     s[it.id] = { box: nb, due: Date.now() + (ok ? GAPS[nb] : 1) * DAY };
     LS.set('qiskit:repaso', s);
+    sumarRacha(); renderNivel(it.course, it.doneSet);
     const fb = el.querySelector('.fb');
     fb.innerHTML = (ok ? '✓ ' : '✗ ') + rich(ok ? (it.a.why || 'Correcto.') : (it.a.hint || 'No es correcto: volverá mañana.')) + `<br><span class="mono">próximo repaso en ${ok ? GAPS[nb] : 1} día(s)</span>`;
   };
@@ -207,7 +254,9 @@ async function renderRepaso(course, doneSet) {
   const all = course.parts.flatMap(p => p.lessons);
   const mins = all.reduce((a, l) => a + (l.minutes || 0), 0);
   $('#prog').textContent = `${doneSet.size}/${all.length} lecciones`;
-  $('#stats').innerHTML = `<div><b>${all.length}</b>lecciones</div><div><b>${(mins / 60).toFixed(1)} h</b>narradas</div><div><b>10</b>hitos de proyecto</div><div><b>${doneSet.size}</b>completadas</div>`;
+  const ndone = all.filter(l => doneSet.has(l.id)).length;
+  $('#prog').textContent = `${ndone}/${all.length} pares`;
+  $('#stats').innerHTML = `<div><b>${all.length}</b>pares ML ↔ QML</div><div><b>${mins}</b>min narrados</div><div><b>5 min</b>de repaso al día</div><div><b>${ndone}</b>completados</div>`;
 
   // siguiente paso: misión pendiente de una lección hecha, o la siguiente lección
   const misDone = LS.get('qiskit:misiones', []);
@@ -229,7 +278,8 @@ async function renderRepaso(course, doneSet) {
     nx.querySelector('.t').textContent = nextL.title; nx.querySelector('.s').textContent = nextL.summary;
   }
 
-  renderProyecto(course);
+  renderNivel(course, doneSet);
+  renderReto(course, doneSet);
   renderRepaso(course, doneSet);
 
   const COLORS = ['--acc', '--acc2', '--acc3'];

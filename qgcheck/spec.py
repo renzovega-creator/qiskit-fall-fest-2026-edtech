@@ -19,7 +19,11 @@ ID = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*/[a-z0-9]+(-[a-z0-9]+)*")
 
 
 def exercises_dir() -> Path:
-    return Path(os.environ.get("QG_EXERCISES") or ROOT / "exercises")
+    """QG_EXERCISES manda; si no, QG_CURSO=<nombre> usa cursos/<nombre>/exercises."""
+    if os.environ.get("QG_EXERCISES"):
+        return Path(os.environ["QG_EXERCISES"])
+    curso = os.environ.get("QG_CURSO")
+    return ROOT / "cursos" / curso / "exercises" if curso else ROOT / "exercises"
 
 
 def folder(exercise_id: str) -> Path:

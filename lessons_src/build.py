@@ -14,6 +14,7 @@ cada lección de un módulo debe estar en el plan.
 
 import importlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -23,8 +24,13 @@ from typing import Any
 
 HERE = Path(__file__).parent
 ROOT = HERE.parent
+# QG_CURSO=<nombre> construye otro curso con el mismo motor: plan.py, parte*.py y exercises/
+# salen de cursos/<nombre>/ y no se comprueba la cobertura de las guías de IBM.
+CURSO = os.environ.get("QG_CURSO")
+SRC = ROOT / "cursos" / CURSO if CURSO else HERE
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(SRC))
 from plan import PARTS  # noqa: E402
 
 from qgcheck import spec  # noqa: E402
@@ -36,7 +42,7 @@ TOC = ROOT / ".cache" / "qiskit-docs" / "docs" / "guides" / "_toc.json"
 
 def load_lessons() -> dict[str, dict[str, Any]]:
     found: dict[str, dict[str, Any]] = {}
-    for f in sorted(HERE.glob("parte*.py")):
+    for f in sorted(SRC.glob("parte*.py")):
         for les in importlib.import_module(f.stem).LESSONS:
             if les["id"] in found:
                 raise SystemExit(f"lección duplicada: {les['id']}")
@@ -145,7 +151,8 @@ def check(lesson: dict[str, Any]) -> None:
 
 
 def main() -> None:
-    coverage()
+    if not CURSO:
+        coverage()
     lessons = load_lessons()
     planned = {lid for part in PARTS for lid, _, _ in part["lessons"]}
     if planned != set(lessons):
@@ -165,11 +172,12 @@ def main() -> None:
             for b in les["beats"]:
                 b["tag"][0] = section
             names = {g: g for g in guides}
-            les["practice"] = [
-                *les["practice"],
-                "Guías originales: "
-                + " · ".join(f"[{g}]({GUIDE}{'' if g == 'index' else g})" for g in names),
-            ]
+            if names:
+                les["practice"] = [
+                    *les["practice"],
+                    "Guías originales: "
+                    + " · ".join(f"[{g}]({GUIDE}{'' if g == 'index' else g})" for g in names),
+                ]
             check(les)
             publish_exercises(les, exercises)
             ordered.append(les)
@@ -239,8 +247,8 @@ def main() -> None:
         path.write_text(text, encoding="utf-8")
     total = sum(len(p["lessons"]) for p in PARTS)
     print(
-        f"{len(ordered)} de {total} lecciones escritas, {sum(len(les['beats']) for les in ordered)} pasos; "
-        f"cobertura de las {len(toc_pages())} guías: completa"
+        f"{len(ordered)} de {total} lecciones escritas, {sum(len(les['beats']) for les in ordered)} pasos"
+        + ("" if CURSO else f"; cobertura de las {len(toc_pages())} guías: completa")
     )
     if "--tts" in sys.argv:
         for les in ordered:

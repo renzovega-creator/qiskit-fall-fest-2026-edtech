@@ -1,0 +1,431 @@
+{
+ "id": "q2-kernel",
+ "part": "Nivel 2 · Kernels",
+ "section": "2.1",
+ "title": "SVM con kernel RBF ↔ kernel cuántico",
+ "summary": "Una SVM solo mira similitudes entre puntos; un circuito puede medir esas similitudes como solapamientos de estados.",
+ "goals": [
+  "recordar que una SVM con kernel solo necesita $k(x, x')$ entre pares de puntos",
+  "definir el kernel cuántico $k(x,x')=|\\langle\\varphi(x')|\\varphi(x)\\rangle|^2$ con un feature map",
+  "comparar con honestidad `SVC` y `QSVC` en el mismo dataset"
+ ],
+ "beats": [
+  {
+   "id": "intro",
+   "tag": [
+    "2.1",
+    "Par 2 de Del ML al QML"
+   ],
+   "say": "Una máquina de vectores de soporte con kernel separa clases que no se pueden separar con una recta. [[truco]]Su truco es que nunca mira los puntos directamente: solo necesita qué tan parecidos son entre sí. [[par]]Hoy reemplazamos esa medida de parecido por un circuito.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "SVM con kernel ↔ kernel cuántico",
+     "style": "title"
+    },
+    {
+     "type": "row",
+     "items": [
+      {
+       "type": "box",
+       "kind": "def",
+       "title": "Clásico",
+       "body": [
+        {
+         "type": "text",
+         "text": "$k(x,x')=e^{-\\gamma\\|x-x'\\|^2}$ (RBF)",
+         "style": "body"
+        }
+       ]
+      },
+      {
+       "type": "box",
+       "kind": "def",
+       "title": "Cuántico",
+       "body": [
+        {
+         "type": "text",
+         "text": "$k(x,x')=|\\langle\\varphi(x')|\\varphi(x)\\rangle|^2$",
+         "style": "body"
+        }
+       ]
+      }
+     ],
+     "id": "par",
+     "hidden": true,
+     "gap": 30
+    },
+    {
+     "type": "text",
+     "text": "la SVM no cambia: solo cambia quién calcula las similitudes",
+     "style": "subtitle",
+     "id": "s",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "s",
+     "at": "truco"
+    },
+    {
+     "do": "show",
+     "id": "par",
+     "at": "par"
+    }
+   ]
+  },
+  {
+   "id": "recuerda",
+   "tag": [
+    "2.1",
+    "Recuerda: el kernel RBF"
+   ],
+   "say": "El kernel RBF vale uno cuando dos puntos coinciden y decae con la distancia. [[ej]]Por ejemplo, con gamma un medio, dos puntos muy cercanos dan casi uno, y dos puntos lejanos dan sesenta y cinco centésimas. [[moons]]Con este kernel, una SVM clasifica las dos lunas de scikit-learn: [[acc]]acierta los quince puntos de prueba.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from sklearn.datasets import make_moons\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import MinMaxScaler\nfrom sklearn.svm import SVC\n\nX, y = make_moons(n_samples=60, noise=0.15, random_state=0)\nX = MinMaxScaler((0, 1)).fit_transform(X)\nXtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.25, random_state=0)\n\nsvm = SVC(kernel=\"rbf\").fit(Xtr, ytr)\nprint(svm.score(Xte, yte))",
+     "lang": "python",
+     "id": "c",
+     "size": 19
+    },
+    {
+     "type": "math",
+     "tex": "k_{\\rm RBF}(x,x')=e^{-\\gamma\\|x-x'\\|^2}",
+     "id": "m",
+     "size": 34
+    },
+    {
+     "type": "text",
+     "text": "con $\\gamma=0.5$: $k([0.2,0.7],[0.25,0.65])=0.998$ y $k([0.2,0.7],[0.9,0.1])=0.654$",
+     "style": "note",
+     "id": "n",
+     "hidden": true
+    },
+    {
+     "type": "code",
+     "src": "1.0",
+     "lang": "out",
+     "id": "o",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "n",
+     "at": "ej"
+    },
+    {
+     "do": "hl",
+     "lines": [
+      10,
+      11
+     ],
+     "id": "c",
+     "at": "moons"
+    },
+    {
+     "do": "show",
+     "id": "o",
+     "at": "acc"
+    }
+   ]
+  },
+  {
+   "id": "feature",
+   "tag": [
+    "2.1",
+    "El gemelo cuántico: un feature map"
+   ],
+   "say": "En el lado cuántico, un circuito lleva cada punto x a un estado de dos qubits, phi de x. Es un feature map. [[zz]]Aquí usamos el ZZ feature map: Hadamards, rotaciones con los datos y un entrelazamiento entre los dos qubits. [[kern]]El kernel cuántico es el solapamiento al cuadrado entre dos de esos estados. [[mide]]En hardware se estima preparando phi de x, deshaciendo phi de x prima y contando cuántas veces sale cero cero: otra vez, Monte Carlo.",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 2,
+     "ops": [
+      {
+       "g": "h",
+       "q": [
+        0
+       ]
+      },
+      {
+       "g": "h",
+       "q": [
+        1
+       ]
+      },
+      {
+       "g": "p",
+       "q": [
+        0
+       ],
+       "p": "2x₀"
+      },
+      {
+       "g": "p",
+       "q": [
+        1
+       ],
+       "p": "2x₁"
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        1
+       ]
+      },
+      {
+       "g": "p",
+       "q": [
+        1
+       ],
+       "p": "2(π−x₀)(π−x₁)"
+      },
+      {
+       "g": "cx",
+       "q": [
+        0,
+        1
+       ]
+      }
+     ],
+     "id": "q",
+     "maxw": 640
+    },
+    {
+     "type": "math",
+     "tex": "k(x,x')=\\big|\\langle\\varphi(x')|\\varphi(x)\\rangle\\big|^2",
+     "id": "m",
+     "hidden": true,
+     "size": 38
+    },
+    {
+     "type": "text",
+     "text": "$k(x,x') = P(00)$ tras $U_\\varphi(x)$ y luego $U_\\varphi(x')^\\dagger$",
+     "style": "note",
+     "id": "n",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "emph",
+     "id": "q",
+     "at": "zz"
+    },
+    {
+     "do": "show",
+     "id": "m",
+     "at": "kern"
+    },
+    {
+     "do": "show",
+     "id": "n",
+     "at": "mide"
+    }
+   ],
+   "ask": {
+    "kind": "choice",
+    "prompt": "Para cualquier punto $x$, ¿cuánto vale el kernel cuántico $k(x, x)$?",
+    "options": [
+     "0",
+     "1/2",
+     "1",
+     "depende del feature map"
+    ],
+    "right": 2,
+    "why": "Correcto: $|\\langle\\varphi(x)|\\varphi(x)\\rangle|^2 = 1$ porque el estado está normalizado. Igual que el RBF en $x = x'$.",
+    "hint": "Es el solapamiento de un estado normalizado consigo mismo."
+   },
+   "align": "top"
+  },
+  {
+   "id": "predice",
+   "tag": [
+    "2.1",
+    "Antes de comparar"
+   ],
+   "say": "Mismo dataset, mismos cuarenta y cinco puntos de entrenamiento, misma SVM. Solo cambiamos el kernel. [[quien]]¿Quién crees que clasifica mejor los quince puntos de prueba?",
+   "scene": [
+    {
+     "type": "code",
+     "src": "from qiskit.circuit.library import zz_feature_map\nfrom qiskit_machine_learning.algorithms import QSVC\nfrom qiskit_machine_learning.kernels import FidelityStatevectorKernel\n\nmapa = zz_feature_map(2, reps=1)              # x → |φ(x)⟩, 2 qubits\nkernel = FidelityStatevectorKernel(feature_map=mapa)\n\nqsvc = QSVC(quantum_kernel=kernel).fit(Xtr, ytr)\nprint(qsvc.score(Xte, yte))",
+     "lang": "python",
+     "id": "c",
+     "size": 20
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "En las dos lunas, ¿quién acierta más?",
+    "options": [
+     "el kernel cuántico, por mucho",
+     "empatan",
+     "el RBF clásico",
+     "ninguno pasa del 60 %"
+    ],
+    "after": "Anotado. Veamos el resultado."
+   },
+   "align": "top"
+  },
+  {
+   "id": "compara",
+   "tag": [
+    "2.1",
+    "El resultado, sin maquillaje"
+   ],
+   "say": "El RBF acierta los quince. El kernel cuántico acierta catorce: noventa y tres por ciento. [[honesto]]En este problema, el clásico gana. Usar un circuito no da ventaja por sí solo. [[escala]]Y hay una trampa: si escalamos los datos entre menos uno y uno y repetimos el feature map dos veces, el kernel cuántico cae a cincuenta y tres por ciento, casi al azar. [[gamma]]La escala de los datos hace el papel de gamma en el RBF: es un hiperparámetro.",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "modelo",
+      "kernel",
+      "exactitud en prueba (15 puntos)"
+     ],
+     "rows": [
+      [
+       "`SVC`",
+       "RBF",
+       "1.00"
+      ],
+      [
+       "`QSVC`",
+       "ZZ, `reps=1`, datos en [0, 1]",
+       "0.93"
+      ],
+      [
+       "`QSVC`",
+       "ZZ, `reps=2`, datos en [−1, 1]",
+       "0.53"
+      ]
+     ],
+     "id": "t"
+    },
+    {
+     "type": "text",
+     "text": "`make_moons(n_samples=60, noise=0.15, random_state=0)`, simulación exacta del estado",
+     "style": "note",
+     "id": "n"
+    }
+   ],
+   "actions": [
+    {
+     "do": "emph",
+     "id": "t",
+     "at": "honesto"
+    }
+   ],
+   "ask": {
+    "kind": "choice",
+    "prompt": "En un `QSVC`, ¿qué parte calcula el circuito cuántico?",
+    "options": [
+     "las similitudes $k(x, x')$ entre pares de puntos",
+     "la optimización que encuentra los vectores de soporte",
+     "ambas",
+     "la predicción final, sin pasar por la SVM"
+    ],
+    "right": 0,
+    "why": "Correcto: el circuito solo da la matriz de kernel. La SVM que la usa es la misma de scikit-learn.",
+    "hint": "`QSVC` hereda de `SVC` de scikit-learn."
+   },
+   "align": "top"
+  },
+  {
+   "id": "mapa",
+   "tag": [
+    "2.1",
+    "El mapa del par"
+   ],
+   "say": "El par completo en una tabla. [[fila]]La SVM es la misma; lo que cambia es el espacio donde medimos el parecido.",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "SVM con kernel (clásico)",
+      "QSVC (cuántico)"
+     ],
+     "rows": [
+      [
+       "truco del kernel",
+       "estados en el espacio de Hilbert"
+      ],
+      [
+       "$e^{-\\gamma\\|x-x'\\|^2}$",
+       "$|\\langle\\varphi(x')|\\varphi(x)\\rangle|^2$"
+      ],
+      [
+       "$\\gamma$ (ancho del kernel)",
+       "escala de los datos y `reps` del feature map"
+      ],
+      [
+       "matriz de Gram",
+       "`kernel.evaluate(X)`"
+      ],
+      [
+       "`SVC`",
+       "`QSVC` (la misma optimización)"
+      ]
+     ],
+     "id": "t",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "t",
+     "at": "fila"
+    }
+   ]
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "2.1",
+    "Tu turno"
+   ],
+   "say": "Ahora construye tú el kernel cuántico, sin la biblioteca. [[e1]]Tienes el feature map y una función que da el estado de cada punto. Te falta una línea: el solapamiento al cuadrado. [[check]]Los casos comparan tu kernel con el de Qiskit Machine Learning.",
+   "scene": [
+    {
+     "type": "exercise",
+     "exercise": "q2-kernel/kernel-fidelidad",
+     "prompt": "Completa `kernel(x, y)`: debe devolver $|\\langle\\varphi(y)|\\varphi(x)\\rangle|^2$ usando `estado(x)` y `estado(y)`.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "`Statevector` tiene el método `inner`: `estado(y).inner(estado(x))` es $\\langle\\varphi(y)|\\varphi(x)\\rangle$, un número complejo.",
+      "Toma el módulo con `abs(...)`, elévalo al cuadrado y conviértelo con `float(...)`."
+     ],
+     "id": "e1",
+     "hidden": true,
+     "starter": "from qiskit.circuit.library import zz_feature_map\nfrom qiskit.quantum_info import Statevector\n\nmapa = zz_feature_map(2, reps=1)\n\n\ndef estado(x):\n    # el feature map lleva el punto x (dos números) a un estado de 2 qubits\n    return Statevector(mapa.assign_parameters(x))\n\n\ndef kernel(x, y):\n    # ✏️ similitud cuántica: |⟨φ(y)|φ(x)⟩|²\n    return 0.0\n\n\nprint(kernel([0.2, 0.7], [0.2, 0.7]), kernel([0.2, 0.7], [0.9, 0.1]))",
+     "cases": [
+      "k(x, x) = 1",
+      "coincide con FidelityStatevectorKernel en dos pares"
+     ]
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "e1",
+     "at": "e1"
+    }
+   ]
+  }
+ ],
+ "sources": [],
+ "practice": [
+  "Cambia `reps` del feature map a 2 y 3 y mira cómo cambia la exactitud del `QSVC`."
+ ],
+ "next": null,
+ "voice": "es-PE-AlexNeural",
+ "rate": "-4%"
+}

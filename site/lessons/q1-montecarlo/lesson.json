@@ -1,0 +1,491 @@
+{
+ "id": "q1-montecarlo",
+ "part": "Nivel 1 · Probabilidad y muestreo",
+ "section": "1.1",
+ "title": "Monte Carlo ↔ shots",
+ "summary": "Estimar una probabilidad lanzando una moneda y midiendo un qubit es el mismo método: Monte Carlo.",
+ "goals": [
+  "estimar una probabilidad con N muestras y su error típico $\\sqrt{p(1-p)/N}$",
+  "leer la regla de Born $P(1)=\\sin^2(\\theta/2)$ como una distribución de probabilidad",
+  "reconocer que los shots de un circuito son muestras de Monte Carlo y su error cae como $1/\\sqrt{N}$"
+ ],
+ "beats": [
+  {
+   "id": "intro",
+   "tag": [
+    "1.1",
+    "Par 1 de Del ML al QML"
+   ],
+   "say": "En machine learning y en estadística estimas probabilidades contando muestras: eso es Monte Carlo. [[q]]En un computador cuántico pasa lo mismo cada vez que mides: [[par]]cada shot es una muestra. Hoy vas a ver que son el mismo método.",
+   "scene": [
+    {
+     "type": "text",
+     "text": "Monte Carlo ↔ shots",
+     "style": "title"
+    },
+    {
+     "type": "row",
+     "items": [
+      {
+       "type": "box",
+       "kind": "def",
+       "title": "Clásico",
+       "body": [
+        {
+         "type": "text",
+         "text": "lanzar una moneda N veces y contar caras",
+         "style": "body"
+        }
+       ]
+      },
+      {
+       "type": "box",
+       "kind": "def",
+       "title": "Cuántico",
+       "body": [
+        {
+         "type": "text",
+         "text": "medir un qubit N veces y contar unos",
+         "style": "body"
+        }
+       ]
+      }
+     ],
+     "id": "par",
+     "hidden": true,
+     "gap": 30
+    },
+    {
+     "type": "text",
+     "text": "el mismo estimador, el mismo error",
+     "style": "subtitle",
+     "id": "s",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "par",
+     "at": "q"
+    },
+    {
+     "do": "show",
+     "id": "s",
+     "at": "par"
+    }
+   ]
+  },
+  {
+   "id": "recuerda",
+   "tag": [
+    "1.1",
+    "Recuerda: Monte Carlo"
+   ],
+   "say": "Una moneda cargada sale cara con probabilidad p igual a un cuarto. [[sim]]Si la lanzas N veces y divides las caras entre N, obtienes una estimación de p. [[err]]Esa estimación no es exacta: su error típico es la raíz de p por uno menos p, sobre N. [[cien]]Para tener la mitad de error necesitas cuatro veces más muestras.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "import numpy as np\n\nrng = np.random.default_rng(7)\np = 0.25                       # probabilidad de «cara»\nfor n in (10, 100, 1000, 10000):\n    caras = rng.random(n) < p  # n lanzamientos simulados\n    print(n, caras.mean())",
+     "lang": "python",
+     "id": "c",
+     "size": 22
+    },
+    {
+     "type": "code",
+     "src": "10 0.2\n100 0.26\n1000 0.257\n10000 0.2489",
+     "lang": "out",
+     "id": "o",
+     "hidden": true
+    },
+    {
+     "type": "math",
+     "tex": "\\hat p=\\frac{k}{N},\\qquad \\sigma_{\\hat p}=\\sqrt{\\frac{p(1-p)}{N}}",
+     "id": "m",
+     "hidden": true,
+     "size": 34
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "o",
+     "at": "sim"
+    },
+    {
+     "do": "show",
+     "id": "m",
+     "at": "err"
+    },
+    {
+     "do": "emph",
+     "id": "m",
+     "at": "cien"
+    }
+   ],
+   "ask": {
+    "kind": "numeric",
+    "prompt": "Con $p = 0.25$ y $N = 100$ muestras, ¿cuál es el error típico $\\sigma_{\\hat p}$? (tres decimales)",
+    "answer": 0.043,
+    "why": "Correcto: $\\sqrt{0.25\\cdot 0.75/100}=\\sqrt{0.001875}\\approx 0.043$.",
+    "tol": 0.002,
+    "hint": "Calcula $p(1-p)/N$ y luego saca la raíz cuadrada."
+   },
+   "align": "top"
+  },
+  {
+   "id": "born",
+   "tag": [
+    "1.1",
+    "El gemelo cuántico: la regla de Born"
+   ],
+   "say": "Ahora el qubit. Empieza en cero. [[ry]]Una rotación R Y de ángulo theta lo inclina en la esfera de Bloch. [[born]]Al medirlo, la regla de Born dice que sale uno con probabilidad seno cuadrado de theta medios. Es una distribución de Bernoulli, igual que la moneda. [[pi3]]Con theta igual a pi tercios, esa probabilidad vale exactamente un cuarto: hemos construido una moneda cargada cuántica.",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 1,
+     "ops": [
+      {
+       "g": "ry",
+       "q": [
+        0
+       ],
+       "p": "π/3"
+      },
+      {
+       "g": "measure",
+       "q": [
+        0
+       ],
+       "c": 0
+      }
+     ],
+     "clbits": 1,
+     "id": "q",
+     "maxw": 420
+    },
+    {
+     "type": "math",
+     "tex": "P(1)=\\sin^2\\!\\big(\\tfrac{\\theta}{2}\\big)",
+     "id": "m",
+     "hidden": true,
+     "size": 40
+    },
+    {
+     "type": "math",
+     "tex": "\\theta=\\tfrac{\\pi}{3}\\ \\Rightarrow\\ P(1)=\\sin^2\\!\\big(\\tfrac{\\pi}{6}\\big)=\\tfrac14",
+     "id": "m2",
+     "hidden": true,
+     "size": 34
+    }
+   ],
+   "actions": [
+    {
+     "do": "gate",
+     "i": 0,
+     "id": "q",
+     "at": "ry"
+    },
+    {
+     "do": "show",
+     "id": "m",
+     "at": "born"
+    },
+    {
+     "do": "show",
+     "id": "m2",
+     "at": "pi3"
+    }
+   ],
+   "ask": {
+    "kind": "choice",
+    "prompt": "¿Con qué ángulo $\\theta$ el qubit es una moneda justa, $P(1)=1/2$?",
+    "options": [
+     "$\\theta=\\pi/4$",
+     "$\\theta=\\pi/2$",
+     "$\\theta=\\pi$",
+     "$\\theta=2\\pi$"
+    ],
+    "right": 1,
+    "why": "Correcto: $\\sin^2(\\pi/4)=1/2$. Es la misma superposición que produce una Hadamard.",
+    "hint": "Busca el ángulo para el que $\\sin^2(\\theta/2)=1/2$."
+   },
+   "align": "top"
+  },
+  {
+   "id": "predice",
+   "tag": [
+    "1.1",
+    "Antes de medir"
+   ],
+   "say": "Antes de ejecutarlo, apuesta. Vamos a medir este qubit cien veces. [[cuantos]]¿Cuántos unos crees que saldrán?",
+   "scene": [
+    {
+     "type": "circuit",
+     "qubits": 1,
+     "ops": [
+      {
+       "g": "ry",
+       "q": [
+        0
+       ],
+       "p": "π/3"
+      },
+      {
+       "g": "measure",
+       "q": [
+        0
+       ],
+       "c": 0
+      }
+     ],
+     "clbits": 1,
+     "maxw": 420
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "predict",
+    "prompt": "Con $\\theta=\\pi/3$ y 100 shots, ¿cuántos `1` esperas?",
+    "options": [
+     "exactamente 25",
+     "alrededor de 25, pero no exacto",
+     "alrededor de 50",
+     "alrededor de 75"
+    ],
+    "after": "Anotado. Ahora midamos."
+   },
+   "align": "top"
+  },
+  {
+   "id": "medir",
+   "tag": [
+    "1.1",
+    "Medir es muestrear"
+   ],
+   "say": "Ejecutamos con StatevectorSampler, con cien shots. [[res]]Salen veinticuatro unos y setenta y seis ceros. No veinticinco: veinticuatro. [[mc]]Ese uno de diferencia no es un error del simulador. Es el error de Monte Carlo: con cien muestras, el error típico es de cuatro centésimas.",
+   "scene": [
+    {
+     "type": "code",
+     "src": "import numpy as np\nfrom qiskit import QuantumCircuit\nfrom qiskit.primitives import StatevectorSampler\n\nqc = QuantumCircuit(1)\nqc.ry(np.pi / 3, 0)            # P(1) = sin²(π/6) = 0.25\nqc.measure_all()\n\nres = StatevectorSampler(seed=7).run([qc], shots=100).result()\nprint(res[0].data.meas.get_counts())",
+     "lang": "python",
+     "id": "c",
+     "size": 21
+    },
+    {
+     "type": "code",
+     "src": "{'0': 76, '1': 24}",
+     "lang": "out",
+     "id": "o",
+     "hidden": true
+    },
+    {
+     "type": "hist",
+     "data": [
+      [
+       "0",
+       76
+      ],
+      [
+       "1",
+       24
+      ]
+     ],
+     "id": "h",
+     "grow": true,
+     "ymax": 100,
+     "color": "blue",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "o",
+     "at": "res"
+    },
+    {
+     "do": "show",
+     "id": "h",
+     "at": "res"
+    },
+    {
+     "do": "grow",
+     "dur": 1.2,
+     "id": "h",
+     "at": "res"
+    }
+   ]
+  },
+  {
+   "id": "error",
+   "tag": [
+    "1.1",
+    "El error cae como 1/√N"
+   ],
+   "say": "Repetimos con más shots, veinte veces cada uno, y promediamos el error. [[tabla]]Con diez shots nos equivocamos en doce centésimas; con diez mil, en menos de cuatro milésimas. [[ley]]La columna de la derecha es la fórmula de la moneda. Coinciden: el ruido de disparo de un computador cuántico es el error de Monte Carlo.",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "shots N",
+      "error medio medido",
+      "$\\sqrt{p(1-p)/N}$"
+     ],
+     "rows": [
+      [
+       "10",
+       "0.120",
+       "0.137"
+      ],
+      [
+       "100",
+       "0.043",
+       "0.043"
+      ],
+      [
+       "1000",
+       "0.015",
+       "0.014"
+      ],
+      [
+       "10000",
+       "0.004",
+       "0.004"
+      ]
+     ],
+     "id": "t",
+     "hidden": true
+    },
+    {
+     "type": "text",
+     "text": "20 repeticiones por fila, $\\theta=\\pi/3$, StatevectorSampler",
+     "style": "note",
+     "id": "n",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "t",
+     "at": "tabla"
+    },
+    {
+     "do": "show",
+     "id": "n",
+     "at": "tabla"
+    },
+    {
+     "do": "emph",
+     "id": "t",
+     "at": "ley"
+    }
+   ],
+   "ask": {
+    "kind": "choice",
+    "prompt": "Quieres reducir a la mitad el error de muestreo de un circuito. ¿Cuántos shots necesitas?",
+    "options": [
+     "el doble",
+     "cuatro veces más",
+     "$\\sqrt2$ veces más",
+     "diez veces más"
+    ],
+    "right": 1,
+    "why": "Correcto: el error va como $1/\\sqrt N$, así que dividirlo entre 2 exige multiplicar $N$ por 4.",
+    "hint": "El error es proporcional a $1/\\sqrt N$."
+   },
+   "align": "top"
+  },
+  {
+   "id": "mapa",
+   "tag": [
+    "1.1",
+    "El mapa del par"
+   ],
+   "say": "Resumamos el par en una tabla. [[fila]]Cada idea de Monte Carlo tiene su gemelo en el circuito. Guárdala: en el repaso de mañana te preguntaremos por ella.",
+   "scene": [
+    {
+     "type": "table",
+     "head": [
+      "Monte Carlo (clásico)",
+      "Circuito (cuántico)"
+     ],
+     "rows": [
+      [
+       "una muestra aleatoria",
+       "un shot"
+      ],
+      [
+       "$N$ muestras",
+       "`shots=N`"
+      ],
+      [
+       "frecuencia $k/N$",
+       "`counts['1'] / shots`"
+      ],
+      [
+       "distribución de Bernoulli",
+       "regla de Born, $\\sin^2(\\theta/2)$"
+      ],
+      [
+       "error $\\sqrt{p(1-p)/N}$",
+       "ruido de disparo (*shot noise*)"
+      ]
+     ],
+     "id": "t",
+     "hidden": true
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "t",
+     "at": "fila"
+    }
+   ]
+  },
+  {
+   "id": "mision",
+   "tag": [
+    "1.1",
+    "Tu turno"
+   ],
+   "say": "Ahora te toca a ti. [[e1]]Completa dos funciones: una que prepara la moneda cuántica y otra que estima su probabilidad contando shots. [[check]]Pulsa Comprobar: el código corre con Qiskit de verdad y los casos te dicen si acertaste.",
+   "scene": [
+    {
+     "type": "exercise",
+     "exercise": "q1-montecarlo/estimar-p",
+     "prompt": "Completa `circuito(theta)`, que debe dar $P(1)=\\sin^2(\\theta/2)$, y `estimar_p(theta, shots)`, que devuelve la frecuencia de `1` en los conteos.",
+     "level": 2,
+     "needs": "qiskit",
+     "hints": [
+      "La rotación que buscas es `qc.ry(theta, 0)`, antes de `measure_all()`.",
+      "Los conteos son un diccionario como `{'0': 76, '1': 24}`. Usa `conteos.get('1', 0)` por si no salió ningún `1`, y divide entre `shots`."
+     ],
+     "id": "e1",
+     "hidden": true,
+     "starter": "import numpy as np\nfrom qiskit import QuantumCircuit\nfrom qiskit.primitives import StatevectorSampler\n\n\ndef circuito(theta):\n    qc = QuantumCircuit(1)\n    # ✏️ rota el qubit un ángulo theta alrededor del eje Y\n    qc.measure_all()\n    return qc\n\n\ndef estimar_p(theta, shots):\n    res = StatevectorSampler(seed=7).run([circuito(theta)], shots=shots).result()\n    conteos = res[0].data.meas.get_counts()\n    # ✏️ devuelve la frecuencia de '1' (el estimador de Monte Carlo)\n    return 0.0\n\n\nprint(estimar_p(np.pi / 3, 1000), \"≈\", np.sin(np.pi / 6) ** 2)",
+     "cases": [
+      "circuito(theta) da P(1) = sin²(θ/2)",
+      "estimar_p(π/3, 2000) se acerca a 0.25"
+     ]
+    }
+   ],
+   "actions": [
+    {
+     "do": "show",
+     "id": "e1",
+     "at": "e1"
+    }
+   ]
+  }
+ ],
+ "sources": [],
+ "practice": [
+  "Cambia la semilla de `StatevectorSampler` y comprueba que la frecuencia cambia, pero el error típico no."
+ ],
+ "next": "q2-kernel",
+ "voice": "es-PE-AlexNeural",
+ "rate": "-4%"
+}
