@@ -6,6 +6,8 @@ una idea clásica y su gemela cuántica, y todo se comprueba con Qiskit.
 
 Proyecto para el **Qiskit Fall Fest 2026**.
 
+![Portada de QuantumShot: «Del ML al QML, con Qiskit», la ruta Aprende, Practica y Demuestra y el primer paso, la lección 1.1](docs/img/portada.png)
+
 | Lección                              | Par clásico ↔ cuántico                                        |
 | ------------------------------------ | ------------------------------------------------------------- |
 | Monte Carlo ↔ shots                  | Regla de Born, frecuencias y error de muestreo                |
@@ -23,6 +25,8 @@ La portada lee tu progreso y te muestra **un solo siguiente paso**, marcado como
 explica cuándo se abre; si quieres verlo igual, pulsa «Echar un vistazo».
 Mientras bajas, una barra fija repite lo que te toca hacer.
 
+![La portada con la primera lección hecha: el capítulo Practica marcado como «Tu siguiente paso» y Demuestra plegado hasta superar la primera misión](docs/img/guia.png)
+
 ### 2. Aprende con las lecciones
 
 Pulsa **Comenzar**. La lección avanza sola, con narración, animaciones y
@@ -38,22 +42,32 @@ subtítulos.
 - **Programa.** Al final hay un ejercicio: completa el código y pulsa
   **Comprobar** para ejecutarlo con Qiskit. Si te atascas, usa las pistas.
 
+![Actividad de la lección 1.1: botones para lanzar 1, 10, 100 y 1000 monedas, el histograma y la estimación entrando en la franja del error típico](docs/img/leccion-monedas.png)
+
+![Actividad de la lección 2.1: mapas de similitud del kernel RBF y del kernel cuántico sobre las dos lunas, con deslizadores de gamma, escala y reps](docs/img/leccion-kernels.png)
+
 ### 3. Practica con las misiones
 
 Abre **Practica** para ver el mapa de habilidades: arrástralo para moverte,
 acércate con la rueda o con − y +, o cambia a la vista **Lista**. Haz clic en
 una habilidad para ver su ficha y su misión.
 
+![Mapa de habilidades a pantalla completa, con la ficha de «Regla de Born» abierta y sus conexiones resaltadas](docs/img/mapa.png)
+
 Cada misión tiene cuatro pasos: **predice** el resultado, **experimenta**
 (ajusta el circuito y pulsa «Medir con Qiskit»), **observa** qué salió y
 **demuestra** con «Comprobar el reto». Al superarla ganas XP, insignias y una
 estrella en el mapa, y se abren misiones nuevas.
+
+![Misión «La moneda cuántica» superada: Qiskit midió P(1) = 0,250, se ganan 50 XP y las insignias «Ojo de Monte Carlo» y «Por tu cuenta»](docs/img/mision-insignias.png)
 
 ### 4. Demuestra con tu portafolio
 
 En **Demuestra** está tu portafolio: habilidades demostradas, lecciones
 completadas, insignias y una evidencia por cada reto superado, con el problema,
 lo que hiciste y el código para reproducirlo.
+
+![Portafolio tras unos días: 5 de 7 habilidades demostradas, 2 de 2 lecciones, 5 de 6 insignias, 170 XP y tres evidencias con fecha](docs/img/portafolio.png)
 
 - **Editar perfil** cambia tu nombre, avatar y presentación.
 - Marca **Mostrar en mi perfil público** en las evidencias que quieras enseñar y
@@ -66,6 +80,8 @@ lo que hiciste y el código para reproducirlo.
 En la portada tienes un **reto del día** (la misma semilla para todos: predices
 un número y Qiskit lo mide), **preguntas de repaso** que vuelven a los 1, 3, 7 y
 21 días, y tu **nivel** con una racha.
+
+![Sección «Cada día» de la portada: el reto del día, el repaso con preguntas pendientes y el nivel](docs/img/cada-dia.png)
 
 ### Atajos en las lecciones
 
