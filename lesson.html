@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuantumShot</title>
+<link rel="stylesheet" href="vendor/fonts.css">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="universo.css">
+<script src="theme.js"></script>
+<script src="account.js"></script>
+</head>
+<body data-paso="aprende">
+<header class="bar">
+  <a class="brand" href="index.html"><span class="dot"></span>QuantumShot</a>
+  <nav class="ruta" aria-label="Tu ruta">
+    <a href="index.html#pares" data-paso="aprende"><b>1</b>Aprende</a>
+    <a href="juego.html#mapa" data-paso="practica"><b>2</b>Practica</a>
+    <a href="juego.html#portafolio" data-paso="demuestra"><b>3</b>Demuestra</a>
+  </nav>
+  <div class="crumb"><small id="crumb-part"></small><b id="crumb-title"></b></div>
+  <div class="tools">
+    <select class="tool" id="speed" aria-label="Velocidad">
+      <option value="0.85">0,85×</option><option value="1" selected>1×</option>
+      <option value="1.15">1,15×</option><option value="1.3">1,3×</option><option value="1.5">1,5×</option>
+    </select>
+    <button class="tool on" id="cc" title="Subtítulos (C)">CC</button>
+    <button class="tool" id="mute">🔊</button>
+    <div data-account></div>
+    <div data-theme-ctl></div>
+  </div>
+</header>
+
+<main class="player">
+  <div id="viewport">
+    <div id="stage">
+      <div id="tag"></div>
+      <div id="scene" class="scene"></div>
+      <div id="ask"></div>
+    </div>
+  </div>
+  <div id="caption"></div>
+  <div class="controls">
+    <div class="btns">
+      <button class="cbtn" id="prev" aria-label="Paso anterior" title="Paso anterior (←)">⏮</button>
+      <button class="cbtn play" id="play" aria-label="Pausa" title="Pausa / reproducir (espacio)">❚❚</button>
+      <button class="cbtn" id="replay" aria-label="Repetir paso" title="Repetir este paso">↺</button>
+      <button class="cbtn small" id="back5" aria-label="Retroceder 5 segundos" title="−5 s (Mayús + ←)">−5</button>
+      <button class="cbtn small" id="fwd5" aria-label="Avanzar 5 segundos" title="+5 s (Mayús + →)">+5</button>
+      <button class="cbtn" id="next" aria-label="Paso siguiente" title="Paso siguiente (→)">⏭</button>
+    </div>
+    <div id="timeline"></div>
+  </div>
+</main>
+
+<div class="overlay" id="start">
+  <div class="card">
+    <div class="eyebrow" id="start-eyebrow"></div>
+    <h1 id="start-title"></h1>
+    <div class="meta" id="start-meta"></div>
+    <p>Al terminar esta lección podrás:</p>
+    <ul id="start-goals"></ul>
+    <p role="note" style="padding:12px 16px;border:1px solid var(--line);border-radius:8px;background:var(--bg2);color:var(--ink);font:14px/1.5 var(--sans)"><strong>Versión de lectura en GitHub Pages.</strong> Las lecciones, las animaciones y el progreso local están disponibles. Ejecutar Qiskit y comprobar ejercicios necesita el servidor local; esta versión no tiene cuentas.</p>
+<div class="actions">
+      <button class="cta primary" id="go">Comenzar ▶</button>
+      <button class="cta" id="resume" style="display:none"></button>
+      <a class="cta" href="index.html">Índice</a>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hide" id="end">
+  <div class="card">
+    <div class="eyebrow">Lección completada</div>
+    <h1 id="end-title"></h1>
+    <div class="score" id="end-score"></div>
+    <div id="end-practice-wrap">
+      <p>Practica y profundiza:</p>
+      <ul id="end-practice"></ul>
+    </div>
+    <div class="actions">
+      <a class="cta primary" id="end-next">Siguiente lección →</a>
+      <button class="cta" id="again">Repetir</button>
+      <a class="cta" href="index.html">Índice</a>
+    </div>
+  </div>
+</div>
+
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="notebooks.js"></script>
+<script defer src="sfx.js"></script>
+<script defer src="blocks.js"></script>
+<script defer src="labs.js"></script>
+<script defer src="exercise.js"></script>
+<script defer src="engine.js"></script>
+</body>
+</html>

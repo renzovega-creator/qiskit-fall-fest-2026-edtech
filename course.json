@@ -1,0 +1,30 @@
+{
+ "parts": [
+  {
+   "title": "Nivel 1 · Probabilidad y muestreo",
+   "desc": "La regla de Born es una distribución de probabilidad y cada shot es una muestra de Monte Carlo.",
+   "lessons": [
+    {
+     "id": "q1-montecarlo",
+     "section": "1.1",
+     "title": "Monte Carlo ↔ shots",
+     "summary": "Estimar una probabilidad lanzando una moneda y midiendo un qubit es el mismo método: Monte Carlo.",
+     "minutes": 8
+    }
+   ]
+  },
+  {
+   "title": "Nivel 2 · Kernels",
+   "desc": "Una SVM solo necesita similitudes entre puntos: un circuito puede calcularlas en el espacio de Hilbert.",
+   "lessons": [
+    {
+     "id": "q2-kernel",
+     "section": "2.1",
+     "title": "SVM con kernel RBF ↔ kernel cuántico",
+     "summary": "Una SVM solo mira similitudes entre puntos; un circuito puede medir esas similitudes como solapamientos de estados.",
+     "minutes": 6
+    }
+   ]
+  }
+ ]
+}

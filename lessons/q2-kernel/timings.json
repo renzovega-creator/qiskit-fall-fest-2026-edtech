@@ -1,0 +1,196 @@
+{
+ "intro": {
+  "dur": 18.672,
+  "marks": {
+   "truco": 7.091,
+   "par": 14.196
+  },
+  "cues": [
+   [
+    0.107,
+    "Una máquina de vectores de soporte con kernel separa clases que no se pueden separar con una recta."
+   ],
+   [
+    7.091,
+    "Su truco es que nunca mira los puntos directamente: solo necesita qué tan parecidos son entre sí."
+   ],
+   [
+    14.196,
+    "Hoy reemplazamos esa medida de parecido por un circuito."
+   ]
+  ]
+ },
+ "recuerda": {
+  "dur": 24.888,
+  "marks": {
+   "ej": 6.468,
+   "moons": 16.432,
+   "acc": 21.64
+  },
+  "cues": [
+   [
+    0.107,
+    "El kernel RBF vale uno cuando dos puntos coinciden y decae con la distancia."
+   ],
+   [
+    6.468,
+    "Por ejemplo, con gamma un medio, dos puntos muy cercanos dan casi uno, y dos puntos lejanos dan sesenta y cinco centésimas."
+   ],
+   [
+    16.432,
+    "Con este kernel, una SVM clasifica las dos lunas de scikit-learn: acierta los quince puntos de prueba."
+   ]
+  ]
+ },
+ "feature": {
+  "dur": 35.376,
+  "marks": {
+   "zz": 10.176,
+   "kern": 19.107,
+   "mide": 24.754
+  },
+  "cues": [
+   [
+    0.107,
+    "En el lado cuántico, un circuito lleva cada punto x a un estado de dos qubits, phi de x."
+   ],
+   [
+    7.982,
+    "Es un feature map."
+   ],
+   [
+    10.176,
+    "Aquí usamos el ZZ feature map: Hadamards, rotaciones con los datos y un entrelazamiento entre los dos qubits."
+   ],
+   [
+    19.107,
+    "El kernel cuántico es el solapamiento al cuadrado entre dos de esos estados."
+   ],
+   [
+    24.754,
+    "En hardware se estima preparando phi de x, deshaciendo phi de x prima y contando cuántas veces sale cero cero: otra vez, Monte Carlo."
+   ]
+  ]
+ },
+ "explora": {
+  "dur": 30.192,
+  "marks": {
+   "clic": 4.303,
+   "lados": 16.432,
+   "escala": 24.796
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora explora tú los dos kernels sobre las lunas."
+   ],
+   [
+    4.303,
+    "Haz clic en cualquier lugar: el círculo rojo se mueve allí, y cada mapa pinta qué tan parecido es cada punto del cuadrado a ese lugar, más intenso cuanto más parecido."
+   ],
+   [
+    16.432,
+    "A la izquierda, el kernel RBF; a la derecha, el kernel cuántico del feature map que acabas de ver."
+   ],
+   [
+    24.796,
+    "Después mueve la escala de los datos y mira qué le pasa al mapa cuántico."
+   ]
+  ]
+ },
+ "predice": {
+  "dur": 14.184,
+  "marks": {
+   "quien": 9.723
+  },
+  "cues": [
+   [
+    0.107,
+    "Mismo dataset, mismos cuarenta y cinco puntos de entrenamiento, misma SVM."
+   ],
+   [
+    7.062,
+    "Solo cambiamos el kernel."
+   ],
+   [
+    9.723,
+    "¿Quién crees que clasifica mejor los quince puntos de prueba?"
+   ]
+  ]
+ },
+ "compara": {
+  "dur": 34.608,
+  "marks": {
+   "honesto": 8.35,
+   "escala": 15.71,
+   "gamma": 28.221
+  },
+  "cues": [
+   [
+    0.107,
+    "El RBF acierta los quince."
+   ],
+   [
+    3.255,
+    "El kernel cuántico acierta catorce: noventa y tres por ciento."
+   ],
+   [
+    8.35,
+    "En este problema, el clásico gana."
+   ],
+   [
+    11.903,
+    "Usar un circuito no da ventaja por sí solo."
+   ],
+   [
+    15.71,
+    "Y hay una trampa: si escalamos los datos entre menos uno y uno y repetimos el feature map dos veces, el kernel cuántico cae a cincuenta y tres por ciento, casi al azar."
+   ],
+   [
+    28.221,
+    "La escala de los datos hace el papel de gamma en el RBF: es un hiperparámetro."
+   ]
+  ]
+ },
+ "mapa": {
+  "dur": 8.688,
+  "marks": {
+   "fila": 2.93
+  },
+  "cues": [
+   [
+    0.107,
+    "El par completo en una tabla."
+   ],
+   [
+    2.93,
+    "La SVM es la misma; lo que cambia es el espacio donde medimos el parecido."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 18.816,
+  "marks": {
+   "e1": 4.84,
+   "check": 14.068
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora construye tú el kernel cuántico, sin la biblioteca."
+   ],
+   [
+    4.84,
+    "Tienes el feature map y una función que da el estado de cada punto."
+   ],
+   [
+    9.822,
+    "Te falta una línea: el solapamiento al cuadrado."
+   ],
+   [
+    14.068,
+    "Los casos comparan tu kernel con el de Qiskit Machine Learning."
+   ]
+  ]
+ }
+}

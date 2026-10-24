@@ -1,0 +1,258 @@
+{
+ "intro": {
+  "dur": 17.232,
+  "marks": {
+   "q": 7.303,
+   "par": 11.294
+  },
+  "cues": [
+   [
+    0.107,
+    "En machine learning y en estadística estimas probabilidades contando muestras: eso es Monte Carlo."
+   ],
+   [
+    7.303,
+    "En un computador cuántico pasa lo mismo cada vez que mides: cada shot es una muestra."
+   ],
+   [
+    13.87,
+    "Hoy vas a ver que son el mismo método."
+   ]
+  ]
+ },
+ "recuerda": {
+  "dur": 24.264,
+  "marks": {
+   "sim": 5.237,
+   "err": 11.86,
+   "cien": 19.135
+  },
+  "cues": [
+   [
+    0.107,
+    "Una moneda cargada sale cara con probabilidad p igual a un cuarto."
+   ],
+   [
+    5.237,
+    "Si la lanzas N veces y divides las caras entre N, obtienes una estimación de p."
+   ],
+   [
+    11.86,
+    "Esa estimación no es exacta: su error típico es la raíz de p por uno menos p, sobre N."
+   ],
+   [
+    19.135,
+    "Para tener la mitad de error necesitas cuatro veces más muestras."
+   ]
+  ]
+ },
+ "lanza": {
+  "dur": 26.328,
+  "marks": {
+   "btn": 5.52,
+   "linea": 10.02,
+   "mil": 21.102
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora lanza tú la moneda, que sale cara con probabilidad un cuarto."
+   ],
+   [
+    5.52,
+    "Cada botón suma esos lanzamientos a los que ya llevas."
+   ],
+   [
+    10.02,
+    "La línea roja es tu estimación a medida que crece N."
+   ],
+   [
+    14.436,
+    "La franja azul es el error típico alrededor del valor real, y se estrecha como uno sobre la raíz de N."
+   ],
+   [
+    21.102,
+    "Lanza hasta pasar de mil y mira cómo tu estimación entra en el embudo."
+   ]
+  ]
+ },
+ "born": {
+  "dur": 35.304,
+  "marks": {
+   "ry": 4.189,
+   "born": 9.143,
+   "pi3": 20.876,
+   "tu": 29.934
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora el qubit."
+   ],
+   [
+    2.066,
+    "Empieza en cero."
+   ],
+   [
+    4.189,
+    "Una rotación R Y de ángulo theta lo inclina en la esfera de Bloch."
+   ],
+   [
+    9.143,
+    "Al medirlo, la regla de Born dice que sale uno con probabilidad seno cuadrado de theta medios."
+   ],
+   [
+    16.46,
+    "Es una distribución de Bernoulli, igual que la moneda."
+   ],
+   [
+    20.876,
+    "Con theta igual a pi tercios, esa probabilidad vale exactamente un cuarto: hemos construido una moneda cargada cuántica."
+   ],
+   [
+    29.934,
+    "Ahora mueve tú el ángulo con el deslizador y mira cómo cambian las barras."
+   ]
+  ]
+ },
+ "predice": {
+  "dur": 9.696,
+  "marks": {
+   "cuantos": 6.822
+  },
+  "cues": [
+   [
+    0.107,
+    "Antes de ejecutarlo, apuesta."
+   ],
+   [
+    3.34,
+    "Vamos a medir este qubit cien veces."
+   ],
+   [
+    6.822,
+    "¿Cuántos unos crees que saldrán?"
+   ]
+  ]
+ },
+ "medir": {
+  "dur": 23.496,
+  "marks": {
+   "res": 4.968,
+   "mc": 12.186
+  },
+  "cues": [
+   [
+    0.107,
+    "Ejecutamos con StatevectorSampler, con cien shots."
+   ],
+   [
+    4.968,
+    "Salen veinticuatro unos y setenta y seis ceros."
+   ],
+   [
+    9.058,
+    "No veinticinco: veinticuatro."
+   ],
+   [
+    12.186,
+    "Ese uno de diferencia no es un error del simulador."
+   ],
+   [
+    16.418,
+    "Es el error de Monte Carlo: con cien muestras, el error típico es de cuatro centésimas."
+   ]
+  ]
+ },
+ "tandas": {
+  "dur": 22.632,
+  "marks": {
+   "tanda": 3.184,
+   "baile": 8.619
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora repite tú el experimento."
+   ],
+   [
+    3.184,
+    "Cada clic es una ejecución nueva del mismo circuito, con cien shots."
+   ],
+   [
+    8.619,
+    "Mira cuántos unos salen cada vez: casi nunca exactamente veinticinco, y casi siempre dentro de la franja oscura, a unos cuatro de distancia."
+   ],
+   [
+    19.22,
+    "Ese baile es el error de Monte Carlo."
+   ]
+  ]
+ },
+ "error": {
+  "dur": 24.0,
+  "marks": {
+   "tabla": 6.199,
+   "ley": 13.615
+  },
+  "cues": [
+   [
+    0.107,
+    "Repetimos con más shots, veinte veces cada uno, y promediamos el error."
+   ],
+   [
+    6.199,
+    "Con diez shots nos equivocamos en doce centésimas; con diez mil, en menos de cuatro milésimas."
+   ],
+   [
+    13.615,
+    "La columna de la derecha es la fórmula de la moneda."
+   ],
+   [
+    17.564,
+    "Coinciden: el ruido de disparo de un computador cuántico es el error de Monte Carlo."
+   ]
+  ]
+ },
+ "mapa": {
+  "dur": 12.312,
+  "marks": {
+   "fila": 3.029
+  },
+  "cues": [
+   [
+    0.107,
+    "Resumamos el par en una tabla."
+   ],
+   [
+    3.029,
+    "Cada idea de Monte Carlo tiene su gemelo en el circuito."
+   ],
+   [
+    7.402,
+    "Guárdala: en el repaso de mañana te preguntaremos por ella."
+   ]
+  ]
+ },
+ "mision": {
+  "dur": 17.064,
+  "marks": {
+   "e1": 2.449,
+   "check": 10.332
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora te toca a ti."
+   ],
+   [
+    2.449,
+    "Completa dos funciones: una que prepara la moneda cuántica y otra que estima su probabilidad contando shots."
+   ],
+   [
+    10.332,
+    "Pulsa Comprobar: el código corre con Qiskit de verdad y los casos te dicen si acertaste."
+   ]
+  ]
+ }
+}
