@@ -4,7 +4,8 @@
 //   say      narración (con marcas [[nombre]] antes de la palabra que dispara algo)
 //   scene    bloques que se apilan en el escenario (texto, fórmulas, listas, recuadros, figuras)
 //   actions  qué pasa y cuándo: { at: "marca", t: segundos extra, do: "show", id: ... }
-//   ask      pregunta opcional al terminar la narración (choice, numeric, reveal)
+//   ask      pregunta opcional al terminar la narración (choice, numeric, reveal, predict, reflect)
+//            o actividad (task): una meta que el alumno alcanza manipulando un bloque de labs.js
 // timings.json (de tools/tts.py) da la duración de cada clip, el segundo de cada marca y los subtítulos.
 //
 // Modo revisión: lesson.html?l=<id>&beat=N muestra el estado final del beat N sin audio.
@@ -228,6 +229,12 @@
     if (z < 0.995) sceneEl.style.zoom = Math.max(0.55, z);
   }
   new ResizeObserver(fit).observe(viewport);
+  // Con una actividad abierta, la escena deja libre el alto del panel para que no tape el bloque.
+  new ResizeObserver(() => {
+    if (!askEl.classList.contains("task")) return;
+    sceneEl.style.paddingBottom = askEl.offsetHeight + 16 + "px";
+    autoZoom();
+  }).observe(askEl);
   tall.addEventListener("change", fit);
 
   // ---------- figuras ----------
@@ -859,7 +866,11 @@
     isPortrait: () => portrait,
     isReview: () => REVIEW,
     after: (f) => afterBuild.push(f),
+    obj: (id) => objs[id],
+    // Un bloque interactivo cambió: la actividad abierta, si la hay, vuelve a mirar su meta.
+    changed: (o) => watch?.(o),
   };
+  let watch = null;
 
   // ---------- construcción de la escena ----------
   function build(s, parent) {
@@ -930,7 +941,10 @@
 
   function buildScene(beat) {
     sceneEl.textContent = "";
-    sceneEl.className = "scene" + (beat.align === "top" ? " top" : "");
+    sceneEl.className =
+      "scene" +
+      (beat.align === "top" ? " top" : "") +
+      (beat.ask?.kind === "task" ? " task" : "");
     objs = {};
     (beat.scene || []).forEach((s) => build(s, sceneEl));
     setWork(!!sceneEl.querySelector(".xpanel"));
@@ -1136,6 +1150,8 @@
     nar.pause();
     askEl.className = "";
     askEl.textContent = "";
+    sceneEl.style.paddingBottom = "";
+    watch = null;
     const beat = beats[i],
       tm = T[beat.id];
     buildScene(beat);
@@ -1183,6 +1199,7 @@
       if (beat.ask) return showAsk(beat);
       markHeard(i);
       if (work) return; // El ejercicio avanza con «Continuar».
+      if (sceneEl.querySelector(".live")) return showExplore(beat);
       setTimeout(
         () => {
           if (my === token && playing) goto(idx + 1);
@@ -1256,6 +1273,24 @@
   }
 
   // ---------- preguntas ----------
+  // Una escena con bloques interactivos no avanza sola: espera a que el alumno termine de explorar.
+  function showExplore(beat) {
+    askEl.textContent = "";
+    askEl.className = "on task";
+    el("div", "qlabel", askEl).textContent = "Explora";
+    rich(
+      el("div", "prompt", askEl),
+      beat.explore ||
+        "Haz clic en la escena para explorarla. Continúa cuando quieras.",
+    );
+    const b = el("button", "abtn primary", el("div", "next-row", askEl));
+    b.textContent = "Continuar →";
+    b.addEventListener("click", () => {
+      setPlaying(true);
+      goto(idx + 1);
+    });
+  }
+
   function showAsk(beat) {
     const a = beat.ask;
     let tries = 0,
@@ -1402,6 +1437,44 @@
           done(false);
         });
       });
+    } else if (a.kind === "task") {
+      // Actividad: se supera al llevar el bloque a.target a la meta a.goal. No cuenta como pregunta.
+      asked--;
+      askEl.classList.add("task");
+      askEl.querySelector(".qlabel").textContent = a.label || "Tu turno";
+      const target = objs[a.target];
+      const st = el("div", "tstatus", askEl);
+      askEl.insertBefore(st, fb);
+      const row = el("div", "numrow", askEl);
+      askEl.insertBefore(row, fb);
+      if (a.hint) {
+        const h = el("button", "abtn", row);
+        h.textContent = "Pista";
+        h.addEventListener("click", () => {
+          say("sol", a.hint);
+          h.remove();
+        });
+      }
+      const skip = el("button", "abtn", row);
+      skip.textContent = "Saltar";
+      skip.addEventListener("click", () => {
+        watch = null;
+        row.remove();
+        if (a.solution) say("sol", a.solution);
+        done(false);
+      });
+      const test = () => {
+        if (solved) return;
+        st.textContent = target.status?.() || "";
+        if (!target.check(a.goal)) return;
+        watch = null;
+        SFX.play("ok");
+        row.remove();
+        say("ok", a.why);
+        done(false);
+      };
+      watch = test;
+      test();
     } else if (a.kind === "reflect") {
       // Preguntas abiertas: se guardan en el navegador y se recuperan al volver.
       asked--;
@@ -1497,11 +1570,13 @@
     $("#crumb-title").textContent = `${L.section} · ${L.title}`;
     $("#start-eyebrow").textContent = `${L.part} · ${L.section}`;
     $("#start-title").textContent = L.title;
+    const tasks = beats.filter((b) => b.ask?.kind === "task").length;
     const mins = Math.round(
       beats.reduce((s, b) => s + (T[b.id]?.dur || 0), 0) / 60,
     );
     $("#start-meta").textContent =
-      `≈ ${mins + 1} min · ${beats.filter((b) => b.ask).length} preguntas`;
+      `≈ ${mins + 1} min · ${beats.filter((b) => b.ask && b.ask.kind !== "task").length} preguntas` +
+      (tasks ? ` · ${tasks} ${tasks === 1 ? "actividad" : "actividades"}` : "");
     const ul = $("#start-goals");
     (L.goals || []).forEach((g) => rich(el("li", "", ul), g));
 

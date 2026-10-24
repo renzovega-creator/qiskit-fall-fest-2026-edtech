@@ -1,5 +1,7 @@
 """Nivel 1 · Probabilidad y muestreo: Monte Carlo ↔ shots."""
 
+from math import pi
+
 from lib import (
     A,
     Box,
@@ -8,9 +10,11 @@ from lib import (
     Exercise,
     G,
     Hist,
+    Lab,
     M,
     Out,
     Row,
+    Shots,
     T,
     Table,
     beat,
@@ -18,6 +22,7 @@ from lib import (
     lesson,
     numeric,
     predict,
+    task,
 )
 
 MONEDA = """
@@ -78,7 +83,16 @@ LESSONS = [
                 """Una moneda cargada sale cara con probabilidad p igual a un cuarto. [[sim]]Si la lanzas N veces y divides las caras entre N, obtienes una estimación de p.
                  [[err]]Esa estimación no es exacta: su error típico es la raíz de p por uno menos p, sobre N. [[cien]]Para tener la mitad de error necesitas cuatro veces más muestras.""",
                 [
-                    Code(MONEDA, id="c", size=22),
+                    Code(
+                        MONEDA,
+                        id="c",
+                        size=22,
+                        notes={
+                            3: "Un generador de números aleatorios con semilla 7: cada vez que lo ejecutas salen los mismos lanzamientos.",
+                            6: "`rng.random(n)` da n números uniformes entre 0 y 1. Los menores que `p` cuentan como cara: queda un arreglo de `True` y `False`.",
+                            7: "La media de un arreglo de `True` y `False` es la fracción de `True`: la frecuencia $k/N$, que estima $p$.",
+                        },
+                    ),
                     Out("10 0.2\n100 0.26\n1000 0.257\n10000 0.2489", id="o", hidden=True),
                     M(r"\hat p=\frac{k}{N},\qquad \sigma_{\hat p}=\sqrt{\frac{p(1-p)}{N}}", id="m", hidden=True, size=34),
                 ],
@@ -92,23 +106,64 @@ LESSONS = [
                 ),
             ),
             beat(
+                "lanza",
+                ("", "Lanza tú la moneda"),
+                """Ahora lanza tú la moneda, que sale cara con probabilidad un cuarto. [[btn]]Cada botón suma esos lanzamientos a los que ya llevas.
+                 [[linea]]La línea roja es tu estimación a medida que crece N. La franja azul es el error típico alrededor del valor real, y se estrecha como uno sobre la raíz de N.
+                 [[mil]]Lanza hasta pasar de mil y mira cómo tu estimación entra en el embudo.""",
+                [
+                    Shots(
+                        p=0.25,
+                        labels=["cruz", "cara"],
+                        track="cara",
+                        verb="Lanzar",
+                        unit="lanzamientos",
+                        id="s",
+                    )
+                ],
+                ask=task(
+                    "Lanza la moneda hasta llevar **al menos 1000 lanzamientos**. ¿Tu $\\hat p$ queda dentro de la franja oscura?",
+                    "s",
+                    dict(n=1000),
+                    "Con mil lanzamientos, el error típico es $\\sqrt{0.25\\cdot 0.75/1000}\\approx 0.014$: tu estimación casi seguro cae entre 0.22 y 0.28. Con pocos lanzamientos, la línea roja saltaba mucho más.",
+                    hint="El botón «Lanzar 1000» suma mil lanzamientos de una vez.",
+                ),
+            ),
+            beat(
                 "born",
                 ("", "El gemelo cuántico: la regla de Born"),
                 """Ahora el qubit. Empieza en cero. [[ry]]Una rotación R Y de ángulo theta lo inclina en la esfera de Bloch.
                  [[born]]Al medirlo, la regla de Born dice que sale uno con probabilidad seno cuadrado de theta medios. Es una distribución de Bernoulli, igual que la moneda.
-                 [[pi3]]Con theta igual a pi tercios, esa probabilidad vale exactamente un cuarto: hemos construido una moneda cargada cuántica.""",
+                 [[pi3]]Con theta igual a pi tercios, esa probabilidad vale exactamente un cuarto: hemos construido una moneda cargada cuántica.
+                 [[tu]]Ahora mueve tú el ángulo con el deslizador y mira cómo cambian las barras.""",
                 [
-                    Circ(1, [G("ry", 0, p="π/3"), G("measure", 0, c=0)], clbits=1, id="q", maxw=420),
-                    M(r"P(1)=\sin^2\!\big(\tfrac{\theta}{2}\big)", id="m", hidden=True, size=40),
-                    M(r"\theta=\tfrac{\pi}{3}\ \Rightarrow\ P(1)=\sin^2\!\big(\tfrac{\pi}{6}\big)=\tfrac14", id="m2", hidden=True, size=34),
+                    Lab(
+                        1,
+                        [G("ry", 0, theta="θ", fixed=True)],
+                        params={"θ": dict(min=0, max=2 * pi, step=pi / 24, value=pi / 3, fmt="pi")},
+                        ket=True,
+                        id="q",
+                        hh=140,
+                    ),
+                    Row(
+                        M(r"P(1)=\sin^2\!\big(\tfrac{\theta}{2}\big)", id="m", hidden=True, size=34),
+                        M(
+                            r"\theta=\tfrac{\pi}{3}\ \Rightarrow\ P(1)=\sin^2\!\big(\tfrac{\pi}{6}\big)=\tfrac14",
+                            id="m2",
+                            hidden=True,
+                            size=30,
+                        ),
+                        gap=40,
+                    ),
                 ],
-                [A("gate", "q", at="ry", i=0), A("show", "m", at="born"), A("show", "m2", at="pi3")],
-                ask=choice(
-                    "¿Con qué ángulo $\\theta$ el qubit es una moneda justa, $P(1)=1/2$?",
-                    ["$\\theta=\\pi/4$", "$\\theta=\\pi/2$", "$\\theta=\\pi$", "$\\theta=2\\pi$"],
-                    1,
-                    "Correcto: $\\sin^2(\\pi/4)=1/2$. Es la misma superposición que produce una Hadamard.",
-                    hint="Busca el ángulo para el que $\\sin^2(\\theta/2)=1/2$.",
+                [A("show", "m", at="born"), A("show", "m2", at="pi3")],
+                ask=task(
+                    "Mueve el deslizador $\\theta$ hasta que el qubit sea una **moneda justa**: $P(0)=P(1)=1/2$.",
+                    "q",
+                    dict(probs={"0": 0.5, "1": 0.5}, tol=0.01),
+                    "Lo lograste: $\\sin^2(\\theta/2)=1/2$ cuando $\\theta/2=\\pi/4$. Con $\\theta=\\pi/2$ es la misma superposición que produce una Hadamard.",
+                    hint="Busca el ángulo para el que $\\sin^2(\\theta/2)=1/2$, es decir, $\\theta/2=\\pi/4$.",
+                    solution="$\\theta=\\pi/2$, porque $\\sin^2(\\pi/4)=1/2$.",
                 ),
             ),
             beat(
@@ -133,6 +188,19 @@ LESSONS = [
                     Hist([["0", 76], ["1", 24]], id="h", grow=True, ymax=100, color="blue", hidden=True),
                 ],
                 [A("show", "o", at="res"), A("show", "h", at="res"), A("grow", "h", at="res", dur=1.2)],
+            ),
+            beat(
+                "tandas",
+                ("", "Repite tú la medición"),
+                """Ahora repite tú el experimento. [[tanda]]Cada clic es una ejecución nueva del mismo circuito, con cien shots.
+                 [[baile]]Mira cuántos unos salen cada vez: casi nunca exactamente veinticinco, y casi siempre dentro de la franja oscura, a unos cuatro de distancia. Ese baile es el error de Monte Carlo.""",
+                [Shots(p=0.25, batch=100, verb="Medir", unit="shots", id="s")],
+                ask=task(
+                    "Ejecuta el circuito **cinco veces**, con 100 shots cada una.",
+                    "s",
+                    dict(batches=5),
+                    "Cada ejecución da otro número de unos, aunque el circuito no cambió. Con 100 shots el error típico es $\\sqrt{0.25\\cdot0.75/100}\\approx 0.043$, unos 4 unos: por eso la mayoría cae entre 21 y 29.",
+                ),
             ),
             beat(
                 "error",

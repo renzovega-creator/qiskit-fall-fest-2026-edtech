@@ -72,6 +72,32 @@
    ]
   ]
  },
+ "explora": {
+  "dur": 30.192,
+  "marks": {
+   "clic": 4.303,
+   "lados": 16.432,
+   "escala": 24.796
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora explora tú los dos kernels sobre las lunas."
+   ],
+   [
+    4.303,
+    "Haz clic en cualquier lugar: el círculo rojo se mueve allí, y cada mapa pinta qué tan parecido es cada punto del cuadrado a ese lugar, más intenso cuanto más parecido."
+   ],
+   [
+    16.432,
+    "A la izquierda, el kernel RBF; a la derecha, el kernel cuántico del feature map que acabas de ver."
+   ],
+   [
+    24.796,
+    "Después mueve la escala de los datos y mira qué le pasa al mapa cuántico."
+   ]
+  ]
+ },
  "predice": {
   "dur": 14.184,
   "marks": {

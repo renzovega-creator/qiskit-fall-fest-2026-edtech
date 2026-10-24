@@ -1,0 +1,99 @@
+/* Identidad común de QuantumShot: un universo oscuro en todas las páginas (portada, lección y juego)
+   y una cabecera con la ruta Aprende → Practica → Demuestra. Va después de los estilos de cada página.
+   El selector html[data-paleta][data-theme] gana a las paletas de theme.css, así que las variables
+   derivadas de :root (--fg, --panel, --line-strong…) se recalculan con estos valores. */
+html[data-paleta][data-theme] {
+  /* El curso es de pares: ámbar para lo clásico, cian para lo cuántico (y para actuar, porque
+     la ruta lleva hacia lo cuántico). Los neutros son casi grises, con un tinte de cielo nocturno.
+     El tema claro es el de partida; el oscuro invierte la luminosidad con los mismos tonos. */
+  --clasico:oklch(0.56 0.14 50); --cuantico:oklch(0.52 0.088 215);
+  --bg:oklch(0.985 0.004 250); --bg2:oklch(0.955 0.006 250); --card:oklch(1 0 0); --stage:oklch(0.975 0.005 250);
+  --line:oklch(0.88 0.01 250); --ink:oklch(0.22 0.015 250); --muted:oklch(0.48 0.02 250);
+  --acc:var(--cuantico); --acc-ink:oklch(0.99 0.005 205); --acc2:var(--clasico); --acc3:oklch(0.56 0.115 80); --bad:oklch(0.53 0.19 15);
+  --blue:oklch(0.52 0.15 260); --teal:var(--cuantico); --violet:oklch(0.5 0.15 300); --green:oklch(0.52 0.12 150); --glow:transparent;
+  --focus:oklch(0.45 0.01 250); color-scheme:light;
+}
+html[data-paleta][data-theme="dark"] {
+  --clasico:oklch(0.8 0.14 62); --cuantico:oklch(0.82 0.12 205);
+  --bg:oklch(0.15 0.012 250); --bg2:oklch(0.18 0.014 250); --card:oklch(0.205 0.016 250); --stage:oklch(0.17 0.013 250);
+  --line:oklch(0.3 0.018 250); --ink:oklch(0.96 0.006 250); --muted:oklch(0.78 0.022 250);
+  --acc-ink:oklch(0.22 0.035 205); --acc3:oklch(0.9 0.12 95); --bad:oklch(0.786 0.13 6.128);
+  --blue:oklch(0.72 0.13 255); --violet:oklch(0.78 0.1 300); --green:oklch(0.836 0.126 156.827);
+  --focus:oklch(0.871 0.005 286.286); color-scheme:dark;
+}
+html[data-paleta][data-theme] body { background:var(--bg); color:var(--ink); }
+
+/* La paleta es la identidad del sitio: del control de tema solo queda el botón claro/oscuro. */
+[data-theme-ctl] select { display:none; }
+[data-theme-ctl] button { width:40px; height:40px; border-radius:10px; border:1px solid var(--line); background:var(--bg2); color:var(--ink); }
+
+/* ---------- cabecera común ---------- */
+.bar { position:sticky; top:12px; z-index:30; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+  margin:12px auto 18px; padding:8px 10px 8px 16px; border-radius:16px;
+  background:var(--bg2); border:1px solid var(--line); }
+.bar .brand { color:var(--ink); text-decoration:none; }
+.bar .sp { flex:1; }
+.bar .pill { background:color-mix(in oklch, var(--ink) 6%, transparent); border-color:transparent; color:var(--muted); }
+
+/* La ruta: tres pasos numerados, el actual resaltado. */
+.ruta { display:flex; align-items:center; gap:4px; padding:4px; border-radius:999px; background:color-mix(in oklch, var(--ink) 4%, transparent); border:1px solid var(--line); }
+.ruta a { display:inline-flex; align-items:center; gap:8px; min-height:40px; padding:0 14px 0 6px; border-radius:999px;
+  color:var(--muted); text-decoration:none; font:600 14px var(--sans); transition:color 150ms ease-out, background-color 150ms ease-out; }
+.ruta a b { display:grid; place-items:center; width:28px; height:28px; border-radius:50%; border:1px solid var(--line-strong);
+  font:700 13px var(--mono); color:var(--muted); font-variant-numeric:tabular-nums; }
+.ruta a:hover { color:var(--ink); background:color-mix(in oklch, var(--ink) 6%, transparent); }
+.ruta a + a::before { content:""; width:14px; height:1px; background:var(--line-strong); margin:0 6px 0 -12px; }
+body[data-paso="aprende"] .ruta [data-paso="aprende"],
+body[data-ruta="mapa"] .ruta [data-paso="practica"],
+body[data-ruta="mision"] .ruta [data-paso="practica"],
+body[data-ruta="copia"] .ruta [data-paso="practica"],
+body[data-ruta="portafolio"] .ruta [data-paso="demuestra"],
+body[data-ruta="publico"] .ruta [data-paso="demuestra"],
+body[data-ruta="ejemplo"] .ruta [data-paso="demuestra"] { color:var(--ink); background:color-mix(in oklch, var(--acc) 16%, transparent); }
+body[data-paso="aprende"] .ruta [data-paso="aprende"] b,
+body[data-ruta="mapa"] .ruta [data-paso="practica"] b,
+body[data-ruta="mision"] .ruta [data-paso="practica"] b,
+body[data-ruta="copia"] .ruta [data-paso="practica"] b,
+body[data-ruta="portafolio"] .ruta [data-paso="demuestra"] b,
+body[data-ruta="publico"] .ruta [data-paso="demuestra"] b,
+body[data-ruta="ejemplo"] .ruta [data-paso="demuestra"] b { background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
+
+/* «Entrar» siempre al final de la cabecera, con el mismo aspecto en todas las páginas. */
+.bar [data-account] { margin-left:auto; }
+.bar [data-account] button { min-height:40px; border-radius:10px; border:1px solid var(--line-strong); background:color-mix(in oklch, var(--ink) 6%, transparent); color:var(--ink); padding:0 14px; font:600 14px var(--sans); }
+
+/* ---------- superficies comunes ---------- */
+.panel, .card, .meta, .tarjeta-mis, .tarjeta-ev, .detalle, .perfil, .mapa, .comp-bloque, .fichas .ficha {
+  background:color-mix(in oklch, var(--bg) 72%, transparent); border-color:var(--line); }
+
+/* Etiqueta de paso sobre las secciones de la portada */
+.paso { font:600 12px var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--acc); margin:0 0 6px; }
+
+@media (max-width:860px) {
+  .bar { flex-wrap:wrap; }
+  .ruta { order:3; width:100%; justify-content:space-between; }
+  .ruta a { padding:0 10px 0 4px; font-size:13px; }
+  .ruta a + a::before { display:none; }
+}
+
+/* En la lección, el reproductor mide calc(100dvh - 52px): la cabecera conserva esa altura y va pegada arriba. */
+body:has(.player) .bar { position:relative; top:0; height:52px; margin:0; padding:0 12px 0 16px; border-radius:0; border-width:0 0 1px; }
+body:has(.player) .bar .crumb small { display:none; }
+body[data-ruta="mapa"] .bar { margin:0; }
+
+/* Firma del par: el punto de la marca, mitad ámbar (clásico) y mitad cian (cuántico). */
+.brand .dot { background:linear-gradient(90deg, var(--clasico) 50%, var(--cuantico) 50%); }
+/* El progreso ya está en la cabecera: la fila de cifras del inicio sobra. */
+#stats { display:none; }
+
+/* La cabecera fija tapa también el hueco que deja sobre ella. */
+.bar { box-shadow:0 -12px 0 var(--bg); }
+body[data-ruta="mapa"] .bar { box-shadow:none; }
+/* Logos de redes en el pie del juego: los mismos enlaces que la portada. */
+.redes { display:flex; gap:6px; margin-top:12px; }
+.redes a { display:grid; place-items:center; width:40px; height:40px; border-radius:10px; color:var(--muted); }
+.redes a:hover { color:var(--ink); background:var(--bg2); }
+.redes svg { width:18px; height:18px; fill:currentColor; }
+/* La portada marca en la ruta el paso que toca según tu progreso. */
+body[data-paso="practica"] .ruta [data-paso="practica"], body[data-paso="demuestra"] .ruta [data-paso="demuestra"] { color:var(--ink); background:color-mix(in oklch, var(--acc) 16%, transparent); }
+body[data-paso="practica"] .ruta [data-paso="practica"] b, body[data-paso="demuestra"] .ruta [data-paso="demuestra"] b { background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }

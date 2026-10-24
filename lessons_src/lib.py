@@ -40,6 +40,7 @@ def Plane(**k: Any) -> Block:
 
 def Code(src: str, lang: str = "python", **k: Any) -> Block:
     """Código con resaltado. reveal=True oculta las líneas hasta la acción 'lines'.
+    notes={3: "…"} explica una línea (base 1) cuando el alumno hace clic en ella.
     norun=True excluye un bloque de Python de tools/verify.py cuando necesita una cuenta de IBM.
     setup="…" aporta el contexto de un fragmento. tools/verify.py lo ejecuta antes del bloque y la página no lo muestra."""
     return dict(type="code", src=src.strip(chr(10)), lang=lang, **k)
@@ -78,6 +79,29 @@ def Flow(steps: Iterable[Any], **k: Any) -> Block:
 
 def Graph(nodes: Any, edges: Any, **k: Any) -> Block:
     return dict(type="graph", nodes=nodes, edges=edges, **k)
+
+
+def Lab(qubits: int, ops: list[Block] = (), gates: Iterable[str] = (), **k: Any) -> Block:
+    """Taller de circuitos interactivo con probabilidades en vivo (site/labs.js).
+    gates: paleta de puertas que el alumno pone con clic ('h', 'x', 'cx', …); sin paleta no se edita.
+    params={'θ': dict(min=0, max=6.283, step=…, value=…, fmt='pi')} crea deslizadores; una
+    operación G('ry', 0, theta='θ') toma de ahí su ángulo. fixed=True impide quitar una operación."""
+    return dict(type="lab", qubits=qubits, ops=list(ops), gates=list(gates), **k)
+
+
+def Slider(label: str, targets: Iterable[Block], min: float, max: float, **k: Any) -> Block:
+    """Deslizador que mueve el parámetro p de otros bloques: targets=[dict(id='q', p='θ', expr=…)]."""
+    return dict(type="slider", label=label, targets=list(targets), min=min, max=max, **k)
+
+
+def Shots(**k: Any) -> Block:
+    """Máquina de muestreo: p= (o probs=, o source='id de un Lab'), steps=[1, 10, 100] o batch=100."""
+    return dict(type="shots", **k)
+
+
+def KernelMap(points: Iterable[Iterable[float]], **k: Any) -> Block:
+    """Mapas de similitud RBF y kernel cuántico ZZ alrededor de un punto que el alumno elige con clic."""
+    return dict(type="kernelmap", points=[list(p) for p in points], **k)
 
 
 def A(do: str, id: str | None = None, at: str | None = None, t: float = 0, **k: Any) -> Block:
@@ -161,6 +185,24 @@ def predict(prompt: str, options: list[str], after: str) -> Block:
     """Apuesta antes de ver el resultado: cualquier opción vale; no cuenta en la puntuación.
     after: lo que se dice al elegir (el resultado se revela en el paso siguiente)."""
     return dict(kind="predict", prompt=prompt, options=options, after=after)
+
+
+def task(
+    prompt: str,
+    target: str,
+    goal: Block,
+    why: str,
+    hint: str | None = None,
+    solution: str | None = None,
+    label: str | None = None,
+) -> Block:
+    """Actividad: el alumno manipula el bloque `target` de la escena hasta cumplir `goal`
+    (cada bloque de site/labs.js define sus metas). No cuenta en la puntuación; se puede saltar."""
+    d = dict(kind="task", prompt=prompt, target=target, goal=goal, why=why)
+    for key, v in (("hint", hint), ("solution", solution), ("label", label)):
+        if v:
+            d[key] = v
+    return d
 
 
 def reflect(*prompts: str) -> Block:

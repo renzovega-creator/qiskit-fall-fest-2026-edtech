@@ -194,23 +194,45 @@ qc_a.append(gate, [0, 1, 3])
 qc_a.decompose()""",
                     id="c",
                 ),
-                Circ(
-                    4,
-                    [
-                        G("x", 0),
-                        G("box", 1, 3, label="qc_b", hidden=True),
-                        dict(g="c", ctrl=[0], q=[1, 3], label="qc_b", hidden=True),
-                    ],
-                    id="q",
-                    hidden=True,
+                Row(
+                    Circ(
+                        4,
+                        [
+                            G("x", 0),
+                            G("box", 1, 3, label="qc_b", hidden=True),
+                            dict(g="c", ctrl=[0], q=[1, 3], label="qc_b", hidden=True),
+                        ],
+                        id="q",
+                        hidden=True,
+                    ),
+                    Row(
+                        Box(
+                            "idea",
+                            "qc_b · como módulo",
+                            Circ(2, [G("box", 0, 1, label="qc_b")]),
+                            id="module",
+                            hidden=True,
+                        ),
+                        Box(
+                            "def",
+                            "qc_b · decompose",
+                            Circ(2, [G("y", 0), G("z", 1)]),
+                            id="parts",
+                            hidden=True,
+                        ),
+                        gap=16,
+                    ),
+                    gap=24,
                 ),
             ],
             [
                 A("show", "q", at="gate"),
                 A("gate", "q", at="gate", i=1),
+                A("show", "module", at="gate"),
                 A("hl", "c", at="ctrl", lines=[4, 5]),
                 A("gate", "q", at="ctrl", i=2),
                 A("hl", "c", at="dec", lines=[6]),
+                A("show", "parts", at="dec"),
             ],
         ),
         beat(

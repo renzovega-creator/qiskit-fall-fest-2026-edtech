@@ -241,39 +241,101 @@
      "id": "c"
     },
     {
-     "type": "circuit",
-     "qubits": 4,
-     "ops": [
+     "type": "row",
+     "items": [
       {
-       "g": "x",
-       "q": [
-        0
-       ]
-      },
-      {
-       "g": "box",
-       "q": [
-        1,
-        3
+       "type": "circuit",
+       "qubits": 4,
+       "ops": [
+        {
+         "g": "x",
+         "q": [
+          0
+         ]
+        },
+        {
+         "g": "box",
+         "q": [
+          1,
+          3
+         ],
+         "label": "qc_b",
+         "hidden": true
+        },
+        {
+         "g": "c",
+         "ctrl": [
+          0
+         ],
+         "q": [
+          1,
+          3
+         ],
+         "label": "qc_b",
+         "hidden": true
+        }
        ],
-       "label": "qc_b",
+       "id": "q",
        "hidden": true
       },
       {
-       "g": "c",
-       "ctrl": [
-        0
+       "type": "row",
+       "items": [
+        {
+         "type": "box",
+         "kind": "idea",
+         "title": "qc_b · como módulo",
+         "body": [
+          {
+           "type": "circuit",
+           "qubits": 2,
+           "ops": [
+            {
+             "g": "box",
+             "q": [
+              0,
+              1
+             ],
+             "label": "qc_b"
+            }
+           ]
+          }
+         ],
+         "id": "module",
+         "hidden": true
+        },
+        {
+         "type": "box",
+         "kind": "def",
+         "title": "qc_b · decompose",
+         "body": [
+          {
+           "type": "circuit",
+           "qubits": 2,
+           "ops": [
+            {
+             "g": "y",
+             "q": [
+              0
+             ]
+            },
+            {
+             "g": "z",
+             "q": [
+              1
+             ]
+            }
+           ]
+          }
+         ],
+         "id": "parts",
+         "hidden": true
+        }
        ],
-       "q": [
-        1,
-        3
-       ],
-       "label": "qc_b",
-       "hidden": true
+       "gap": 16
       }
      ],
-     "id": "q",
-     "hidden": true
+     "gap": 24
     }
    ],
    "actions": [
@@ -286,6 +348,11 @@
      "do": "gate",
      "i": 1,
      "id": "q",
+     "at": "gate"
+    },
+    {
+     "do": "show",
+     "id": "module",
      "at": "gate"
     },
     {
@@ -309,6 +376,11 @@
       6
      ],
      "id": "c",
+     "at": "dec"
+    },
+    {
+     "do": "show",
+     "id": "parts",
      "at": "dec"
     }
    ]

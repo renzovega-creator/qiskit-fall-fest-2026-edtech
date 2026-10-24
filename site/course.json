@@ -9,7 +9,7 @@
      "section": "1.1",
      "title": "Monte Carlo ↔ shots",
      "summary": "Estimar una probabilidad lanzando una moneda y midiendo un qubit es el mismo método: Monte Carlo.",
-     "minutes": 6
+     "minutes": 8
     }
    ]
   },
@@ -22,7 +22,7 @@
      "section": "2.1",
      "title": "SVM con kernel RBF ↔ kernel cuántico",
      "summary": "Una SVM solo mira similitudes entre puntos; un circuito puede medir esas similitudes como solapamientos de estados.",
-     "minutes": 5
+     "minutes": 6
     }
    ]
   }

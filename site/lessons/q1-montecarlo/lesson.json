@@ -89,7 +89,12 @@
      "src": "import numpy as np\n\nrng = np.random.default_rng(7)\np = 0.25                       # probabilidad de «cara»\nfor n in (10, 100, 1000, 10000):\n    caras = rng.random(n) < p  # n lanzamientos simulados\n    print(n, caras.mean())",
      "lang": "python",
      "id": "c",
-     "size": 22
+     "size": 22,
+     "notes": {
+      "3": "Un generador de números aleatorios con semilla 7: cada vez que lo ejecutas salen los mismos lanzamientos.",
+      "6": "`rng.random(n)` da n números uniformes entre 0 y 1. Los menores que `p` cuentan como cara: queda un arreglo de `True` y `False`.",
+      "7": "La media de un arreglo de `True` y `False` es la fracción de `True`: la frecuencia $k/N$, que estima $p$."
+     }
     },
     {
      "type": "code",
@@ -134,15 +139,49 @@
    "align": "top"
   },
   {
+   "id": "lanza",
+   "tag": [
+    "1.1",
+    "Lanza tú la moneda"
+   ],
+   "say": "Ahora lanza tú la moneda, que sale cara con probabilidad un cuarto. [[btn]]Cada botón suma esos lanzamientos a los que ya llevas. [[linea]]La línea roja es tu estimación a medida que crece N. La franja azul es el error típico alrededor del valor real, y se estrecha como uno sobre la raíz de N. [[mil]]Lanza hasta pasar de mil y mira cómo tu estimación entra en el embudo.",
+   "scene": [
+    {
+     "type": "shots",
+     "p": 0.25,
+     "labels": [
+      "cruz",
+      "cara"
+     ],
+     "track": "cara",
+     "verb": "Lanzar",
+     "unit": "lanzamientos",
+     "id": "s"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "task",
+    "prompt": "Lanza la moneda hasta llevar **al menos 1000 lanzamientos**. ¿Tu $\\hat p$ queda dentro de la franja oscura?",
+    "target": "s",
+    "goal": {
+     "n": 1000
+    },
+    "why": "Con mil lanzamientos, el error típico es $\\sqrt{0.25\\cdot 0.75/1000}\\approx 0.014$: tu estimación casi seguro cae entre 0.22 y 0.28. Con pocos lanzamientos, la línea roja saltaba mucho más.",
+    "hint": "El botón «Lanzar 1000» suma mil lanzamientos de una vez."
+   },
+   "align": "top"
+  },
+  {
    "id": "born",
    "tag": [
     "1.1",
     "El gemelo cuántico: la regla de Born"
    ],
-   "say": "Ahora el qubit. Empieza en cero. [[ry]]Una rotación R Y de ángulo theta lo inclina en la esfera de Bloch. [[born]]Al medirlo, la regla de Born dice que sale uno con probabilidad seno cuadrado de theta medios. Es una distribución de Bernoulli, igual que la moneda. [[pi3]]Con theta igual a pi tercios, esa probabilidad vale exactamente un cuarto: hemos construido una moneda cargada cuántica.",
+   "say": "Ahora el qubit. Empieza en cero. [[ry]]Una rotación R Y de ángulo theta lo inclina en la esfera de Bloch. [[born]]Al medirlo, la regla de Born dice que sale uno con probabilidad seno cuadrado de theta medios. Es una distribución de Bernoulli, igual que la moneda. [[pi3]]Con theta igual a pi tercios, esa probabilidad vale exactamente un cuarto: hemos construido una moneda cargada cuántica. [[tu]]Ahora mueve tú el ángulo con el deslizador y mira cómo cambian las barras.",
    "scene": [
     {
-     "type": "circuit",
+     "type": "lab",
      "qubits": 1,
      "ops": [
       {
@@ -150,42 +189,46 @@
        "q": [
         0
        ],
-       "p": "π/3"
-      },
-      {
-       "g": "measure",
-       "q": [
-        0
-       ],
-       "c": 0
+       "theta": "θ",
+       "fixed": true
       }
      ],
-     "clbits": 1,
+     "gates": [],
+     "params": {
+      "θ": {
+       "min": 0,
+       "max": 6.283185307179586,
+       "step": 0.1308996938995747,
+       "value": 1.0471975511965976,
+       "fmt": "pi"
+      }
+     },
+     "ket": true,
      "id": "q",
-     "maxw": 420
+     "hh": 140
     },
     {
-     "type": "math",
-     "tex": "P(1)=\\sin^2\\!\\big(\\tfrac{\\theta}{2}\\big)",
-     "id": "m",
-     "hidden": true,
-     "size": 40
-    },
-    {
-     "type": "math",
-     "tex": "\\theta=\\tfrac{\\pi}{3}\\ \\Rightarrow\\ P(1)=\\sin^2\\!\\big(\\tfrac{\\pi}{6}\\big)=\\tfrac14",
-     "id": "m2",
-     "hidden": true,
-     "size": 34
+     "type": "row",
+     "items": [
+      {
+       "type": "math",
+       "tex": "P(1)=\\sin^2\\!\\big(\\tfrac{\\theta}{2}\\big)",
+       "id": "m",
+       "hidden": true,
+       "size": 34
+      },
+      {
+       "type": "math",
+       "tex": "\\theta=\\tfrac{\\pi}{3}\\ \\Rightarrow\\ P(1)=\\sin^2\\!\\big(\\tfrac{\\pi}{6}\\big)=\\tfrac14",
+       "id": "m2",
+       "hidden": true,
+       "size": 30
+      }
+     ],
+     "gap": 40
     }
    ],
    "actions": [
-    {
-     "do": "gate",
-     "i": 0,
-     "id": "q",
-     "at": "ry"
-    },
     {
      "do": "show",
      "id": "m",
@@ -198,17 +241,19 @@
     }
    ],
    "ask": {
-    "kind": "choice",
-    "prompt": "¿Con qué ángulo $\\theta$ el qubit es una moneda justa, $P(1)=1/2$?",
-    "options": [
-     "$\\theta=\\pi/4$",
-     "$\\theta=\\pi/2$",
-     "$\\theta=\\pi$",
-     "$\\theta=2\\pi$"
-    ],
-    "right": 1,
-    "why": "Correcto: $\\sin^2(\\pi/4)=1/2$. Es la misma superposición que produce una Hadamard.",
-    "hint": "Busca el ángulo para el que $\\sin^2(\\theta/2)=1/2$."
+    "kind": "task",
+    "prompt": "Mueve el deslizador $\\theta$ hasta que el qubit sea una **moneda justa**: $P(0)=P(1)=1/2$.",
+    "target": "q",
+    "goal": {
+     "probs": {
+      "0": 0.5,
+      "1": 0.5
+     },
+     "tol": 0.01
+    },
+    "why": "Lo lograste: $\\sin^2(\\theta/2)=1/2$ cuando $\\theta/2=\\pi/4$. Con $\\theta=\\pi/2$ es la misma superposición que produce una Hadamard.",
+    "hint": "Busca el ángulo para el que $\\sin^2(\\theta/2)=1/2$, es decir, $\\theta/2=\\pi/4$.",
+    "solution": "$\\theta=\\pi/2$, porque $\\sin^2(\\pi/4)=1/2$."
    },
    "align": "top"
   },
@@ -316,6 +361,35 @@
      "at": "res"
     }
    ]
+  },
+  {
+   "id": "tandas",
+   "tag": [
+    "1.1",
+    "Repite tú la medición"
+   ],
+   "say": "Ahora repite tú el experimento. [[tanda]]Cada clic es una ejecución nueva del mismo circuito, con cien shots. [[baile]]Mira cuántos unos salen cada vez: casi nunca exactamente veinticinco, y casi siempre dentro de la franja oscura, a unos cuatro de distancia. Ese baile es el error de Monte Carlo.",
+   "scene": [
+    {
+     "type": "shots",
+     "p": 0.25,
+     "batch": 100,
+     "verb": "Medir",
+     "unit": "shots",
+     "id": "s"
+    }
+   ],
+   "actions": [],
+   "ask": {
+    "kind": "task",
+    "prompt": "Ejecuta el circuito **cinco veces**, con 100 shots cada una.",
+    "target": "s",
+    "goal": {
+     "batches": 5
+    },
+    "why": "Cada ejecución da otro número de unos, aunque el circuito no cambió. Con 100 shots el error típico es $\\sqrt{0.25\\cdot0.75/100}\\approx 0.043$, unos 4 unos: por eso la mayoría cae entre 21 y 29."
+   },
+   "align": "top"
   },
   {
    "id": "error",

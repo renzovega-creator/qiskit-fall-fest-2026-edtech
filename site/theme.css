@@ -28,6 +28,16 @@
   --acc:#0e7490; --acc-ink:#ffffff; --acc2:#be185d; --acc3:#975c07; --bad:#be123c;
   --blue:#1f63c6; --teal:#0e7490; --violet:#6a48cf; --green:#257840; --glow:#0e749022; color-scheme:light;
 }
+[data-paleta="catppuccin"][data-theme="dark"] {
+  --bg:#1e1e2e; --bg2:#181825; --card:#313244; --stage:#181825; --line:#45475a; --ink:#cdd6f4; --muted:#a6adc8;
+  --acc:#cba6f7; --acc-ink:#1e1e2e; --acc2:#94e2d5; --acc3:#f9e2af; --bad:#f38ba8;
+  --blue:#89b4fa; --teal:#94e2d5; --violet:#cba6f7; --green:#a6e3a1; --glow:#cba6f733; color-scheme:dark;
+}
+[data-paleta="catppuccin"][data-theme="light"] {
+  --bg:#eff1f5; --bg2:#e6e9ef; --card:#ffffff; --stage:#eff1f5; --line:#bcc0cc; --ink:#4c4f69; --muted:#5c5f77; --card-text:var(--fg-soft);
+  --acc:#8438e4; --acc-ink:#ffffff; --acc2:#0f6f78; --acc3:#815b00; --bad:#cb173d;
+  --blue:#1a58c7; --teal:#0d7073; --violet:#7b35dc; --green:#317526; --glow:#8438e422; color-scheme:light;
+}
 
 :root {
   --fg: var(--ink);
@@ -70,29 +80,42 @@
   --display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
   --sans: "Inter", "Segoe UI", system-ui, sans-serif;
   --mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --focus: light-dark(#52525b, #d4d4d8);
+}
+
+body { -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { text-wrap: balance; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+button, select, summary, a { -webkit-tap-highlight-color: transparent; }
+button, select, summary { touch-action: manipulation; }
+button, select { transition: color .15s ease-out, background-color .15s ease-out, border-color .15s ease-out, transform .15s ease-out; }
+button:enabled:active { transform: scale(.96); }
+@media (prefers-reduced-motion: reduce) {
+  button, select { transition: none; }
 }
 
 .brand { font: 800 20px/1 var(--display); letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; color: var(--ink); white-space: nowrap; }
-.brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 14px var(--acc); }
+.brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--acc); flex: none; pointer-events: none; }
 .theme-ctl { display: flex; gap: 6px; align-items: center; }
-.theme-ctl select, .theme-ctl button { height: 34px; border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 999px; font: 500 13px var(--sans); cursor: pointer; }
+.theme-ctl select, .theme-ctl button { height: 40px; border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 8px; font: 500 13px var(--sans); cursor: pointer; }
 .theme-ctl select { padding: 0 10px; }
-.theme-ctl button { width: 34px; font-size: 15px; }
+.theme-ctl button { width: 40px; flex: none; font-size: 15px; }
 .theme-ctl select:hover, .theme-ctl button:hover { color: var(--ink); border-color: var(--line-strong); }
 .theme-ctl option { color: var(--ink); background: var(--card); }
 .acct { position: relative; }
 .acct > button, .acct-menu button { font: 500 13px var(--sans); cursor: pointer; }
-.acct > button { height: 34px; padding: 0 12px; border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 999px; white-space: nowrap; }
+.acct > button { height: 40px; padding: 0 12px; border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 8px; white-space: nowrap; }
 .acct > button:hover { color: var(--ink); border-color: var(--line-strong); }
 .acct-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; width: 260px; display: grid; gap: 6px; padding: 12px; background: var(--card); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 12px 32px -12px #0008; }
 .acct-menu[hidden] { display: none; }
 .acct-menu p { margin: 0 0 4px; color: var(--muted); font: 400 13px/1.45 var(--sans); }
-.acct-menu button { height: 36px; border: 1px solid var(--line); background: var(--bg2); color: var(--ink); border-radius: 8px; }
+.acct-menu button { min-height: 44px; border: 1px solid var(--line); background: var(--bg2); color: var(--ink); border-radius: 8px; }
 .acct-menu button:hover { border-color: var(--line-strong); }
 .acct-menu button.danger { color: var(--bad); }
 .acct-menu a { color: var(--muted); font: 500 13px var(--sans); text-decoration: underline; text-underline-offset: 2px; padding-top: 4px; }
 @media (max-width: 600px) {
-  .acct > button { height: 30px; padding: 0 8px; }
-  .theme-ctl select { appearance: none; width: 34px; padding: 0; color: transparent;
+  .acct > button { height: 44px; padding: 0 8px; }
+  .theme-ctl select, .theme-ctl button { width: 44px; height: 44px; }
+  .theme-ctl select { appearance: none; padding: 0; color: transparent;
     background: radial-gradient(circle, var(--acc) 0 6px, transparent 7px) center / auto no-repeat var(--card); }
 }

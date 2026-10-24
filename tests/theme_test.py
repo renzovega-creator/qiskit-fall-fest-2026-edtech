@@ -26,7 +26,7 @@ from offline import new_context, verify
 from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 
 SITE = Path(__file__).resolve().parent.parent / "site"
-PALETAS = ["fosforo", "cobre", "medianoche"]
+PALETAS = ["fosforo", "cobre", "medianoche", "catppuccin"]
 MODOS = ["dark", "light"]
 TAMANOS = {"1366x768": (1366, 768), "390x844": (390, 844)}
 LECCIONES = ["p1-quickstart", "p3-target", "p6-panorama"]
@@ -185,7 +185,7 @@ def visitar(
                     ctx.close()
     for (paleta, modo, tam, es_index), valor in marcas.items():
         otro = marcas[(paleta, modo, tam, not es_index)]
-        rep.check(valor[0] == "Qubit a qubit", f"marca {valor[0]!r}")
+        rep.check(valor[0] == "QuantumShot", f"marca {valor[0]!r}")
         rep.check(
             valor[1] == otro[1],
             f"la fuente de la marca difiere entre páginas: {valor[1]} / {otro[1]}",
@@ -231,8 +231,8 @@ def paleta_guardada_una_vez(rep: Report, browser: Browser, base: str) -> None:
     pg.goto(f"{base}/index.html")
     pg.wait_for_selector("[data-theme-ctl] select")
     rep.check(
-        pg.evaluate("document.documentElement.dataset.paleta") == "fosforo",
-        "la paleta por defecto no es fosforo",
+        pg.evaluate("document.documentElement.dataset.paleta") == "catppuccin",
+        "la paleta por defecto no es catppuccin",
     )
     pg.select_option("[data-theme-ctl] select", "cobre")
     rep.check(
@@ -257,6 +257,17 @@ def paleta_guardada_una_vez(rep: Report, browser: Browser, base: str) -> None:
     rep.check(
         pg.evaluate("document.documentElement.dataset.paleta") == "medianoche",
         "la portada no leyó la paleta elegida en el reproductor",
+    )
+    pg.select_option("[data-theme-ctl] select", "catppuccin")
+    rep.check(
+        pg.evaluate("localStorage.getItem('qiskit:paleta')") == "catppuccin",
+        "la portada no guardó Catppuccin",
+    )
+    pg.goto(f"{base}/lesson.html?l=p1-quickstart&beat=0")
+    pg.wait_for_selector("[data-theme-ctl] select")
+    rep.check(
+        pg.evaluate("document.documentElement.dataset.paleta") == "catppuccin",
+        "el reproductor no leyó Catppuccin",
     )
     pg.click("[data-theme-ctl] button")
     rep.check(

@@ -146,6 +146,11 @@ def check(lesson: dict[str, Any]) -> None:
                 fail(f"{lesson['id']}/{b['id']}: marca '{a['at']}' no está en la narración")
             if a.get("id") and a["id"] not in ids:
                 fail(f"{lesson['id']}/{b['id']}: objeto '{a['id']}' no existe")
+        ask = b.get("ask") or {}
+        if ask.get("kind") == "task" and ask["target"] not in ids:
+            fail(
+                f"{lesson['id']}/{b['id']}: la actividad apunta a '{ask['target']}', que no existe"
+            )
     if len({b["id"] for b in lesson["beats"]}) != len(lesson["beats"]):
         fail(f"{lesson['id']}: ids de paso repetidos")
 

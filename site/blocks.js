@@ -5,7 +5,8 @@
 //   act(a, instant)   ejecuta una acción propia; devuelve true si la reconoció
 //   items             (opcional) elementos que revela la acción genérica 'item'
 //
-//   code    código con resaltado: revelar líneas ('lines'), resaltar ('hl', 'unhl')
+//   code    código con resaltado: revelar líneas ('lines'), resaltar ('hl', 'unhl');
+//           notes {línea: texto} abre una explicación al hacer clic en esa línea
 //   circuit diagrama de circuito: puertas que aparecen ('gate'), resaltado ('hlop'), cursor de columna ('cursor')
 //   hist    histograma de conteos o probabilidades con etiquetas de texto: 'grow', 'data'
 //   table   tabla con filas que aparecen con 'item'; 'hlrow' resalta una fila
@@ -117,6 +118,42 @@
       A.el("span", "cc", r).innerHTML = highlight(ln, lang);
       return r;
     });
+    // Líneas con nota: un clic (o Intro) abre y cierra su explicación debajo de la línea.
+    const notes = Object.entries(s.notes || {});
+    o.opened = new Set();
+    if (notes.length) box.classList.add("live");
+    notes.forEach(([k, text]) => {
+      const r = rows[+k - 1];
+      let note = null;
+      r.classList.add("noted");
+      r.tabIndex = 0;
+      r.setAttribute("role", "button");
+      r.setAttribute("aria-expanded", "false");
+      A.el("span", "cmark", r).textContent = "?";
+      const toggle = () => {
+        if (note) {
+          note.remove();
+          note = null;
+        } else {
+          note = A.rich(A.el("div", "cnote"), text);
+          r.after(note);
+          o.opened.add(k);
+        }
+        r.classList.toggle("open", !!note);
+        r.setAttribute("aria-expanded", String(!!note));
+        A.changed(o);
+      };
+      r.addEventListener("click", toggle);
+      r.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        e.stopPropagation();
+        toggle();
+      });
+    });
+    o.check = (goal) =>
+      o.opened.size >= (goal.notes === "all" ? notes.length : goal.notes || 0);
+    o.status = () => `${o.opened.size} de ${notes.length} notas abiertas`;
     o.draw = () => {
       const L =
         Math.max(...lines.map((l) => l.length), 8) + (s.numbers ? 4 : 0);

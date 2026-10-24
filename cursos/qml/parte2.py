@@ -7,6 +7,7 @@ from lib import (
     Code,
     Exercise,
     G,
+    KernelMap,
     M,
     Out,
     Row,
@@ -16,6 +17,7 @@ from lib import (
     choice,
     lesson,
     predict,
+    task,
 )
 
 CLASICO = """
@@ -43,6 +45,21 @@ kernel = FidelityStatevectorKernel(feature_map=mapa)
 qsvc = QSVC(quantum_kernel=kernel).fit(Xtr, ytr)
 print(qsvc.score(Xte, yte))
 """
+
+# Los 60 puntos de make_moons(n_samples=60, noise=0.15, random_state=0) llevados a [0, 1]², como en
+# CLASICO, con su clase. Los dibuja el mapa de kernels de la lección.
+LUNAS = [
+    [0.0, 0.466, 0], [0.364, 0.231, 1], [0.977, 0.659, 1], [0.066, 0.41, 0], [0.413, 0.843, 0], [0.718, 0.392, 0],
+    [0.297, 0.454, 1], [0.986, 0.507, 1], [0.52, 0.171, 1], [0.03, 0.81, 0], [0.744, 0.515, 0], [0.554, 0.695, 0],
+    [0.395, 0.538, 1], [0.552, 0.153, 1], [0.362, 0.509, 1], [0.608, 0.043, 1], [0.811, 0.118, 1], [0.575, 0.688, 0],
+    [0.455, 0.827, 0], [0.368, 0.374, 1], [0.844, 0.258, 1], [0.015, 0.307, 0], [0.626, 0.138, 1], [0.906, 0.217, 1],
+    [0.168, 0.821, 0], [0.918, 0.402, 1], [0.116, 0.492, 0], [0.301, 0.712, 0], [0.59, 0.706, 0], [0.36, 0.596, 1],
+    [0.308, 0.889, 0], [0.889, 0.203, 1], [0.18, 0.723, 0], [0.978, 0.178, 1], [0.512, 0.639, 0], [0.4, 0.87, 0],
+    [0.076, 0.707, 0], [0.406, 0.14, 1], [0.236, 1.0, 0], [0.767, 0.069, 1], [0.742, 0.01, 1], [1.0, 0.508, 1],
+    [0.492, 0.052, 1], [0.61, 0.341, 0], [0.318, 0.95, 0], [0.702, 0.037, 1], [0.13, 0.59, 0], [0.537, 0.646, 0],
+    [0.113, 0.67, 0], [0.359, 0.266, 1], [0.082, 0.582, 0], [0.188, 0.747, 0], [0.486, 0.847, 0], [0.383, 0.163, 1],
+    [0.933, 0.348, 1], [0.697, 0.492, 0], [0.67, 0.383, 0], [0.982, 0.32, 1], [0.718, 0.105, 1], [0.689, 0.0, 1],
+]
 
 LESSONS = [
     lesson(
@@ -79,7 +96,18 @@ LESSONS = [
                 """El kernel RBF vale uno cuando dos puntos coinciden y decae con la distancia. [[ej]]Por ejemplo, con gamma un medio, dos puntos muy cercanos dan casi uno, y dos puntos lejanos dan sesenta y cinco centésimas.
                  [[moons]]Con este kernel, una SVM clasifica las dos lunas de scikit-learn: [[acc]]acierta los quince puntos de prueba.""",
                 [
-                    Code(CLASICO, id="c", size=19),
+                    Code(
+                        CLASICO,
+                        id="c",
+                        size=19,
+                        notes={
+                            6: "Dos medias lunas entrelazadas: 60 puntos con ruido que ninguna recta separa.",
+                            7: "Lleva cada coordenada a $[0, 1]$. Esta escala importa: en el lado cuántico, los datos entran como ángulos.",
+                            8: "45 puntos para entrenar y 15 para probar (`test_size=0.25`).",
+                            10: "`SVC` con kernel RBF. `gamma` queda en su valor por defecto, `'scale'`, que lo ajusta a la varianza de los datos.",
+                            11: "`score` da la exactitud: la fracción de puntos de prueba bien clasificados.",
+                        },
+                    ),
                     M(r"k_{\rm RBF}(x,x')=e^{-\gamma\|x-x'\|^2}", id="m", size=34),
                     T("con $\\gamma=0.5$: $k([0.2,0.7],[0.25,0.65])=0.998$ y $k([0.2,0.7],[0.9,0.1])=0.654$", "note", id="n", hidden=True),
                     Out("1.0", id="o", hidden=True),
@@ -119,10 +147,36 @@ LESSONS = [
                 ),
             ),
             beat(
+                "explora",
+                ("", "Explora los dos kernels"),
+                """Ahora explora tú los dos kernels sobre las lunas. [[clic]]Haz clic en cualquier lugar: el círculo rojo se mueve allí, y cada mapa pinta qué tan parecido es cada punto del cuadrado a ese lugar, más intenso cuanto más parecido.
+                 [[lados]]A la izquierda, el kernel RBF; a la derecha, el kernel cuántico del feature map que acabas de ver.
+                 [[escala]]Después mueve la escala de los datos y mira qué le pasa al mapa cuántico.""",
+                [KernelMap(LUNAS, gamma=5, scale=1, reps=1, ref=[0.3, 0.6], id="k")],
+                ask=task(
+                    "Haz clic en **tres lugares** de los mapas. Luego sube la **escala de los datos** a 3 o más.",
+                    "k",
+                    dict(clicks=3, scale=[3, 100]),
+                    "Con la escala grande, el mapa cuántico se vuelve un mosaico: puntos vecinos dejan de parecerse y la SVM ya no ve la forma de las lunas. La escala de los datos es un hiperparámetro, como $\\gamma$ en el RBF.",
+                    hint="Los deslizadores están debajo de los mapas. Arrastra «escala de los datos» hacia la derecha.",
+                ),
+            ),
+            beat(
                 "predice",
                 ("", "Antes de comparar"),
                 """Mismo dataset, mismos cuarenta y cinco puntos de entrenamiento, misma SVM. Solo cambiamos el kernel. [[quien]]¿Quién crees que clasifica mejor los quince puntos de prueba?""",
-                [Code(CUANTICO, id="c", size=20)],
+                [
+                    Code(
+                        CUANTICO,
+                        id="c",
+                        size=20,
+                        notes={
+                            5: "El feature map del paso anterior: 2 qubits, uno por coordenada, y una sola repetición.",
+                            6: "Calcula $|\\langle\\varphi(x')|\\varphi(x)\\rangle|^2$ con el vector de estado exacto, sin shots.",
+                            8: "La misma SVM de scikit-learn, con otro kernel. `Xtr` e `ytr` son los del código clásico.",
+                        },
+                    )
+                ],
                 ask=predict(
                     "En las dos lunas, ¿quién acierta más?",
                     ["el kernel cuántico, por mucho", "empatan", "el RBF clásico", "ninguno pasa del 60 %"],

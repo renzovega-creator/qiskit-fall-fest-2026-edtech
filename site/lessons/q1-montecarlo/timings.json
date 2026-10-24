@@ -46,12 +46,43 @@
    ]
   ]
  },
+ "lanza": {
+  "dur": 26.328,
+  "marks": {
+   "btn": 5.52,
+   "linea": 10.02,
+   "mil": 21.102
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora lanza tú la moneda, que sale cara con probabilidad un cuarto."
+   ],
+   [
+    5.52,
+    "Cada botón suma esos lanzamientos a los que ya llevas."
+   ],
+   [
+    10.02,
+    "La línea roja es tu estimación a medida que crece N."
+   ],
+   [
+    14.436,
+    "La franja azul es el error típico alrededor del valor real, y se estrecha como uno sobre la raíz de N."
+   ],
+   [
+    21.102,
+    "Lanza hasta pasar de mil y mira cómo tu estimación entra en el embudo."
+   ]
+  ]
+ },
  "born": {
-  "dur": 29.952,
+  "dur": 35.304,
   "marks": {
    "ry": 4.189,
    "born": 9.143,
-   "pi3": 20.876
+   "pi3": 20.876,
+   "tu": 29.934
   },
   "cues": [
    [
@@ -77,6 +108,10 @@
    [
     20.876,
     "Con theta igual a pi tercios, esa probabilidad vale exactamente un cuarto: hemos construido una moneda cargada cuántica."
+   ],
+   [
+    29.934,
+    "Ahora mueve tú el ángulo con el deslizador y mira cómo cambian las barras."
    ]
   ]
  },
@@ -126,6 +161,31 @@
    [
     16.418,
     "Es el error de Monte Carlo: con cien muestras, el error típico es de cuatro centésimas."
+   ]
+  ]
+ },
+ "tandas": {
+  "dur": 22.632,
+  "marks": {
+   "tanda": 3.184,
+   "baile": 8.619
+  },
+  "cues": [
+   [
+    0.107,
+    "Ahora repite tú el experimento."
+   ],
+   [
+    3.184,
+    "Cada clic es una ejecución nueva del mismo circuito, con cien shots."
+   ],
+   [
+    8.619,
+    "Mira cuántos unos salen cada vez: casi nunca exactamente veinticinco, y casi siempre dentro de la franja oscura, a unos cuatro de distancia."
+   ],
+   [
+    19.22,
+    "Ese baile es el error de Monte Carlo."
    ]
   ]
  },

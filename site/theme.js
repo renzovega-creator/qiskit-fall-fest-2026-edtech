@@ -1,10 +1,11 @@
-// Se carga en <head> para fijar ambos atributos antes de pintar. Sin modo guardado, sigue la preferencia del sistema.
+// Se carga en <head> para fijar ambos atributos antes de pintar. Sin modo guardado, el tema es claro.
 /* oxlint-disable unicorn/consistent-function-scoping --
    Script clásico en una función: sus ayudas no pueden salir al ámbito global. */
 (() => {
   const MODE = "qiskit:theme",
     PAL = "qiskit:paleta";
   const PALETAS = {
+    catppuccin: "Catppuccin",
     fosforo: "Fósforo",
     cobre: "Cobre",
     medianoche: "Medianoche",
@@ -22,14 +23,11 @@
       localStorage.setItem(k, v);
     } catch {}
   };
-  const sys = () =>
-    matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-
   const savedMode = read(MODE),
     savedPal = read(PAL);
   root.dataset.theme =
-    savedMode === "light" || savedMode === "dark" ? savedMode : sys();
-  root.dataset.paleta = Object.hasOwn(PALETAS, savedPal) ? savedPal : "fosforo";
+    savedMode === "light" || savedMode === "dark" ? savedMode : "light";
+  root.dataset.paleta = Object.hasOwn(PALETAS, savedPal) ? savedPal : "catppuccin";
 
   const modeLabel = () => (root.dataset.theme === "light" ? "☾" : "☀");
   const modeTitle = () =>
@@ -69,11 +67,5 @@
       c.append(sel, btn);
     });
     paint();
-  });
-  matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
-    if (read(MODE)) return;
-    root.dataset.theme = sys();
-    paint();
-    dispatchEvent(new Event("themechange"));
   });
 })();

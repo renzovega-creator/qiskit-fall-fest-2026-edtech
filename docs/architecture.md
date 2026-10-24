@@ -60,10 +60,18 @@ comprueba la cobertura. Para actualizar las guías se cambia ese hash, se ejecut
   y pide en paralelo los `lesson.json` de las lecciones completadas para armar
   el repaso.
 - `lesson.html` carga `engine.js`, el reproductor, con los estilos de `app.css`.
-  `blocks.js` dibuja los bloques propios del curso, `exercise.js` el bloque de
-  ejercicio y `sfx.js` los sonidos. Las fórmulas las dibuja KaTeX, que sale de
-  `vendor/`. Las dos páginas cargan KaTeX con `defer`, antes que sus propios
-  scripts.
+  `blocks.js` dibuja los bloques propios del curso, `labs.js` los bloques que el
+  alumno maneja con clic, `exercise.js` el bloque de ejercicio y `sfx.js` los
+  sonidos. Las fórmulas las dibuja KaTeX, que sale de `vendor/`. Las dos páginas
+  cargan KaTeX con `defer`, antes que sus propios scripts.
+- `labs.js` define `lab` (taller de circuitos: puertas con clic, ángulos con
+  deslizador y probabilidades calculadas en el navegador), `slider`, `shots`
+  (muestreo con su error típico) y `kernelmap` (kernel RBF y kernel cuántico ZZ
+  alrededor de un punto elegido con clic). Las líneas de un
+  `Code(..., notes={...})` se abren con clic. Una escena con bloques
+  interactivos no avanza sola al acabar la narración. Una actividad,
+  `ask=task(...)`, se supera cuando el bloque `target` cumple la meta `goal`;
+  cada bloque comprueba sus metas en `check(goal)`.
 - `vendor/` son KaTeX y las tres tipografías, copiados de `editor/node_modules`
   por `editor/vendor.js`. Git los ignora; `mise run install` y `mise run deploy`
   los generan de nuevo y borran antes lo que hubiera. Ninguna página pide nada a

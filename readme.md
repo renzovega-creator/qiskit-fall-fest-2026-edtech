@@ -1,116 +1,106 @@
 # QuantumShot · Del ML al QML
 
-Aprende computación cuántica desde conceptos de estadística y machine learning
-que ya conoces. Cada lección conecta una idea clásica con su equivalente
-cuántico: escuchas la explicación, predices un resultado, experimentas y
-programas con Qiskit.
+Tu dosis diaria de cuántica. QuantumShot enseña computación cuántica partiendo
+de lo que ya sabes de estadística y machine learning: cada lección es un par,
+una idea clásica y su gemela cuántica, y todo se comprueba con Qiskit.
 
-El curso está en español. Actualmente tiene dos lecciones narradas, dos
-ejercicios de código, tres misiones y un reto que combina muestreo y kernels.
+Proyecto para el **Qiskit Fall Fest 2026**.
 
-| Lección                              | Qué exploras                                                           |
-| ------------------------------------ | ---------------------------------------------------------------------- |
-| Monte Carlo ↔ shots                  | Regla de Born, frecuencias y error de muestreo.                        |
-| SVM con kernel RBF ↔ kernel cuántico | Feature maps, similitud entre estados y comparación de clasificadores. |
+| Lección                              | Par clásico ↔ cuántico                                        |
+| ------------------------------------ | ------------------------------------------------------------- |
+| Monte Carlo ↔ shots                  | Regla de Born, frecuencias y error de muestreo                |
+| SVM con kernel RBF ↔ kernel cuántico | Feature maps, solapamiento de estados y `QSVC` frente a `SVC` |
 
-Las misiones dejan evidencias en un portafolio compartible y actualizan un mapa
-de habilidades. Los experimentos usan un simulador de Qiskit. El progreso de las
-misiones y el portafolio se guardan en este navegador.
+## Cómo usar la web
 
-## Preparar el proyecto
+La web es un recorrido en tres pasos, **Aprende → Practica → Demuestra**, que
+siempre ves en la barra superior con el paso en el que estás.
 
-Instala [mise](https://mise.jdx.dev/) y ejecuta desde la raíz:
+### 1. Empieza en la portada
 
-```sh
-mise install
-uv sync --locked --all-groups
-bun install --cwd editor --frozen-lockfile
-bun install --cwd runner/worker --frozen-lockfile
-mise run generate:vendor
-```
+La portada lee tu progreso y te muestra **un solo siguiente paso**, marcado como
+«Tu siguiente paso», con su botón. Lo que todavía no toca aparece plegado y
+explica cuándo se abre; si quieres verlo igual, pulsa «Echar un vistazo».
+Mientras bajas, una barra fija repite lo que te toca hacer.
 
-`mise.toml` fija las versiones de las herramientas. El último paso copia las
-tipografías y KaTeX a `site/vendor/`, para servirlos desde el propio sitio.
+### 2. Aprende con las lecciones
 
-## Abrir la web
+Pulsa **Comenzar**. La lección avanza sola, con narración, animaciones y
+subtítulos.
 
-En PowerShell:
+- **Muévete por la lección** con la línea de tiempo (haz clic en cualquier
+  punto), los botones ⏮ ⏭, −5 y +5 segundos, y la velocidad.
+- **Responde y predice.** Algunas pausas te piden apostar un resultado antes de
+  verlo o contestar una pregunta.
+- **Tu turno.** Las actividades se hacen con clic: lanzar monedas, mover el
+  ángulo de un qubit, comparar kernels en un mapa. Al cumplir la meta, pulsa
+  «Continuar»; también puedes pedir una pista o saltarla.
+- **Programa.** Al final hay un ejercicio: completa el código y pulsa
+  **Comprobar** para ejecutarlo con Qiskit. Si te atascas, usa las pistas.
 
-```powershell
-$env:QG_CURSO = "qml"
-uv run python tools/serve.py
-```
+### 3. Practica con las misiones
 
-En Linux o macOS:
+Abre **Practica** para ver el mapa de habilidades: arrástralo para moverte,
+acércate con la rueda o con − y +, o cambia a la vista **Lista**. Haz clic en
+una habilidad para ver su ficha y su misión.
 
-```sh
-QG_CURSO=qml uv run python tools/serve.py
-```
+Cada misión tiene cuatro pasos: **predice** el resultado, **experimenta**
+(ajusta el circuito y pulsa «Medir con Qiskit»), **observa** qué salió y
+**demuestra** con «Comprobar el reto». Al superarla ganas XP, insignias y una
+estrella en el mapa, y se abren misiones nuevas.
 
-Abre <http://localhost:8810/>. Desde la portada puedes entrar a las lecciones,
-las [misiones](http://localhost:8810/juego.html) y el portafolio.
+### 4. Demuestra con tu portafolio
 
-El servidor local ejecuta los experimentos. La corrección automática de los
-ejercicios necesita Linux o macOS; en Windows, usa WSL. Las misiones pueden
-ejecutarse con el servidor local en Windows.
+En **Demuestra** está tu portafolio: habilidades demostradas, lecciones
+completadas, insignias y una evidencia por cada reto superado, con el problema,
+lo que hiciste y el código para reproducirlo.
 
-## Editar las lecciones
+- **Editar perfil** cambia tu nombre, avatar y presentación.
+- Marca **Mostrar en mi perfil público** en las evidencias que quieras enseñar y
+  pulsa **Copiar enlace** para compartirlo.
+- ¿Quieres ver cómo luce lleno? Abre «Ver un perfil de demostración» al pie de
+  la página del juego.
 
-El contenido está en [`cursos/qml/`](cursos/qml/): `plan.py` define el
-recorrido, `parte1.py` y `parte2.py` contienen las lecciones, y `exercises/` sus
-ejercicios. El motor que las convierte en páginas está en `lessons_src/`.
+### 5. Vuelve cada día
 
-Con `QG_CURSO=qml` definido, regenera el contenido:
+En la portada tienes un **reto del día** (la misma semilla para todos: predices
+un número y Qiskit lo mide), **preguntas de repaso** que vuelven a los 1, 3, 7 y
+21 días, y tu **nivel** con una racha.
 
-```sh
-uv run python lessons_src/build.py
-```
+### Atajos en las lecciones
 
-En PowerShell define la variable como en el apartado anterior. En Linux o macOS
-puedes anteponer `QG_CURSO=qml` a cada comando.
+| Tecla         | Acción                        |
+| ------------- | ----------------------------- |
+| Espacio       | Pausa o reproduce             |
+| ← / →         | Paso anterior o siguiente     |
+| Mayús + ← / → | Retrocede o avanza 5 segundos |
+| C             | Muestra u oculta subtítulos   |
+| A–F           | Elige una opción en preguntas |
+| Intro         | Continúa tras responder       |
 
-Para actualizar la narración y sus tiempos, añade `--tts`. La síntesis de voz
-necesita conexión a internet.
+### Tu progreso
 
-## Comprobar
+Tu progreso se guarda en este navegador. Con **Entrar** puedes guardarlo en una
+cuenta, cuando la versión que usas tiene cuentas. El botón ☾ / ☀ cambia entre
+modo claro y oscuro.
 
-Con `QG_CURSO=qml`, comprueba que los archivos publicados coincidan con las
-lecciones:
+Los experimentos corren en el simulador de Qiskit (`StatevectorSampler`), no en
+hardware cuántico; cada misión lo indica.
 
-```sh
-uv run python lessons_src/build.py --check
-```
+## Para desarrolladores
 
-En Linux o macOS puedes comprobar también las soluciones de los ejercicios:
+Cómo correr la web en tu equipo, editar las lecciones y publicarla:
+[docs/desarrollo.md](docs/desarrollo.md). Más detalles en
+[Misiones, mapa y portafolio](docs/juego.md),
+[Cómo escribir ejercicios](docs/exercises.md) y
+[Arquitectura](docs/architecture.md).
 
-```sh
-QG_CURSO=qml uv run python tools/exercises.py
-```
+## Equipo
 
-## Publicar en GitHub Pages
+- Rosario Aldava Asencios · Física, UNMSM
+- Pedro Rojas Fernandez · Física, UNMSM
+- Renzo Vega Martinez · Física, PUCP
+- Fiorella Effio · Física, UNMSM
 
-La versión pública se publica desde la raíz de la rama `gh-pages`:
-
-```sh
-python tools/pages.py shots/pages
-```
-
-El comando prepara una carpeta nueva con las dos lecciones activas, sus audios,
-las tipografías y los archivos de la web. Sube el contenido de esa carpeta a
-`gh-pages`. En **Settings → Pages**, elige **Deploy from a branch**, la rama
-`gh-pages` y la carpeta `/ (root)`.
-
-GitHub Pages sirve la versión de lectura: lecciones, animaciones, controles
-interactivos que no requieren Python y progreso local. Las mediciones con Qiskit
-y la corrección de código necesitan el servidor local descrito arriba; las
-cuentas no están disponibles en esta publicación. El portafolio se llena cuando
-puedes ejecutar y superar las misiones con ese servidor.
-
-## Documentación
-
-- [Misiones, mapa y portafolio](docs/juego.md).
-- [Cómo escribir ejercicios](docs/exercises.md).
-- [Arquitectura](docs/architecture.md).
-
-QuantumShot utiliza el motor de
+QuantumShot usa el motor de lecciones de
 [qiskit-guides](https://github.com/PedroRojasF/qiskit-guides-compartido).
