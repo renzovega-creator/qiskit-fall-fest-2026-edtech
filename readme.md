@@ -1,98 +1,116 @@
-# Qiskit en español: las guías de IBM Quantum, narradas
+# QuantumShot · Del ML al QML
 
-Curso en español, narrado y con animaciones, sobre las guías de IBM Quantum y
-Qiskit. Son 67 lecciones en diez partes, desde qué es Qiskit hasta
-organizaciones y seguridad. Cada lección es una secuencia de pasos con voz,
-subtítulos, código que se ejecuta y preguntas. Algunas traen una misión en un
-cuaderno de práctica.
+Aprende computación cuántica desde conceptos de estadística y machine learning
+que ya conoces. Cada lección conecta una idea clásica con su equivalente
+cuántico: escuchas la explicación, predices un resultado, experimentas y
+programas con Qiskit.
 
-El curso corre en tu equipo: las lecciones son una página estática y los
-cuadernos usan el entorno de Python del proyecto.
+El curso está en español. Actualmente tiene dos lecciones narradas, dos
+ejercicios de código, tres misiones y un reto que combina muestreo y kernels.
 
-## Instalar
+| Lección                              | Qué exploras                                                           |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| Monte Carlo ↔ shots                  | Regla de Born, frecuencias y error de muestreo.                        |
+| SVM con kernel RBF ↔ kernel cuántico | Feature maps, similitud entre estados y comparación de clasificadores. |
 
-Necesitas [mise](https://mise.jdx.dev/). `mise.toml` fija las versiones de
-Python, uv, Node, Bun y gitleaks, y mise las instala.
+Las misiones dejan evidencias en un portafolio compartible y actualizan un mapa
+de habilidades. Los experimentos usan un simulador de Qiskit. El progreso de las
+misiones y el portafolio se guardan en este navegador.
+
+## Preparar el proyecto
+
+Instala [mise](https://mise.jdx.dev/) y ejecuta desde la raíz:
 
 ```sh
-mise run install
+mise install
+uv sync --locked --all-groups
+bun install --cwd editor --frozen-lockfile
+bun install --cwd runner/worker --frozen-lockfile
+mise run generate:vendor
 ```
 
-Instala las dependencias de Python y de JavaScript desde sus archivos de
-bloqueo, copia KaTeX y las tipografías a `site/vendor/`, y descarga el Chromium
-de Playwright y las guías originales de Qiskit.
+`mise.toml` fija las versiones de las herramientas. El último paso copia las
+tipografías y KaTeX a `site/vendor/`, para servirlos desde el propio sitio.
 
-## Ver el curso
+## Abrir la web
 
-```sh
+En PowerShell:
+
+```powershell
+$env:QG_CURSO = "qml"
 uv run python tools/serve.py
 ```
 
-Abre <http://localhost:8810/>. La portada muestra las lecciones por parte y tu
-progreso. Una lección se abre en `lesson.html?l=<id>`, por ejemplo
-<http://localhost:8810/lesson.html?l=p1-quickstart>. Las fórmulas y las
-tipografías salen del propio sitio, así que la página no necesita internet.
-`tools/serve.py` sirve `site/` y además corrige los ejercicios de código de las
-lecciones; ver [docs/exercises.md](docs/exercises.md).
-
-## Abrir un cuaderno de práctica
+En Linux o macOS:
 
 ```sh
-uv run marimo edit practica/p1-quickstart.py
+QG_CURSO=qml uv run python tools/serve.py
 ```
 
-Es el comando que muestra la misión de la lección 1.4. Los cuadernos están en
-[`practica/`](practica/) y sus soluciones, para `tools/practica.py`, en
-`practica/soluciones/`.
+Abre <http://localhost:8810/>. Desde la portada puedes entrar a las lecciones,
+las [misiones](http://localhost:8810/juego.html) y el portafolio.
 
-## Reconstruir las lecciones y la narración
+El servidor local ejecuta los experimentos. La corrección automática de los
+ejercicios necesita Linux o macOS; en Windows, usa WSL. Las misiones pueden
+ejecutarse con el servidor local en Windows.
 
-Las lecciones se escriben en [`lessons_src/`](lessons_src/). Después de
-editarlas:
+## Editar las lecciones
+
+El contenido está en [`cursos/qml/`](cursos/qml/): `plan.py` define el
+recorrido, `parte1.py` y `parte2.py` contienen las lecciones, y `exercises/` sus
+ejercicios. El motor que las convierte en páginas está en `lessons_src/`.
+
+Con `QG_CURSO=qml` definido, regenera el contenido:
 
 ```sh
-uv run python tools/fetch_docs.py
 uv run python lessons_src/build.py
 ```
 
-El primer comando descarga las guías originales de Qiskit a `.cache/` (solo la
-primera vez). El segundo regenera `site/lessons/<id>/lesson.json` y
-`site/course.json`, y comprueba que cada guía original tenga lección.
+En PowerShell define la variable como en el apartado anterior. En Linux o macOS
+puedes anteponer `QG_CURSO=qml` a cada comando.
 
-Para generar también el audio y los tiempos:
-
-```sh
-uv run python lessons_src/build.py --tts
-```
-
-Necesita red (Edge TTS) y `ffprobe` (viene con ffmpeg). Solo se sintetizan los
-clips cuyo texto cambió.
+Para actualizar la narración y sus tiempos, añade `--tts`. La síntesis de voz
+necesita conexión a internet.
 
 ## Comprobar
 
+Con `QG_CURSO=qml`, comprueba que los archivos publicados coincidan con las
+lecciones:
+
 ```sh
-mise run check
+uv run python lessons_src/build.py --check
 ```
 
-Ejecuta `lint`, `typecheck`, `test` y `build`, y no escribe nada versionado:
+En Linux o macOS puedes comprobar también las soluciones de los ejercicios:
 
-- `lint` revisa Python con ruff, JavaScript y TypeScript con oxlint, el formato
-  de Markdown, JSON, YAML, JavaScript y TypeScript con oxfmt, y busca secretos
-  con gitleaks. `mise run fix` aplica los arreglos seguros y el formato.
-- `typecheck` pasa mypy en modo estricto sobre Python y `tsc` sobre el Worker.
-- `test` ejecuta los cuadernos con y sin sus soluciones, corrige los ejercicios
-  de código, prueba el Worker, recorre el sitio con un navegador y ejecuta el
-  código Python que muestran las lecciones.
-- `build` falla si los JSON de `site/` o `site/editor.js` no coinciden con lo
-  que generan `build.py` y esbuild. `mise run generate` los reescribe.
+```sh
+QG_CURSO=qml uv run python tools/exercises.py
+```
 
-`mise run test:integration` construye la imagen del corredor y necesita Docker,
-por eso `check` no lo ejecuta. La definición de cada paso está en
-[`mise.toml`](mise.toml).
+## Publicar en GitHub Pages
 
-## Más
+La versión pública se publica desde la raíz de la rama `gh-pages`:
 
-[`docs/architecture.md`](docs/architecture.md) explica qué contiene cada carpeta
-y cómo llega una lección desde su código fuente hasta el navegador.
-[`docs/exercises.md`](docs/exercises.md) describe cómo se escribe y se corrige
-un ejercicio de código.
+```sh
+python tools/pages.py shots/pages
+```
+
+El comando prepara una carpeta nueva con las dos lecciones activas, sus audios,
+las tipografías y los archivos de la web. Sube el contenido de esa carpeta a
+`gh-pages`. En **Settings → Pages**, elige **Deploy from a branch**, la rama
+`gh-pages` y la carpeta `/ (root)`.
+
+GitHub Pages sirve la versión de lectura: lecciones, animaciones, controles
+interactivos que no requieren Python y progreso local. Las mediciones con Qiskit
+y la corrección de código necesitan el servidor local descrito arriba; las
+cuentas no están disponibles en esta publicación. El portafolio se llena cuando
+puedes ejecutar y superar las misiones con ese servidor.
+
+## Documentación
+
+- [Misiones, mapa y portafolio](docs/juego.md).
+- [Cómo escribir ejercicios](docs/exercises.md).
+- [Arquitectura](docs/architecture.md).
+
+QuantumShot utiliza el motor de
+[qiskit-guides](https://github.com/PedroRojasF/qiskit-guides-compartido).
