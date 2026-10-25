@@ -78,7 +78,10 @@ def run_plain(exercise_id: str, code: str) -> dict[str, Any]:
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path.split("?", 1)[0] == "/account.js":
-            data = b"window.QGAccount = { ready: Promise.resolve(), changed() {} };\n"
+            data = (
+                b"window.QG_RUNNER_AVAILABLE = true;\n"
+                b"window.QGAccount = { ready: Promise.resolve(), changed() {} };\n"
+            )
             self.send_response(200)
             self.send_header("Content-Type", "text/javascript; charset=utf-8")
             self.send_header("Content-Length", str(len(data)))

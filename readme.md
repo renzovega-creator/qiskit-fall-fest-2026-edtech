@@ -6,7 +6,11 @@ una idea clásica y su gemela cuántica, y todo se comprueba con Qiskit.
 
 Proyecto para el **Qiskit Fall Fest 2026**.
 
-![Portada de QuantumShot: «Del ML al QML, con Qiskit», la ruta Aprende, Practica y Demuestra y el primer paso, la lección 1.1](docs/img/portada.png)
+![Portada de QuantumShot: «Del ML al QML, con Qiskit», con una esfera de Bloch con profundidad visual, la ruta Aprende, Practica y Demuestra y el primer paso, la lección 1.1](docs/img/portada.png)
+
+La portada incluye una esfera de Bloch animada con más profundidad visual. Los
+enlaces a las secciones se desplazan suavemente; el movimiento se desactiva si
+el navegador tiene activada la reducción de movimiento.
 
 | Lección                              | Par clásico ↔ cuántico                                        |
 | ------------------------------------ | ------------------------------------------------------------- |
@@ -97,9 +101,10 @@ un número y Qiskit lo mide), **preguntas de repaso** que vuelven a los 1, 3, 7 
 
 ### Tu progreso
 
-Tu progreso se guarda en este navegador. Con **Entrar** puedes guardarlo en una
-cuenta, cuando la versión que usas tiene cuentas. El botón ☾ / ☀ cambia entre
-modo claro y oscuro.
+El progreso, tus borradores de código, tus reflexiones y las preferencias de
+tema se guardan en el almacenamiento local de este navegador. No se sincronizan
+con una cuenta. La demo pública tampoco envía el código que escribes en el
+editor. Consulta el aviso de [Privacidad](site/privacidad.html).
 
 Los experimentos corren en el simulador de Qiskit (`StatevectorSampler`), no en
 hardware cuántico; cada misión lo indica.
@@ -124,17 +129,18 @@ QuantumShot usa el motor de lecciones de
 
 ## Versión local y GitHub Pages
 
-La versión local es la completa para practicar: `tools/serve.py` ejecuta los
-experimentos y retos con Qiskit, y el progreso queda en el navegador. En
-Windows, los botones **Ejecutar** funcionan; la corrección automática por casos
-del editor requiere Linux o macOS.
+La versión local es la completa para practicar: `tools/serve.py` ejecuta en tu
+equipo el código del editor con Qiskit, y el progreso queda en el navegador. En
+Windows, **Ejecutar** funciona; la corrección automática por casos del editor
+requiere Linux o macOS. El servidor local escucha solo en `127.0.0.1`.
 
 [GitHub Pages](https://renzovega-creator.github.io/qiskit-fall-fest-2026-edtech/)
 es el recorrido público para explorar las lecciones, actividades de navegador,
 el mapa y el perfil de ejemplo. No ejecuta código Python ni tiene cuentas: el
 perfil de ejemplo muestra resultados de Qiskit ya calculados, no mediciones en
-vivo. Para el pitch, las diapositivas muestran la demo completa; Pages queda
-como recorrido para después.
+vivo. El editor se puede leer, pero sus botones están desactivados y el código
+no se envía. Para el pitch, las diapositivas muestran la demo local; Pages queda
+como recorrido público para después.
 
 Para preparar la versión local y publicar una copia estática, sigue
 [Desarrollo](docs/desarrollo.md). La documentación del Worker se conserva como

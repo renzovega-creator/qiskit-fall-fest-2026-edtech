@@ -10,9 +10,9 @@ SITE = ROOT / "site"
 NOTICE = (
     '<p role="note" style="padding:12px 16px;border:1px solid var(--line);'
     'border-radius:8px;background:var(--bg2);color:var(--ink);font:14px/1.5 var(--sans)">'
-    "<strong>Demo estática en GitHub Pages.</strong> Puedes recorrer las lecciones y ver "
-    "el perfil de ejemplo con resultados precomputados de Qiskit. No ejecuta código "
-    "nuevo ni ofrece cuentas; la versión local permite ejecutar los experimentos con Qiskit. "
+    "<strong>Demo estática en GitHub Pages.</strong> El perfil de ejemplo muestra resultados "
+    "precalculados de Qiskit. El editor no envía ni ejecuta código; para probarlo, usa la "
+    "versión local. "
     '<a href="juego.html#ejemplo" style="color:var(--acc);font-weight:600">'
     "Ver resultados de ejemplo →</a></p>"
 )
@@ -35,6 +35,7 @@ def build(destination: Path) -> None:
             shutil.copytree(SITE / "lessons" / name, destination / "lessons" / name)
     # Las páginas llaman a esta interfaz aunque no haya proveedor de cuentas.
     (destination / "account.js").write_text(
+        "window.QG_RUNNER_AVAILABLE = false;\n"
         "window.QGAccount = { ready: Promise.resolve(), changed() {} };\n",
         encoding="utf-8",
     )

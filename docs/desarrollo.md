@@ -32,11 +32,11 @@ En Linux o macOS:
 QG_CURSO=qml uv run python tools/serve.py
 ```
 
-Abre <http://localhost:8810/>. El servidor local sirve la web y ejecuta los
-experimentos de las misiones y el reto diario con Qiskit. En Windows también se
-puede usar **Ejecutar** en el editor; la corrección automática con casos de
-prueba requiere Linux o macOS. El progreso se guarda en el navegador y no se
-sincroniza con una cuenta.
+Abre <http://localhost:8810/>. El servidor local sirve la web y ejecuta el
+código del editor en tu equipo. En Windows funciona **Ejecutar**; la corrección
+automática por casos de prueba requiere Linux o macOS. El servidor escucha solo
+en `127.0.0.1`; el progreso se guarda en el navegador y no se sincroniza con una
+cuenta.
 
 ## Editar las lecciones
 
@@ -85,6 +85,8 @@ Pages**, elige **Deploy from a branch**, la rama `gh-pages` y la carpeta
 
 GitHub Pages sirve una demo estática: lecciones, animaciones, actividades con
 clic, progreso local y el perfil de ejemplo (`juego.html#ejemplo`) con resultados
-precomputados de Qiskit. No ejecuta código nuevo ni ofrece cuentas. La versión
-local con Qiskit se inicia con `tools/serve.py`; el despliegue actual no usa un
-Worker.
+precalculados de Qiskit. No ofrece cuentas ni ejecuta Python. El editor se puede
+leer, pero sus botones quedan desactivados y el código no se envía. Para usarlo,
+inicia la versión local con `tools/serve.py`. La demo pública no usa un Worker;
+consulta [Privacidad](../site/privacidad.html) para ver qué se guarda en cada
+versión.
