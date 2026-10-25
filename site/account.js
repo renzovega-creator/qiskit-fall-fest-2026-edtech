@@ -2,6 +2,8 @@
 // Sin cuenta no hace peticiones de cuenta. Con la marca qiskit:cuenta, junta el
 // progreso antes de pintar y envía los cambios que admite el Worker.
 // Las reflexiones (qiskit:reflect) no salen del navegador.
+window.QG_RUNNER_AVAILABLE = true;
+
 /* oxlint-disable unicorn/consistent-function-scoping --
    Script clásico en una función: sus ayudas no pueden salir al ámbito global. */
 (() => {
