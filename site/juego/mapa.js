@@ -228,8 +228,8 @@ export function crearMapa(
   let resaltar = true;
   let pulsoSeleccion = false;
   const seccion = raiz.closest(".constelacion-sec");
-  const organica = Boolean(seccion);
-  const miniPortafolio = Boolean(raiz.closest(".mapa-mini"));
+  const organica = Boolean(seccion || raiz.closest(".mapa-mini"));
+  raiz.classList.toggle("mapa-organico", organica);
   const aspecto = seccion?.clientWidth && seccion?.clientHeight
     ? seccion.clientWidth / seccion.clientHeight
     : 1190 / 980;
@@ -249,7 +249,7 @@ export function crearMapa(
     }),
   );
   const fondoSvg = fondo();
-  const malla = organica || miniPortafolio ? redAmbiente(INICIO) : null;
+  const malla = organica ? redAmbiente(INICIO) : null;
   const movil = matchMedia("(max-width: 700px), (max-aspect-ratio: 1 / 1)").matches;
   let vista = movil ? "lista" : "mapa";
 
