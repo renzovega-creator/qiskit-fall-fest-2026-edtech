@@ -134,6 +134,21 @@ atiende las cuentas y el progreso sincronizado, y recibe los ejercicios para
 que un contenedor aislado los ejecute con Qiskit. El Worker también puede servir
 los archivos de la web, manteniendo la página y el backend en el mismo origen.
 
+Para el despliegue completo hacen falta:
+
+- Una cuenta Cloudflare con Workers Paid (base de 5 USD/mes; Containers puede
+  generar cargos de uso adicionales y no hay un tope automático de factura).
+- `mise`, `bun` y Docker para construir el contenedor; Docker puede ejecutarse
+  en el equipo local o en un runner de CI.
+- Un Worker, una base D1 con el esquema del proyecto y un widget Turnstile para
+  el host publicado.
+- Clientes OAuth de Google y GitHub, con sus URLs de retorno configuradas, si se
+  habilitan las cuentas.
+- Para CI, un token de Cloudflare y el Account ID; además, los secretos de
+  Turnstile y OAuth, guardados fuera del repositorio (por ejemplo, en GitHub
+  Actions Secrets). En un despliegue local se puede autenticar con
+  `cf auth login`.
+
 La publicación en Pages y el despliegue completo del Worker se explican en
 [Desarrollo](docs/desarrollo.md) y [Desplegar tu propia copia](docs/deploy.md).
 Conectar Pages a un Worker separado requiere adaptar las rutas y la
