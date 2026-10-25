@@ -357,7 +357,7 @@ function router() {
           .map((r) => `«${mision(r).titulo}»`)
           .join(" y ")}.`,
       );
-    document.title = `${m.titulo} · QuantumShot`;
+    document.title = "QuantumShot";
     return abrirMision(vista, m, {
       st,
       guardarSt,
@@ -367,7 +367,7 @@ function router() {
     });
   }
   if (ruta === "portafolio") {
-    document.title = "Mi portafolio · QuantumShot";
+    document.title = "QuantumShot";
     return vistaPortafolio(vista, {
       st,
       guardarSt,
@@ -382,10 +382,10 @@ function router() {
     } catch {
       return vistaError("Este enlace de portafolio está incompleto o dañado.");
     }
-    document.title = `${datos.perfil.alias || "Portafolio"} · QuantumShot`;
+    document.title = "QuantumShot";
     return vistaPublica(vista, datos);
   }
-  document.title = "Constelación · QuantumShot";
+  document.title = "QuantumShot";
   vistaMapa(vista, { destacar: opts.destacar });
 }
 
