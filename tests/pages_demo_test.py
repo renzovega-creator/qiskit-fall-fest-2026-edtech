@@ -16,8 +16,8 @@ from pathlib import Path
 from playwright.sync_api import Route, expect, sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
-from tools.pages import build  # noqa: E402
+sys.path.insert(0, str(ROOT / "tools"))
+from pages import build  # noqa: E402
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -154,7 +154,9 @@ def main(public_url: str | None = None) -> None:
                 requests: list[dict[str, object]] = []
 
                 def runner(route: Route) -> None:
-                    requests.append(route.request.post_data_json)
+                    payload = route.request.post_data_json
+                    assert payload is not None
+                    requests.append(payload)
                     route.fulfill(json={"stdout": json.dumps({"p1": 0.5, "shots": "01" * 100})})
 
                 local.route("**/run", runner)
@@ -163,7 +165,9 @@ def main(public_url: str | None = None) -> None:
                 local.get_by_role("button", name="Medir con Qiskit", exact=True).click()
                 expect(local.get_by_role("button", name="Comprobar el reto")).to_be_enabled()
                 assert len(requests) == 1 and requests[0]["mode"] == "run"
-                assert "theta = np.deg2rad(90)" in requests[0]["code"]
+                code = requests[0]["code"]
+                assert isinstance(code, str)
+                assert "theta = np.deg2rad(90)" in code
                 expect(local.locator(".backend")).to_contain_text("StatevectorSampler")
                 local.close()
                 browser.close()

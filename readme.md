@@ -6,11 +6,11 @@ una idea clásica y su gemela cuántica, y todo se comprueba con Qiskit.
 
 Proyecto para el **Qiskit Fall Fest 2026**.
 
-![Portada de QuantumShot: «Del ML al QML, con Qiskit», con una esfera de Bloch con profundidad visual, la ruta Aprende, Practica y Demuestra y el primer paso, la lección 1.1](docs/img/portada.png)
+![Portada actual de GitHub Pages: QuantumShot, la esfera de Bloch y el aviso de demo interactiva](docs/img/portada.png)
 
-La portada incluye una esfera de Bloch animada con más profundidad visual. Los
-enlaces a las secciones se desplazan suavemente; el movimiento se desactiva si
-el navegador tiene activada la reducción de movimiento.
+Las capturas se tomaron directamente de GitHub Pages el 25 de octubre de 2026.
+La esfera de Bloch rota en la portada; los enlaces a las secciones se desplazan
+suavemente y respetan la preferencia de movimiento reducido del navegador.
 
 | Lección                              | Par clásico ↔ cuántico                                        |
 | ------------------------------------ | ------------------------------------------------------------- |
@@ -29,7 +29,7 @@ La portada lee tu progreso y te muestra **un solo siguiente paso**, marcado como
 explica cuándo se abre; si quieres verlo igual, pulsa «Echar un vistazo».
 Mientras bajas, una barra fija repite lo que te toca hacer.
 
-![La portada con la primera lección hecha: el capítulo Practica marcado como «Tu siguiente paso» y Demuestra plegado hasta superar la primera misión](docs/img/guia.png)
+![Portada con la primera lección completada: la ruta marca Practica y propone continuar con la lección 2.1](docs/img/guia.png)
 
 ### 2. Aprende con las lecciones
 
@@ -46,9 +46,9 @@ subtítulos.
 - **Programa.** Al final hay un ejercicio: completa el código y pulsa
   **Comprobar** para ejecutarlo con Qiskit. Si te atascas, usa las pistas.
 
-![Actividad de la lección 1.1: botones para lanzar 1, 10, 100 y 1000 monedas, el histograma y la estimación entrando en la franja del error típico](docs/img/leccion-monedas.png)
+![Lección 1.1 después de 1000 lanzamientos: histograma con 260 caras, estimación de 0,260 y franja del error típico](docs/img/leccion-monedas.png)
 
-![Actividad de la lección 2.1: mapas de similitud del kernel RBF y del kernel cuántico sobre las dos lunas, con deslizadores de gamma, escala y reps](docs/img/leccion-kernels.png)
+![Captura de la actividad interactiva de la lección 2.1: mapas del kernel RBF y del kernel cuántico con controles de gamma, escala y reps](docs/img/leccion-kernels.png)
 
 ### 3. Practica con las misiones
 
@@ -57,14 +57,15 @@ acércate con **Mayús + rueda** o con − y +, o cambia a la vista **Lista**. E
 móvil, puedes pellizcar para acercar; el desplazamiento vertical de la página
 sigue funcionando. Haz clic en una habilidad para ver su ficha y su misión.
 
-![Mapa de habilidades a pantalla completa, con la ficha de «Regla de Born» abierta y sus conexiones resaltadas](docs/img/mapa.png)
+![Captura del mapa de habilidades con la ficha de «Regla de Born» abierta y sus conexiones resaltadas](docs/img/mapa.png)
 
 Cada misión tiene cuatro pasos: **predice** el resultado, **experimenta**
-(ajusta el circuito y pulsa «Medir con Qiskit»), **observa** qué salió y
-**demuestra** con «Comprobar el reto». Al superarla ganas XP, insignias y una
-estrella en el mapa, y se abren misiones nuevas.
+(ajusta el circuito y consulta el resultado; Pages usa datos precomputados y la
+versión local ejecuta Qiskit), **observa** qué salió y **demuestra** con
+«Comprobar el reto». Al superarla ganas XP, insignias y una estrella en el mapa,
+y se abren misiones nuevas.
 
-![Misión «La moneda cuántica» superada: Qiskit midió P(1) = 0,250, se ganan 50 XP y las insignias «Ojo de Monte Carlo» y «Por tu cuenta»](docs/img/mision-insignias.png)
+![Misión «La moneda cuántica» en Pages: resultado de ejemplo para 60°, esfera de Bloch y controles interactivos](docs/img/mision.png)
 
 ### 4. Demuestra con tu portafolio
 
@@ -72,7 +73,7 @@ En **Demuestra** está tu portafolio: habilidades demostradas, lecciones
 completadas, insignias y una evidencia por cada reto superado, con el problema,
 lo que hiciste y el código para reproducirlo.
 
-![Portafolio tras unos días: 5 de 7 habilidades demostradas, 2 de 2 lecciones, 5 de 6 insignias, 170 XP y tres evidencias con fecha](docs/img/portafolio.png)
+![Captura del perfil público de demostración de Ada, con habilidades demostradas y evidencias de retos](docs/img/portafolio.png)
 
 - **Editar perfil** cambia tu nombre, avatar y presentación.
 - Marca **Mostrar en mi perfil público** en las evidencias que quieras enseñar y
@@ -83,10 +84,11 @@ lo que hiciste y el código para reproducirlo.
 ### 5. Vuelve cada día
 
 En la portada tienes un **reto del día** (la misma semilla para todos: predices
-un número y Qiskit lo mide), **preguntas de repaso** que vuelven a los 1, 3, 7 y
-21 días, y tu **nivel** con una racha.
+un número y consultas el resultado de Qiskit; en Pages está precomputado),
+**preguntas de repaso** que vuelven a los 1, 3, 7 y 21 días, y tu **nivel** con
+una racha.
 
-![Sección «Cada día» de la portada: el reto del día, el repaso con preguntas pendientes y el nivel](docs/img/cada-dia.png)
+![Sección «Cada día» en Pages: reto resuelto con resultado precomputado, repaso y racha](docs/img/cada-dia.png)
 
 ### Atajos en las lecciones
 
@@ -137,12 +139,13 @@ requiere Linux o macOS. El servidor local escucha solo en `127.0.0.1`.
 [GitHub Pages](https://renzovega-creator.github.io/qiskit-fall-fest-2026-edtech/)
 permite recorrer las lecciones y completar las cuatro misiones con resultados
 precomputados de Qiskit. Cada valor de los controles tiene su resultado de
-ejemplo; repetirlo devuelve el mismo dato. Los retos desbloquean el mapa y
-crean evidencias marcadas como demostración, también al compartirlas.
-No ejecuta Python ni tiene cuentas. El editor se puede leer y modificar, pero
-sus botones de ejecución están desactivados y el código no se envía.
+ejemplo; repetirlo devuelve el mismo dato. Los retos desbloquean el mapa y crean
+evidencias marcadas como demostración, también al compartirlas. No ejecuta
+Python ni tiene cuentas. El editor se puede leer y modificar, pero sus botones
+de ejecución están desactivados y el código no se envía.
 
-El [perfil de ejemplo](https://renzovega-creator.github.io/qiskit-fall-fest-2026-edtech/juego.html#ejemplo)
+El
+[perfil de ejemplo](https://renzovega-creator.github.io/qiskit-fall-fest-2026-edtech/juego.html#ejemplo)
 muestra el portafolio lleno sin completar antes las misiones.
 
 Para preparar la versión local y publicar una copia estática, sigue

@@ -10,11 +10,11 @@ import contextlib
 import io
 import json
 import subprocess
+from importlib.metadata import version
 from pathlib import Path
 
-import qiskit
-
 ROOT = Path(__file__).resolve().parent.parent
+QISKIT_VERSION = version("qiskit")
 CASES = """
 import { codigo } from './site/juego/qiskit.js';
 import { claveMision } from './site/demo.js';
@@ -50,10 +50,10 @@ def main(check: bool = False) -> None:
             exec(compile(case["code"], case["key"], "exec"), {})
         results[case["group"]][case["key"]] = json.loads(output.getvalue())
         if i % 50 == 0 or i == len(cases):
-            print(f"Qiskit {qiskit.__version__}: {i}/{len(cases)} resultados", flush=True)
+            print(f"Qiskit {QISKIT_VERSION}: {i}/{len(cases)} resultados", flush=True)
     path = ROOT / "site" / "demo-resultados.json"
     data = {
-        "qiskit": qiskit.__version__,
+        "qiskit": QISKIT_VERSION,
         "fuente": "Código de site/juego/qiskit.js y site/retos.js; simulación local, sin hardware cuántico.",
         "semillas": {"m1": 1, "m2": 100, "diario": 7},
         **results,
@@ -64,7 +64,7 @@ def main(check: bool = False) -> None:
             raise SystemExit(
                 "Los datos publicados difieren de Qiskit: ejecuta tools/demo.py para regenerarlos."
             )
-        print(f"Verificados {len(cases)} resultados contra Qiskit {qiskit.__version__}.")
+        print(f"Verificados {len(cases)} resultados contra Qiskit {QISKIT_VERSION}.")
     else:
         path.write_text(rendered, encoding="utf-8")
         print(f"Guardados {len(cases)} resultados en {path}")

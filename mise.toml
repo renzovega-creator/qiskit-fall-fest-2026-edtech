@@ -81,6 +81,10 @@ run = [
   "uv run python tests/theme_test.py",
 ]
 
+[tasks."test:pages"]
+description = "Check the interactive GitHub Pages demo and its local execution mode"
+run = "uv run python tests/pages_demo_test.py"
+
 [tasks."test:worker"]
 description = "Test the runner Worker's limits and accounts against a fake container"
 dir = "runner/worker"
@@ -98,7 +102,7 @@ run = "uv run pytest tests/runner_test.py"
 
 [tasks.test]
 description = "Run every test that needs no service, network or secret"
-depends = ["test:py", "test:exercises", "test:ui", "test:worker", "test:lessons"]
+depends = ["test:py", "test:exercises", "test:ui", "test:pages", "test:worker", "test:lessons"]
 
 [tasks."generate:lessons"]
 description = "Rewrite site/lessons/*/lesson.json and site/course.json from cursos/qml"
