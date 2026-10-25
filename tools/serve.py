@@ -34,6 +34,15 @@ PORT = 8810
 NO_CHECK = "Corregir ejercicios necesita Linux o macOS: qgcheck usa fork."
 
 
+def python_for_run() -> str:
+    """Use the project interpreter for local code execution."""
+    if os.name == "nt":
+        path = ROOT / ".venv" / "Scripts" / "python.exe"
+    else:
+        path = ROOT / ".venv" / "bin" / "python"
+    return str(path) if path.is_file() else sys.executable
+
+
 def run_plain(exercise_id: str, code: str) -> dict[str, Any]:
     """Ejecuta el código sin qgcheck y devuelve un resultado con la forma de grade(mode="run")."""
     if not spec.folder(exercise_id).is_dir():
@@ -45,7 +54,7 @@ def run_plain(exercise_id: str, code: str) -> dict[str, Any]:
         env = os.environ | {"PYTHONIOENCODING": "utf-8", "MPLCONFIGDIR": work}
         try:
             proc = subprocess.run(
-                [sys.executable, "-I", str(main)],
+                [python_for_run(), "-I", str(main)],
                 cwd=work,
                 env=env,
                 stdin=subprocess.DEVNULL,

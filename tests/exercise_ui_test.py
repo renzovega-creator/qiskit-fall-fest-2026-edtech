@@ -9,6 +9,7 @@ y error, y la comprobación de Turnstile. `--shots` guarda capturas.
 
 import importlib.util
 import json
+import os
 import sys
 import threading
 from functools import partial
@@ -139,6 +140,25 @@ def flow(
     shot(page, shots, f"{label}-{name}-escrito", panel)
     press(panel, "Comprobar")
     wait_result(panel)
+    if not hasattr(os, "fork"):
+        check(
+            "necesita Linux o macOS" in panel.locator(".xerr").inner_text(),
+            f"{tag}: Windows explica que no puede corregir con casos",
+        )
+        check(
+            panel.locator(".xtests").count() == 0 and panel.locator(".xsolved").is_hidden(),
+            f"{tag}: la corrección no simula resultados ni marca progreso",
+        )
+        write(page, panel, solution)
+        press(panel, "Ejecutar")
+        wait_result(panel)
+        check(
+            "sin errores" in panel.locator(".xstatus").inner_text(),
+            f"{tag}: Windows puede ejecutar el código con el Python del proyecto",
+        )
+        check(not errors, f"{tag}: sin errores en consola {errors}")
+        page.context.close()
+        return
     check(
         panel.locator(".xstatus.bad").count() == 1 and panel.locator(".xtests li.bad").count() >= 1,
         f"{tag}: el código equivocado falla un caso",
@@ -177,6 +197,14 @@ def feedback(browser: Browser, base: str, shots: str | None) -> None:
     press(panel, "Comprobar")
     wait_result(panel)
     check(panel.locator(".xerr").is_visible(), "un error de sintaxis muestra su explicación")
+    if not hasattr(os, "fork"):
+        check(
+            "necesita Linux o macOS" in panel.locator(".xerr").inner_text(),
+            "Windows explica que la corrección automática requiere Linux o macOS",
+        )
+        check(panel.locator(".xtests").count() == 0, "Windows no finge resultados de casos")
+        page.context.close()
+        return
     solution = read("q1-montecarlo", "estimar-p", "solution.py")
     write(page, panel, solution.replace('return conteos.get("1", 0) / shots', "return 0.25"))
     press(panel, "Comprobar")
@@ -261,6 +289,14 @@ def keyboard(browser: Browser, base: str) -> None:
     write(page, panel, "print(1)\nprint(y)")
     editor.press("ControlOrMeta+Shift+Enter")
     wait_result(panel)
+    if not hasattr(os, "fork"):
+        check(
+            "necesita Linux o macOS" in panel.locator(".xerr").inner_text(),
+            "Windows explica el límite de la corrección con casos",
+        )
+        check(panel.locator(".cm-errline").count() == 0, "sin corrección no se marca una línea")
+        page.context.close()
+        return
     check(
         "línea 2" in panel.locator(".xerr").inner_text()
         and "tiene un error" in panel.locator(".xstatus").inner_text(),
@@ -326,8 +362,9 @@ def states(browser: Browser, base: str) -> None:
         "carga: mientras corre se ve «Ejecutando…» y los botones se bloquean",
     )
     wait_result(panel)
+    timeout_error = panel.locator(".xerr").inner_text()
     check(
-        "más de 10 s" in panel.locator(".xerr").inner_text()
+        ("no terminó en 10 s" if not hasattr(os, "fork") else "más de 10 s") in timeout_error
         and panel.get_by_role("button", name="Ejecutar").is_enabled(),
         "tiempo agotado: el código infinito se corta con su mensaje y los botones vuelven",
     )
