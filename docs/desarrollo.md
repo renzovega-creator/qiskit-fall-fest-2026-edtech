@@ -11,7 +11,6 @@ Instala [mise](https://mise.jdx.dev/) y ejecuta desde la raíz:
 mise install
 uv sync --locked --all-groups
 bun install --cwd editor --frozen-lockfile
-bun install --cwd runner/worker --frozen-lockfile
 mise run generate:vendor
 ```
 
@@ -34,8 +33,10 @@ QG_CURSO=qml uv run python tools/serve.py
 ```
 
 Abre <http://localhost:8810/>. El servidor local sirve la web y ejecuta los
-experimentos de las misiones con Qiskit. La corrección automática de los
-ejercicios de código necesita Linux o macOS; en Windows, usa WSL.
+experimentos de las misiones y el reto diario con Qiskit. En Windows también se
+puede usar **Ejecutar** en el editor; la corrección automática con casos de
+prueba requiere Linux o macOS. El progreso se guarda en el navegador y no se
+sincroniza con una cuenta.
 
 ## Editar las lecciones
 
@@ -84,6 +85,6 @@ Pages**, elige **Deploy from a branch**, la rama `gh-pages` y la carpeta
 
 GitHub Pages sirve una demo estática: lecciones, animaciones, actividades con
 clic, progreso local y el perfil de ejemplo (`juego.html#ejemplo`) con resultados
-precomputados de Qiskit. No ejecuta código nuevo ni ofrece cuentas.
-Para ejecutar ejercicios en desarrollo local, usa `tools/serve.py`; para una
-demo pública con ejecución de código y cuentas hace falta el Worker.
+precomputados de Qiskit. No ejecuta código nuevo ni ofrece cuentas. La versión
+local con Qiskit se inicia con `tools/serve.py`; el despliegue actual no usa un
+Worker.

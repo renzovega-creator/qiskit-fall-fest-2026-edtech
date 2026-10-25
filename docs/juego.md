@@ -12,10 +12,11 @@ QG_CURSO=qml uv run python tools/serve.py
 ```
 
 Abre <http://localhost:8810/juego.html>. Los experimentos llaman a `POST /run`,
-así que la página necesita `serve.py` (o el corredor desplegado). En Windows,
-`serve.py` ejecuta el modo `run` sin `qgcheck`, porque `qgcheck` usa `fork`; la
-corrección de los ejercicios de las lecciones (`check`) sigue necesitando Linux,
-macOS o WSL.
+así que la página necesita `serve.py`. En Windows, `serve.py` ejecuta el modo
+`run` sin `qgcheck`, porque `qgcheck` usa `fork`; la corrección de los ejercicios
+de las lecciones (`check`) requiere Linux o macOS. GitHub Pages no ejecuta
+`POST /run`: allí se puede recorrer el mapa y abrir el perfil de ejemplo, que
+muestra resultados precomputados.
 
 ## Archivos
 
@@ -53,8 +54,8 @@ macOS o WSL.
 
 ## Progreso y recompensas
 
-- Se guarda en `localStorage` (`qiskit:juego`) y no sale del navegador:
-  `account.js` solo sincroniza sus claves conocidas.
+- Se guarda en `localStorage` (`qiskit:juego`) y no sale del navegador. La demo
+  actual no configura sincronización de cuentas.
 - Cada recompensa tiene una clave única (`m1:superada`, `m2:variante:1`…), así
   que repetir una misión no suma XP otra vez. Fallar no quita nada.
 - «Demostrada» solo llega con una evidencia de un reto superado. Una lección

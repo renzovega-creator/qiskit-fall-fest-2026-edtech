@@ -122,35 +122,20 @@ Cómo correr la web en tu equipo, editar las lecciones y publicarla:
 QuantumShot usa el motor de lecciones de
 [qiskit-guides](https://github.com/PedroRojasF/qiskit-guides-compartido).
 
-## GitHub Pages y Cloudflare Workers
+## Versión local y GitHub Pages
 
-GitHub Pages publica la web estática: lecciones, animaciones y actividades que
-se ejecutan en el navegador; el progreso se guarda en ese navegador. El perfil
-de ejemplo (`juego.html#ejemplo`) muestra resultados precomputados de Qiskit,
-suficientes para una demo sin backend. Pages no ofrece cuentas ni ejecuta código
-nuevo; las mediciones de ese perfil no se vuelven a correr al abrirlo.
+La versión local es la completa para practicar: `tools/serve.py` ejecuta los
+experimentos y retos con Qiskit, y el progreso queda en el navegador. En
+Windows, los botones **Ejecutar** funcionan; la corrección automática por casos
+del editor requiere Linux o macOS.
 
-Para esas funciones se necesita un backend. El Cloudflare Worker del proyecto
-atiende las cuentas y el progreso sincronizado, y recibe los ejercicios para
-que un contenedor aislado los ejecute con Qiskit. El Worker también puede servir
-los archivos de la web, manteniendo la página y el backend en el mismo origen.
+[GitHub Pages](https://renzovega-creator.github.io/qiskit-fall-fest-2026-edtech/)
+es el recorrido público para explorar las lecciones, actividades de navegador,
+el mapa y el perfil de ejemplo. No ejecuta código Python ni tiene cuentas: el
+perfil de ejemplo muestra resultados de Qiskit ya calculados, no mediciones en
+vivo. Para el pitch, las diapositivas muestran la demo completa; Pages queda
+como recorrido para después.
 
-Para el despliegue completo hacen falta:
-
-- Una cuenta Cloudflare con Workers Paid (base de 5 USD/mes; Containers puede
-  generar cargos de uso adicionales y no hay un tope automático de factura).
-- `mise`, `bun` y Docker para construir el contenedor; Docker puede ejecutarse
-  en el equipo local o en un runner de CI.
-- Un Worker, una base D1 con el esquema del proyecto y un widget Turnstile para
-  el host publicado.
-- Clientes OAuth de Google y GitHub, con sus URLs de retorno configuradas, si se
-  habilitan las cuentas.
-- Para CI, un token de Cloudflare y el Account ID; además, los secretos de
-  Turnstile y OAuth, guardados fuera del repositorio (por ejemplo, en GitHub
-  Actions Secrets). En un despliegue local se puede autenticar con
-  `cf auth login`.
-
-La publicación en Pages y el despliegue completo del Worker se explican en
-[Desarrollo](docs/desarrollo.md) y [Desplegar tu propia copia](docs/deploy.md).
-Conectar Pages a un Worker separado requiere adaptar las rutas y la
-configuración de origen; no basta con cambiar una URL.
+Para preparar la versión local y publicar una copia estática, sigue
+[Desarrollo](docs/desarrollo.md). La documentación del Worker se conserva como
+referencia técnica, pero no forma parte de la demo ni del despliegue actual.

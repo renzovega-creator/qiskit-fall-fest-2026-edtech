@@ -31,7 +31,7 @@ from qgcheck import grade, spec  # noqa: E402
 from qgcheck.runner import MAX_CODE, OUT_BYTES, TIMEOUT  # noqa: E402
 
 PORT = 8810
-NO_CHECK = "Corregir ejercicios necesita Linux o macOS: qgcheck usa fork. En Windows, usa WSL."
+NO_CHECK = "Corregir ejercicios necesita Linux o macOS: qgcheck usa fork."
 
 
 def run_plain(exercise_id: str, code: str) -> dict[str, Any]:
@@ -76,6 +76,17 @@ def run_plain(exercise_id: str, code: str) -> dict[str, Any]:
 
 
 class Handler(SimpleHTTPRequestHandler):
+    def do_GET(self) -> None:
+        if self.path.split("?", 1)[0] == "/account.js":
+            data = b"window.QGAccount = { ready: Promise.resolve(), changed() {} };\n"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/javascript; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
+        return super().do_GET()
+
     def send_error(self, code: int, message: str | None = None, explain: str | None = None) -> None:
         if code != 404:
             return super().send_error(code, message, explain)

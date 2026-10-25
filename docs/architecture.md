@@ -73,9 +73,10 @@ comprueba la cobertura. Para actualizar las guías se cambia ese hash, se ejecut
   `ask=task(...)`, se supera cuando el bloque `target` cumple la meta `goal`;
   cada bloque comprueba sus metas en `check(goal)`.
 - `vendor/` son KaTeX y las tres tipografías, copiados de `editor/node_modules`
-  por `editor/vendor.js`. Git los ignora; `mise run install` y `mise run deploy`
-  los generan de nuevo y borran antes lo que hubiera. Ninguna página pide nada a
-  otro sitio salvo el script de Turnstile, que `exercise.js` descarga de
+  por `editor/vendor.js`. Git los ignora; `mise run install` y la tarea legada
+  `mise run deploy:worker-legacy` los genera de nuevo y borra antes lo que
+  hubiera. Ninguna página pide nada a otro sitio salvo el script de Turnstile,
+  que `exercise.js` descarga de
   Cloudflare cuando el corredor lo exige.
 - `editor.js` es el editor CodeMirror 6 de los ejercicios, empaquetado desde
   `editor/`. Se describe en [exercises.md](exercises.md#editor-en-la-lección).

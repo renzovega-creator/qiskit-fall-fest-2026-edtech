@@ -1,4 +1,8 @@
-# Desplegar tu propia copia
+# Despliegue legado con Worker
+
+> Esta guía documenta una alternativa técnica que no se usa en la demo actual ni
+> en la presentación. La publicación activa es GitHub Pages estática; para
+> ejecutar Qiskit se usa la versión local.
 
 Esta guía lleva a quien bifurca el repositorio desde cero hasta un sitio
 publicado en su cuenta de Cloudflare, con ejecución de código y cuentas. Qué
@@ -18,13 +22,13 @@ va en el repositorio ni en un archivo que subas a git.
   `runner/worker/cloudflare.config.ts` lee con `mise current`.
 - Una cuenta de Google y una de GitHub, para registrar los clientes OAuth.
 
-Desde la raíz del repositorio, instala las dependencias. `mise run install`
-instala las del editor y las del Worker, que traen la CLI `cf`. Durante el
-despliegue, `mise run deploy` copia KaTeX y las tipografías del editor a
-`site/vendor/`. Los pasos siguientes se ejecutan en `runner/worker`.
+Desde la raíz, instala las dependencias generales y luego las de esta ruta
+legada. Durante el despliegue, `mise run deploy:worker-legacy` copia KaTeX y las
+tipografías del editor a `site/vendor/`.
 
 ```sh
 mise run install
+bun install --cwd runner/worker --frozen-lockfile
 cd runner/worker
 bunx cf auth login
 ```
@@ -110,7 +114,8 @@ paso 3 sin mostrarlo en la terminal. Los cuatro valores de OAuth son los de los
 pasos 4 y 5.
 
 ```sh
-mise run deploy --dry-run   # construye la imagen y el Worker, no sube nada
+mise run deploy:worker-legacy --dry-run
+# Construye la imagen y el Worker, no sube nada.
 umask 077
 read -r -p 'Google Client ID: ' GOOGLE_CLIENT_ID
 read -rs -p 'Google Client secret: ' GOOGLE_CLIENT_SECRET
@@ -123,13 +128,13 @@ printf '\n'
 printf 'GOOGLE_CLIENT_ID=%s\nGOOGLE_CLIENT_SECRET=%s\nGITHUB_CLIENT_ID=%s\nGITHUB_CLIENT_SECRET=%s\nTURNSTILE_SECRET=%s\n' \
   "$GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_SECRET" "$GITHUB_CLIENT_ID" \
   "$GITHUB_CLIENT_SECRET" "$TURNSTILE_SECRET" > "$TMPDIR/secrets.env"
-mise run deploy --secrets-file "$TMPDIR/secrets.env"
+mise run deploy:worker-legacy --secrets-file "$TMPDIR/secrets.env"
 rm "$TMPDIR/secrets.env"
 unset GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET TURNSTILE_SECRET
 ```
 
-Para publicar un cambio de las lecciones o del Worker, vuelve a ejecutar
-`mise run deploy`.
+Para publicar un cambio de las lecciones o del Worker en esta ruta legada,
+vuelve a ejecutar `mise run deploy:worker-legacy`.
 
 ## 7. Rota un secreto
 
@@ -189,7 +194,7 @@ gh api users/<login> --jq .id
 ```
 
 Pon los ids en `MAINTAINERS` (por ejemplo `"1234,5678"`; con la lista vacía
-nadie es mantenedor) y vuelve a ejecutar `mise run deploy`. El mantenedor entra
+nadie es mantenedor) y vuelve a ejecutar `mise run deploy:worker-legacy`. El mantenedor entra
 con GitHub desde el sitio: el Worker compara la lista con el id que GitHub
 devuelve al entrar.
 

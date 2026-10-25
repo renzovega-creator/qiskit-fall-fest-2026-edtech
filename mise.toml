@@ -7,15 +7,14 @@ uv = "0.13.3"
 
 [env]
 UV_LOCKED = "1"
-_.path = ["runner/worker/node_modules/.bin", "editor/node_modules/.bin"]
+_.path = ["editor/node_modules/.bin"]
 
 [tasks.install]
-description = "Install Python and JavaScript dependencies from the lockfiles, the site's KaTeX and fonts and the Playwright browser"
+description = "Install local Python and site dependencies, the site's KaTeX and fonts and the Playwright browser"
 run = [
   "uv sync --locked --all-groups",
   "bun install --cwd editor --frozen-lockfile",
   "mise run generate:vendor",
-  "bun install --cwd runner/worker --frozen-lockfile",
   "uv run --group tools playwright install ${CI:+--with-deps} chromium",
 ]
 
@@ -136,8 +135,8 @@ cmp "$out" ../site/editor.js
 description = "Check that the shipped site files match their sources"
 depends = ["build:*"]
 
-[tasks.deploy]
-description = "Copy KaTeX and the fonts into site/vendor, then run cf deploy in runner/worker with the given arguments"
+[tasks."deploy:worker-legacy"]
+description = "Legacy only: copy site assets and deploy the Cloudflare Worker in runner/worker"
 depends = ["generate:vendor"]
 dir = "runner/worker"
 run = "bunx cf deploy"
