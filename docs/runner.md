@@ -1,8 +1,8 @@
 # El corredor de código
 
-> Referencia técnica del corredor y del Worker. El despliegue actual de QuantumShot
-> no usa Worker: GitHub Pages sirve la demo estática y `tools/serve.py` ejecuta
-> Qiskit en local.
+> Referencia técnica del corredor y del Worker. El despliegue actual de
+> QuantumShot no usa Worker: GitHub Pages sirve la demo estática y
+> `tools/serve.py` ejecuta Qiskit en local.
 
 El corredor ejecuta el código de un alumno con Qiskit y Qiskit Aer y devuelve lo
 que imprimió y el resultado de los casos de un ejercicio, con el formato de

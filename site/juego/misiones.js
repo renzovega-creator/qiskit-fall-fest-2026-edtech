@@ -26,7 +26,9 @@ function textoConMath(texto) {
   for (const m of texto.matchAll(patron)) {
     fragmento.append(document.createTextNode(texto.slice(desde, m.index)));
     const formula = document.createElement("span");
-    formula.innerHTML = window.katex.renderToString(m[1], { throwOnError: false });
+    formula.innerHTML = window.katex.renderToString(m[1], {
+      throwOnError: false,
+    });
     fragmento.append(formula);
     desde = m.index + m[0].length;
   }
@@ -248,7 +250,9 @@ const m1 = {
     const esperado = 200 * res.p1;
     const dentro = Math.abs(res.p1 - v.objetivo) <= 0.02;
     return [
-      pred == null ? null : `Predijiste ${pred} ${pred === 1 ? "uno" : "unos"}; salieron ${res.unos}.`,
+      pred == null
+        ? null
+        : `Predijiste ${pred} ${pred === 1 ? "uno" : "unos"}; salieron ${res.unos}.`,
       `La regla de Born da $P(1)=\\sin^2(\\theta/2)=${fmt(res.p1, 3)}$: se esperaban $${fmt(esperado, 0)}\\pm${fmt(sig, 0)}$ unos (un error típico, $\\sqrt{N\\,p(1-p)}$).`,
       `La frecuencia observada, $\\hat p=${fmt(res.unos / 200, 3)}$, no es la probabilidad: con otra semilla saldría otro número cerca de ${fmt(esperado, 0)}.`,
       dentro

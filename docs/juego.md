@@ -13,10 +13,10 @@ QG_CURSO=qml uv run python tools/serve.py
 
 Abre <http://localhost:8810/juego.html>. Los experimentos llaman a `POST /run`,
 así que la página necesita `serve.py`. En Windows, `serve.py` ejecuta el modo
-`run` sin `qgcheck`, porque `qgcheck` usa `fork`; la corrección de los ejercicios
-de las lecciones (`check`) requiere Linux o macOS. GitHub Pages no ejecuta
-`POST /run`: allí se puede recorrer el mapa y abrir el perfil de ejemplo, que
-muestra resultados precomputados.
+`run` sin `qgcheck`, porque `qgcheck` usa `fork`; la corrección de los
+ejercicios de las lecciones (`check`) requiere Linux o macOS. GitHub Pages no
+ejecuta `POST /run`: allí se puede recorrer el mapa y abrir el perfil de
+ejemplo, que muestra resultados precomputados.
 
 ## Archivos
 

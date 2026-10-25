@@ -194,9 +194,9 @@ gh api users/<login> --jq .id
 ```
 
 Pon los ids en `MAINTAINERS` (por ejemplo `"1234,5678"`; con la lista vacía
-nadie es mantenedor) y vuelve a ejecutar `mise run deploy:worker-legacy`. El mantenedor entra
-con GitHub desde el sitio: el Worker compara la lista con el id que GitHub
-devuelve al entrar.
+nadie es mantenedor) y vuelve a ejecutar `mise run deploy:worker-legacy`. El
+mantenedor entra con GitHub desde el sitio: el Worker compara la lista con el id
+que GitHub devuelve al entrar.
 
 ## 10. Pon alertas de gasto
 

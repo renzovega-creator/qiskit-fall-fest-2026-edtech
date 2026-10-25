@@ -76,8 +76,7 @@ comprueba la cobertura. Para actualizar las guías se cambia ese hash, se ejecut
   por `editor/vendor.js`. Git los ignora; `mise run install` y la tarea legada
   `mise run deploy:worker-legacy` los genera de nuevo y borra antes lo que
   hubiera. Ninguna página pide nada a otro sitio salvo el script de Turnstile,
-  que `exercise.js` descarga de
-  Cloudflare cuando el corredor lo exige.
+  que `exercise.js` descarga de Cloudflare cuando el corredor lo exige.
 - `editor.js` es el editor CodeMirror 6 de los ejercicios, empaquetado desde
   `editor/`. Se describe en [exercises.md](exercises.md#editor-en-la-lección).
 - `theme.css` y `theme.js` son el tema de las dos páginas: colores, fuentes, y
