@@ -252,18 +252,20 @@ export function vistaPortafolio(
 
   // Compartir
   const enlace = h("input", {
+    id: "enlace-publico",
+    type: "url",
     readonly: true,
     class: "enlace",
-    "aria-label": "Enlace público",
   });
   const verPublico = h("a", {
     class: "secundario boton",
     text: "Ver como lo verán otros",
   });
   const linkedin = h("textarea", {
+    id: "texto-linkedin",
     rows: 10,
     class: "linkedin",
-    "aria-label": "Texto para LinkedIn",
+    spellcheck: true,
   });
   function refrescarCompartir() {
     const url = enlacePublico(datosPublicos(st));
@@ -446,6 +448,7 @@ export function vistaPortafolio(
           "div",
           { class: "comp-bloque" },
           h("h3", { text: "Enlace a tu portafolio público" }),
+          h("label", { for: "enlace-publico", class: "campo-label", text: "Enlace público" }),
           h("p", {
             class: "nota",
             text: "El enlace lleva dentro tu perfil y las evidencias marcadas como públicas. No se sube a ningún servidor.",
@@ -476,6 +479,7 @@ export function vistaPortafolio(
           "div",
           { class: "comp-bloque" },
           h("h3", { text: "Texto para LinkedIn" }),
+          h("label", { for: "texto-linkedin", class: "campo-label", text: "Borrador de publicación" }),
           h("p", {
             class: "nota",
             text: "Basado en tus evidencias públicas. Edítalo antes de usarlo: no publicamos nada por ti.",

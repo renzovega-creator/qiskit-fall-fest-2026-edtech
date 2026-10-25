@@ -220,7 +220,7 @@ svg.dial, svg.lluvia, svg.grafico, svg.plano { width:100%; height:auto; display:
 .barra .bv { font:600 13.5px var(--mono); text-align:right; }
 .pista-barra { position:relative; height:14px; border-radius:99px; background:var(--bg2); border:1px solid var(--line); overflow:hidden; }
 .pista-barra .zona { position:absolute; top:0; bottom:0; background:color-mix(in srgb, var(--acc3) 45%, transparent); }
-.pista-barra .relleno { position:absolute; left:0; top:0; bottom:0; border-radius:99px; transition:width .35s ease-out; }
+.pista-barra .relleno { position:absolute; left:0; top:0; bottom:0; width:100%; border-radius:99px; transform-origin:left; transition:transform .24s ease-out; }
 .barra.obj .relleno { background:color-mix(in srgb, var(--acc3) 70%, transparent); }
 .barra.teo .relleno { background:var(--acc2); }
 .barra.obs .relleno { background:var(--acc); }
@@ -268,7 +268,7 @@ dialog::backdrop { background:color-mix(in srgb, var(--bg) 70%, transparent); ba
 .logro h2 { margin:0 0 12px; font-size:28px; }
 .logro ol { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
 .logro li { display:grid; grid-template-columns:130px 1fr; gap:12px; padding:10px 12px; border-radius:12px; background:var(--bg2);
-            animation:entra .28s ease-out both; animation-delay:calc(var(--i) * 110ms); }
+            animation:entra .22s ease-out both; animation-delay:calc(var(--i) * 40ms); }
 .logro li .k { font:600 12px var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--acc3); padding-top:2px; }
 .logro li:nth-child(3) .k::before { content:"★ "; }
 .logro .ins { margin:6px 0 0; color:var(--acc2); font-weight:600; }
@@ -337,8 +337,9 @@ dialog::backdrop { background:color-mix(in srgb, var(--bg) 70%, transparent); ba
 .comp-bloque { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px 20px; margin-bottom:14px; }
 .comp-bloque h3 { margin:0 0 4px; font-size:18px; }
 .fila-enlace { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-.enlace { flex:1; min-width:220px; background:var(--input-bg); border:1px solid var(--line-strong); border-radius:10px; padding:9px 12px; font:13px var(--mono); color:var(--muted); }
-.linkedin { width:100%; background:var(--input-bg); border:1px solid var(--line-strong); border-radius:10px; padding:10px 12px; font-size:15px; line-height:1.5; margin-bottom:8px; }
+.enlace { flex:1; min-width:220px; background:var(--input-bg); border:1px solid var(--line-strong); border-radius:10px; padding:9px 12px; font:16px var(--mono); color:var(--muted); }
+.linkedin { width:100%; background:var(--input-bg); border:1px solid var(--line-strong); border-radius:10px; padding:10px 12px; font-size:16px; line-height:1.5; margin-bottom:8px; }
+.campo-label { display:block; margin:8px 0 4px; font-size:14px; font-weight:600; }
 .lista-hab { list-style:none; padding:0; margin:0 0 14px; display:grid; gap:8px; }
 .lista-hab li { display:grid; gap:2px; }
 .lista-hab b { color:var(--acc3); }

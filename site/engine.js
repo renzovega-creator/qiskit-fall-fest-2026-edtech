@@ -14,6 +14,7 @@
 (() => {
   "use strict";
   const $ = (s, r = document) => r.querySelector(s);
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
   const NS = "http://www.w3.org/2000/svg";
   const qs = new URLSearchParams(location.search);
   const LID = qs.get("l");
@@ -130,7 +131,7 @@
   const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
   // Interpola algo en el tiempo con requestAnimationFrame (o al instante en modo revisión).
   function tween(dur, step, instant) {
-    if (instant || !dur) {
+    if (instant || !dur || reduceMotion.matches) {
       step(1);
       return;
     }
@@ -138,6 +139,10 @@
       my = token;
     const f = (now) => {
       if (my !== token) return;
+      if (reduceMotion.matches) {
+        step(1);
+        return;
+      }
       const q = Math.min(1, (now - t0) / (dur * 1000));
       step(ease(q));
       if (q < 1) requestAnimationFrame(f);
@@ -1014,7 +1019,7 @@
       case "curve":
         o.show["c" + a.i] = true;
         o.draw();
-        if (!instant) {
+        if (!instant && !reduceMotion.matches) {
           const p = o.paths[a.i],
             Lp = p.getTotalLength();
           p.style.strokeDasharray = Lp;
@@ -1371,6 +1376,8 @@
       const inp = el("input", "", row);
       inp.inputMode = "decimal";
       inp.placeholder = a.placeholder || "Tu respuesta";
+      inp.setAttribute("aria-label", "Tu respuesta");
+      inp.autocomplete = "off";
       if (a.unit) rich(el("span", "", row), a.unit);
       const b = el("button", "abtn primary", row);
       b.textContent = "Comprobar";
@@ -1402,7 +1409,8 @@
         if (e.key === "Enter") check();
         e.stopPropagation();
       });
-      if (!REVIEW) setTimeout(() => inp.focus({ preventScroll: true }), 50);
+      if (!REVIEW && !matchMedia("(pointer: coarse)").matches)
+        setTimeout(() => inp.focus({ preventScroll: true }), 50);
     } else if (a.kind === "reveal") {
       const row = el("div", "numrow", askEl);
       askEl.insertBefore(row, fb);
@@ -1489,6 +1497,7 @@
         rich(el("div", "prompt rprompt", askEl), p);
         const ta = el("textarea", "reflect", askEl);
         ta.rows = 2;
+        ta.setAttribute("aria-label", `Reflexión ${k + 1}`);
         ta.placeholder = "Escribe con tus palabras…";
         ta.value = saved[k] || "";
         ta.addEventListener("keydown", (e) => e.stopPropagation());
@@ -1519,7 +1528,7 @@
         row.remove();
         done(false);
       });
-      if (!REVIEW)
+      if (!REVIEW && !matchMedia("(pointer: coarse)").matches)
         setTimeout(() => areas[0].focus({ preventScroll: true }), 50);
     }
   }
