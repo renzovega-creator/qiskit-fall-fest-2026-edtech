@@ -181,6 +181,7 @@ function rich(s) {
 // ---------- esfera de Bloch: el estado precesa alrededor de Z ----------
 (() => {
   const s = $('#bloch'), ns = 'http://www.w3.org/2000/svg', R = 120, tilt = 0.24;
+  const viewCos = Math.sqrt(1 - tilt * tilt);
   const E = (t, a) => { const e = document.createElementNS(ns, t); for (const k in a) e.setAttribute(k, a[k]); s.appendChild(e); return e; };
   s.innerHTML = '<defs><radialGradient id="bloch-surface" cx="34%" cy="27%" r="78%"><stop offset="0%" stop-color="var(--acc)" stop-opacity=".13"/><stop offset="52%" stop-color="var(--stage)" stop-opacity=".26"/><stop offset="100%" stop-color="var(--stage)" stop-opacity=".58"/></radialGradient></defs>';
   E('circle', { class: 'sph-fill', r: R });
@@ -189,7 +190,7 @@ function rich(s) {
     const depth = Math.sin(th) * Math.sin(ph);
     return {
       x: R * Math.sin(th) * Math.cos(ph),
-      y: -R * Math.cos(th) + R * tilt * depth,
+      y: -R * viewCos * Math.cos(th) + R * tilt * depth,
       depth,
     };
   };

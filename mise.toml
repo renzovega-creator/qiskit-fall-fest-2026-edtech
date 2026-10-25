@@ -7,14 +7,15 @@ uv = "0.13.3"
 
 [env]
 UV_LOCKED = "1"
-_.path = ["editor/node_modules/.bin"]
+_.path = ["runner/worker/node_modules/.bin", "editor/node_modules/.bin"]
 
 [tasks.install]
-description = "Install local Python and site dependencies, the site's KaTeX and fonts and the Playwright browser"
+description = "Install Python, editor and Worker dependencies, site assets and the Playwright browser"
 run = [
   "uv sync --locked --all-groups",
   "bun install --cwd editor --frozen-lockfile",
   "mise run generate:vendor",
+  "bun install --cwd runner/worker --frozen-lockfile",
   "uv run --group tools playwright install ${CI:+--with-deps} chromium",
 ]
 
