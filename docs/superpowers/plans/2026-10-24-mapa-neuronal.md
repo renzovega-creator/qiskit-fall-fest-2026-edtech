@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Acercar el mapa a las referencias clara y oscura, mantener el selector global de tema y animar brevemente las relaciones al seleccionar una habilidad.
+**Goal:** Acercar el mapa a las referencias clara y oscura, mantener el selector global de tema, animar brevemente las relaciones al seleccionar una habilidad y mostrar la red ambiental también en «Tu mapa» del portafolio.
 
-**Architecture:** Conservar la topología de habilidades del SVG y sumar una malla neuronal estática; usar posiciones y conexiones curvas solo en el mapa a pantalla completa, dejando rectos los mapas del portafolio. La composición sigue la referencia y adopta la variante clara u oscura del selector global. La selección de puntero marca durante un instante el nodo y sus conexiones destacadas; el CSS desactiva el movimiento con `prefers-reduced-motion`.
+**Architecture:** Conservar la topología de habilidades del SVG y sumar una malla neuronal estática en el mapa a pantalla completa y en el mapa mini del portafolio; dejar rectas las conexiones y preservar posiciones y estados del portafolio. La composición sigue la referencia y adopta la variante clara u oscura del selector global. La selección de puntero marca durante un instante el nodo y sus conexiones destacadas; el CSS desactiva el movimiento con `prefers-reduced-motion`.
 
 **Tech Stack:** JavaScript de módulos, SVG y CSS existentes.
 
@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Implementar con el SVG, JavaScript y CSS existentes; no agregar dependencias.
-- Limitar la paleta y el tratamiento visual al mapa a pantalla completa y sus controles flotantes; no cambiar las rutas ajenas al mapa.
+- Limitar la composición flotante al mapa a pantalla completa; en el portafolio añadir solo la malla ambiental detrás del mapa existente.
 - Mantener el contenido textual legible en ambos temas y los estados distinguibles además del color.
 - La animación será corta, basada en propiedades del SVG que no cambien el diseño, y se desactivará con movimiento reducido.
 - Conservar controles, lista accesible, diseño móvil, foco de teclado y compatibilidad con `prefers-reduced-motion`.
@@ -25,7 +25,7 @@
 - **Teclado y puntero:** confirmar que Enter/Espacio conserva la selección accesible sin activar la animación reservada a clic/tap.
 - **Dependencias:** revisar que las conexiones destacadas corresponden al nodo seleccionado y que la ficha continúa abriéndose y cerrándose igual.
 - **Curvas y etiquetas:** revisar que curvas, puntas y rótulos de puentes no se solapen de forma que impida leer el mapa.
-- **Alcance visual:** verificar que el tema nuevo se aplica a la pantalla completa y no cambia los mapas del portafolio ni la vista móvil de lista.
+- **Alcance visual:** verificar que la pantalla completa sigue el tema global y que «Tu mapa» recibe solo la malla de fondo, sin cambiar sus habilidades ni la vista móvil de lista.
 
 ---
 
@@ -49,7 +49,7 @@
 
 **Interfaces:**
 - Consumes: clases `arista`, `resaltada`, `atenuada`, `nodo`, `sel` y `pulso-seleccion` emitidas por `mapa.js`.
-- Produces: variantes clara y azul noche con acentos cian/violeta, composición de referencia, curvas legibles, halo de nodo, animación corta de conexiones y ficha de selección.
+- Produces: variantes clara y azul noche con acentos cian/violeta, composición de referencia, malla ambiental también en `.mapa-mini`, curvas legibles, halo de nodo, animación corta de conexiones y ficha de selección.
 
 - [x] **Step 1: Definir el tema y la composición** de `.constelacion-sec` según el selector global, con variantes clara y oscura, título, ficha amplia y controles horizontales como en las referencias.
 - [x] **Step 2: Estilizar aristas y estados** para que conexiones enfocadas brillen sobre las atenuadas, conservando la codificación de estado y las etiquetas.
