@@ -35,8 +35,10 @@ from exercise_ui_test import (
 from offline import new_context, verify
 
 WORKER = ROOT / "runner" / "worker"
-LESSON = "p1-quickstart"
-EXERCISE = "p1-quickstart/ghz"
+LESSON = "q1-montecarlo"
+EXERCISE = "q1-montecarlo/estimar-p"
+# La pregunta de predicción del paso «predice»: su respuesta se sincroniza con la cuenta (kv).
+PREDICT = f"qiskit:predict:{LESSON}:predice"
 # El corredor falso da por fallida una comprobación cuyo código contiene FALLA.
 FAILING = "# FALLA\nprint('primer intento')\n"
 REWRITTEN = "# FALLA\nprint('desde el otro navegador')\n"
@@ -78,6 +80,13 @@ def start_worker() -> tuple[subprocess.Popen[str], dict[str, str]]:
         process.kill()
         raise RuntimeError(f"el Worker local no arrancó: {process.stderr.read()}")
     return process, json.loads(line)
+
+
+def beat_of(lesson: str, beat_id: str) -> int:
+    beats = json.loads(
+        (ROOT / "site" / "lessons" / lesson / "lesson.json").read_text(encoding="utf-8")
+    )["beats"]
+    return next(k for k, b in enumerate(beats) if b["id"] == beat_id)
 
 
 def last_beat(lesson: str) -> int:
@@ -142,9 +151,10 @@ def anonymous(browser: Browser, site: str, control: str) -> Tab:
     page, errors, requests = new_page(browser, site, control)
     page.goto(f"{site}/index.html")
     page.locator("#parts .part").first.wait_for()
-    page.locator("#hito .chk").click()
+    page.goto(f"{site}/lesson.html?l={LESSON}&beat={beat_of(LESSON, 'predice')}")
+    page.locator("#ask .opt").first.click()
     page.goto(f"{site}/privacidad.html")
-    panel = open_panel(page, site, LESSON, 1)
+    panel = open_panel(page, site, LESSON, 0)
     write(page, panel, FAILING)
     press(panel, "Comprobar")
     wait_result(panel)
@@ -173,7 +183,7 @@ def anonymous(browser: Browser, site: str, control: str) -> Tab:
         ours == {("POST", "/run")},
         f"anónimo: la única petición propia que no es un archivo es /run ({sorted(ours)})",
     )
-    check(stored(page, "qiskit:hitos") == [1], "anónimo: el hito marcado queda en el navegador")
+    check(stored(page, PREDICT) == 0, "anónimo: la predicción queda en el navegador")
     check(
         page.locator(".acct > button").first.inner_text() == "Entrar",
         "anónimo: el menú ofrece entrar",
@@ -204,7 +214,7 @@ def main() -> None:
                 and rows["lesson_done"] == 1
                 and rows["exercise_state"] == 1
                 and rows["kv"] == 1,
-                f"al entrar: la cuenta guarda la lección, el ejercicio y el hito ({rows})",
+                f"al entrar: la cuenta guarda la lección, el ejercicio y la predicción ({rows})",
             )
             check(
                 stored(one, "qiskit:done") == [LESSON]
@@ -222,9 +232,9 @@ def main() -> None:
             )
             check(
                 two.locator("#track .hito.done").count() == 1,
-                "otro navegador: la portada marca el hito",
+                "otro navegador: la portada marca el nivel 1 como hecho",
             )
-            panel = open_panel(two, site, LESSON, 1)
+            panel = open_panel(two, site, LESSON, 0)
             check(
                 editor_text(panel) == unblank(FAILING),
                 "otro navegador: el editor trae el código del primero",
@@ -236,7 +246,7 @@ def main() -> None:
 
             with two.expect_response(lambda r: r.url.endswith("/api/progress") and r.status == 204):
                 write(two, panel, REWRITTEN)
-            panel = open_panel(one, site, LESSON, 1)
+            panel = open_panel(one, site, LESSON, 0)
             check(
                 editor_text(panel) == unblank(REWRITTEN),
                 "al cargar: gana el código más reciente de la cuenta",
@@ -257,7 +267,7 @@ def main() -> None:
             check(me == {"signedIn": False}, f"borrar: la sesión se cerró ({me})")
             before = len(one_requests)
             one.reload()
-            one.locator(".xpanel").nth(1).locator(".cm-editor").wait_for()
+            one.locator(".xpanel").nth(0).locator(".cm-editor").wait_for()
             after = [r for r in one_requests[before:] if r[1].startswith(("/api", "/auth"))]
             check(not after, f"borrar: la página ya no habla con la cuenta ({after})")
 

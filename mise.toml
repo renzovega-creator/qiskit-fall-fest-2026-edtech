@@ -10,19 +10,14 @@ UV_LOCKED = "1"
 _.path = ["runner/worker/node_modules/.bin", "editor/node_modules/.bin"]
 
 [tasks.install]
-description = "Install Python and JavaScript dependencies from the lockfiles, the site's KaTeX and fonts, the Playwright browser and the upstream guides"
+description = "Install Python and JavaScript dependencies from the lockfiles, the site's KaTeX and fonts and the Playwright browser"
 run = [
   "uv sync --locked --all-groups",
   "bun install --cwd editor --frozen-lockfile",
   "mise run generate:vendor",
   "bun install --cwd runner/worker --frozen-lockfile",
   "uv run --group tools playwright install ${CI:+--with-deps} chromium",
-  "uv run python tools/fetch_docs.py",
 ]
-
-[tasks.fetch]
-description = "Download the upstream Qiskit guides into .cache/qiskit-docs if they are missing"
-run = "uv run python tools/fetch_docs.py"
 
 [tasks."lint:py"]
 description = "Check Python with ruff"
@@ -68,24 +63,20 @@ depends = ["typecheck:*"]
 
 [tasks."test:py"]
 description = "Run the pytest suites that need no browser"
-# The grader tests time learner code against a 10 s limit. This suite runs only beside the notebooks,
-# each on its own core, and the browser, Worker and lesson suites wait for it.
+# The grader tests time learner code against a 10 s limit. This suite runs only beside the exercise
+# check, each on its own core, and the browser, Worker and lesson suites wait for it.
 wait_for = ["lint", "typecheck", "build"]
 run ="uv run pytest tests/exercises_test.py tests/dashboard_test.py"
 
-[tasks."test:notebooks"]
-description = "Run the practice notebooks with solutions and controls at both bounds, and check every exercise"
-run = [
-  "uv run python tools/practica.py",
-  "uv run python tools/exercises.py",
-]
+[tasks."test:exercises"]
+description = "Check that every exercise's solution passes and its starter fails"
+run = "uv run python tools/exercises.py"
 
 [tasks."test:ui"]
-description = "Drive the exercise editor, the project panel, the theme and the optional account in a browser"
+description = "Drive the exercise editor, the theme and the optional account in a browser"
 wait_for = ["test:py"]
 run = [
   "uv run python tests/exercise_ui_test.py",
-  "uv run python tests/proyecto_test.py",
   "uv run python tests/account_ui_test.py",
   "uv run python tests/theme_test.py",
 ]
@@ -107,10 +98,10 @@ run = "uv run pytest tests/runner_test.py"
 
 [tasks.test]
 description = "Run every test that needs no service, network or secret"
-depends = ["test:py", "test:notebooks", "test:ui", "test:worker", "test:lessons"]
+depends = ["test:py", "test:exercises", "test:ui", "test:worker", "test:lessons"]
 
 [tasks."generate:lessons"]
-description = "Rewrite site/lessons/*/lesson.json and site/course.json from lessons_src"
+description = "Rewrite site/lessons/*/lesson.json and site/course.json from cursos/qml"
 run = "uv run python lessons_src/build.py"
 
 [tasks."generate:editor"]
