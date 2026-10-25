@@ -53,7 +53,7 @@ describe("el sitio y /run en un solo Worker", () => {
     const missing = await h.get("/no-existe.html");
     expect(missing.status).toBe(404);
     expect(missing.headers.get("content-type")).toContain("text/html");
-    expect(missing.body).toContain("Al ser una demo");
+    expect(missing.body).toContain("Esta demo pública es estática");
   });
 
   it("ejecuta el código y devuelve el JSON del corredor con el token de prueba", async () => {

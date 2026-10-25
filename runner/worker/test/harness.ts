@@ -160,6 +160,7 @@ export async function start(options: Options = {}): Promise<Harness> {
       // Sirve site/ sin invocar el Worker, salvo en las rutas de WORKER_FIRST.
       assets: {
         directory: path.join(import.meta.dirname, "../../../site"),
+        binding: "ASSETS",
         assetConfig: { not_found_handling: "404-page" },
         routerConfig: {
           has_user_worker: true,

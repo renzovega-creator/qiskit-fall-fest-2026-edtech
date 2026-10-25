@@ -491,8 +491,7 @@ export default {
         return fail(500, "internal_error", "Error interno.");
       }
     }
-    if (pathname !== "/run")
-      return Response.json({ error: "no existe" }, { status: 404 });
+    if (pathname !== "/run") return env.ASSETS.fetch(request);
     if (request.method !== "POST") {
       return Response.json(
         { error: "usa POST" },

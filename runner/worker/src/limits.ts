@@ -2,6 +2,7 @@ import { type Rates, isInstanceType, ratesOf } from "./container.ts";
 import type { Caps } from "./meters.ts";
 
 export interface Env {
+  ASSETS: Fetcher;
   TURNSTILE_SECRET: string;
   // La página recibe la clave pública en la respuesta `turnstile_missing`.
   TURNSTILE_SITE_KEY: string;
