@@ -183,8 +183,8 @@ export function crearMapa(
   function aplicarVB() {
     svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
   }
-  // Los botones deslizan el encuadre (240 ms, ease-in-out) para no perder la orientación; la rueda,
-  // el arrastre y el pellizco lo cambian directo, porque siguen a la mano.
+  // Los botones deslizan el encuadre (240 ms, ease-in-out); el arrastre, la rueda modificada
+  // y el pellizco siguen a la mano y cambian el encuadre directamente.
   const quieto = matchMedia("(prefers-reduced-motion: reduce)");
   let anim = 0;
   let rumbo = null; // destino de la animación en curso
@@ -236,7 +236,7 @@ export function crearMapa(
       b.setAttribute("aria-pressed", String(b.dataset.vista === v));
   }
 
-  // Desplazar arrastrando (ratón o un dedo), zoom con la rueda o pellizcando.
+  // Arrastrar mueve el mapa; Shift + rueda y el pellizco lo acercan sin secuestrar el scroll normal.
   const punteros = new Map();
   let pellizco = 0;
   const aSvg = (e) => {
@@ -249,6 +249,7 @@ export function crearMapa(
   svg.addEventListener(
     "wheel",
     (e) => {
+      if (!e.shiftKey) return;
       e.preventDefault();
       zoom(e.deltaY > 0 ? 1.12 : 0.89, ...aSvg(e));
     },
