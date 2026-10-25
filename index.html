@@ -42,7 +42,7 @@
     <div>
       <h1>Del ML al QML,<br><span>con Qiskit</span>.</h1>
       <p class="lead">Conecta Monte Carlo y los kernels que ya conoces con sus equivalentes cuánticos. Predice un resultado, compruébalo con Qiskit y repasa lo aprendido en 5 minutos al día.</p>
-      <p role="note" style="padding:12px 16px;border:1px solid var(--line);border-radius:8px;background:var(--bg2);color:var(--ink);font:14px/1.5 var(--sans)"><strong>Demo estática en GitHub Pages.</strong> Puedes recorrer las lecciones y ver el perfil de ejemplo con resultados precomputados de Qiskit. Esta publicación no ejecuta código nuevo ni ofrece cuentas. <a href="juego.html#ejemplo" style="color:var(--acc);font-weight:600">Ver resultados de ejemplo →</a></p>
+      <p role="note" style="padding:12px 16px;border:1px solid var(--line);border-radius:8px;background:var(--bg2);color:var(--ink);font:14px/1.5 var(--sans)"><strong>Demo estática en GitHub Pages.</strong> Puedes recorrer las lecciones y ver el perfil de ejemplo con resultados precomputados de Qiskit. No ejecuta código nuevo ni ofrece cuentas; la versión local permite ejecutar los experimentos con Qiskit. <a href="juego.html#ejemplo" style="color:var(--acc);font-weight:600">Ver resultados de ejemplo →</a></p>
 <div class="next" id="next"></div>
       <div class="stats" id="stats"></div>
       <a class="seguir" href="#pares">Cómo funciona, paso a paso <span aria-hidden="true">↓</span></a>
@@ -183,20 +183,64 @@ function rich(s) {
 (() => {
   const s = $('#bloch'), ns = 'http://www.w3.org/2000/svg', R = 120, tilt = 0.24;
   const E = (t, a) => { const e = document.createElementNS(ns, t); for (const k in a) e.setAttribute(k, a[k]); s.appendChild(e); return e; };
-  s.innerHTML = '<defs><radialGradient id="gl" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="var(--acc)" stop-opacity=".16"/><stop offset="100%" stop-color="var(--acc)" stop-opacity="0"/></radialGradient></defs>';
+  s.innerHTML = '<defs><radialGradient id="bloch-surface" cx="34%" cy="27%" r="78%"><stop offset="0%" stop-color="var(--acc)" stop-opacity=".13"/><stop offset="52%" stop-color="var(--stage)" stop-opacity=".26"/><stop offset="100%" stop-color="var(--stage)" stop-opacity=".58"/></radialGradient></defs>';
+  E('circle', { class: 'sph-fill', r: R });
+
+  const point = (th, ph) => {
+    const depth = Math.sin(th) * Math.sin(ph);
+    return {
+      x: R * Math.sin(th) * Math.cos(ph),
+      y: -R * Math.cos(th) + R * tilt * depth,
+      depth,
+    };
+  };
+  const splitPath = (sample, front, steps) => {
+    const points = Array.from({ length: steps + 1 }, (_, k) => sample(k / steps));
+    const parts = [];
+    let segment = [];
+    for (let k = 0; k < steps; k++) {
+      const p = points[k], next = points[k + 1];
+      const side = p.depth >= 0, nextSide = next.depth >= 0;
+      if (side === front) segment.push([p.x, p.y]);
+      if (side !== nextSide) {
+        const t = p.depth / (p.depth - next.depth);
+        const edge = [p.x + (next.x - p.x) * t, p.y + (next.y - p.y) * t];
+        if (side === front) {
+          segment.push(edge);
+          if (segment.length > 1) parts.push(segment);
+          segment = [];
+        } else if (nextSide === front) {
+          segment = [edge];
+        }
+      }
+    }
+    const last = points[steps];
+    if ((last.depth >= 0) === front) segment.push([last.x, last.y]);
+    if (segment.length > 1) parts.push(segment);
+    return parts.map(path => 'M' + path.map(p => p.map(v => v.toFixed(1)).join(' ')).join('L')).join('');
+  };
+
+  for (const ph of [0.78, Math.PI - 0.78]) {
+    E('path', { class: 'merid merid-back', d: splitPath(t => point(t * 2 * Math.PI, ph), false, 96) });
+    E('path', { class: 'merid merid-front', d: splitPath(t => point(t * 2 * Math.PI, ph), true, 96) });
+  }
+
   E('circle', { class: 'sph', r: R });
-  E('ellipse', { class: 'eq', rx: R, ry: R * tilt });
+  E('path', { class: 'eq-back', d: splitPath(t => point(Math.PI / 2, t * 2 * Math.PI), false, 96) });
+  E('path', { class: 'eq-front', d: splitPath(t => point(Math.PI / 2, t * 2 * Math.PI), true, 96) });
   E('line', { class: 'ax', x1: 0, y1: -R - 20, x2: 0, y2: R + 20 });
   E('line', { class: 'ax', x1: -R - 20, y1: 0, x2: R + 20, y2: 0 });
-  E('text', { x: -10, y: -R - 28 }).textContent = '|0⟩';
-  E('text', { x: -10, y: R + 42 }).textContent = '|1⟩';
-  const trail = E('path', { class: 'trail' });
+  E('text', { class: 'state-label', x: 0, y: -R - 27, 'text-anchor': 'middle' }).textContent = '|0⟩';
+  E('text', { class: 'state-label', x: 0, y: R + 42, 'text-anchor': 'middle' }).textContent = '|1⟩';
+  const trailBack = E('path', { class: 'trail trail-back' });
+  const trailFront = E('path', { class: 'trail trail-front' });
   const vec = E('line', { class: 'vec', x1: 0, y1: 0 });
-  const tip = E('circle', { class: 'tip', r: 7 });
-  const proj = (th, ph) => [R * Math.sin(th) * Math.cos(ph), -R * Math.cos(th) + R * tilt * Math.sin(th) * Math.sin(ph)];
+  const tip = E('circle', { class: 'tip', r: 6 });
+  const proj = (th, ph) => { const p = point(th, ph); return [p.x, p.y]; };
   const th = 0.85;
-  const pts = []; for (let k = 0; k <= 64; k++) pts.push(proj(th, k / 64 * 2 * Math.PI));
-  trail.setAttribute('d', 'M' + pts.map(p => p.map(v => v.toFixed(1)).join(' ')).join('L'));
+  const orbit = t => point(th, t * 2 * Math.PI);
+  trailBack.setAttribute('d', splitPath(orbit, false, 96));
+  trailFront.setAttribute('d', splitPath(orbit, true, 96));
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   let frameId = 0;
   const frame = t => {
