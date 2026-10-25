@@ -109,6 +109,13 @@ body[data-ruta="mapa"] .constelacion-sec > .meta > .lead { max-width:48ch; margi
 .g-violeta { stop-color:var(--map-violet); }
 .g-cian { stop-color:var(--map-cyan); }
 .g-ambar { stop-color:var(--map-warm); }
+.mapa-mini .red-ambiente, .mapa-mini .red-ambiente * { pointer-events:none; }
+.mapa-mini .malla-enlace { fill:none; stroke:url(#g-malla); stroke-width:.8; opacity:.22; }
+.mapa-mini .malla-nodo { fill:url(#g-malla); opacity:.36; }
+.mapa-mini .malla-nodo.destacado { opacity:.6; }
+.mapa-mini .g-violeta { stop-color:var(--violet); }
+.mapa-mini .g-cian { stop-color:var(--teal); }
+.mapa-mini .g-ambar { stop-color:var(--acc3); }
 .neb-b { stop-color:oklch(0 0 0); stop-opacity:0; }
 #neb-clasico .neb-c { stop-color:var(--clasico); stop-opacity:.1; }
 #neb-cuantico .neb-c { stop-color:var(--cuantico); stop-opacity:.1; }
