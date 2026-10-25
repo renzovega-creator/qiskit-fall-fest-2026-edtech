@@ -128,13 +128,7 @@ run = "uv run python lessons_src/build.py --check"
 
 [tasks."build:editor"]
 description = "Fail without writing if site/editor.js differs from the bundle built from editor/src"
-dir = "editor"
-run = """
-out="$(mktemp)"
-trap 'rm -f "$out"' EXIT
-esbuild src/index.js --bundle --minify --format=iife --target=es2020 --outfile="$out" --log-level=warning
-cmp "$out" ../site/editor.js
-"""
+run = "python tools/build_editor.py"
 
 [tasks.build]
 description = "Check that the shipped site files match their sources"
