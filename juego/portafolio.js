@@ -448,7 +448,11 @@ export function vistaPortafolio(
           "div",
           { class: "comp-bloque" },
           h("h3", { text: "Enlace a tu portafolio público" }),
-          h("label", { for: "enlace-publico", class: "campo-label", text: "Enlace público" }),
+          h("label", {
+            for: "enlace-publico",
+            class: "campo-label",
+            text: "Enlace público",
+          }),
           h("p", {
             class: "nota",
             text: "El enlace lleva dentro tu perfil y las evidencias marcadas como públicas. No se sube a ningún servidor.",
@@ -479,7 +483,11 @@ export function vistaPortafolio(
           "div",
           { class: "comp-bloque" },
           h("h3", { text: "Texto para LinkedIn" }),
-          h("label", { for: "texto-linkedin", class: "campo-label", text: "Borrador de publicación" }),
+          h("label", {
+            for: "texto-linkedin",
+            class: "campo-label",
+            text: "Borrador de publicación",
+          }),
           h("p", {
             class: "nota",
             text: "Basado en tus evidencias públicas. Edítalo antes de usarlo: no publicamos nada por ti.",

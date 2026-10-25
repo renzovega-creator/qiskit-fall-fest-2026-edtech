@@ -1,11 +1,12 @@
 // Bloque «exercise»: un editor de Python con Ejecutar, Comprobar, pistas y progreso (docs/exercises.md).
 //
 // spec: exercise (id) · prompt · level · hints · starter · cases (nombres de los casos visibles)
-// Ejecutar y Comprobar envían el código a /run en el mismo origen que la página.
-// La primera petición de una sesión puede requerir Turnstile y repetir la petición con el token.
+// Cuando hay un corredor, Ejecutar y Comprobar envían el código a /run en el
+// mismo origen. La demo estática desactiva esas acciones.
+// Un corredor remoto puede requerir Turnstile en la primera petición.
 // El navegador guarda el código, las pistas vistas y el estado de resolución en
 // qiskit:exercise:<id>. `at` registra la última edición del código.
-// Con cuenta, account.js también envía esos datos al servidor.
+// En despliegues con cuenta, account.js también envía esos datos al servidor.
 /* oxlint-disable unicorn/consistent-function-scoping --
    Script clásico en una función: sus ayudas no pueden salir al ámbito global. */
 (() => {
@@ -13,6 +14,9 @@
   const CALL_TIMEOUT_MS = 30000;
   const SLOW_MS = 4000;
   const RUN_URL = "/run";
+  const RUNNER_AVAILABLE = window.QG_RUNNER_AVAILABLE === true;
+  const LOCAL_RUNNER_NOTE =
+    "La demo pública no envía ni ejecuta código. Para probarlo, inicia la versión local.";
   const MOD = /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl";
   const LEVELS = BLOCKS.mission.levels;
   const HTTP_ERRORS = {
@@ -157,8 +161,12 @@
       },
       `Vuelve al código inicial. Se puede deshacer con ${MOD}+Z`,
     );
-    A.el("p", "xkeys", left).textContent =
-      `${MOD}+Intro ejecuta · ${MOD}+Mayús+Intro comprueba · Esc y luego Tab sale del editor`;
+    A.el("p", "xkeys", left).textContent = RUNNER_AVAILABLE
+      ? MOD +
+        "+Intro ejecuta · " +
+        MOD +
+        "+Mayús+Intro comprueba · Esc y luego Tab sale del editor"
+      : "En la demo pública, el editor no envía código. Para ejecutarlo, usa la versión local.";
     if (s.cases?.length)
       A.el("p", "mhow", left).textContent =
         `Casos visibles: ${s.cases.join(" · ")}. Hay además casos ocultos.`;
@@ -180,7 +188,7 @@
     };
     const setBusy = (on) => {
       busy = on;
-      runBtn.disabled = checkBtn.disabled = on;
+      runBtn.disabled = checkBtn.disabled = on || !RUNNER_AVAILABLE;
       card.setAttribute("aria-busy", on);
     };
 
@@ -285,6 +293,10 @@
     };
 
     async function send(mode) {
+      if (!RUNNER_AVAILABLE) {
+        fail(LOCAL_RUNNER_NOTE);
+        return;
+      }
       if (busy || !ed) return;
       setBusy(true);
       ed.markError(0);
@@ -374,7 +386,12 @@
           onCheck: () => send("check"),
         });
         setBusy(false);
-        note("idle", "Escribe tu código y pulsa Ejecutar o Comprobar.");
+        note(
+          "idle",
+          RUNNER_AVAILABLE
+            ? "Escribe tu código y pulsa Ejecutar o Comprobar."
+            : LOCAL_RUNNER_NOTE,
+        );
       });
     return o;
   };

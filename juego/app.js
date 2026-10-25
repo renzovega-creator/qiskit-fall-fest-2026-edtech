@@ -267,12 +267,18 @@ function vistaMapa(raiz, { destacar } = {}) {
           text: "Cada estrella es una habilidad. Las flechas marcan requisitos; las de trazo largo, puentes entre una idea clásica y su par cuántico.",
         }),
       ),
-      h("p", { class: "mapa-etiqueta", text: "Red de habilidades · QuantumShot" }),
+      h("p", {
+        class: "mapa-etiqueta",
+        text: "Red de habilidades · QuantumShot",
+      }),
       h(
         "section",
         { class: "meta mapa-meta" },
         h("h1", { text: "Tu conocimiento, en conexión." }),
-        h("p", { class: "lead", text: "Estadística · Machine learning · Cuántica" }),
+        h("p", {
+          class: "lead",
+          text: "Estadística · Machine learning · Cuántica",
+        }),
         h("div", { class: "meta-siguiente" }, siguiente),
       ),
       h("div", { class: "mapa-y-detalle" }, caja, detalle),
@@ -281,9 +287,12 @@ function vistaMapa(raiz, { destacar } = {}) {
         class: "mapa-bajar",
         "aria-label": "Bajar a las misiones",
         text: "↓",
-        onclick: () => document.querySelector(".misiones-sec")?.scrollIntoView({
-          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-        }),
+        onclick: () =>
+          document.querySelector(".misiones-sec")?.scrollIntoView({
+            behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+              ? "auto"
+              : "smooth",
+          }),
       }),
     ),
     h(

@@ -42,7 +42,7 @@
     <div>
       <h1>Del ML al QML,<br><span>con Qiskit</span>.</h1>
       <p class="lead">Conecta Monte Carlo y los kernels que ya conoces con sus equivalentes cuánticos. Predice un resultado, compruébalo con Qiskit y repasa lo aprendido en 5 minutos al día.</p>
-      <p role="note" style="padding:12px 16px;border:1px solid var(--line);border-radius:8px;background:var(--bg2);color:var(--ink);font:14px/1.5 var(--sans)"><strong>Demo estática en GitHub Pages.</strong> Puedes recorrer las lecciones y ver el perfil de ejemplo con resultados precomputados de Qiskit. No ejecuta código nuevo ni ofrece cuentas; la versión local permite ejecutar los experimentos con Qiskit. <a href="juego.html#ejemplo" style="color:var(--acc);font-weight:600">Ver resultados de ejemplo →</a></p>
+      <p role="note" style="padding:12px 16px;border:1px solid var(--line);border-radius:8px;background:var(--bg2);color:var(--ink);font:14px/1.5 var(--sans)"><strong>Demo estática en GitHub Pages.</strong> El perfil de ejemplo muestra resultados precalculados de Qiskit. El editor no envía ni ejecuta código; para probarlo, usa la versión local. <a href="juego.html#ejemplo" style="color:var(--acc);font-weight:600">Ver resultados de ejemplo →</a></p>
 <div class="next" id="next"></div>
       <div class="stats" id="stats"></div>
       <a class="seguir" href="#pares">Cómo funciona, paso a paso <span aria-hidden="true">↓</span></a>
@@ -140,6 +140,7 @@
       <h3>Para seguir</h3>
       <a class="red" href="https://quantum.cloud.ibm.com/docs">Documentación de IBM Quantum</a>
       <a class="red" href="https://www.ibm.com/quantum/qiskit">Qiskit</a>
+      <a class="red" href="privacidad.html">Privacidad</a>
     </div>
   </footer>
 </div>
@@ -182,6 +183,7 @@ function rich(s) {
 // ---------- esfera de Bloch: el estado precesa alrededor de Z ----------
 (() => {
   const s = $('#bloch'), ns = 'http://www.w3.org/2000/svg', R = 120, tilt = 0.24;
+  const viewCos = Math.sqrt(1 - tilt * tilt);
   const E = (t, a) => { const e = document.createElementNS(ns, t); for (const k in a) e.setAttribute(k, a[k]); s.appendChild(e); return e; };
   s.innerHTML = '<defs><radialGradient id="bloch-surface" cx="34%" cy="27%" r="78%"><stop offset="0%" stop-color="var(--acc)" stop-opacity=".13"/><stop offset="52%" stop-color="var(--stage)" stop-opacity=".26"/><stop offset="100%" stop-color="var(--stage)" stop-opacity=".58"/></radialGradient></defs>';
   E('circle', { class: 'sph-fill', r: R });
@@ -190,7 +192,7 @@ function rich(s) {
     const depth = Math.sin(th) * Math.sin(ph);
     return {
       x: R * Math.sin(th) * Math.cos(ph),
-      y: -R * Math.cos(th) + R * tilt * depth,
+      y: -R * viewCos * Math.cos(th) + R * tilt * depth,
       depth,
     };
   };

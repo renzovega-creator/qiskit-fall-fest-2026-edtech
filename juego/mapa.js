@@ -7,6 +7,7 @@ import { h, s } from "./dom.js";
 const W = 900;
 const H = 680;
 const R = 20;
+const formatoSvg = (valor) => valor.toFixed(1);
 const BANDAS = {
   clasico: [52, 232],
   cuantico: [292, 472],
@@ -60,15 +61,17 @@ function arista(a, b, organica) {
   const nx = -vy / longitud;
   const ny = vx / longitud;
   const clave = `${a.id}:${b.id}`;
-  const lado = [...clave].reduce((suma, letra) => suma + letra.charCodeAt(0), 0) % 2 ? 1 : -1;
+  const lado =
+    [...clave].reduce((suma, letra) => suma + letra.charCodeAt(0), 0) % 2
+      ? 1
+      : -1;
   const curva = Math.min(52, Math.max(12, longitud * 0.12)) * lado;
   const x1c = sx + vx / 3 + nx * curva;
   const y1c = sy + vy / 3 + ny * curva;
   const x2c = sx + (2 * vx) / 3 + nx * curva;
   const y2c = sy + (2 * vy) / 3 + ny * curva;
-  const f = (valor) => valor.toFixed(1);
   return {
-    d: `M${f(sx)} ${f(sy)} C${f(x1c)} ${f(y1c)} ${f(x2c)} ${f(y2c)} ${f(ex)} ${f(ey)}`,
+    d: `M${formatoSvg(sx)} ${formatoSvg(sy)} C${formatoSvg(x1c)} ${formatoSvg(y1c)} ${formatoSvg(x2c)} ${formatoSvg(y2c)} ${formatoSvg(ex)} ${formatoSvg(ey)}`,
     medioX: (sx + ex) / 2 + nx * curva * 0.75,
     medioY: (sy + ey) / 2 + ny * curva * 0.75,
   };
@@ -143,7 +146,8 @@ function fondo() {
 
 function redAmbiente(limites) {
   let semilla = 37;
-  const azar = () => ((semilla = (semilla * 48271) % 2147483647) - 1) / 2147483646;
+  const azar = () =>
+    ((semilla = (semilla * 48271) % 2147483647) - 1) / 2147483646;
   const gauss = () => {
     const radio = Math.sqrt(-2 * Math.log(Math.max(azar(), 1e-9)));
     return radio * Math.cos(2 * Math.PI * azar());
@@ -160,8 +164,13 @@ function redAmbiente(limites) {
     const centro = grupos[grupo];
     return {
       grupo,
-      x: limites.x + Math.max(0.015, Math.min(0.985, centro.x + gauss() * 0.105)) * limites.w,
-      y: limites.y + Math.max(0.035, Math.min(0.965, centro.y + gauss() * 0.13)) * limites.h,
+      x:
+        limites.x +
+        Math.max(0.015, Math.min(0.985, centro.x + gauss() * 0.105)) *
+          limites.w,
+      y:
+        limites.y +
+        Math.max(0.035, Math.min(0.965, centro.y + gauss() * 0.13)) * limites.h,
     };
   });
   const enlaces = [];
@@ -178,34 +187,46 @@ function redAmbiente(limites) {
     const curva = (azar() < 0.5 ? -1 : 1) * Math.min(34, largo * 0.2);
     const cx = (a.x + b.x) / 2 - (dy / largo) * curva;
     const cy = (a.y + b.y) / 2 + (dx / largo) * curva;
-    enlaces.push(s("path", {
-      class: "malla-enlace",
-      d: `M${a.x.toFixed(1)} ${a.y.toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`,
-    }));
+    enlaces.push(
+      s("path", {
+        class: "malla-enlace",
+        d: `M${a.x.toFixed(1)} ${a.y.toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`,
+      }),
+    );
   };
   for (let i = 0; i < puntos.length; i++) {
     const cercanos = puntos
-      .map((punto, j) => ({ j, d: Math.hypot(punto.x - puntos[i].x, punto.y - puntos[i].y) }))
-      .filter(({ j, d }) => j !== i && puntos[j].grupo === puntos[i].grupo && d < 170)
-      .sort((a, b) => a.d - b.d)
+      .map((punto, j) => ({
+        j,
+        d: Math.hypot(punto.x - puntos[i].x, punto.y - puntos[i].y),
+      }))
+      .filter(
+        ({ j, d }) => j !== i && puntos[j].grupo === puntos[i].grupo && d < 170,
+      )
+      .toSorted((a, b) => a.d - b.d)
       .slice(0, 3);
     for (const { j } of cercanos) unir(i, j);
     if (i % 8 === 0) {
       const puente = puntos
-        .map((punto, j) => ({ j, d: Math.hypot(punto.x - puntos[i].x, punto.y - puntos[i].y) }))
+        .map((punto, j) => ({
+          j,
+          d: Math.hypot(punto.x - puntos[i].x, punto.y - puntos[i].y),
+        }))
         .filter(({ j }) => j !== i && puntos[j].grupo !== puntos[i].grupo)
-        .sort((a, b) => a.d - b.d)[0];
+        .toSorted((a, b) => a.d - b.d)[0];
       if (puente) unir(i, puente.j);
     }
   }
   return s("g", { class: "red-ambiente", "aria-hidden": "true" }, [
     ...enlaces,
-    ...puntos.map((punto, i) => s("circle", {
-      class: `malla-nodo ${i % 4 === 0 ? "destacado" : ""}`,
-      cx: punto.x,
-      cy: punto.y,
-      r: i % 4 === 0 ? 2.2 : 1.35,
-    })),
+    ...puntos.map((punto, i) =>
+      s("circle", {
+        class: `malla-nodo ${i % 4 === 0 ? "destacado" : ""}`,
+        cx: punto.x,
+        cy: punto.y,
+        r: i % 4 === 0 ? 2.2 : 1.35,
+      }),
+    ),
   ]);
 }
 
@@ -230,9 +251,10 @@ export function crearMapa(
   const seccion = raiz.closest(".constelacion-sec");
   const organica = Boolean(seccion || raiz.closest(".mapa-mini"));
   raiz.classList.toggle("mapa-organico", organica);
-  const aspecto = seccion?.clientWidth && seccion?.clientHeight
-    ? seccion.clientWidth / seccion.clientHeight
-    : 1190 / 980;
+  const aspecto =
+    seccion?.clientWidth && seccion?.clientHeight
+      ? seccion.clientWidth / seccion.clientHeight
+      : 1190 / 980;
   const altoRed = 980;
   const anchoRed = Math.max(980, altoRed * aspecto);
   const escalaX = anchoRed / 1190;
@@ -245,12 +267,21 @@ export function crearMapa(
   const posiciones = Object.fromEntries(
     HABILIDADES.map((x) => {
       const base = organica ? POSICIONES_RED[x.id] : x;
-      return [x.id, { ...base, x: centroX + (base.x - centroX) * (organica ? escalaX : 1), id: x.id }];
+      return [
+        x.id,
+        {
+          ...base,
+          x: centroX + (base.x - centroX) * (organica ? escalaX : 1),
+          id: x.id,
+        },
+      ];
     }),
   );
   const fondoSvg = fondo();
   const malla = organica ? redAmbiente(INICIO) : null;
-  const movil = matchMedia("(max-width: 700px), (max-aspect-ratio: 1 / 1)").matches;
+  const movil = matchMedia(
+    "(max-width: 700px), (max-aspect-ratio: 1 / 1)",
+  ).matches;
   let vista = movil ? "lista" : "mapa";
 
   const botonVista = (v, t) =>
@@ -456,21 +487,23 @@ export function crearMapa(
     const foco = document.activeElement?.closest?.(".nodo")?.dataset.id;
 
     // Cada grupo es una nebulosa: una elipse difusa con el nombre de la constelación.
-    const bandas = organica ? [] : GRUPOS.map((g) => {
-      const [y0, y1] = BANDAS[g.id];
-      return s(
-        "g",
-        { class: `banda b-${g.id}` },
-        s("ellipse", {
-          cx: W / 2,
-          cy: (y0 + y1) / 2,
-          rx: W / 2 + 20,
-          ry: (y1 - y0) / 2 + 26,
-          fill: `url(#neb-${g.id})`,
-        }),
-        s("text", { x: 30, y: y0 + 18, text: g.nombre.toUpperCase() }),
-      );
-    });
+    const bandas = organica
+      ? []
+      : GRUPOS.map((g) => {
+          const [y0, y1] = BANDAS[g.id];
+          return s(
+            "g",
+            { class: `banda b-${g.id}` },
+            s("ellipse", {
+              cx: W / 2,
+              cy: (y0 + y1) / 2,
+              rx: W / 2 + 20,
+              ry: (y1 - y0) / 2 + 26,
+              fill: `url(#neb-${g.id})`,
+            }),
+            s("text", { x: 30, y: y0 + 18, text: g.nombre.toUpperCase() }),
+          );
+        });
 
     const aristas = [];
     const etiquetas = [];
@@ -547,8 +580,21 @@ export function crearMapa(
         forma(e),
         organica
           ? [
-              s("rect", { class: "etiqueta-nodo", x: R + 12, y: -20, width: etiquetaAncho, height: 40, rx: 10 }),
-              s("text", { class: "nombre", x: R + 24, y: 6, "text-anchor": "start", text: x.corto }),
+              s("rect", {
+                class: "etiqueta-nodo",
+                x: R + 12,
+                y: -20,
+                width: etiquetaAncho,
+                height: 40,
+                rx: 10,
+              }),
+              s("text", {
+                class: "nombre",
+                x: R + 24,
+                y: 6,
+                "text-anchor": "start",
+                text: x.corto,
+              }),
             ]
           : [
               s("text", { class: "nombre", y: R + 22, text: x.corto }),
@@ -563,7 +609,14 @@ export function crearMapa(
         null,
         s(
           "linearGradient",
-          { id: "g-malla", gradientUnits: "userSpaceOnUse", x1: INICIO.x, y1: 0, x2: INICIO.x + INICIO.w, y2: 0 },
+          {
+            id: "g-malla",
+            gradientUnits: "userSpaceOnUse",
+            x1: INICIO.x,
+            y1: 0,
+            x2: INICIO.x + INICIO.w,
+            y2: 0,
+          },
           s("stop", { offset: "0%", class: "g-violeta" }),
           s("stop", { offset: "52%", class: "g-cian" }),
           s("stop", { offset: "100%", class: "g-ambar" }),
