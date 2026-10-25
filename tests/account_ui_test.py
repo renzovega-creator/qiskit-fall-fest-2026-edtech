@@ -143,6 +143,12 @@ def menu(page: Page, name: str) -> None:
 
 def sign_in(page: Page) -> None:
     menu(page, "Entrar")
+    for provider in ("Google", "GitHub"):
+        button = page.get_by_role("button", name=f"Entrar con {provider}", exact=True)
+        check(
+            button.locator('svg[aria-hidden="true"]').count() == 1,
+            f"logo de {provider} en el acceso",
+        )
     page.get_by_role("button", name="Entrar con GitHub", exact=True).click()
     page.get_by_role("button", name="Cuenta ✓", exact=True).wait_for()
 

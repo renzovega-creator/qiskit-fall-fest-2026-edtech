@@ -112,6 +112,8 @@ button:enabled:active { transform: scale(.96); }
 .acct-menu[hidden] { display: none; }
 .acct-menu p { margin: 0 0 4px; color: var(--muted); font: 400 13px/1.45 var(--sans); }
 .acct-menu button { min-height: 44px; border: 1px solid var(--line); background: var(--bg2); color: var(--ink); border-radius: 8px; }
+.acct-menu button.provider { width: 100%; display: flex; align-items: center; gap: 10px; padding: 0 12px; text-align: left; }
+.acct-menu button.provider svg { width: 20px; height: 20px; flex: none; }
 .acct-menu button:hover { border-color: var(--line-strong); }
 .acct-menu button.danger { color: var(--bad); }
 .acct-menu a { color: var(--muted); font: 500 13px var(--sans); text-decoration: underline; text-underline-offset: 2px; padding-top: 4px; }
