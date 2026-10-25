@@ -88,10 +88,12 @@ h1, h2, h3 { text-wrap: balance; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
 button, select, summary, a { -webkit-tap-highlight-color: transparent; }
 button, select, summary { touch-action: manipulation; }
+input:not([type="range"]), textarea, select { font-size:16px; }
+html.theme-switching *, html.theme-switching *::before, html.theme-switching *::after { transition:none !important; }
 button, select { transition: color .15s ease-out, background-color .15s ease-out, border-color .15s ease-out, transform .15s ease-out; }
 button:enabled:active { transform: scale(.96); }
 @media (prefers-reduced-motion: reduce) {
-  button, select { transition: none; }
+  *, *::before, *::after { animation:none !important; scroll-behavior:auto !important; transition:none !important; }
 }
 
 .brand { font: 800 20px/1 var(--display); letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; color: var(--ink); white-space: nowrap; }

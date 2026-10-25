@@ -184,7 +184,10 @@ const m1 = {
           }),
           valor == null
             ? null
-            : h("span", { class: "relleno", style: `width:${100 * valor}%` }),
+            : h("span", {
+                class: "relleno",
+                style: `transform:scaleX(${Math.max(0, Math.min(1, valor))})`,
+              }),
         ),
         h("span", { class: "bv", text: valor == null ? "—" : pct(valor, 1) }),
       );

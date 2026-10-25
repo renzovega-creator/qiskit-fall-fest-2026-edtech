@@ -197,13 +197,20 @@ function rich(s) {
   const th = 0.85;
   const pts = []; for (let k = 0; k <= 64; k++) pts.push(proj(th, k / 64 * 2 * Math.PI));
   trail.setAttribute('d', 'M' + pts.map(p => p.map(v => v.toFixed(1)).join(' ')).join('L'));
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  let frameId = 0;
   const frame = t => {
     const [x, y] = proj(th, t / 1600);
     vec.setAttribute('x2', x); vec.setAttribute('y2', y); tip.setAttribute('cx', x); tip.setAttribute('cy', y);
-    if (!reduce) requestAnimationFrame(frame);
+    frameId = reduce.matches ? 0 : requestAnimationFrame(frame);
   };
-  requestAnimationFrame(frame);
+  const syncMotion = () => {
+    cancelAnimationFrame(frameId);
+    frameId = 0;
+    if (!reduce.matches) frameId = requestAnimationFrame(frame);
+  };
+  reduce.addEventListener('change', syncMotion);
+  frame(0);
 })();
 
 // ---------- nivel: cada par completado sube un nivel; el siguiente par se ve bloqueado ----------
@@ -317,17 +324,18 @@ async function renderReto(course, doneSet) {
   const reto = (pool.length ? pool : RETOS.filter(r => r.de === RETOS[0].de))[dia % (pool.length || 3)];
   const st = LS.get('qiskit:reto', {});
   box.innerHTML = `<div class="rq"><div class="from">Hoy · ${new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' })}</div><div class="p">${rich(reto.p)}</div>
-    <div class="num"><input inputmode="decimal" placeholder="Tu predicción"><button>Predecir y medir</button></div><div class="fb"></div></div>`;
-  const inp = box.querySelector('input'), btn = box.querySelector('button'), fb = box.querySelector('.fb');
+    <form class="reto-form"><label for="reto-prediccion">Tu predicción</label><div class="num"><input id="reto-prediccion" type="number" min="0" step="1" inputmode="numeric" autocomplete="off" required><button type="submit">Predecir y medir</button></div><div class="fb" role="status" aria-live="polite"></div></form></div>`;
+  const form = box.querySelector('.reto-form'), inp = form.querySelector('input'), btn = form.querySelector('button'), fb = form.querySelector('.fb');
   const mostrar = (pred, med) => {
     const ok = Math.abs(pred - med) <= reto.tol;
     fb.innerHTML = `${ok ? '✓' : '✗'} Predijiste <b>${pred}</b>; Qiskit midió <b>${med}</b>. ${ok ? 'Dentro del margen.' : `Fuera del margen (±${reto.tol}).`}<br>${rich(reto.why)}<br><span class="mono">vuelve mañana por otro reto</span>`;
     inp.value = pred; inp.disabled = btn.disabled = true;
   };
   if (st.dia === hoy()) return mostrar(st.pred, st.med);
-  const go = async () => {
-    const pred = Number(inp.value.replace(',', '.'));
-    if (!isFinite(pred) || inp.value.trim() === '') return;
+  const go = async (e) => {
+    e.preventDefault();
+    if (btn.disabled || !form.reportValidity()) return;
+    const pred = inp.valueAsNumber;
     btn.disabled = true; fb.textContent = 'Midiendo con Qiskit…';
     try {
       const res = await (await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -339,7 +347,7 @@ async function renderReto(course, doneSet) {
       mostrar(pred, med);
     } catch (e) { btn.disabled = false; fb.textContent = 'No se pudo medir: abre el curso con tools/serve.py para ejecutar Qiskit.'; }
   };
-  btn.onclick = go; inp.onkeydown = e => { if (e.key === 'Enter') go(); };
+  form.addEventListener('submit', go);
 }
 function sumarRacha() {
   const r = LS.get('qiskit:racha', { dia: '', n: 0 });
@@ -391,13 +399,16 @@ async function renderRepaso(course, doneSet) {
       });
       el.appendChild(o);
     } else {
+      const form = document.createElement('form'); form.className = 'repaso-form';
+      const id = `repaso-respuesta-${box.children.length}`;
+      const label = document.createElement('label'); label.htmlFor = id; label.textContent = 'Tu respuesta';
       const r = document.createElement('div'); r.className = 'num';
-      r.innerHTML = '<input inputmode="decimal" placeholder="Tu respuesta"><button>Comprobar</button>';
-      const inp = r.querySelector('input');
-      const go = () => { if (el.dataset.done) return; const v = Number(inp.value.replace(',', '.')); if (!isFinite(v) || inp.value.trim() === '') return;
-        el.dataset.done = 1; const tol = it.a.tol ?? 0.01; answer(it, Math.abs(v - it.a.answer) <= tol * Math.max(1, Math.abs(it.a.answer)), el); };
-      r.querySelector('button').onclick = go; inp.onkeydown = e => { if (e.key === 'Enter') go(); };
-      el.appendChild(r);
+      r.innerHTML = `<input id="${id}" type="number" step="any" inputmode="decimal" autocomplete="off" required><button type="submit">Comprobar</button>`;
+      const inp = r.querySelector('input'), submit = r.querySelector('button');
+      form.append(label, r);
+      form.addEventListener('submit', (e) => { e.preventDefault(); if (el.dataset.done || !form.reportValidity()) return;
+        const v = inp.valueAsNumber; el.dataset.done = 1; inp.disabled = submit.disabled = true; const tol = it.a.tol ?? 0.01; answer(it, Math.abs(v - it.a.answer) <= tol * Math.max(1, Math.abs(it.a.answer)), el); });
+      el.appendChild(form);
     }
     el.appendChild(Object.assign(document.createElement('div'), { className: 'fb' }));
     box.appendChild(el);

@@ -34,6 +34,13 @@
   const modeLabel = () => (root.dataset.theme === "light" ? "☾" : "☀");
   const modeTitle = () =>
     "Cambiar a tema " + (root.dataset.theme === "light" ? "oscuro" : "claro");
+  const changeTheme = (update) => {
+    root.classList.add("theme-switching");
+    update();
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => root.classList.remove("theme-switching")),
+    );
+  };
   const paint = () =>
     document.querySelectorAll("[data-theme-ctl]").forEach((c) => {
       c.querySelector("select").value = root.dataset.paleta;
@@ -43,16 +50,20 @@
     });
 
   window.toggleTheme = () => {
-    root.dataset.theme = root.dataset.theme === "light" ? "dark" : "light";
-    write(MODE, root.dataset.theme);
-    paint();
-    dispatchEvent(new Event("themechange"));
+    changeTheme(() => {
+      root.dataset.theme = root.dataset.theme === "light" ? "dark" : "light";
+      write(MODE, root.dataset.theme);
+      paint();
+      dispatchEvent(new Event("themechange"));
+    });
   };
   const setPaleta = (p) => {
-    root.dataset.paleta = p;
-    write(PAL, p);
-    paint();
-    dispatchEvent(new Event("themechange"));
+    changeTheme(() => {
+      root.dataset.paleta = p;
+      write(PAL, p);
+      paint();
+      dispatchEvent(new Event("themechange"));
+    });
   };
 
   addEventListener("DOMContentLoaded", () => {
