@@ -82,6 +82,8 @@ los archivos de la web. Sube su contenido a `gh-pages` y, en **Settings →
 Pages**, elige **Deploy from a branch**, la rama `gh-pages` y la carpeta
 `/ (root)`.
 
-GitHub Pages sirve la parte que no necesita Python: lecciones, animaciones,
-actividades con clic y progreso local. Las mediciones con Qiskit, la corrección
-de código y las cuentas necesitan el servidor local.
+GitHub Pages sirve la versión de lectura: lecciones, animaciones, actividades
+con clic y progreso local. El aviso superior enlaza a la [demo interactiva en
+Cloudflare Workers](https://qiskit-guides.empirical.workers.dev/), que ejecuta
+Qiskit, comprueba el código y admite cuentas en el mismo origen que la web. En
+desarrollo local, esas funciones usan `tools/serve.py`.

@@ -11,8 +11,10 @@ NOTICE = (
     '<p role="note" style="padding:12px 16px;border:1px solid var(--line);'
     'border-radius:8px;background:var(--bg2);color:var(--ink);font:14px/1.5 var(--sans)">'
     "<strong>Versión de lectura en GitHub Pages.</strong> Las lecciones, las "
-    "animaciones y el progreso local están disponibles. Ejecutar Qiskit y comprobar "
-    "ejercicios necesita el servidor local; esta versión no tiene cuentas.</p>"
+    "animaciones y el progreso local están disponibles. Para medir con Qiskit, "
+    "comprobar ejercicios y usar cuentas, abre la demo interactiva: "
+    '<a href="https://qiskit-guides.empirical.workers.dev/" target="_blank" '
+    'rel="noopener" style="color:var(--acc);font-weight:600">QuantumShot →</a></p>'
 )
 
 
