@@ -12,7 +12,10 @@ body[data-ruta="mapa"] .misiones-sec { padding:40px 24px 0; max-width:1200px; ma
 
 /* La vista del mapa conserva el resto del tema, pero usa su propio universo oscuro. */
 body[data-ruta="mapa"] {
-  color-scheme:dark;
+  --course-bg:var(--bg); --course-bg2:var(--bg2); --course-card:var(--card); --course-stage:var(--stage);
+  --course-line:var(--line); --course-line-strong:var(--line-strong); --course-ink:var(--ink); --course-muted:var(--muted); --course-soft:var(--fg-soft);
+  --course-acc:var(--acc); --course-acc-ink:var(--acc-ink); --course-acc2:var(--acc2); --course-acc3:var(--acc3);
+  --course-blue:var(--blue); --course-clasico:var(--clasico); --course-cuantico:var(--cuantico);
   --map-bg:oklch(0.13 0.024 258); --map-panel:oklch(0.19 0.026 258); --map-line:oklch(0.34 0.032 258);
   --map-ink:oklch(0.95 0.01 255); --map-soft:oklch(0.81 0.02 250); --map-muted:oklch(0.69 0.026 252);
   --map-cyan:oklch(0.77 0.14 195); --map-violet:oklch(0.74 0.16 300); --map-blue:oklch(0.72 0.13 250); --map-warm:oklch(0.75 0.12 72);
@@ -30,6 +33,15 @@ body[data-ruta="mapa"] {
     radial-gradient(ellipse at 51% 46%, color-mix(in oklch, var(--map-cyan) 9%, transparent), transparent 56%),
     radial-gradient(ellipse at 18% 78%, color-mix(in oklch, var(--map-violet) 9%, transparent), transparent 46%),
     var(--map-bg); }
+.constelacion-sec[data-vista="mapa"] { color-scheme:dark; }
+.constelacion-sec[data-vista="lista"] {
+  --bg:var(--course-bg); --bg2:var(--course-bg2); --stage:var(--course-stage); --card:var(--course-card);
+  --line:var(--course-line); --line-strong:var(--course-line-strong); --axis:color-mix(in oklch, var(--course-ink) 42%, transparent);
+  --box-bg:color-mix(in oklch, var(--course-ink) 4%, transparent); --ink:var(--course-ink); --fg-soft:var(--course-soft); --muted:var(--course-muted);
+  --acc:var(--course-acc); --acc-ink:var(--course-acc-ink); --acc2:var(--course-acc2); --acc3:var(--course-acc3); --blue:var(--course-blue);
+  --clasico:var(--course-clasico); --cuantico:var(--course-cuantico);
+  color:var(--course-ink); background:var(--course-bg);
+}
 .constelacion-sec > .sh { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
 .constelacion-sec .mapa-y-detalle { display:block; height:100%; }
 .constelacion-sec .mapa { height:100%; background:none; border:0; border-radius:0; padding:0; }
@@ -37,8 +49,9 @@ body[data-ruta="mapa"] {
 .constelacion-sec svg.constelacion { height:100%; aspect-ratio:auto; }
 
 /* Próxima meta: tarjeta flotante */
-body[data-ruta="mapa"] .meta { position:absolute; z-index:20; top:102px; left:22px; width:min(520px, calc(100% - 44px)); margin:0; padding:0;
-  overflow:visible; background:transparent; color:var(--map-ink); border:0; border-radius:0; box-sizing:border-box; }
+body[data-ruta="mapa"] .meta { position:absolute; z-index:20; top:102px; left:22px; width:min(520px, 25vw, calc(100% - 44px)); margin:0; padding:0;
+  overflow:visible; background:transparent; color:var(--map-ink); border:0; border-radius:0; box-sizing:border-box; pointer-events:none; }
+body[data-ruta="mapa"] .meta a, body[data-ruta="mapa"] .meta button { pointer-events:auto; }
 body[data-ruta="mapa"] .meta h1 { max-width:12ch; margin:0 0 10px; font-size:clamp(34px, 4.4vw, 52px); line-height:1.05; letter-spacing:-.045em; text-wrap:balance; }
 body[data-ruta="mapa"] .meta .kicker { color:var(--map-violet); letter-spacing:.14em; }
 body[data-ruta="mapa"] .meta .lead { max-width:48ch; font-size:16px; color:var(--map-soft); }
@@ -46,6 +59,10 @@ body[data-ruta="mapa"] .meta .abre { font-size:13px; color:var(--map-muted); mar
 body[data-ruta="mapa"] .meta .abre b { color:var(--map-ink); }
 body[data-ruta="mapa"] .meta .nota { color:var(--map-muted); font-size:12.5px; }
 body[data-ruta="mapa"] .meta .grande { padding:10px 16px; font-size:15px; background:var(--map-violet); border-color:var(--map-violet); color:oklch(0.18 0.03 300); }
+@media (min-width:701px) and (max-width:900px) {
+  body[data-ruta="mapa"] .meta .lead, body[data-ruta="mapa"] .meta .abre, body[data-ruta="mapa"] .meta .nota { display:none; }
+  body[data-ruta="mapa"] .meta h1 { font-size:clamp(30px, 4vw, 38px); }
+}
 
 /* Controles flotantes */
 .constelacion-sec .mapa-barra { position:absolute; z-index:20; right:22px; bottom:22px; margin:0; flex-direction:column; align-items:flex-end; }
@@ -62,9 +79,12 @@ body[data-ruta="mapa"] .meta .grande { padding:10px 16px; font-size:15px; backgr
 .constelacion-sec .mapa-lista { height:100%; overflow:auto; padding:100px max(22px, calc(50% - 360px)) 120px; box-sizing:border-box; }
 
 /* Cielo y nebulosas */
-.cielo .lejana { fill:var(--ink); opacity:.2; }
-.cielo .media { fill:var(--ink); opacity:.34; }
-.cielo .cercana { fill:var(--ink); opacity:.58; }
+.cielo .lejana { fill:var(--ink); opacity:.35; }
+.cielo .media { fill:var(--ink); opacity:.55; }
+.cielo .cercana { fill:var(--ink); opacity:.85; }
+.constelacion-sec .cielo .lejana { opacity:.2; }
+.constelacion-sec .cielo .media { opacity:.34; }
+.constelacion-sec .cielo .cercana { opacity:.58; }
 .neb-b { stop-color:oklch(0 0 0); stop-opacity:0; }
 #neb-clasico .neb-c { stop-color:var(--clasico); stop-opacity:.1; }
 #neb-cuantico .neb-c { stop-color:var(--cuantico); stop-opacity:.1; }
@@ -138,9 +158,11 @@ body[data-ruta="mapa"] .meta .grande { padding:10px 16px; font-size:15px; backgr
   .constelacion-sec .detalle { transition:none; }
   .constelacion-sec .nodo.pulso-seleccion .blanco, .constelacion-sec .arista.pulso-seleccion { animation:none; transition:none; }
 }
-body[data-ruta="mapa"] .bar { color:var(--map-ink); background:color-mix(in oklch, var(--map-bg) 78%, transparent); border-color:color-mix(in oklch, var(--map-ink) 14%, transparent); }
+body[data-ruta="mapa"] .bar { color-scheme:dark; color:var(--map-ink); background:color-mix(in oklch, var(--map-bg) 78%, transparent); border-color:color-mix(in oklch, var(--map-ink) 14%, transparent); }
 body[data-ruta="mapa"] .bar a, body[data-ruta="mapa"] .bar .pill { color:var(--map-ink); }
 body[data-ruta="mapa"] .bar .nav a[aria-current], body[data-ruta="mapa"] .bar .pill { background:color-mix(in oklch, var(--map-ink) 12%, transparent); color:var(--map-ink); border-color:transparent; }
+body[data-ruta="mapa"] .bar .ruta [data-paso="practica"] { background:color-mix(in oklch, var(--map-ink) 12%, transparent); color:var(--map-ink); }
+body[data-ruta="mapa"] .bar .ruta [data-paso="practica"] b { background:var(--map-violet); border-color:var(--map-violet); color:oklch(0.18 0.03 300); }
 
 /* ---------- pulido ---------- */
 :root { --z-mapa-ui:10; --z-mapa-panel:20; --z-mapa-barra:30; }
@@ -159,6 +181,34 @@ body[data-ruta="mapa"] .meta, .constelacion-sec .mapa-barra, .constelacion-sec .
   body[data-ruta="mapa"] .meta { bottom:calc(80px + env(safe-area-inset-bottom)); }
   .constelacion-sec .detalle { bottom:max(12px, env(safe-area-inset-bottom)); }
   .constelacion-sec .mapa-barra { right:max(12px, env(safe-area-inset-right)); bottom:max(12px, env(safe-area-inset-bottom)); }
+}
+
+/* La vista de lista conserva el tema y las superficies del curso. */
+.constelacion-sec[data-vista="lista"] .detalle { top:86px; right:22px; bottom:auto; left:auto; width:min(380px, calc(100% - 44px)); padding:20px 22px;
+  background:color-mix(in oklch, var(--bg) 80%, transparent); border-color:var(--line-strong); border-radius:18px; }
+.constelacion-sec[data-vista="lista"] .detalle h2 { margin:6px 0 6px; font-size:24px; letter-spacing:normal; }
+.constelacion-sec[data-vista="lista"] .detalle h3 { color:var(--muted); }
+.constelacion-sec[data-vista="lista"] .detalle p { color:var(--fg-soft); }
+.constelacion-sec[data-vista="lista"] .detalle .primario { background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
+body[data-ruta="mapa"][data-mapa-vista="lista"] .bar { color-scheme:inherit; color:var(--course-ink); background:color-mix(in oklch, var(--course-bg) 55%, transparent); border-color:color-mix(in oklch, var(--course-ink) 14%, transparent); }
+body[data-ruta="mapa"][data-mapa-vista="lista"] .bar a, body[data-ruta="mapa"][data-mapa-vista="lista"] .bar .pill { color:var(--course-ink); }
+body[data-ruta="mapa"][data-mapa-vista="lista"] .bar .nav a[aria-current], body[data-ruta="mapa"][data-mapa-vista="lista"] .bar .pill,
+body[data-ruta="mapa"][data-mapa-vista="lista"] .bar .ruta [data-paso="practica"] { background:color-mix(in oklch, var(--course-ink) 12%, transparent); color:var(--course-ink); border-color:transparent; }
+body[data-ruta="mapa"][data-mapa-vista="lista"] .bar .ruta [data-paso="practica"] b { background:var(--course-acc); border-color:var(--course-acc); color:var(--course-acc-ink); }
+body[data-ruta="mapa"][data-mapa-vista="lista"] .meta { top:86px; left:22px; width:min(340px, calc(100% - 44px)); padding:18px 20px;
+  overflow:hidden; background:var(--course-card); color:var(--course-ink); border:1px solid var(--course-line); border-inline-start:3px solid var(--course-acc); border-radius:12px; }
+body[data-ruta="mapa"][data-mapa-vista="lista"] .meta h1 { max-width:none; margin:0 0 8px; font-size:24px; line-height:1.05; letter-spacing:normal; text-wrap:initial; }
+body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .kicker { color:var(--course-acc); letter-spacing:normal; }
+body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .lead { max-width:640px; font-size:14px; color:var(--course-soft); }
+body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .abre { font-size:13px; color:var(--course-muted); }
+body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .abre b { color:var(--course-ink); }
+body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .nota { color:var(--course-muted); }
+body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .grande { background:var(--course-acc); border-color:var(--course-acc); color:var(--course-acc-ink); }
+@media (max-width:700px) {
+  .constelacion-sec[data-vista="lista"] .detalle { top:auto; bottom:max(12px, env(safe-area-inset-bottom)); left:12px; right:12px; width:auto; max-height:62dvh; padding:20px 22px; transform:translateY(16px); }
+  .constelacion-sec[data-vista="lista"] .detalle.abierto { transform:none; }
+  body[data-ruta="mapa"][data-mapa-vista="lista"] .meta { top:auto; bottom:calc(80px + env(safe-area-inset-bottom)); left:12px; width:calc(100% - 24px); padding:14px 16px; }
+  body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .lead, body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .abre, body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .nota { display:none; }
 }
 
 .g-clasico { stop-color:var(--clasico); } .g-cuantico { stop-color:var(--cuantico); }
