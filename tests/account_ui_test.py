@@ -209,11 +209,15 @@ def main() -> None:
             one.goto(f"{site}/lesson.html?l={LESSON}&beat={last_beat(LESSON)}")
             sign_in(one)
             rows = call(f"{control}/rows")
+            progress = one.context.request.get(f"{site}/api/me").json()["progress"]
             check(
                 rows["users"] == 1
-                and rows["lesson_done"] == 1
-                and rows["exercise_state"] == 1
-                and rows["kv"] == 1,
+                and rows["lesson_done"] == len(progress["done"]) == 1
+                and rows["exercise_state"] == len(progress["exercises"]) == 1
+                and rows["kv"] == len(progress["kv"])
+                and progress["done"] == [LESSON]
+                and progress["exercises"][EXERCISE]["code"] == FAILING
+                and progress["kv"][PREDICT] == 0,
                 f"al entrar: la cuenta guarda la lección, el ejercicio y la predicción ({rows})",
             )
             check(
