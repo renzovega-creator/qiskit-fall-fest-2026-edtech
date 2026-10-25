@@ -84,9 +84,9 @@ Pages**, elige **Deploy from a branch**, la rama `gh-pages` y la carpeta
 `/ (root)`.
 
 GitHub Pages sirve una demo estática: lecciones, animaciones, actividades con
-clic, progreso local y el perfil de ejemplo (`juego.html#ejemplo`) con resultados
-precalculados de Qiskit. No ofrece cuentas ni ejecuta Python. El editor se puede
-leer, pero sus botones quedan desactivados y el código no se envía. Para usarlo,
-inicia la versión local con `tools/serve.py`. La demo pública no usa un Worker;
-consulta [Privacidad](../site/privacidad.html) para ver qué se guarda en cada
-versión.
+clic, progreso local y el perfil de ejemplo (`juego.html#ejemplo`) con
+resultados precalculados de Qiskit. No ofrece cuentas ni ejecuta Python. El
+editor se puede leer, pero sus botones quedan desactivados y el código no se
+envía. Para usarlo, inicia la versión local con `tools/serve.py`. La demo
+pública no usa un Worker; consulta [Privacidad](../site/privacidad.html) para
+ver qué se guarda en cada versión.

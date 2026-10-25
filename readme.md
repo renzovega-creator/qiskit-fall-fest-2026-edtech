@@ -53,9 +53,9 @@ subtítulos.
 ### 3. Practica con las misiones
 
 Abre **Practica** para ver el mapa de habilidades: arrástralo para moverte,
-acércate con **Mayús + rueda** o con − y +, o cambia a la vista **Lista**.
-En móvil, puedes pellizcar para acercar; el desplazamiento vertical de la página sigue funcionando. Haz clic en
-una habilidad para ver su ficha y su misión.
+acércate con **Mayús + rueda** o con − y +, o cambia a la vista **Lista**. En
+móvil, puedes pellizcar para acercar; el desplazamiento vertical de la página
+sigue funcionando. Haz clic en una habilidad para ver su ficha y su misión.
 
 ![Mapa de habilidades a pantalla completa, con la ficha de «Regla de Born» abierta y sus conexiones resaltadas](docs/img/mapa.png)
 
