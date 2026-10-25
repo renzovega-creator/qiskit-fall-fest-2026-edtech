@@ -98,7 +98,10 @@ def duration(mp3: Path) -> float:
     if shutil.which("ffprobe") is None:  # sin ffmpeg: mutagen lee la duración del MP3
         from mutagen.mp3 import MP3
 
-        return round(float(MP3(mp3).info.length), 3)
+        audio = MP3(mp3)  # type: ignore[no-untyped-call]
+        if audio.info is None:
+            raise ValueError(f"No se pudo leer la duración de {mp3}")
+        return round(float(audio.info.length), 3)
     r = subprocess.run(
         ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(mp3)],
         capture_output=True,
