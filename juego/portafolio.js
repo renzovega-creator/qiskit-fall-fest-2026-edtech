@@ -114,6 +114,11 @@ export function textoLinkedIn(st, url) {
     .map((e) => `• ${describir(e).titulo}.`);
   return [
     "Estoy aprendiendo a conectar estadística y machine learning con computación cuántica con QuantumShot, una app en español hecha con Qiskit.",
+    ...(st.evidencias.some((e) => e.publica && e.demo)
+      ? [
+          "Este recorrido de demostración usa resultados precomputados de Qiskit; no se ejecutó código nuevo.",
+        ]
+      : []),
     "",
     ev.length
       ? "Lo que he resuelto en sus retos (simulaciones con Qiskit, no hardware):"
@@ -358,6 +363,12 @@ export function vistaPortafolio(
     h(
       "div",
       { class: "portafolio" },
+      st.evidencias.some((e) => e.demo)
+        ? h("p", {
+            class: "aviso demo",
+            text: "Portafolio de demostración: estos retos usan resultados precomputados de Qiskit. Las evidencias indican su origen también al compartirlas.",
+          })
+        : null,
       h(
         "section",
         { class: "perfil" },
@@ -437,7 +448,11 @@ export function vistaPortafolio(
       h(
         "section",
         null,
-        h("h2", { text: "Insignias" }),
+        h("h2", {
+          text: st.evidencias.some((e) => e.demo)
+            ? "Insignias de demostración"
+            : "Insignias",
+        }),
         insignias(st.insignias, { mostrarBloqueadas: true }),
       ),
       h(
@@ -536,7 +551,9 @@ export function vistaPublica(raiz, datos) {
         : null,
       h("p", {
         class: "aviso",
-        text: "Vista pública de solo lectura. Las evidencias son retos superados en QuantumShot con el simulador de Qiskit: muestran problemas concretos resueltos, no una certificación.",
+        text: datos.evidencias.some((e) => e.demo)
+          ? "Vista pública de demostración. Las evidencias marcadas como demo usan resultados precomputados de Qiskit; no son ejecuciones nuevas ni una certificación."
+          : "Vista pública de solo lectura. Las evidencias son retos superados en QuantumShot con el simulador de Qiskit: muestran problemas concretos resueltos, no una certificación.",
       }),
       h(
         "section",

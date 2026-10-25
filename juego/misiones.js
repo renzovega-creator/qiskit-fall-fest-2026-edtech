@@ -1,10 +1,11 @@
 // Las misiones: un ciclo común (predecir → experimentar con Qiskit → observar → pistas →
 // demostrar → desbloquear) y la definición de cada una.
 //
-// Los resultados físicos salen siempre de Qiskit (POST /run). Superar un reto depende de una
+// Los resultados salen de Qiskit: ejecución local o datos precomputados en Pages. Superar un reto depende de una
 // regla escrita aquí sobre esos resultados; las pistas son reglas fijas según lo que el jugador
 // acaba de medir.
 import { INSIGNIAS, LUNAS, MISIONES, XP } from "./datos.js";
+import { DEMO_MODE, parametrosDemo } from "../demo.js";
 import { copiar, fmt, h, pct, reducido, s } from "./dom.js";
 import {
   darInsignia,
@@ -15,7 +16,7 @@ import {
   registrarExito,
 } from "./estado.js";
 import { describir } from "./evidencias.js";
-import { codigo, ejecutar, phi } from "./qiskit.js";
+import { codigo, medirMision, phi } from "./qiskit.js";
 
 const P25 = 0.25; // P(1) de la moneda de «Cazar el ruido»: sin²(π/6)
 const media = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
@@ -296,7 +297,7 @@ const m1 = {
   },
   // Cada medida usa la semilla siguiente; la evidencia guarda la que se usó.
   trasMedir(ctx) {
-    ctx.params.seed = ctx.resParams.seed + 1;
+    if (!DEMO_MODE) ctx.params.seed = ctx.resParams.seed + 1;
   },
 };
 
@@ -998,7 +999,7 @@ export function abrirMision(
     m,
     vi: vi0,
     v: m.variantes[vi0],
-    params: { ...spec.inicial(copia) },
+    params: parametrosDemo(m.id, spec.inicial(copia)),
     res: null,
     resParams: null,
     pred: copia?.pred ?? null,
@@ -1093,7 +1094,7 @@ export function abrirMision(
   const btnMedir = h(
     "button",
     { type: "button", class: "primario", onclick: () => medir() },
-    "Medir con Qiskit",
+    DEMO_MODE ? "Ver resultado de ejemplo" : "Medir con Qiskit",
   );
   const estadoRun = h("p", {
     class: "estado-run",
@@ -1158,7 +1159,9 @@ export function abrirMision(
     btnReto.disabled = ctx.corriendo || !ctx.res || desactualizado();
     estadoRun.classList.toggle("error", !!ctx.aviso?.error);
     estadoRun.textContent = ctx.corriendo
-      ? "Ejecutando en el simulador de Qiskit…"
+      ? DEMO_MODE
+        ? "Cargando resultado precomputado…"
+        : "Ejecutando en el simulador de Qiskit…"
       : ctx.aviso?.error
         ? ctx.aviso.texto
         : sinPred
@@ -1175,11 +1178,11 @@ export function abrirMision(
   async function medir() {
     ctx.corriendo = true;
     ctx.aviso = null;
-    btnMedir.textContent = "Midiendo…";
+    btnMedir.textContent = DEMO_MODE ? "Cargando…" : "Midiendo…";
     pintarEstado();
     const params = { ...ctx.params };
     try {
-      const out = await ejecutar(spec.codigo(params));
+      const out = await medirMision(m.id, params);
       ctx.res = spec.procesar(out, params);
       ctx.resParams = params;
       ctx.animado = false;
@@ -1221,7 +1224,13 @@ export function abrirMision(
       ctx.aviso = { texto: e.message, error: true };
     } finally {
       ctx.corriendo = false;
-      btnMedir.textContent = ctx.res ? "Volver a medir" : "Medir con Qiskit";
+      btnMedir.textContent = DEMO_MODE
+        ? ctx.res
+          ? "Consultar de nuevo"
+          : "Ver resultado de ejemplo"
+        : ctx.res
+          ? "Volver a medir"
+          : "Medir con Qiskit";
       pintarCodigo();
       pintarEstado();
     }
@@ -1269,6 +1278,7 @@ export function abrirMision(
     );
     const ev = {
       m: m.id,
+      demo: DEMO_MODE,
       v: ctx.vi,
       h: ctx.pistasUsadas,
       pred: ctx.pred,
@@ -1328,8 +1338,13 @@ export function abrirMision(
         h(
           "p",
           { class: "backend" },
-          h("span", { class: "chip-sim", text: "Simulador" }),
-          " StatevectorSampler de Qiskit, sin hardware cuántico. Las probabilidades teóricas salen de Statevector; las frecuencias, de muestrear shots.",
+          h("span", {
+            class: "chip-sim",
+            text: DEMO_MODE ? "Demo interactiva" : "Simulador",
+          }),
+          DEMO_MODE
+            ? " Resultados precomputados con Qiskit para cada valor de los controles. Puedes predecir, explorar, superar retos y ver el portafolio de demostración. No se ejecuta código aquí; al repetir una configuración verás el mismo resultado."
+            : " StatevectorSampler de Qiskit, sin hardware cuántico. Las probabilidades teóricas salen de Statevector; las frecuencias, de muestrear shots.",
         ),
         copia
           ? h("p", {
@@ -1407,6 +1422,13 @@ function celebrar({ m, r, reg, insignias, abiertas, ev, st, irA }) {
   const restantes = m.variantes.filter(
     (_, i) => !st.evidencias.some((e) => e.id === `${m.id}:${i}`),
   );
+  if (DEMO_MODE)
+    dlg.append(
+      h("p", {
+        class: "aviso",
+        text: "Progreso de demostración con resultados precomputados de Qiskit.",
+      }),
+    );
   dlg.append(
     h("h2", {
       id: "logro-t",

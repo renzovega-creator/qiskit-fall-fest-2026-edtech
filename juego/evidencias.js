@@ -49,7 +49,9 @@ export function describir(e) {
         ? `Lo resolvió con ${e.h} ${e.h === 1 ? "pista" : "pistas"} del juego.`
         : "Lo resolvió sin pistas.",
     conceptos: m.demuestra.map((id) => habilidad(id).nombre),
-    ejecucion: `${BACKEND}. No se ejecutó en hardware cuántico.`,
+    ejecucion: e.demo
+      ? "Demostración: resultado precomputado con Qiskit. Se consultaron datos de ejemplo; no se ejecutó código nuevo ni hardware cuántico."
+      : `${BACKEND}. No se ejecutó en hardware cuántico.`,
     codigo: codigo[e.m](e.p),
   };
 }
