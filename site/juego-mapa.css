@@ -2,6 +2,7 @@
    controles y la ficha de la habilidad flotando encima. Va después de juego.css y solo cambia la
    ruta #mapa. */
 body[data-ruta="mapa"] .wrap { max-width:none; padding:0; }
+body[data-ruta="mapa"] .wrap > p[role="note"] { display:none; }
 body[data-ruta="mapa"] .bar { position:fixed; z-index:40; top:14px; left:50%; transform:translateX(-50%); width:min(1100px, calc(100% - 28px));
   padding:8px 10px 8px 16px; border-radius:16px; color:var(--ink);
   background:color-mix(in oklch, var(--bg) 55%, transparent); border:1px solid color-mix(in oklch, var(--ink) 14%, transparent); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
@@ -10,18 +11,29 @@ body[data-ruta="mapa"] main { display:flex; flex-direction:column; position:rela
 body[data-ruta="mapa"] footer { padding:0 24px; }
 body[data-ruta="mapa"] .misiones-sec { padding:40px 24px 0; max-width:1200px; margin:0 auto; width:100%; box-sizing:border-box; }
 
-/* La vista del mapa conserva el resto del tema, pero usa su propio universo oscuro. */
+/* El mapa tiene una paleta propia; el tema global decide si usa su versión clara u oscura. */
 body[data-ruta="mapa"] {
   --course-bg:var(--bg); --course-bg2:var(--bg2); --course-card:var(--card); --course-stage:var(--stage);
   --course-line:var(--line); --course-line-strong:var(--line-strong); --course-ink:var(--ink); --course-muted:var(--muted); --course-soft:var(--fg-soft);
   --course-acc:var(--acc); --course-acc-ink:var(--acc-ink); --course-acc2:var(--acc2); --course-acc3:var(--acc3);
   --course-blue:var(--blue); --course-clasico:var(--clasico); --course-cuantico:var(--cuantico);
+  --map-bg:var(--bg); --map-panel:var(--card); --map-line:var(--line);
+  --map-ink:var(--ink); --map-soft:var(--fg-soft); --map-muted:var(--muted);
+  --map-cyan:oklch(0.68 0.13 195); --map-violet:oklch(0.65 0.16 300); --map-blue:oklch(0.64 0.13 250); --map-warm:oklch(0.68 0.12 72);
+}
+:root[data-theme="dark"] body[data-ruta="mapa"] {
   --map-bg:oklch(0.13 0.024 258); --map-panel:oklch(0.19 0.026 258); --map-line:oklch(0.34 0.032 258);
   --map-ink:oklch(0.95 0.01 255); --map-soft:oklch(0.81 0.02 250); --map-muted:oklch(0.69 0.026 252);
   --map-cyan:oklch(0.77 0.14 195); --map-violet:oklch(0.74 0.16 300); --map-blue:oklch(0.72 0.13 250); --map-warm:oklch(0.75 0.12 72);
 }
+:root[data-theme="light"] body[data-ruta="mapa"] {
+  --map-bg:oklch(0.965 0.012 255); --map-panel:oklch(0.995 0.004 255); --map-line:oklch(0.84 0.025 255);
+  --map-ink:oklch(0.22 0.03 258); --map-soft:oklch(0.43 0.03 252); --map-muted:oklch(0.57 0.026 252);
+  --map-cyan:oklch(0.62 0.13 195); --map-violet:oklch(0.63 0.15 300); --map-blue:oklch(0.60 0.13 250); --map-warm:oklch(0.65 0.12 72);
+}
 
-.constelacion-sec { order:-1; position:relative; height:100vh; height:100dvh; overflow:hidden; margin:0;
+.constelacion-sec { order:-1; position:relative; height:calc(100vh - 48px); height:calc(100dvh - 48px); min-height:620px;
+  overflow:hidden; margin:24px clamp(16px, 2.75vw, 44px); border-radius:2px;
   --bg:var(--map-bg); --bg2:var(--map-panel); --stage:var(--map-bg); --card:var(--map-panel);
   --line:color-mix(in oklch, var(--map-line) 78%, transparent); --line-strong:var(--map-line);
   --axis:color-mix(in oklch, var(--map-cyan) 32%, transparent); --box-bg:color-mix(in oklch, var(--map-ink) 5%, transparent);
@@ -33,7 +45,7 @@ body[data-ruta="mapa"] {
     radial-gradient(ellipse at 51% 46%, color-mix(in oklch, var(--map-cyan) 9%, transparent), transparent 56%),
     radial-gradient(ellipse at 18% 78%, color-mix(in oklch, var(--map-violet) 9%, transparent), transparent 46%),
     var(--map-bg); }
-.constelacion-sec[data-vista="mapa"] { color-scheme:dark; }
+.constelacion-sec[data-vista="mapa"] { color-scheme:inherit; }
 .constelacion-sec[data-vista="lista"] {
   --bg:var(--course-bg); --bg2:var(--course-bg2); --stage:var(--course-stage); --card:var(--course-card);
   --line:var(--course-line); --line-strong:var(--course-line-strong); --axis:color-mix(in oklch, var(--course-ink) 42%, transparent);
@@ -43,40 +55,45 @@ body[data-ruta="mapa"] {
   color:var(--course-ink); background:var(--course-bg);
 }
 .constelacion-sec > .sh { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
-.constelacion-sec .mapa-y-detalle { display:block; height:100%; }
+.constelacion-sec .mapa-y-detalle { display:block; position:absolute; inset:0; height:100%; }
 .constelacion-sec .mapa { height:100%; background:none; border:0; border-radius:0; padding:0; }
 .constelacion-sec .mapa-lienzo { height:100%; border-radius:0; background:none; }
 .constelacion-sec svg.constelacion { height:100%; aspect-ratio:auto; }
 
 /* Próxima meta: tarjeta flotante */
-body[data-ruta="mapa"] .meta { position:absolute; z-index:20; top:102px; left:22px; width:min(520px, 25vw, calc(100% - 44px)); margin:0; padding:0;
-  overflow:visible; background:transparent; color:var(--map-ink); border:0; border-radius:0; box-sizing:border-box; pointer-events:none; }
-body[data-ruta="mapa"] .meta a, body[data-ruta="mapa"] .meta button { pointer-events:auto; }
-body[data-ruta="mapa"] .meta h1 { max-width:12ch; margin:0 0 10px; font-size:clamp(34px, 4.4vw, 52px); line-height:1.05; letter-spacing:-.045em; text-wrap:balance; }
-body[data-ruta="mapa"] .meta .kicker { color:var(--map-violet); letter-spacing:.14em; }
-body[data-ruta="mapa"] .meta .lead { max-width:48ch; font-size:16px; color:var(--map-soft); }
-body[data-ruta="mapa"] .meta .abre { font-size:13px; color:var(--map-muted); margin-bottom:12px; }
-body[data-ruta="mapa"] .meta .abre b { color:var(--map-ink); }
-body[data-ruta="mapa"] .meta .nota { color:var(--map-muted); font-size:12.5px; }
-body[data-ruta="mapa"] .meta .grande { padding:10px 16px; font-size:15px; background:var(--map-violet); border-color:var(--map-violet); color:oklch(0.18 0.03 300); }
+body[data-ruta="mapa"] .constelacion-sec > .meta { position:absolute; z-index:20; top:clamp(68px, 5.8vw, 86px); left:clamp(28px, 3.5vw, 56px);
+  width:min(560px, calc(100% - 76px)); margin:0; padding:0; overflow:visible; background:transparent; color:var(--map-ink);
+  border:0; border-radius:0; box-sizing:border-box; pointer-events:none; }
+body[data-ruta="mapa"] .constelacion-sec > .meta a, body[data-ruta="mapa"] .constelacion-sec > .meta button { pointer-events:auto; }
+body[data-ruta="mapa"] .constelacion-sec > .meta h1 { max-width:none; margin:0 0 12px; font-size:clamp(42px, 4.2vw, 64px); line-height:1.08;
+  font-weight:500; letter-spacing:-.045em; text-wrap:balance; }
+body[data-ruta="mapa"] .constelacion-sec > .meta > .lead { max-width:48ch; margin:0; font-size:clamp(17px, 1.55vw, 24px); color:var(--map-soft); }
+.mapa-etiqueta { position:absolute; z-index:15; top:68px; right:26px; margin:0; color:var(--map-muted); font-size:15px; letter-spacing:.01em; }
+.meta-siguiente { display:none; }
 @media (min-width:701px) and (max-width:900px) {
-  body[data-ruta="mapa"] .meta .lead, body[data-ruta="mapa"] .meta .abre, body[data-ruta="mapa"] .meta .nota { display:none; }
-  body[data-ruta="mapa"] .meta h1 { font-size:clamp(30px, 4vw, 38px); }
+  body[data-ruta="mapa"] .constelacion-sec > .meta { top:76px; left:28px; width:min(440px, calc(100% - 56px)); }
+  body[data-ruta="mapa"] .constelacion-sec > .meta h1 { font-size:clamp(36px, 4vw, 48px); }
+  .constelacion-sec .detalle { width:min(460px, calc(100% - 56px)); padding:28px 30px; }
 }
 
 /* Controles flotantes */
-.constelacion-sec .mapa-barra { position:absolute; z-index:20; right:22px; bottom:22px; margin:0; flex-direction:column; align-items:flex-end; }
+.constelacion-sec .mapa-barra { position:absolute; z-index:20; inset:0; display:block; margin:0; pointer-events:none; }
 .constelacion-sec .segs, .constelacion-sec .zooms, .constelacion-sec .leyenda { background:color-mix(in oklch, var(--bg) 62%, transparent); border:1px solid var(--line);
   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
-.constelacion-sec .zooms { flex-direction:column; padding:5px; border-radius:14px; order:-1; }
-.constelacion-sec .zbtn { background:transparent; border-color:transparent; color:var(--ink); width:40px; height:40px; }
+.constelacion-sec .segs { position:absolute; top:108px; right:24px; pointer-events:auto; }
+.constelacion-sec .zooms { position:absolute; right:clamp(22px, 3vw, 50px); bottom:clamp(24px, 4vw, 52px); display:flex; flex-direction:row; gap:10px; padding:0; border:0; border-radius:0; background:none; backdrop-filter:none; pointer-events:auto; }
+.constelacion-sec .zbtn { background:color-mix(in oklch, var(--bg) 62%, transparent); border-color:var(--line); color:var(--ink); width:64px; height:64px; border-radius:16px; }
+.constelacion-sec .zbtn:last-child { width:128px; font-size:17px; }
 .constelacion-sec .zbtn:hover { background:color-mix(in oklch, var(--ink) 8%, transparent); }
 .constelacion-sec .zbtn, .constelacion-sec .seg, .cerrar-detalle { transition:scale 150ms ease-out, background-color 150ms ease-out; }
 .constelacion-sec .zbtn:active, .constelacion-sec .seg:active, .cerrar-detalle:active { scale:.96; }
 .constelacion-sec .seg { color:var(--muted); }
 .constelacion-sec .seg[aria-pressed="true"] { background:color-mix(in oklch, var(--ink) 12%, transparent); color:var(--ink); box-shadow:none; }
-.constelacion-sec .leyenda { position:absolute; z-index:20; left:22px; bottom:22px; margin:0; padding:8px 14px; border-radius:14px; font-size:12px; max-width:calc(100% - 220px); }
+.constelacion-sec .mapa-barra > * { pointer-events:auto; }
+.constelacion-sec .leyenda { position:absolute; z-index:20; left:clamp(28px, 3.5vw, 56px); bottom:calc(clamp(24px, 4vw, 52px) + 44px); margin:0; padding:0; border:0; border-radius:0; background:none; backdrop-filter:none; font-size:14px; max-width:min(820px, calc(100% - 360px)); }
 .constelacion-sec .mapa-lista { height:100%; overflow:auto; padding:100px max(22px, calc(50% - 360px)) 120px; box-sizing:border-box; }
+.constelacion-sec .mapa-bajar { position:absolute; z-index:20; left:50%; bottom:-20px; width:64px; height:64px; transform:translateX(-50%); border:2px solid color-mix(in oklch, var(--map-ink) 22%, transparent); border-radius:50%; background:var(--map-bg); color:var(--map-ink); font-size:28px; line-height:1; cursor:pointer; }
+.constelacion-sec .mapa-bajar:hover { background:var(--map-panel); }
 
 /* Cielo y nebulosas */
 .cielo .lejana { fill:var(--ink); opacity:.35; }
@@ -85,6 +102,13 @@ body[data-ruta="mapa"] .meta .grande { padding:10px 16px; font-size:15px; backgr
 .constelacion-sec .cielo .lejana { opacity:.2; }
 .constelacion-sec .cielo .media { opacity:.34; }
 .constelacion-sec .cielo .cercana { opacity:.58; }
+.constelacion-sec .red-ambiente, .constelacion-sec .red-ambiente * { pointer-events:none; }
+.constelacion-sec .malla-enlace { fill:none; stroke:url(#g-malla); stroke-width:.95; opacity:.24; }
+.constelacion-sec .malla-nodo { fill:url(#g-malla); opacity:.36; }
+.constelacion-sec .malla-nodo.destacado { opacity:.7; }
+.g-violeta { stop-color:var(--map-violet); }
+.g-cian { stop-color:var(--map-cyan); }
+.g-ambar { stop-color:var(--map-warm); }
 .neb-b { stop-color:oklch(0 0 0); stop-opacity:0; }
 #neb-clasico .neb-c { stop-color:var(--clasico); stop-opacity:.1; }
 #neb-cuantico .neb-c { stop-color:var(--cuantico); stop-opacity:.1; }
@@ -110,8 +134,9 @@ body[data-ruta="mapa"] .meta .grande { padding:10px 16px; font-size:15px; backgr
 .constelacion-sec .e-demostrada .fig { fill:var(--acc3); stroke:var(--acc3); }
 .constelacion-sec .e-explorando .fig { stroke:var(--acc2); }
 .constelacion-sec .e-explorando path.fig { fill:var(--acc2); }
-.constelacion-sec .nodo .nombre { font-size:16px; }
+.constelacion-sec .nodo .nombre { font:500 19px var(--sans); fill:var(--map-ink); text-anchor:start; stroke:none; paint-order:normal; }
 .constelacion-sec .nodo text { stroke:var(--bg); }
+.constelacion-sec .nodo .etiqueta-nodo { fill:color-mix(in oklch, var(--map-bg) 86%, transparent); stroke:var(--map-line); stroke-width:1; }
 @media (hover: hover) and (pointer: fine) {
   .constelacion-sec .nodo:hover .fig { transform:scale(1.1); transform-box:fill-box; transform-origin:center; }
 }
@@ -138,31 +163,39 @@ body[data-ruta="mapa"] .meta .grande { padding:10px 16px; font-size:15px; backgr
   transition:opacity 160ms ease-in, transform 160ms ease-in, visibility 0s 160ms; }
 .constelacion-sec .detalle.abierto { opacity:1; transform:none; visibility:visible;
   transition:opacity 240ms cubic-bezier(.32,.72,0,1), transform 240ms cubic-bezier(.32,.72,0,1); }
-.constelacion-sec .detalle { top:auto; bottom:108px; width:min(430px, calc(100% - 44px)); padding:26px 28px; background:color-mix(in oklch, var(--map-panel) 96%, transparent); border-color:var(--line-strong); border-radius:22px; }
-.constelacion-sec .detalle h2 { margin-top:8px; font-size:32px; letter-spacing:-.035em; }
+.constelacion-sec .detalle { top:auto; right:clamp(28px, 3.5vw, 56px); bottom:clamp(84px, 12.4vh, 164px); width:min(560px, calc(100% - 56px)); padding:38px 42px; background:var(--map-panel); border-color:var(--line-strong); border-radius:24px; }
+.constelacion-sec .detalle h2 { margin-top:8px; font-size:40px; letter-spacing:-.035em; }
 .constelacion-sec .detalle h3 { color:var(--map-muted); }
 .constelacion-sec .detalle p { color:var(--map-soft); }
-.constelacion-sec .detalle .primario { background:var(--map-violet); border-color:var(--map-violet); color:oklch(0.18 0.03 300); }
+.constelacion-sec .detalle .primario { display:flex; justify-content:center; width:100%; min-height:72px; margin-top:20px; border-radius:16px; background:var(--map-violet); border-color:var(--map-violet); color:oklch(0.18 0.03 300); font-size:18px; }
+.constelacion-sec .insignia-estado { color:var(--map-violet); font-size:15px; }
 .cerrar-detalle { float:right; width:36px; height:36px; margin:-6px -8px 0 8px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--ink); font-size:20px; line-height:1; }
 .cerrar-detalle:hover { background:color-mix(in oklch, var(--ink) 8%, transparent); }
 
 @media (max-width:700px) {
-  body[data-ruta="mapa"] .meta { top:auto; bottom:80px; left:12px; width:calc(100% - 24px); padding:14px 16px; }
-  body[data-ruta="mapa"] .meta .lead, body[data-ruta="mapa"] .meta .abre, body[data-ruta="mapa"] .meta .nota { display:none; }
-  .constelacion-sec .detalle { top:auto; bottom:12px; left:12px; right:12px; width:auto; max-height:62dvh; transform:translateY(16px); }
+  .constelacion-sec { height:calc(100vh - 24px); height:calc(100dvh - 24px); min-height:540px; margin:12px; }
+  body[data-ruta="mapa"] .constelacion-sec > .meta { top:auto; bottom:74px; left:12px; width:calc(100% - 24px); padding:14px 16px; }
+  body[data-ruta="mapa"] .constelacion-sec > .meta h1 { font-size:clamp(30px, 8vw, 40px); }
+  body[data-ruta="mapa"] .constelacion-sec > .meta > .lead { font-size:16px; }
+  .mapa-etiqueta { display:none; }
+  .constelacion-sec .segs { top:52px; right:12px; }
+  .constelacion-sec .zooms { right:12px; bottom:12px; gap:6px; }
+  .constelacion-sec .zbtn { width:48px; height:48px; border-radius:12px; }
+  .constelacion-sec .zbtn:last-child { width:100px; font-size:14px; }
+  .constelacion-sec .detalle { top:auto; bottom:12px; left:12px; right:12px; width:auto; max-height:62dvh; padding:20px 22px; transform:translateY(16px); }
   .constelacion-sec .leyenda { display:none; }
-  .constelacion-sec .mapa-barra { right:12px; bottom:12px; }
+  .constelacion-sec .mapa-bajar { display:none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .cielo .cercana { animation:none; }
   .constelacion-sec .detalle { transition:none; }
   .constelacion-sec .nodo.pulso-seleccion .blanco, .constelacion-sec .arista.pulso-seleccion { animation:none; transition:none; }
 }
-body[data-ruta="mapa"] .bar { color-scheme:dark; color:var(--map-ink); background:color-mix(in oklch, var(--map-bg) 78%, transparent); border-color:color-mix(in oklch, var(--map-ink) 14%, transparent); }
-body[data-ruta="mapa"] .bar a, body[data-ruta="mapa"] .bar .pill { color:var(--map-ink); }
-body[data-ruta="mapa"] .bar .nav a[aria-current], body[data-ruta="mapa"] .bar .pill { background:color-mix(in oklch, var(--map-ink) 12%, transparent); color:var(--map-ink); border-color:transparent; }
-body[data-ruta="mapa"] .bar .ruta [data-paso="practica"] { background:color-mix(in oklch, var(--map-ink) 12%, transparent); color:var(--map-ink); }
-body[data-ruta="mapa"] .bar .ruta [data-paso="practica"] b { background:var(--map-violet); border-color:var(--map-violet); color:oklch(0.18 0.03 300); }
+body[data-ruta="mapa"] .bar { color-scheme:inherit; color:var(--ink); background:color-mix(in oklch, var(--bg) 78%, transparent); border-color:color-mix(in oklch, var(--ink) 14%, transparent); }
+body[data-ruta="mapa"] .bar a, body[data-ruta="mapa"] .bar .pill { color:var(--ink); }
+body[data-ruta="mapa"] .bar .nav a[aria-current], body[data-ruta="mapa"] .bar .pill { background:color-mix(in oklch, var(--ink) 12%, transparent); color:var(--ink); border-color:transparent; }
+body[data-ruta="mapa"] .bar .ruta [data-paso="practica"] { background:color-mix(in oklch, var(--acc) 16%, transparent); color:var(--ink); }
+body[data-ruta="mapa"] .bar .ruta [data-paso="practica"] b { background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
 
 /* ---------- pulido ---------- */
 :root { --z-mapa-ui:10; --z-mapa-panel:20; --z-mapa-barra:30; }
@@ -170,17 +203,15 @@ body[data-ruta="mapa"] .bar .ruta [data-paso="practica"] b { background:var(--ma
 body[data-ruta="mapa"] .bar { z-index:var(--z-mapa-barra); top:max(14px, env(safe-area-inset-top)); }
 body[data-ruta="mapa"] .meta, .constelacion-sec .mapa-barra, .constelacion-sec .leyenda { z-index:var(--z-mapa-ui); }
 .constelacion-sec .detalle { z-index:var(--z-mapa-panel); }
-.constelacion-sec .mapa-barra { right:max(22px, env(safe-area-inset-right)); bottom:max(22px, env(safe-area-inset-bottom)); }
-.constelacion-sec .leyenda { left:max(22px, env(safe-area-inset-left)); bottom:max(22px, env(safe-area-inset-bottom)); }
 /* Objetivos de 44 px, como el resto del juego. */
-.constelacion-sec .zbtn { width:44px; height:44px; }
+.constelacion-sec .mapa-barra .zbtn { min-width:44px; min-height:44px; }
 .cerrar-detalle { width:44px; height:44px; display:grid; place-items:center; padding:0 0 2px; margin:-10px -12px 0 8px; }
 /* Lo decorativo no recibe el puntero: el arrastre lo atiende el propio SVG. */
 .cielo, .banda, .etq-puente, .constelacion-sec .punta { pointer-events:none; }
 @media (max-width:700px) {
-  body[data-ruta="mapa"] .meta { bottom:calc(80px + env(safe-area-inset-bottom)); }
+  body[data-ruta="mapa"] .constelacion-sec > .meta { bottom:calc(74px + env(safe-area-inset-bottom)); }
   .constelacion-sec .detalle { bottom:max(12px, env(safe-area-inset-bottom)); }
-  .constelacion-sec .mapa-barra { right:max(12px, env(safe-area-inset-right)); bottom:max(12px, env(safe-area-inset-bottom)); }
+  .constelacion-sec .zooms { right:max(12px, env(safe-area-inset-right)); bottom:max(12px, env(safe-area-inset-bottom)); }
 }
 
 /* La vista de lista conserva el tema y las superficies del curso. */
@@ -190,25 +221,26 @@ body[data-ruta="mapa"] .meta, .constelacion-sec .mapa-barra, .constelacion-sec .
 .constelacion-sec[data-vista="lista"] .detalle h3 { color:var(--muted); }
 .constelacion-sec[data-vista="lista"] .detalle p { color:var(--fg-soft); }
 .constelacion-sec[data-vista="lista"] .detalle .primario { background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
-body[data-ruta="mapa"][data-mapa-vista="lista"] .bar { color-scheme:inherit; color:var(--course-ink); background:color-mix(in oklch, var(--course-bg) 55%, transparent); border-color:color-mix(in oklch, var(--course-ink) 14%, transparent); }
-body[data-ruta="mapa"][data-mapa-vista="lista"] .bar a, body[data-ruta="mapa"][data-mapa-vista="lista"] .bar .pill { color:var(--course-ink); }
-body[data-ruta="mapa"][data-mapa-vista="lista"] .bar .nav a[aria-current], body[data-ruta="mapa"][data-mapa-vista="lista"] .bar .pill,
-body[data-ruta="mapa"][data-mapa-vista="lista"] .bar .ruta [data-paso="practica"] { background:color-mix(in oklch, var(--course-ink) 12%, transparent); color:var(--course-ink); border-color:transparent; }
-body[data-ruta="mapa"][data-mapa-vista="lista"] .bar .ruta [data-paso="practica"] b { background:var(--course-acc); border-color:var(--course-acc); color:var(--course-acc-ink); }
-body[data-ruta="mapa"][data-mapa-vista="lista"] .meta { top:86px; left:22px; width:min(340px, calc(100% - 44px)); padding:18px 20px;
+body[data-ruta="mapa"] .constelacion-sec[data-vista="lista"] > .meta { top:86px; left:22px; width:min(340px, calc(100% - 44px)); padding:18px 20px;
   overflow:hidden; background:var(--course-card); color:var(--course-ink); border:1px solid var(--course-line); border-inline-start:3px solid var(--course-acc); border-radius:12px; }
-body[data-ruta="mapa"][data-mapa-vista="lista"] .meta h1 { max-width:none; margin:0 0 8px; font-size:24px; line-height:1.05; letter-spacing:normal; text-wrap:initial; }
-body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .kicker { color:var(--course-acc); letter-spacing:normal; }
-body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .lead { max-width:640px; font-size:14px; color:var(--course-soft); }
-body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .abre { font-size:13px; color:var(--course-muted); }
-body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .abre b { color:var(--course-ink); }
-body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .nota { color:var(--course-muted); }
-body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .grande { background:var(--course-acc); border-color:var(--course-acc); color:var(--course-acc-ink); }
+body[data-ruta="mapa"] .constelacion-sec[data-vista="lista"] > .meta h1 { max-width:none; margin:0 0 8px; font-size:24px; line-height:1.05; font-weight:700; letter-spacing:normal; text-wrap:initial; }
+body[data-ruta="mapa"] .constelacion-sec[data-vista="lista"] > .meta > .lead { max-width:640px; font-size:14px; color:var(--course-soft); }
+.constelacion-sec[data-vista="lista"] .meta-siguiente { display:block; margin-top:18px; padding-top:16px; border-top:1px solid var(--course-line); }
+.constelacion-sec[data-vista="lista"] .meta-siguiente h2 { margin:0 0 8px; font-size:19px; }
+.constelacion-sec[data-vista="lista"] .meta-siguiente .lead { margin:0 0 10px; font-size:14px; color:var(--course-soft); }
+.constelacion-sec[data-vista="lista"] .meta-siguiente .abre { margin:0 0 14px; font-size:13px; color:var(--course-muted); }
+.constelacion-sec[data-vista="lista"] .meta-siguiente .abre b { color:var(--course-ink); }
+.constelacion-sec[data-vista="lista"] .meta-siguiente .grande { background:var(--course-acc); border-color:var(--course-acc); color:var(--course-acc-ink); }
 @media (max-width:700px) {
   .constelacion-sec[data-vista="lista"] .detalle { top:auto; bottom:max(12px, env(safe-area-inset-bottom)); left:12px; right:12px; width:auto; max-height:62dvh; padding:20px 22px; transform:translateY(16px); }
   .constelacion-sec[data-vista="lista"] .detalle.abierto { transform:none; }
-  body[data-ruta="mapa"][data-mapa-vista="lista"] .meta { top:auto; bottom:calc(80px + env(safe-area-inset-bottom)); left:12px; width:calc(100% - 24px); padding:14px 16px; }
-  body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .lead, body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .abre, body[data-ruta="mapa"][data-mapa-vista="lista"] .meta .nota { display:none; }
+  body[data-ruta="mapa"] .constelacion-sec[data-vista="lista"] > .meta { top:auto; bottom:calc(74px + env(safe-area-inset-bottom)); left:12px; width:calc(100% - 24px); padding:14px 16px; }
+  .constelacion-sec[data-vista="lista"] .meta-siguiente { display:block; margin-top:12px; padding-top:10px; }
+  .constelacion-sec[data-vista="lista"] .meta-siguiente h2 { font-size:16px; }
+  .constelacion-sec[data-vista="lista"] .meta-siguiente .lead { font-size:13px; }
+  .constelacion-sec[data-vista="lista"] .meta-siguiente .abre,
+  .constelacion-sec[data-vista="lista"] .meta-siguiente .nota { display:none; }
+  .constelacion-sec[data-vista="lista"] .meta-siguiente .grande { min-height:44px; padding:8px 12px; }
 }
 
 .g-clasico { stop-color:var(--clasico); } .g-cuantico { stop-color:var(--cuantico); }

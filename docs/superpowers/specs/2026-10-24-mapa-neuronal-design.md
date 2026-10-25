@@ -2,12 +2,13 @@
 
 ## Intención
 
-Dar al mapa de habilidades una apariencia de red neuronal, cercana a la referencia oscura enviada, y hacer que la selección de un nodo se sienta conectada con sus requisitos. El mapa es una experiencia de exploración para quienes quieren entender cómo se relacionan las habilidades.
+Dar al mapa de habilidades una apariencia de red neuronal, cercana a las referencias clara y oscura enviadas, y hacer que la selección de un nodo se sienta conectada con sus requisitos. El mapa es una experiencia de exploración para quienes quieren entender cómo se relacionan las habilidades.
 
 ## Objetivos
 
-- Usar un fondo azul noche y acentos cian y violeta en la vista de mapa a pantalla completa y sus controles flotantes, sin cambiar los temas de otras rutas.
-- Mantener las posiciones fijas y la interacción actual del SVG.
+- Enmarcar la vista de mapa como en la referencia, con título arriba a la izquierda, ficha abajo a la derecha y controles horizontales en la parte inferior.
+- Seguir el selector global de tema: azul noche cuando está oscuro y superficies claras cuando está claro; mantener intactos los temas de las demás rutas.
+- Dibujar una malla neuronal estática detrás de las habilidades reales, con posiciones estables y conexiones curvas.
 - Curvar las conexiones para que la red se sienta más orgánica.
 - Al seleccionar una habilidad, dar un pulso breve al nodo y animar sutilmente sus conexiones destacadas; mantener visible su ficha.
 - Conservar controles, lista accesible, diseño móvil, foco de teclado y compatibilidad con `prefers-reduced-motion`.
@@ -29,7 +30,7 @@ Se eligió el primer enfoque porque la referencia combina una red visualmente ri
 ## Restricciones y decisiones
 
 - Implementar con el SVG, JavaScript y CSS existentes; no agregar dependencias.
-- Limitar la nueva paleta y el tratamiento visual al mapa a pantalla completa; los mapas del portafolio conservan su geometría y estilo.
+- Limitar la paleta y el tratamiento visual al mapa a pantalla completa; el selector global conserva el control claro/oscuro y los mapas del portafolio conservan su geometría y estilo.
 - Mantener el contenido textual legible sobre el fondo oscuro y los estados distinguibles además del color.
 - La animación será corta, basada en propiedades del SVG que no cambien el diseño, y se desactivará con movimiento reducido.
 
