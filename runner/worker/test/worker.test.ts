@@ -50,7 +50,10 @@ describe("el sitio y /run en un solo Worker", () => {
     const h = await worker();
     expect((await h.get("/lesson.html")).status).toBe(200);
     expect((await h.get("/course.json")).body.parts).toBeDefined();
-    expect((await h.get("/no-existe.html")).status).toBe(404);
+    const missing = await h.get("/no-existe.html");
+    expect(missing.status).toBe(404);
+    expect(missing.headers.get("content-type")).toContain("text/html");
+    expect(missing.body).toContain("Al ser una demo");
   });
 
   it("ejecuta el código y devuelve el JSON del corredor con el token de prueba", async () => {

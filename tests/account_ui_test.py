@@ -143,6 +143,11 @@ def menu(page: Page, name: str) -> None:
 
 def sign_in(page: Page) -> None:
     menu(page, "Entrar")
+    check(
+        page.locator(".acct-menu p").first.evaluate("el => getComputedStyle(el).textAlign")
+        == "center",
+        "mensajes de acceso centrados",
+    )
     for provider in ("Google", "GitHub"):
         button = page.get_by_role("button", name=f"Entrar con {provider}", exact=True)
         check(

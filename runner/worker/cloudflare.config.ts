@@ -47,7 +47,7 @@ export default defineConfig({
     },
     // site/ (wrangler.config.ts) se sirve desde este mismo Worker.
     // Solo las rutas de WORKER_FIRST lo invocan.
-    assets: { runWorkerFirst: WORKER_FIRST },
+    assets: { runWorkerFirst: WORKER_FIRST, notFoundHandling: "404-page" },
     triggers: [triggers.scheduled({ schedule: "17 3 * * *" })],
     env: {
       // Las cuentas, el progreso y los intentos (src/schema.sql).

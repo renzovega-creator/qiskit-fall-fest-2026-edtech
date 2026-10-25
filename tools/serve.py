@@ -76,6 +76,17 @@ def run_plain(exercise_id: str, code: str) -> dict[str, Any]:
 
 
 class Handler(SimpleHTTPRequestHandler):
+    def send_error(self, code: int, message: str | None = None, explain: str | None = None) -> None:
+        if code != 404:
+            return super().send_error(code, message, explain)
+        data = (ROOT / "site" / "404.html").read_bytes()
+        self.send_response(code, message)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        if self.command != "HEAD":
+            self.wfile.write(data)
+
     def reply(self, status: int, body: dict[str, Any]) -> None:
         data = json.dumps(body, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
