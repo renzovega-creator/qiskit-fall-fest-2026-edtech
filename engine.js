@@ -1565,7 +1565,7 @@
     L = await (await fetch(BASE + "lesson.json")).json();
     T = await (await fetch(BASE + "timings.json")).json();
     beats = L.beats;
-    document.title = `${L.section} · ${L.title}`;
+    document.title = "QuantumShot";
     $("#crumb-part").textContent = L.part;
     $("#crumb-title").textContent = `${L.section} · ${L.title}`;
     $("#start-eyebrow").textContent = `${L.part} · ${L.section}`;

@@ -25,6 +25,28 @@ import { fichaEvidencia } from "./misiones.js";
 
 const contables = HABILIDADES.filter((x) => !x.proximamente);
 const local = () => ["localhost", "127.0.0.1", ""].includes(location.hostname);
+const ARCHIVOS_AVATAR = ["psi", "atom", "wave", "theta", "orbit", "star"];
+const NOMBRES_AVATAR = ["Psi", "Átomo", "Onda", "Theta", "Órbita", "Estrella"];
+const NOMBRES_COLOR = {
+  acc: "Cian",
+  acc2: "Ámbar",
+  acc3: "Lima",
+  blue: "Azul",
+  violet: "Violeta",
+};
+
+const imagenAvatar = (id, diferida = false) => {
+  const indice = Math.max(AVATARES.indexOf(id), 0);
+  return h("img", {
+    class: "avatar-img",
+    src: new URL(`./avatares/${ARCHIVOS_AVATAR[indice]}.png`, import.meta.url)
+      .href,
+    alt: "",
+    decoding: "async",
+    draggable: "false",
+    ...(diferida ? { loading: "lazy" } : {}),
+  });
+};
 
 export const enlacePublico = (datos) =>
   `${location.origin}${location.pathname}#publico=${codificar(datos)}`;
@@ -51,12 +73,15 @@ export function abrirEvidencia(e, opts = {}) {
 }
 
 function avatar(perfil, grande = false) {
-  return h("span", {
-    class: `avatar${grande ? " grande" : ""}`,
-    style: `--av: var(--${COLORES.includes(perfil.color) ? perfil.color : "acc"})`,
-    "aria-hidden": "true",
-    text: AVATARES.includes(perfil.avatar) ? perfil.avatar : "ψ",
-  });
+  return h(
+    "span",
+    {
+      class: `avatar${grande ? " grande" : ""}`,
+      style: `--av: var(--${COLORES.includes(perfil.color) ? perfil.color : "acc"})`,
+      "aria-hidden": "true",
+    },
+    imagenAvatar(perfil.avatar),
+  );
 }
 
 function insignias(ganadas, { mostrarBloqueadas }) {
@@ -88,7 +113,7 @@ export function textoLinkedIn(st, url) {
     .filter((e) => e.publica)
     .map((e) => `• ${describir(e).titulo}.`);
   return [
-    "Estoy aprendiendo a conectar estadística y machine learning con computación cuántica con QuantumShot, una app en español hecha con Qiskit: «tu dosis diaria de cuántica».",
+    "Estoy aprendiendo a conectar estadística y machine learning con computación cuántica con QuantumShot, una app en español hecha con Qiskit.",
     "",
     ev.length
       ? "Lo que he resuelto en sus retos (simulaciones con Qiskit, no hardware):"
@@ -102,7 +127,7 @@ export function textoLinkedIn(st, url) {
   ].join("\n");
 }
 
-const radios = (nombre, valores, actual, etiqueta, pinta) =>
+const radios = (nombre, valores, actual, etiqueta, pinta, nombreDe = String) =>
   h(
     "fieldset",
     { class: "radios elegir" },
@@ -116,6 +141,7 @@ const radios = (nombre, valores, actual, etiqueta, pinta) =>
           name: nombre,
           value: v,
           checked: v === actual,
+          "aria-label": `${etiqueta}: ${nombreDe(v)}`,
         }),
         pinta(v),
       ),
@@ -200,15 +226,26 @@ export function vistaPortafolio(
       "Presentación breve (160 caracteres)",
       h("textarea", { name: "bio", maxlength: 160, rows: 2, text: perfil.bio }),
     ),
-    radios("avatar", AVATARES, perfil.avatar, "Avatar", (v) =>
-      h("span", { class: "op-av", text: v }),
+    radios(
+      "avatar",
+      AVATARES,
+      perfil.avatar,
+      "Avatar",
+      (v) => h("span", { class: "op-av" }, imagenAvatar(v, true)),
+      (v) => NOMBRES_AVATAR[Math.max(AVATARES.indexOf(v), 0)],
     ),
-    radios("color", COLORES, perfil.color, "Color", (v) =>
-      h("span", {
-        class: "op-color",
-        style: `--av: var(--${v})`,
-        "aria-label": v,
-      }),
+    radios(
+      "color",
+      COLORES,
+      perfil.color,
+      "Color",
+      (v) =>
+        h("span", {
+          class: "op-color",
+          style: `--av: var(--${v})`,
+          "aria-label": v,
+        }),
+      (v) => NOMBRES_COLOR[v] || v,
     ),
     h("button", { type: "submit", class: "primario" }, "Guardar perfil"),
   );
