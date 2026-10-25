@@ -28,6 +28,7 @@ tools = [
     "edge-tts",
     "playwright",
     "pillow",
+    "mutagen>=1.48.1",
 ]
 
 runner = [
@@ -53,8 +54,12 @@ allowed-confusables = ["×", "−", "–", "‘", "’", "′"]
 strict = true
 files = ["qgcheck", "runner", "tools", "tests", "lessons_src"]
 exclude = ["tests/mutants/", "runner/worker/"]
-mypy_path = ["stubs", "runner", "lessons_src", "tools", "tests"]
+mypy_path = ["stubs", "runner", "lessons_src", "cursos/qml", "tools", "tests"]
 explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = ["mutagen.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "--strict-markers"

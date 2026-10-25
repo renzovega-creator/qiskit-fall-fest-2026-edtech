@@ -26,10 +26,10 @@ from offline import new_context, verify
 from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 
 SITE = Path(__file__).resolve().parent.parent / "site"
-PALETAS = ["fosforo", "cobre", "medianoche", "catppuccin"]
+PALETAS = ["catppuccin"]
 MODOS = ["dark", "light"]
 TAMANOS = {"1366x768": (1366, 768), "390x844": (390, 844)}
-LECCIONES = ["p1-quickstart", "p3-target", "p6-panorama"]
+LECCIONES = ["q1-montecarlo", "q2-kernel"]
 
 TEXTO = [
     "ink",
@@ -47,7 +47,7 @@ TEXTO = [
 ]
 SUPERFICIES = ["bg", "bg2", "card", "stage"]
 GRAFICOS = ["axis", "wire"]
-DEMORA_LESSON_JSON = 0.4
+DEMORA_LESSON_JSON = 1.5
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -94,7 +94,7 @@ RESOLVER = """names => {
   const probe = document.createElement('span');
   document.body.appendChild(probe);
   const out = {};
-  for (const n of names) { probe.style.color = `var(--${n})`; out[n] = getComputedStyle(probe).color; }
+  const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1; const ctx = canvas.getContext('2d'); for (const n of names) { probe.style.color = `var(--${n})`; ctx.fillStyle = getComputedStyle(probe).color; ctx.fillRect(0, 0, 1, 1); const rgb = [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3); out[n] = `rgb(${rgb.join(',')})`; }
   probe.remove();
   return out;
 }"""
@@ -159,7 +159,7 @@ def visitar(
                 for nombre, url in paginas:
                     ctx, pg, errores = nueva_pagina(browser, size, paleta, modo)
                     pg.goto(url)
-                    pg.wait_for_selector("[data-theme-ctl] select")
+                    pg.wait_for_selector("[data-theme-ctl] button")
                     pg.wait_for_timeout(1500 if nombre == "index" else 900)
                     rep.check(not errores, f"{etiqueta} {nombre}: {errores}")
                     attrs = pg.evaluate(
@@ -198,7 +198,7 @@ def contrastes(rep: Report, browser: Browser, base: str) -> dict[tuple[str, str,
         for modo in MODOS:
             ctx, pg, _ = nueva_pagina(browser, (1366, 768), paleta, modo)
             pg.goto(f"{base}/index.html")
-            pg.wait_for_selector("[data-theme-ctl] select")
+            pg.wait_for_selector("[data-theme-ctl] button")
             nombres = set(TEXTO + SUPERFICIES + GRAFICOS + ["acc-ink"])
             col = {k: parse_color(v) for k, v in pg.evaluate(RESOLVER, sorted(nombres)).items()}
             ctx.close()
@@ -229,58 +229,32 @@ def paleta_guardada_una_vez(rep: Report, browser: Browser, base: str) -> None:
     ctx = new_context(browser, viewport={"width": 1366, "height": 768})
     pg = ctx.new_page()
     pg.goto(f"{base}/index.html")
-    pg.wait_for_selector("[data-theme-ctl] select")
+    pg.wait_for_selector("[data-theme-ctl] button")
     rep.check(
-        pg.evaluate("document.documentElement.dataset.paleta") == "catppuccin",
-        "la paleta por defecto no es catppuccin",
-    )
-    pg.select_option("[data-theme-ctl] select", "cobre")
-    rep.check(
-        pg.evaluate("localStorage.getItem('qiskit:paleta')") == "cobre",
-        "la portada no guardó la paleta",
-    )
-    acc = pg.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--acc').trim()")
-    rep.check(acc == "#ff8a4c" or acc == "#bd3f0c", f"--acc no cambió con la paleta: {acc}")
-    pg.goto(f"{base}/lesson.html?l=p1-quickstart&beat=0")
-    pg.wait_for_selector("[data-theme-ctl] select")
-    rep.check(
-        pg.evaluate("document.documentElement.dataset.paleta") == "cobre",
-        "el reproductor no leyó la paleta guardada",
-    )
-    rep.check(
-        pg.evaluate("document.querySelector('[data-theme-ctl] select').value") == "cobre",
-        "el selector del reproductor no muestra la paleta",
-    )
-    pg.select_option("[data-theme-ctl] select", "medianoche")
-    pg.goto(f"{base}/index.html")
-    pg.wait_for_selector("[data-theme-ctl] select")
-    rep.check(
-        pg.evaluate("document.documentElement.dataset.paleta") == "medianoche",
-        "la portada no leyó la paleta elegida en el reproductor",
-    )
-    pg.select_option("[data-theme-ctl] select", "catppuccin")
-    rep.check(
-        pg.evaluate("localStorage.getItem('qiskit:paleta')") == "catppuccin",
-        "la portada no guardó Catppuccin",
-    )
-    pg.goto(f"{base}/lesson.html?l=p1-quickstart&beat=0")
-    pg.wait_for_selector("[data-theme-ctl] select")
-    rep.check(
-        pg.evaluate("document.documentElement.dataset.paleta") == "catppuccin",
-        "el reproductor no leyó Catppuccin",
+        pg.evaluate("document.documentElement.dataset.theme") == "light", "el tema inicial es claro"
     )
     pg.click("[data-theme-ctl] button")
     rep.check(
-        pg.evaluate("localStorage.getItem('qiskit:theme')") in ("light", "dark"),
-        "el botón de modo no guardó el modo",
+        pg.evaluate("localStorage.getItem('qiskit:theme')") == "dark",
+        "el modo oscuro queda guardado",
+    )
+    for page in ("lesson.html?l=q1-montecarlo&beat=0", "juego.html", "index.html"):
+        pg.goto(f"{base}/{page}")
+        pg.wait_for_selector("[data-theme-ctl] button")
+        rep.check(
+            pg.evaluate("document.documentElement.dataset.theme") == "dark",
+            f"{page}: el tema se comparte",
+        )
+    pg.click("[data-theme-ctl] button")
+    rep.check(
+        pg.evaluate("localStorage.getItem('qiskit:theme')") == "light",
+        "se puede volver al modo claro",
     )
     ctx.close()
 
 
 def repaso_en_paralelo(rep: Report, browser: Browser, base: str) -> float:
-    hechas = json.dumps(
-        ["p1-quickstart", "p1-instalar", "p1-composer", "p1-patrones", "p3-target", "p6-panorama"]
-    )
+    hechas = json.dumps(LECCIONES)
     ctx, pg, errores = nueva_pagina(
         browser, (1366, 768), "fosforo", "dark", {"qiskit:done": hechas}
     )
@@ -290,7 +264,7 @@ def repaso_en_paralelo(rep: Report, browser: Browser, base: str) -> float:
     dt = time.time() - t0
     n = len(json.loads(hechas))
     rep.check(
-        dt < DEMORA_LESSON_JSON * (n - 1),
+        dt < DEMORA_LESSON_JSON * (n - 0.2),
         f"el repaso tardó {dt:.2f} s con {n} lecciones de {DEMORA_LESSON_JSON} s: pide en serie",
     )
     rep.check(not errores, f"repaso: {errores}")

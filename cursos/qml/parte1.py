@@ -67,7 +67,9 @@ LESSONS = [
                 [
                     T("Monte Carlo ↔ shots", "title"),
                     Row(
-                        Box("def", "Clásico", T("lanzar una moneda N veces y contar caras", "body")),
+                        Box(
+                            "def", "Clásico", T("lanzar una moneda N veces y contar caras", "body")
+                        ),
                         Box("def", "Cuántico", T("medir un qubit N veces y contar unos", "body")),
                         id="par",
                         hidden=True,
@@ -94,7 +96,12 @@ LESSONS = [
                         },
                     ),
                     Out("10 0.2\n100 0.26\n1000 0.257\n10000 0.2489", id="o", hidden=True),
-                    M(r"\hat p=\frac{k}{N},\qquad \sigma_{\hat p}=\sqrt{\frac{p(1-p)}{N}}", id="m", hidden=True, size=34),
+                    M(
+                        r"\hat p=\frac{k}{N},\qquad \sigma_{\hat p}=\sqrt{\frac{p(1-p)}{N}}",
+                        id="m",
+                        hidden=True,
+                        size=34,
+                    ),
                 ],
                 [A("show", "o", at="sim"), A("show", "m", at="err"), A("emph", "m", at="cien")],
                 ask=numeric(
@@ -146,7 +153,12 @@ LESSONS = [
                         hh=140,
                     ),
                     Row(
-                        M(r"P(1)=\sin^2\!\big(\tfrac{\theta}{2}\big)", id="m", hidden=True, size=34),
+                        M(
+                            r"P(1)=\sin^2\!\big(\tfrac{\theta}{2}\big)",
+                            id="m",
+                            hidden=True,
+                            size=34,
+                        ),
                         M(
                             r"\theta=\tfrac{\pi}{3}\ \Rightarrow\ P(1)=\sin^2\!\big(\tfrac{\pi}{6}\big)=\tfrac14",
                             id="m2",
@@ -173,7 +185,12 @@ LESSONS = [
                 [Circ(1, [G("ry", 0, p="π/3"), G("measure", 0, c=0)], clbits=1, maxw=420)],
                 ask=predict(
                     "Con $\\theta=\\pi/3$ y 100 shots, ¿cuántos `1` esperas?",
-                    ["exactamente 25", "alrededor de 25, pero no exacto", "alrededor de 50", "alrededor de 75"],
+                    [
+                        "exactamente 25",
+                        "alrededor de 25, pero no exacto",
+                        "alrededor de 50",
+                        "alrededor de 75",
+                    ],
                     "Anotado. Ahora midamos.",
                 ),
             ),
@@ -185,9 +202,20 @@ LESSONS = [
                 [
                     Code(QUBIT, id="c", size=21),
                     Out("{'0': 76, '1': 24}", id="o", hidden=True),
-                    Hist([["0", 76], ["1", 24]], id="h", grow=True, ymax=100, color="blue", hidden=True),
+                    Hist(
+                        [["0", 76], ["1", 24]],
+                        id="h",
+                        grow=True,
+                        ymax=100,
+                        color="blue",
+                        hidden=True,
+                    ),
                 ],
-                [A("show", "o", at="res"), A("show", "h", at="res"), A("grow", "h", at="res", dur=1.2)],
+                [
+                    A("show", "o", at="res"),
+                    A("show", "h", at="res"),
+                    A("grow", "h", at="res", dur=1.2),
+                ],
             ),
             beat(
                 "tandas",
@@ -219,7 +247,12 @@ LESSONS = [
                         id="t",
                         hidden=True,
                     ),
-                    T("20 repeticiones por fila, $\\theta=\\pi/3$, StatevectorSampler", "note", id="n", hidden=True),
+                    T(
+                        "20 repeticiones por fila, $\\theta=\\pi/3$, StatevectorSampler",
+                        "note",
+                        id="n",
+                        hidden=True,
+                    ),
                 ],
                 [A("show", "t", at="tabla"), A("show", "n", at="tabla"), A("emph", "t", at="ley")],
                 ask=choice(

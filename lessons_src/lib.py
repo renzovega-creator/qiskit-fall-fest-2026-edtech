@@ -81,7 +81,7 @@ def Graph(nodes: Any, edges: Any, **k: Any) -> Block:
     return dict(type="graph", nodes=nodes, edges=edges, **k)
 
 
-def Lab(qubits: int, ops: list[Block] = (), gates: Iterable[str] = (), **k: Any) -> Block:
+def Lab(qubits: int, ops: Iterable[Block] = (), gates: Iterable[str] = (), **k: Any) -> Block:
     """Taller de circuitos interactivo con probabilidades en vivo (site/labs.js).
     gates: paleta de puertas que el alumno pone con clic ('h', 'x', 'cx', …); sin paleta no se edita.
     params={'θ': dict(min=0, max=6.283, step=…, value=…, fmt='pi')} crea deslizadores; una

@@ -43,5 +43,6 @@ def test_aleatorio():
     for i in range(3):
         for j in range(3):
             v = learner.kernel(list(xs[i]), list(ys[j]))
-            assert abs(v - ref[i, j]) < 1e-6, "Con otros puntos tu kernel no coincide con el de referencia."
-            assert abs(v - learner.kernel(list(ys[j]), list(xs[i]))) < 1e-9, "Tu kernel no es simétrico: k(x, y) debe ser igual a k(y, x)."
+            assert abs(v - ref[i, j]) < 1e-6, f"`kernel({list(xs[i])!r}, {list(ys[j])!r})` devolvió {v!r}; revisa el solapamiento."
+            reverse = learner.kernel(list(ys[j]), list(xs[i]))
+            assert abs(v - reverse) < 1e-9, f"`kernel({list(xs[i])!r}, {list(ys[j])!r})` devolvió {v!r} y al invertir los puntos devolvió {reverse!r}; revisa la simetría."

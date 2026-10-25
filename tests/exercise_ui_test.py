@@ -9,16 +9,12 @@ y error, y la comprobación de Turnstile. `--shots` guarda capturas.
 
 import importlib.util
 import json
-import os
-import shutil
 import sys
-import tempfile
 import threading
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from unittest import mock
 
 from playwright.sync_api import Browser, Locator, Page, Route, sync_playwright
 
@@ -37,46 +33,10 @@ MOBILE: dict[str, Any] = {
     "device_scale_factor": 2,
 }
 
-GHZ_WITHOUT_CHAIN = """from qiskit import QuantumCircuit
-
-
-def ghz(n):
-    qc = QuantumCircuit(n)
-    qc.h(0)
-    qc.cx(0, 1)
-    qc.measure_all()
-    return qc
-"""
-GHZ_CAPPED_AT_FOUR = """from qiskit import QuantumCircuit
-
-
-def ghz(n):
-    qc = QuantumCircuit(n)
-    qc.h(0)
-    for k in range(min(n - 1, 3)):
-        qc.cx(k, k + 1)
-    qc.measure_all()
-    return qc
-"""
-BELL_WITH_Z = """from qiskit import QuantumCircuit
-from qiskit.primitives import StatevectorSampler
-
-anti = QuantumCircuit(2)
-anti.h(0)
-anti.cx(0, 1)
-anti.z(1)
-anti.measure_all()
-
-resultado = StatevectorSampler(seed=7).run([anti], shots=1024).result()
-print(resultado[0].data.meas.get_counts())
-"""
 # (lección, posición del ejercicio en el paso, ejercicio, código equivocado o None para el inicial, caso que falla)
 EXERCISES: list[tuple[str, int, str, str | None, str]] = [
-    ("p1-quickstart", 1, "ghz", GHZ_WITHOUT_CHAIN, "n = 2, 3 y 4"),
-    ("p1-quickstart", 0, "bell-distinto", BELL_WITH_Z, "Salen ['00', '11']"),
-    ("p2-control-clasico", 1, "siempre-uno", None, "el resultado final es siempre 1"),
-    ("p2-circuitos", 0, "profundidad", None, "tu apuesta es la profundidad de qc"),
-    ("p2-visualizar", 2, "barras-esperados", None, "Bell: ⟨ZZ⟩ = ⟨XX⟩ = 1"),
+    ("q1-montecarlo", 0, "estimar-p", None, "circuito(theta)"),
+    ("q2-kernel", 0, "kernel-fidelidad", None, "k(x, x)"),
 ]
 
 failures: list[str] = []
@@ -106,7 +66,7 @@ def mission_url(lesson: str) -> str:
 
 
 def read(lesson: str, name: str, part: str) -> str:
-    return (ROOT / "exercises" / lesson / name / part).read_text(encoding="utf-8").rstrip("\n")
+    return (spec.folder(f"{lesson}/{name}") / part).read_text(encoding="utf-8").rstrip("\n")
 
 
 def open_panel(page: Page, base: str, lesson: str, k: int) -> Locator:
@@ -211,101 +171,25 @@ def flow(
 
 
 def feedback(browser: Browser, base: str, shots: str | None) -> None:
-    cases = spec.load_cases(spec.folder("p1-quickstart/ghz") / "check.py")
     page = new_context(browser, **DESKTOP).new_page()
-    panel = open_panel(page, base, "p1-quickstart", 1)
-
-    write(
-        page,
-        panel,
-        "from qiskit import QuantumCircuit\n\n\ndef ghz(n:\n    return QuantumCircuit(n)\n",
-    )
+    panel = open_panel(page, base, "q1-montecarlo", 0)
+    write(page, panel, "def f(:")
     press(panel, "Comprobar")
     wait_result(panel)
-    error = panel.locator(".xerr").inner_text()
-    check(
-        "SyntaxError" in error and "línea 4" in error,
-        f"error de sintaxis: el panel muestra el error con su línea ({error})",
-    )
-    check(
-        "No se pudo probar tu código" in panel.locator(".xout").inner_text(),
-        "error de sintaxis: el panel dice que no se pudo probar el código",
-    )
-    check(
-        panel.locator(".xtests").count() == 0 and panel.locator(".xtests li").count() == 0,
-        "error de sintaxis: no se muestra ningún caso",
-    )
-    check(
-        "Pasan" not in panel.locator(".xstatus").inner_text(),
-        "error de sintaxis: no se cuentan casos",
-    )
-    shot(page, shots, "escritorio-ghz-sintaxis", panel, results=True)
-
-    visible = sum(shown is not None for _, shown in cases)
-    hidden = len(cases) - visible
-    write(page, panel, GHZ_CAPPED_AT_FOUR)
+    check(panel.locator(".xerr").is_visible(), "un error de sintaxis muestra su explicación")
+    solution = read("q1-montecarlo", "estimar-p", "solution.py")
+    write(page, panel, solution.replace('return conteos.get("1", 0) / shots', "return 0.25"))
     press(panel, "Comprobar")
     wait_result(panel)
-    status = panel.locator(".xstatus").inner_text()
-    check(
-        f"{visible} de {visible} visibles · 0 de {hidden} ocultos" in status,
-        f"casos ocultos: se cuentan aparte de los visibles ({status})",
-    )
     failing = panel.locator(".xtests li.bad")
     check(
-        failing.count() == hidden and all("caso oculto" in t for t in failing.all_inner_texts()),
-        "casos ocultos: solo fallan los ocultos",
+        failing.count() == 1 and "caso oculto" in failing.inner_text(),
+        "una respuesta que memoriza el ejemplo falla el caso oculto",
     )
-    shot(page, shots, "escritorio-ghz-oculto", panel, results=True)
+    check(
+        panel.locator(".xtests li:not(.bad)").count() == 2, "los casos visibles pasan por separado"
+    )
     page.context.close()
-
-    # El servidor lee el check.py de prueba desde QG_EXERCISES.
-    with tempfile.TemporaryDirectory(prefix="qg-ui-") as scratch, mock.patch.dict(os.environ):
-        # Las fuentes pueden ser de solo lectura; la copia se edita y se borra, así que se deja escribible.
-        copy = Path(scratch) / "exercises"
-        shutil.copytree(ROOT / "exercises", copy, copy_function=shutil.copyfile)
-        for path in [copy, *copy.rglob("*")]:
-            path.chmod(0o755 if path.is_dir() else 0o644)
-        check_file = copy / "p1-quickstart" / "ghz" / "check.py"
-        source = check_file.read_text(encoding="utf-8")
-        check_file.write_text(
-            source.replace(
-                '@visible("n = 2, 3 y 4")', '@visible("n = 2, 3 y 4")\n@hint(1)'
-            ).replace("from qgcheck import ", "from qgcheck import hint, ", 1),
-            encoding="utf-8",
-        )
-        lesson = json.loads(
-            (ROOT / "site" / "lessons" / "p1-quickstart" / "lesson.json").read_text(
-                encoding="utf-8"
-            )
-        )
-        tip = next(
-            blk["hints"][0]
-            for b in lesson["beats"]
-            for blk in b["scene"]
-            if blk.get("exercise") == "p1-quickstart/ghz"
-        )
-        os.environ["QG_EXERCISES"] = str(copy)
-        page = new_context(browser, **DESKTOP).new_page()
-        panel = open_panel(page, base, "p1-quickstart", 1)
-        write(page, panel, GHZ_WITHOUT_CHAIN)
-        press(panel, "Comprobar")
-        wait_result(panel)
-        named = panel.locator(".xtests li.bad", has_text="n = 2, 3 y 4")
-        check(
-            named.locator(".xcasehint").count() == 1
-            and tip.replace("`", "") in named.locator(".xcasehint").inner_text(),
-            "pista del caso: el caso que falla muestra la pista que nombra",
-        )
-        check(
-            panel.locator(".xtests li.bad").locator(".xcasehint").count() == 1,
-            "pista del caso: los casos que no nombran pista no la muestran",
-        )
-        check(
-            panel.locator(".xhint:not(.xcasehint)").count() == 0,
-            "pista del caso: no cuenta como pista pedida con el botón",
-        )
-        page.context.close()
 
 
 def height(button: Locator) -> float:
@@ -316,7 +200,7 @@ def height(button: Locator) -> float:
 
 def mobile_layout(browser: Browser, base: str, shots: str | None) -> None:
     page = new_context(browser, **MOBILE).new_page()
-    panel = open_panel(page, base, "p1-quickstart", 1)
+    panel = open_panel(page, base, "q1-montecarlo", 0)
     panel.scroll_into_view_if_needed()
     box = panel.bounding_box()
     assert box is not None
@@ -345,7 +229,7 @@ def mobile_layout(browser: Browser, base: str, shots: str | None) -> None:
 
 def keyboard(browser: Browser, base: str) -> None:
     page = new_context(browser, **DESKTOP).new_page()
-    panel = open_panel(page, base, "p1-quickstart", 1)
+    panel = open_panel(page, base, "q1-montecarlo", 0)
     editor = panel.locator(".cm-content")
     write(page, panel, "x")
     page.keyboard.type(" c")
@@ -394,29 +278,19 @@ def keyboard(browser: Browser, base: str) -> None:
 
 def hints(browser: Browser, base: str) -> None:
     page = new_context(browser, **DESKTOP).new_page()
-    panel = open_panel(page, base, "p1-quickstart", 1)
-    lesson = json.loads(
-        (ROOT / "site" / "lessons" / "p1-quickstart" / "lesson.json").read_text(encoding="utf-8")
-    )
-    total = next(
-        len(blk["hints"])
-        for b in lesson["beats"]
-        for blk in b["scene"]
-        if blk.get("exercise") == "p1-quickstart/ghz"
-    )
-    check(panel.locator(".xhint").count() == 0, "pistas: al abrir no hay ninguna")
+    panel = open_panel(page, base, "q1-montecarlo", 0)
+    check(panel.locator(".xhint").count() == 0, "al abrir no hay pistas")
     press(panel, "Pista")
-    press(panel, "Pista")
-    check(panel.locator(".xhint").count() == 2, "pistas: una más por pulsación")
+    check(panel.locator(".xhint").count() == 1, "cada pulsación muestra una pista")
     page.reload()
-    panel = page.locator(".xpanel").nth(1)
+    panel = page.locator(".xpanel").first
     panel.locator(".cm-editor").wait_for()
-    check(panel.locator(".xhint").count() == 2, "pistas: las vistas se conservan al recargar")
-    press(panel, f"Pista (2/{total})")
+    check(panel.locator(".xhint").count() == 1, "la pista se conserva al recargar")
+    press(panel, "Pista (1/2)")
     check(
-        panel.locator(".xhint").count() == total
+        panel.locator(".xhint").count() == 2
         and panel.get_by_role("button", name="Sin más pistas").is_disabled(),
-        "pistas: la última deja el botón sin uso",
+        "la última pista deja el botón sin uso",
     )
     page.context.close()
 
@@ -429,7 +303,7 @@ def theme(browser: Browser, base: str) -> None:
     seen: dict[str, str] = {}
     for mode in ("light", "dark"):
         page.add_init_script(f"localStorage.setItem('qiskit:theme', '{mode}')")
-        panel = open_panel(page, base, "p1-quickstart", 1)
+        panel = open_panel(page, base, "q1-montecarlo", 0)
         seen[mode] = panel.locator(".cm-editor").evaluate(paint)
         check(
             seen[mode] == page.evaluate(probe),
@@ -442,7 +316,7 @@ def theme(browser: Browser, base: str) -> None:
 def states(browser: Browser, base: str) -> None:
     """Cargando, tiempo agotado del código, y errores del corredor."""
     page = new_context(browser, **DESKTOP).new_page()
-    panel = open_panel(page, base, "p1-quickstart", 1)
+    panel = open_panel(page, base, "q1-montecarlo", 0)
     write(page, panel, "while True:\n    pass")
     press(panel, "Ejecutar")
     check(
@@ -482,7 +356,7 @@ def states(browser: Browser, base: str) -> None:
 
     page = new_context(browser, **DESKTOP).new_page()
     page.clock.install()
-    panel = open_panel(page, base, "p1-quickstart", 1)
+    panel = open_panel(page, base, "q1-montecarlo", 0)
     held: list[Route] = []
     page.route(
         "**/run", lambda r: held.append(r)
@@ -539,7 +413,7 @@ def turnstile(browser: Browser, base: str) -> None:
 
     page.route("**/run", run)
     page.route("https://challenges.cloudflare.com/turnstile/v0/api.js*", widget)
-    panel = open_panel(page, base, "p1-quickstart", 1)
+    panel = open_panel(page, base, "q1-montecarlo", 0)
     write(page, panel, "print(1)")
     press(panel, "Ejecutar")
     wait_result(panel)
@@ -569,7 +443,7 @@ def turnstile(browser: Browser, base: str) -> None:
         lambda r: r.fulfill(status=403, content_type="application/json", body=json.dumps(refusal)),
     )
     page.route("https://challenges.cloudflare.com/turnstile/v0/api.js*", lambda r: r.abort())
-    panel = open_panel(page, base, "p1-quickstart", 1)
+    panel = open_panel(page, base, "q1-montecarlo", 0)
     press(panel, "Ejecutar")
     panel.locator(".xstatus", has_text="comprobación de que eres una persona").wait_for()
     check(

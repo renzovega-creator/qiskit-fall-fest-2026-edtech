@@ -27,7 +27,7 @@ import local  # noqa: E402
 from qgcheck import grade, spec  # noqa: E402
 from qgcheck.runner import parse_report  # noqa: E402
 
-EXERCISES = ROOT / "exercises"
+EXERCISES = spec.exercises_dir()
 EXERCISE_IDS = spec.all_ids()
 
 
@@ -172,26 +172,21 @@ def test_check_fails_the_starter_with_messages(runner: local.Container, exercise
 
 
 def test_check_names_hidden_cases_by_number(runner: local.Container) -> None:
-    out = check(
-        runner,
-        "p1-quickstart/ghz",
-        "from qiskit import QuantumCircuit\n"
-        "def ghz(n):\n    qc = QuantumCircuit(n)\n    qc.measure_all()\n    return qc\n",
-    )
+    out = check(runner, "q2-kernel/kernel-fidelidad", "def kernel(x, y):\n    return 0.0\n")
     by_name = {t["name"]: t for t in out["tests"]}
-    assert by_name["n = 2, 3 y 4"]["visible"] is True
-    assert by_name["n = 2, 3 y 4"]["message"].startswith("Con n = 2 salen ['00']")
+    assert by_name["k(x, x) = 1"]["visible"] is True
+    assert "kernel(" in by_name["k(x, x) = 1"]["message"]
     assert by_name["caso oculto 1"]["visible"] is False
 
 
 def test_check_names_the_missing_function(runner: local.Container) -> None:
-    out = check(runner, "p1-quickstart/ghz", "x = 1\n")
+    out = check(runner, "q2-kernel/kernel-fidelidad", "x = 1\n")
     assert out["passed"] is False
-    assert out["tests"] and all("Falta definir `ghz`" in t["message"] for t in out["tests"])
+    assert out["tests"] and all("Falta definir `kernel`" in t["message"] for t in out["tests"])
 
 
 def test_check_reports_an_exception_of_the_function(runner: local.Container) -> None:
-    out = check(runner, "p1-quickstart/ghz", "def ghz(n):\n    return 1 / 0\n")
+    out = check(runner, "q2-kernel/kernel-fidelidad", "def kernel(x, y):\n    return 1 / 0\n")
     assert out["passed"] is False
     assert out["tests"] and all(
         t["message"].startswith("Tu código lanzó ZeroDivisionError: division by zero")
@@ -200,15 +195,17 @@ def test_check_reports_an_exception_of_the_function(runner: local.Container) -> 
 
 
 def test_check_survives_a_syntax_error(runner: local.Container) -> None:
-    out = check(runner, "p1-quickstart/ghz", "def ghz(n:\n")
+    out = check(runner, "q2-kernel/kernel-fidelidad", "def kernel(n:\n")
     assert out["passed"] is False
     assert out["tests"] == []
     assert out["error"].startswith("SyntaxError") and "línea 1" in out["error"]
 
 
 def test_check_returns_what_the_code_prints_once(runner: local.Container) -> None:
-    code = (EXERCISES / "p1-quickstart/ghz/solution.py").read_text() + "\nprint('cargado')\n"
-    out = check(runner, "p1-quickstart/ghz", code)
+    code = (
+        EXERCISES / "q2-kernel/kernel-fidelidad/solution.py"
+    ).read_text() + "\nprint('cargado')\n"
+    out = check(runner, "q2-kernel/kernel-fidelidad", code)
     assert out["passed"] and out["stdout"].count("cargado") == 1
 
 
@@ -221,46 +218,37 @@ def failed_everything(out: dict[str, Any]) -> bool:
 
 
 def test_check_cannot_pass_by_exiting_early(runner: local.Container) -> None:
-    assert failed_everything(check(runner, "p1-quickstart/ghz", "import os\nos._exit(0)\n"))
+    assert failed_everything(
+        check(runner, "q2-kernel/kernel-fidelidad", "import os\nos._exit(0)\n")
+    )
 
 
-GOOD_GHZ = """
-from qiskit import QuantumCircuit
-def good(n):
-    qc = QuantumCircuit(n)
-    qc.h(0)
-    for k in range(n - 1):
-        qc.cx(k, k + 1)
-    qc.measure_all()
-    return qc
-"""
+GOOD_KERNEL = "from qiskit.circuit.library import zz_feature_map\nfrom qiskit.quantum_info import Statevector\n\nmapa = zz_feature_map(2, reps=1)\n\n\ndef estado(x):\n    return Statevector(mapa.assign_parameters(x))\n\n\ndef good(x, y):\n    return float(abs(estado(y).inner(estado(x))) ** 2)\n\n"
 
 
 def test_check_grades_the_submitted_function_not_a_replaced_one(runner: local.Container) -> None:
     code = (
-        GOOD_GHZ
+        GOOD_KERNEL
         + """
 import qgcheck
-qgcheck.learner.ghz = good
-def ghz(n):
-    qc = QuantumCircuit(n)
-    qc.measure_all()
-    return qc
+qgcheck.learner.kernel = good
+def kernel(x, y):
+    return 0.0
 """
     )
-    out = check(runner, "p1-quickstart/ghz", code)
+    out = check(runner, "q2-kernel/kernel-fidelidad", code)
     assert out["passed"] is False
-    assert not {t["name"]: t for t in out["tests"]}["n = 2, 3 y 4"]["passed"]
+    assert not {t["name"]: t for t in out["tests"]}["k(x, x) = 1"]["passed"]
 
 
 def test_check_cannot_be_passed_by_replacing_the_checker(runner: local.Container) -> None:
     code = """
 import builtins, qgcheck, sys
-qgcheck.learner.ghz = lambda n: None
+qgcheck.learner.kernel = lambda x, y: None
 qgcheck.counts = lambda *a, **k: {"0": 1}
 sys.modules["qgcheck"] = None
 """
-    assert failed_everything(check(runner, "p1-quickstart/ghz", code))
+    assert failed_everything(check(runner, "q2-kernel/kernel-fidelidad", code))
 
 
 def test_check_cannot_pass_by_forging_the_report(runner: local.Container) -> None:
@@ -273,17 +261,17 @@ for fd in range(3, 64):
     except OSError:
         pass
 """
-    assert failed_everything(check(runner, "p1-quickstart/ghz", code))
+    assert failed_everything(check(runner, "q2-kernel/kernel-fidelidad", code))
 
 
 def test_check_cannot_pass_by_flooding_the_channel(runner: local.Container) -> None:
     code = "import os\nfor fd in range(3, 64):\n    try: os.write(fd, b'\\xff' * 100000)\n    except OSError: pass\n"
-    assert failed_everything(check(runner, "p1-quickstart/ghz", code))
+    assert failed_everything(check(runner, "q2-kernel/kernel-fidelidad", code))
 
 
 def test_check_processes_are_out_of_reach_of_the_learner_code(runner: local.Container) -> None:
     code = (
-        GOOD_GHZ
+        GOOD_KERNEL
         + """
 import ctypes, os
 checker = os.getppid()
@@ -306,25 +294,25 @@ for pid in (checker, runner):
         print("ptrace")
     else:
         print("denegado")
-ghz = good
+kernel = good
 """
     )
-    out = check(runner, "p1-quickstart/ghz", code)
+    out = check(runner, "q2-kernel/kernel-fidelidad", code)
     assert out["passed"], out
     assert out["stdout"] == "denegado\n" * 8
 
 
 def test_check_learner_code_holds_only_its_own_reply_channel(runner: local.Container) -> None:
     code = (
-        GOOD_GHZ
+        GOOD_KERNEL
         + """
 import os
-def ghz(n):
+def kernel(x, y):
     print(len([f for f in os.listdir("/proc/self/fd") if int(f) > 2]))
-    return good(n)
+    return good(x, y)
 """
     )
-    out = check(runner, "p1-quickstart/ghz", code)
+    out = check(runner, "q2-kernel/kernel-fidelidad", code)
     assert out["passed"], out
     assert set(out["stdout"].split()) == {"2"}
 
@@ -334,36 +322,31 @@ def test_check_cannot_pass_by_prewriting_replies(runner: local.Container) -> Non
 import os
 from qiskit import QuantumCircuit
 from qgcheck.wire import encode, send
-def ghz(n):
-    qc = QuantumCircuit(n)
-    qc.h(0)
-    for k in range(n - 1):
-        qc.cx(k, k + 1)
-    qc.measure_all()
-    return qc
-replies = [{"ghz": True}] + [ghz(n) for n in (2, 5, 2, 3, 4, 5, 7, 5)]
+def kernel(x, y):
+    return 1.0
+replies = [{"kernel": True}] + [1.0] * 8
 for fd in range(255, 2, -1):
     for reply in replies:
         try:
             send(fd, {"value": encode(reply)})
         except Exception:
             pass
-del ghz
+del kernel
 """
-    assert failed_everything(check(runner, "p1-quickstart/ghz", code))
+    assert failed_everything(check(runner, "q2-kernel/kernel-fidelidad", code))
 
 
 def test_check_does_not_import_what_the_learner_plants(runner: local.Container) -> None:
     code = (
-        GOOD_GHZ
+        GOOD_KERNEL
         + """
 import os
 for name in ("qiskit", "qiskit_aer", "numpy", "qgcheck", "json"):
     open(f"{name}.py", "w").write("print('PLANTADO')")
-ghz = good
+kernel = good
 """
     )
-    out = check(runner, "p1-quickstart/ghz", code)
+    out = check(runner, "q2-kernel/kernel-fidelidad", code)
     assert out["passed"], out
     assert "PLANTADO" not in out["stdout"]
 

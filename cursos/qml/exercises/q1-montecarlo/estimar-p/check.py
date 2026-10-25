@@ -21,5 +21,6 @@ def test_frecuencia():
 
 
 def test_extremos():
-    assert learner.estimar_p(0.0, 100) == 0, "Con un ángulo extremo la frecuencia no es la esperada."
-    assert learner.estimar_p(np.pi, 100) == 1, "Con un ángulo extremo la frecuencia no es la esperada."
+    for theta, expected in ((0.0, 0), (np.pi, 1)):
+        result = learner.estimar_p(theta, 100)
+        assert result == expected, f"`estimar_p({theta!r}, 100)` devolvió {result!r}; revisa los ángulos extremos."

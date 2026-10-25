@@ -213,7 +213,7 @@ def main() -> None:
         return
     for path, text in outputs.items():
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
+        path.write_text(text, encoding="utf-8", newline="\n")
     total = sum(len(p["lessons"]) for p in PARTS)
     print(
         f"{len(ordered)} de {total} lecciones escritas, {sum(len(les['beats']) for les in ordered)} pasos"

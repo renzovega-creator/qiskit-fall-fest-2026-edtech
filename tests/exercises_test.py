@@ -15,10 +15,8 @@ import io
 import json
 import os
 import re
-import resource
 import sys
 import tempfile
-import textwrap
 import types
 from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
@@ -26,6 +24,8 @@ from typing import Any
 
 import numpy as np
 import pytest
+
+resource = pytest.importorskip("resource", reason="El corrector requiere Linux o macOS")
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT), str(ROOT / "lessons_src")]
@@ -48,26 +48,6 @@ exercises_tool = load_tool("exercises_tool", "exercises.py")
 
 REAL = spec.all_ids()
 
-GHZ_WITHOUT_CHAIN = """
-from qiskit import QuantumCircuit
-def ghz(n):
-    qc = QuantumCircuit(n)
-    qc.h(0)
-    qc.cx(0, 1)
-    qc.measure_all()
-    return qc
-"""
-
-GHZ_WITHOUT_MEASURE = """
-from qiskit import QuantumCircuit
-def ghz(n):
-    qc = QuantumCircuit(n)
-    qc.h(0)
-    for k in range(n - 1):
-        qc.cx(k, k + 1)
-    return qc
-"""
-
 
 def broken(exercise_id: str, old: str, new: str) -> str:
     """Devuelve la solución de referencia con un cambio incorrecto."""
@@ -76,202 +56,14 @@ def broken(exercise_id: str, old: str, new: str) -> str:
     return code.replace(old, new)
 
 
-def mutant(exercise_id: str, name: str) -> str:
-    """Devuelve el código equivocado `tests/mutants/<ejercicio>/<nombre>.py`.
-
-    Cada archivo es un programa completo, no un cambio sobre solution.py: así reescribir la
-    solución de referencia no rompe las pruebas.
-    """
-    return (ROOT / "tests" / "mutants" / exercise_id / f"{name}.py").read_text(encoding="utf-8")
-
-
-def mutants_of(exercise_id: str) -> list[tuple[str, str]]:
-    folder = ROOT / "tests" / "mutants" / exercise_id
-    return [(exercise_id, path.read_text(encoding="utf-8")) for path in sorted(folder.glob("*.py"))]
-
-
 # (ejercicio, código equivocado, texto esperado en algún mensaje de fallo)
 WRONG = [
     (
-        "p1-quickstart/bell-distinto",
-        "from qiskit import QuantumCircuit\nanti = QuantumCircuit(2)\nanti.h(0)\nanti.cx(0, 1)\nanti.z(1)\nanti.measure_all()\n",
-        "Salen ['00', '11']",
+        "q1-montecarlo/estimar-p",
+        broken("q1-montecarlo/estimar-p", 'return conteos.get("1", 0) / shots', "return 0.5"),
+        "Con θ",
     ),
-    ("p1-quickstart/ghz", GHZ_WITHOUT_CHAIN, "Con n = 3 salen ['000', '011']"),
-    ("p1-quickstart/ghz", GHZ_WITHOUT_MEASURE, "falta `measure_all()`"),
-    (
-        "p2-control-clasico/siempre-uno",
-        textwrap.dedent("""
-        from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-        q, c = QuantumRegister(1, "q"), ClassicalRegister(1, "c")
-        siempre_uno = QuantumCircuit(q, c)
-        siempre_uno.h(q[0])
-        siempre_uno.measure(q[0], c[0])
-        siempre_uno.x(q[0])
-        siempre_uno.measure(q[0], c[0])
-     """),
-        "Salen {",
-    ),
-    (
-        "p2-control-clasico/hasta-uno",
-        textwrap.dedent("""
-        from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-        def hasta_uno():
-            q, c = QuantumRegister(1, "q"), ClassicalRegister(1, "c")
-            qc = QuantumCircuit(q, c)
-            qc.h(q[0])
-            qc.measure(q[0], c[0])
-            with qc.while_loop((c, 0)):
-                qc.x(q[0])
-                qc.measure(q[0], c[0])
-            return qc
-     """),
-        "no de una puerta X",
-    ),
-    *[
-        (eid, broken(eid, old, new), expected)
-        for eid, old, new, expected in [
-            (
-                "p2-biblioteca/nlocal-barato",
-                ', entanglement="linear"',
-                "",
-                "Ahora tiene 6 puertas de dos qubits",
-            ),
-            (
-                "p2-biblioteca/parametros-nlocal",
-                "prediccion = 12",
-                "prediccion = 9",
-                "una más que las repeticiones",
-            ),
-            ("p2-biblioteca/sumar", "    qc.initialize(y, b)\n", "", "`sumar(5, 6)` mide"),
-            (
-                "p2-circuitos/familia-theta",
-                "np.linspace(0, np.pi, 21)",
-                "np.linspace(0, np.pi, 11)",
-                "Hay 11 circuitos y deben ser 21",
-            ),
-            (
-                "p2-circuitos/ghz-menos-profundo",
-                "ghz6.cx(1, 5)",
-                "ghz6.cx(0, 5)",
-                "La profundidad es 5",
-            ),
-            ("p2-circuitos/profundidad", "prediccion = 3", "prediccion = 5", "cuenta las capas"),
-            (
-                "p2-medir/bell-1-3",
-                "remove_final_measurements(inplace=False)",
-                "copy()",
-                "no debe tener bits clásicos",
-            ),
-            (
-                "p2-medir/bits-clasicos",
-                "prediccion = 4",
-                "prediccion = 3",
-                "no reutiliza el registro",
-            ),
-            (
-                "p2-medir/qubit-al-bit",
-                "measure([2, 0], [0, 1])",
-                "measure([0, 2], [0, 1])",
-                "Ahora salen ['10']",
-            ),
-            ("p2-observables/magnetizacion", "1 / n", "1", "M_Z vale 4.00"),
-            ("p2-observables/medir-y", "qc.sdg(0)\n    ", "", "Sin el cambio de base"),
-            (
-                "p2-observables/terminos-ising",
-                "prediccion = 7",
-                "prediccion = 8",
-                "pares de vecinos",
-            ),
-            ("p2-operadores/compose-qargs", "qargs=[2, 1]", "qargs=[1, 2]", "Todavía no es `ZXI`"),
-            ("p2-operadores/heisenberg", '"ZZ"', '"XX"', "Con n = 2 los autovalores son"),
-            (
-                "p2-operadores/orden-compose",
-                'orden = "ZX"',
-                'orden = "XZ"',
-                "de derecha a izquierda",
-            ),
-            (
-                "p2-orden-bits/cadena-de-bits",
-                'prediccion = "101"',
-                'prediccion = "011"',
-                "bit del qubit 2",
-            ),
-            (
-                "p2-orden-bits/preparar",
-                "(k >> j) & 1",
-                "(k >> (n - 1 - j)) & 1",
-                "la amplitud está en el índice 10",
-            ),
-            ("p2-orden-bits/preparar-011", "x([0, 1])", "x([1, 2])", "Ahora el estado es ['110']"),
-            (
-                "p2-qasm/instrucciones-qasm",
-                "prediccion = 4",
-                "prediccion = 3",
-                "son dos instrucciones",
-            ),
-            (
-                "p2-qasm/qasm-antiguo",
-                "custom_instructions=qasm2.LEGACY_CUSTOM_INSTRUCTIONS",
-                "strict=True",
-                "Todavía no se importa",
-            ),
-            (
-                "p2-qasm/qpy",
-                "qpy.load(io.BytesIO(datos))[0]",
-                "qpy.load(io.BytesIO(datos))",
-                "`qpy.load` devuelve una lista",
-            ),
-            (
-                "p2-visualizar/barras-esperados",
-                "ejes.bar(etiquetas, valores_esperados(circuito, etiquetas))",
-                "pass",
-                "deberían llamarse como las etiquetas",
-            ),
-            (
-                "p2-visualizar/dibujo-texto",
-                "plot_barriers=False",
-                "plot_barriers=True",
-                "Todavía se ven las barreras",
-            ),
-            (
-                "p2-visualizar/probabilidad-00",
-                "prediccion = 0.5",
-                "prediccion = 0.25",
-                "Tu apuesta está lejos",
-            ),
-            (
-                "p2-control-clasico/corregir-moneda",
-                'prediccion = "0"',
-                'prediccion = "azar"',
-                "Sigue las dos ramas",
-            ),
-            (
-                "p2-cierre/curva-trotter",
-                "range(K + 1)",
-                "range(K)",
-                "Con n = 4 y K = 20, `curva_trotter` devuelve 20 valores",
-            ),
-            (
-                "p1-cierre/paso-trotter",
-                "rzz(2 * J * dt",
-                "rzz(J * dt",
-                "Los ángulos de tu circuito son [0.1, 0.1, 0.1]",
-            ),
-            (
-                "p3-cierre/pasos-maximos",
-                "d <= presupuesto",
-                "d < presupuesto",
-                "`pasos_max` devuelve",
-            ),
-            (
-                "p4-cierre/tiempo-de-validez",
-                "abs(med - ref) > tol",
-                "abs(med - ref) >= tol",
-                "`tiempo_de_validez` devuelve 1",
-            ),
-        ]
-    ],
+    ("q2-kernel/kernel-fidelidad", "def kernel(x, y):\n    return 0.0\n", "kernel("),
 ]
 
 
@@ -283,147 +75,12 @@ def failed(result: dict[str, Any]) -> list[dict[str, Any]]:
     return [t for t in result["tests"] if not t["passed"]]
 
 
-QPY_ON_DISK = (
-    "    with open(f'{__import__(\"uuid\").uuid4().hex}.qpy', 'wb') as archivo:\n"
-    "        qpy.dump(circuito, archivo)\n"
-    "        nombre = archivo.name\n"
-    "    return open(nombre, 'rb').read()"
-)
-
 # Parte 3: (ejercicio, nombre del archivo en tests/mutants/<ejercicio>/, texto esperado en algún mensaje).
-WRONG += [
-    (eid, mutant(eid, name), expected)
-    for eid, name, expected in [
-        ("p3-transpilar/cz-por-nivel", "operador-roto", "ya no implementa el mismo operador"),
-        (
-            "p3-transpilar/pass-manager-completo",
-            "sin-backend",
-            "quedan instrucciones que FakeFez no ejecuta",
-        ),
-        ("p3-transpilar/es-isa", "acepta-todo", "acepta un circuito con `h` y `ccx`"),
-        ("p3-etapas/cx-ghz-linea", "suma-uno", "Con n = 8 y nivel = 0 tu función devuelve"),
-        ("p3-etapas/layout-estrella", "layout-identidad", "el routing inserta 1 swap"),
-        ("p3-etapas/mejor-de-semillas", "otro-circuito", "Con otro circuito"),
-        ("p3-niveles/ecr-por-nivel", "cuenta-cx", "el nivel 3 debería usar menos ecr"),
-        ("p3-niveles/aproximar", "exacto", "salen 3 ecr"),
-        ("p3-niveles/fidelidad", "nivel-fijo", "Con el estado marcado 2 y nivel = 0"),
-        ("p3-target/mi-backend", "par-extra", "`MiBackend` admite cz en los pares"),
-        ("p3-target/anillo-averiado", "par-averiado-barato", "usa los pares [(1, 2)]"),
-        ("p3-target/cadena-n", "par-cierra-anillo", "`cz` queda en los pares"),
-        ("p3-pass-managers/traducir-iones", "sin-base", "Quedan las puertas"),
-        ("p3-pass-managers/cancelar-pares", "solo-h", "Con pares = «S, S†» salen"),
-        ("p3-pass-managers/dd-pm", "qubit-4", "Había 0 x"),
-        (
-            "p3-pases-propios/dag-operaciones",
-            "ultimos-qubits",
-            "la Toffoli del resultado actúa en los qubits",
-        ),
-        ("p3-pases-propios/swap-a-cx", "sustituye-cx", "el circuito cambia"),
-        (
-            "p3-pases-propios/contar-dos-qubits",
-            "sin-clave-si-cero",
-            "Sin puertas de dos qubits escribe n2q",
-        ),
-        ("p3-plugins/listar-metodos", "unitaria-vacia", "`unitaria_metodos` vale []"),
-        ("p3-plugins/routing-method", "basic", "Con metodo = 'basic' salen"),
-        ("p3-plugins/clifford-plugin", "solo-tres", "el resultado queda intacto"),
-    ]
-]
+
 
 # Códigos equivocados que hacen fallar los casos ocultos: (ejercicio, código). Cada mensaje de un
 # caso oculto que falla se compara con la solución de referencia en test_hidden_messages_*.
-MUTANTS = [
-    ("p1-quickstart/ghz", GHZ_WITHOUT_CHAIN),
-    (
-        "p1-quickstart/bell-distinto",
-        "from qiskit import QuantumCircuit\nanti = QuantumCircuit(2)\nanti.x(0)\nanti.measure_all()\n",
-    ),
-    *[
-        (eid, broken(eid, old, new))
-        for eid, old, new in [
-            ("p2-biblioteca/nlocal-barato", '"ry", "cz", reps=1', '"rx", "cz", reps=1'),
-            ("p2-biblioteca/parametros-nlocal", 'n_local(3, "rx", "cz")', 'n_local(3, "ry", "cz")'),
-            ("p2-biblioteca/sumar", "    qc.initialize(y, b)\n", ""),
-            ("p2-biblioteca/sumar", "qc.measure([*b, *cout], res)", "qc.measure(b, res[:4])"),
-            ("p2-circuitos/familia-theta", 'print(len(familia), "circuitos")', "base = familia[0]"),
-            (
-                "p2-circuitos/familia-theta",
-                "np.linspace(0, np.pi, 21)",
-                "np.linspace(0, np.pi, 22)[:-1]",
-            ),
-            (
-                "p2-circuitos/familia-theta",
-                "np.linspace(0, np.pi, 21)",
-                "np.linspace(0, np.pi, 11)",
-            ),
-            ("p2-circuitos/ghz-menos-profundo", "ghz6.cx(1, 5)", "ghz6.ccx(0, 1, 5)"),
-            ("p2-circuitos/profundidad", "qc.z(2)", "qc.y(2)"),
-            ("p2-control-clasico/corregir-moneda", "if_test((c[0], 1))", "if_test((c[0], 0))"),
-            (
-                "p2-control-clasico/hasta-uno",
-                "    with qc.while_loop((c, 0)):\n        qc.h(q[0])\n        qc.measure(q[0], c[0])\n",
-                "",
-            ),
-            ("p2-control-clasico/siempre-uno", "(c[0], 0)", "(c[0], 1)"),
-            (
-                "p2-medir/bell-1-3",
-                "bell13.remove_final_measurements(inplace=False)",
-                "QuantumCircuit(5)",
-            ),
-            ("p2-medir/bell-1-3", "bell13.cx(1, 3)\n", "bell13.cx(1, 3)\nbell13.x(0)\n"),
-            ("p2-medir/bits-clasicos", "qc.x([0, 2])", "qc.x([0, 1])"),
-            ("p2-medir/qubit-al-bit", "emparejado.x(2)", "emparejado.x(1)"),
-            ("p2-observables/magnetizacion", "1 / n", "1"),
-            ("p2-observables/magnetizacion", 'eje="Z"', 'eje="X"'),
-            ("p2-observables/magnetizacion", "num_qubits=n)", "num_qubits=max(n, 2))"),
-            ("p2-observables/medir-y", "qc = preparacion.copy()", "qc = preparacion"),
-            ("p2-observables/medir-y", "    qc.sdg(0)\n", ""),
-            ("p2-observables/terminos-ising", '("X", [i], -1)', '("X", [i], 1)'),
-            ("p2-operadores/compose-qargs", "qargs=[2, 1]", "qargs=[1, 2]"),
-            ("p2-operadores/heisenberg", '"ZZ"', '"XX"'),
-            ("p2-operadores/orden-compose", 'B = Operator(Pauli("Z"))', 'B = Operator(Pauli("Y"))'),
-            ("p2-orden-bits/cadena-de-bits", "circuito.x([0, 2])", "circuito.x([0, 1])"),
-            ("p2-orden-bits/preparar", "(k >> j) & 1", "(k >> (n - 1 - j)) & 1"),
-            ("p2-orden-bits/preparar", "QuantumCircuit(n)", "QuantumCircuit(n + 1)"),
-            ("p2-orden-bits/preparar", "QuantumCircuit(n)", "QuantumCircuit(n, n)"),
-            ("p2-orden-bits/preparar-011", "x([0, 1])", "x([1, 2])"),
-            ("p2-qasm/instrucciones-qasm", "h q[0];", "x q[0];"),
-            ("p2-qasm/qasm-antiguo", "rxx(0.5)", "rxx(0.7)"),
-            (
-                "p2-qasm/qasm-antiguo",
-                "custom_instructions=qasm2.LEGACY_CUSTOM_INSTRUCTIONS",
-                "strict=True",
-            ),
-            ("p2-qasm/qpy", "qpy.load(io.BytesIO(datos))[0]", "qpy.load(io.BytesIO(datos))"),
-            (
-                "p2-qasm/qpy",
-                "    archivo = io.BytesIO()\n    qpy.dump(circuito, archivo)\n    return archivo.getvalue()",
-                QPY_ON_DISK,
-            ),
-            (
-                "p2-visualizar/barras-esperados",
-                "return res.data.evs.flatten()",
-                "return res.data.evs.flatten() * 0",
-            ),
-            ("p2-visualizar/dibujo-texto", "circuito.barrier()\n", ""),
-            ("p2-visualizar/probabilidad-00", "estado.crx(pi / 2, 0, 1)", "estado.crx(pi, 0, 1)"),
-            ("p2-cierre/curva-trotter", "range(K + 1)", "range(K)"),
-            ("p2-cierre/curva-trotter", "trotter(n, J, h, dt, k)", "trotter(n, 1.0, h, dt, k)"),
-            ("p1-cierre/paso-trotter", "rzz(2 * J * dt", "rzz(J * dt"),
-            ("p1-cierre/paso-trotter", "rx(2 * h * dt, 0)", "rx(h * dt, 0)"),
-            ("p3-cierre/pasos-maximos", "d <= presupuesto", "d < presupuesto"),
-            ("p3-cierre/pasos-maximos", "range(1, 11)", "range(1, 9)"),
-            (
-                "p3-cierre/pasos-maximos",
-                "generate_preset_pass_manager(3,",
-                "generate_preset_pass_manager(0,",
-            ),
-            ("p4-cierre/tiempo-de-validez", "abs(med - ref) > tol", "abs(med - ref) >= tol"),
-            ("p4-cierre/tiempo-de-validez", "abs(med - ref)", "med - ref"),
-        ]
-    ],
-    *[m for eid in sorted(e for e in REAL if e.startswith("p3-")) for m in mutants_of(eid)],
-]
+MUTANTS = [(eid, code) for eid, code, _ in WRONG]
 
 
 # El corredor da a un trabajo 10 s con 1/4 de vCPU, unas 4 veces el tiempo de un núcleo, así que un
@@ -879,7 +536,7 @@ def test_every_hidden_case_is_checked_against_a_wrong_answer(exercise_id: str) -
 
 
 def test_run_mode_returns_output_without_tests() -> None:
-    result = grade("p1-quickstart/ghz", "print('hola')", mode="run")
+    result = grade("q2-kernel/kernel-fidelidad", "print('hola')", mode="run")
     assert (
         result["stdout"] == "hola\n"
         and result["tests"] == []
@@ -889,13 +546,13 @@ def test_run_mode_returns_output_without_tests() -> None:
 
 
 def test_missing_name_is_explained() -> None:
-    result = grade("p1-quickstart/ghz", "x = 1")
+    result = grade("q2-kernel/kernel-fidelidad", "x = 1")
     assert not result["passed"]
-    assert all("Falta definir `ghz`" in t["message"] for t in result["tests"])
+    assert all("Falta definir `kernel`" in t["message"] for t in result["tests"])
 
 
 def test_syntax_error_names_the_line() -> None:
-    result = grade("p1-quickstart/ghz", "x = 1\ndef f(:\n")
+    result = grade("q2-kernel/kernel-fidelidad", "x = 1\ndef f(:\n")
     assert (
         result["error"].startswith("SyntaxError")
         and "línea 2" in result["error"]
@@ -904,59 +561,63 @@ def test_syntax_error_names_the_line() -> None:
 
 
 def test_runtime_error_names_the_learner_line() -> None:
-    result = grade("p1-quickstart/ghz", "x = 1\nprint(y)\n")
+    result = grade("q2-kernel/kernel-fidelidad", "x = 1\nprint(y)\n")
     assert result["error"] == "NameError: name 'y' is not defined (línea 2: print(y))"
 
 
 def test_failure_inside_a_case_is_reported_as_the_learner_code() -> None:
-    result = grade("p1-quickstart/ghz", "def ghz(n):\n    raise ValueError('no sé')\n")
+    result = grade(
+        "q2-kernel/kernel-fidelidad", "def kernel(x, y):\n    raise ValueError('no sé')\n"
+    )
     assert any("Tu código lanzó ValueError: no sé" in t["message"] for t in failed(result))
-    assert all("Pasó al usar `ghz(" in t["message"] for t in failed(result)), [
+    assert all("Pasó al usar `kernel(" in t["message"] for t in failed(result)), [
         t["message"] for t in failed(result)
     ]
 
 
-def test_circuit_without_measurement_names_the_call_that_built_it() -> None:
+def test_circuit_without_measurement_names_the_call_that_built_it(fixture_dir: Path) -> None:
+    write_exercise(
+        fixture_dir,
+        "leccion/uno",
+        check="from qgcheck import counts, learner\ndef test_measurement():\n    assert counts(learner.ghz(3))\n",
+    )
     result = grade(
-        "p1-quickstart/ghz",
+        "leccion/uno",
         "from qiskit import QuantumCircuit\ndef ghz(n):\n    return QuantumCircuit(n)\n",
     )
-    messages = [t["message"] for t in failed(result) if not t["visible"]]
+    messages = [t["message"] for t in failed(result)]
     assert any("no mide ningún qubit" in m and "Pasó al usar `ghz(" in m for m in messages), (
         messages
     )
 
 
-def test_learner_data_that_cannot_be_rebuilt_is_a_broken_channel() -> None:
-    code = textwrap.dedent(
-        """
-        from qiskit.quantum_info import Statevector
-
-        class Torcido(Statevector):
-            def dims(self, qargs=None):
-                return (3,)
-
-        psi = Torcido([1, 0])
-        prediccion = 0.5
-        """
+def test_learner_data_that_cannot_be_rebuilt_is_a_broken_channel(fixture_dir: Path) -> None:
+    write_exercise(
+        fixture_dir,
+        "leccion/uno",
+        check="from qgcheck import learner\ndef test_state():\n    assert learner.psi is not None\n",
     )
-    messages = [t["message"] for t in failed(grade("p2-visualizar/probabilidad-00", code))]
-    assert messages
-    assert set(messages) == {"Tu código terminó o rompió el canal antes de dar un resultado."}
+    code = "from qiskit.quantum_info import Statevector\nclass Torcido(Statevector):\n    def dims(self, qargs=None):\n        return (3,)\npsi = Torcido([1, 0])\n"
+    messages = [t["message"] for t in failed(grade("leccion/uno", code))]
+    assert messages and set(messages) == {
+        "Tu código terminó o rompió el canal antes de dar un resultado."
+    }
 
 
 def test_infinite_loop_is_stopped() -> None:
-    result = grade("p1-quickstart/ghz", "while True:\n    pass\n", timeout=2)
+    result = grade("q2-kernel/kernel-fidelidad", "while True:\n    pass\n", timeout=2)
     assert result["error"] == "Tu código tardó más de 2 s y se detuvo." and not result["passed"]
 
 
 def test_oversized_code_is_refused() -> None:
-    result = grade("p1-quickstart/ghz", "x = 1\n" * 10_000)
+    result = grade("q2-kernel/kernel-fidelidad", "x = 1\n" * 10_000)
     assert "supera" in result["error"] and not result["passed"]
 
 
 def test_blocked_module_cannot_be_imported() -> None:
-    result = grade("p1-quickstart/ghz", "import qiskit_aer", mode="run", block=("qiskit_aer",))
+    result = grade(
+        "q2-kernel/kernel-fidelidad", "import qiskit_aer", mode="run", block=("qiskit_aer",)
+    )
     assert result["error"].startswith("ModuleNotFoundError: import of qiskit_aer halted")
 
 
@@ -1170,13 +831,16 @@ def post(
 
 
 def test_server_grades_the_solution_and_a_wrong_answer(server: str) -> None:
-    solution = (ROOT / "exercises" / "p1-quickstart" / "ghz" / "solution.py").read_text(
+    solution = (spec.folder("q2-kernel/kernel-fidelidad") / "solution.py").read_text(
         encoding="utf-8"
     )
-    status, ok = post(server, {"exercise": "p1-quickstart/ghz", "code": solution, "mode": "check"})
+    status, ok = post(
+        server, {"exercise": "q2-kernel/kernel-fidelidad", "code": solution, "mode": "check"}
+    )
     assert (status, ok["passed"]) == (200, True)
     status, bad = post(
-        server, {"exercise": "p1-quickstart/ghz", "code": "def ghz(n):\n    return 1\n"}
+        server,
+        {"exercise": "q2-kernel/kernel-fidelidad", "code": "def kernel(x, y):\n    return 0.0\n"},
     )
     assert status == 200 and not bad["passed"]
 
@@ -1187,9 +851,14 @@ def test_server_serves_the_site_and_rejects_bad_requests(server: str) -> None:
     assert b"<title>" in urllib.request.urlopen(server + "/index.html").read()
     assert post(server, {"exercise": "../x", "code": ""})[0] == 400
     assert (
-        post(server, {"exercise": "p1-quickstart/ghz", "code": ""}, content_type="text/plain")[0]
+        post(
+            server,
+            {"exercise": "q2-kernel/kernel-fidelidad", "code": ""},
+            content_type="text/plain",
+        )[0]
         == 403
     )
     assert (
-        post(server, {"exercise": "p1-quickstart/ghz", "code": ""}, host="evil.example")[0] == 403
+        post(server, {"exercise": "q2-kernel/kernel-fidelidad", "code": ""}, host="evil.example")[0]
+        == 403
     )

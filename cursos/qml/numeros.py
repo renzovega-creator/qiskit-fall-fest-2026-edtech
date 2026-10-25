@@ -1,6 +1,6 @@
 """Calcula las cifras que muestran las lecciones del curso QML (se pegan a mano en parte*.py).
 
-    python cursos/qml/numeros.py
+python cursos/qml/numeros.py
 """
 
 import time
@@ -27,9 +27,17 @@ print("RY(pi/3), 100 shots:", c, "P(1) exacta =", round(np.sin(theta / 2) ** 2, 
 for n in (10, 100, 1000, 10000):
     errs = []
     for s in range(20):
-        k = StatevectorSampler(seed=s).run([qc], shots=n).result()[0].data.meas.get_counts().get("1", 0)
+        k = (
+            StatevectorSampler(seed=s)
+            .run([qc], shots=n)
+            .result()[0]
+            .data.meas.get_counts()
+            .get("1", 0)
+        )
         errs.append(abs(k / n - 0.25))
-    print(f"shots={n:>5}  error medio={np.mean(errs):.4f}  sqrt(p(1-p)/N)={np.sqrt(0.25 * 0.75 / n):.4f}")
+    print(
+        f"shots={n:>5}  error medio={np.mean(errs):.4f}  sqrt(p(1-p)/N)={np.sqrt(0.25 * 0.75 / n):.4f}"
+    )
 
 rng = np.random.default_rng(7)
 for n in (10, 100, 1000, 10000):
@@ -47,5 +55,10 @@ t = time.time()
 qsvc = QSVC(quantum_kernel=FidelityQuantumKernel(feature_map=fm)).fit(Xtr, ytr)
 print("QSVC zz  test acc =", round(qsvc.score(Xte, yte), 3), f"({time.time() - t:.2f} s)")
 kern = FidelityQuantumKernel(feature_map=fm)
-print("k(x0,x0) =", round(float(kern.evaluate(Xtr[:1])[0, 0]), 4), " k(x0,x1) =", round(float(kern.evaluate(Xtr[:1], Xtr[1:2])[0, 0]), 4))
+print(
+    "k(x0,x0) =",
+    round(float(kern.evaluate(Xtr[:1])[0, 0]), 4),
+    " k(x0,x1) =",
+    round(float(kern.evaluate(Xtr[:1], Xtr[1:2])[0, 0]), 4),
+)
 print("x0 =", Xtr[0].round(3), " x1 =", Xtr[1].round(3))
