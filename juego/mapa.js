@@ -26,17 +26,41 @@ function ancestros(id, acc = new Set()) {
 }
 
 // Las aristas salen por debajo de la etiqueta cuando bajan, para no tachar el texto.
-function arista(a, b) {
+function arista(a, b, organica) {
   const baja = b.y > a.y + 40;
   const x1 = a.x;
   const y1 = baja ? a.y + 64 : a.y;
   const dx = b.x - x1;
   const dy = b.y - y1;
   const d = Math.hypot(dx, dy);
-  const [sx, sy] = baja
-    ? [x1, y1]
-    : [x1 + (dx / d) * (R + 8), y1 + (dy / d) * (R + 8)];
-  return [sx, sy, b.x - (dx / d) * (R + 10), b.y - (dy / d) * (R + 10)];
+  const sx = baja ? x1 : x1 + (dx / d) * (R + 8);
+  const sy = baja ? y1 : y1 + (dy / d) * (R + 8);
+  const ex = b.x - (dx / d) * (R + 10);
+  const ey = b.y - (dy / d) * (R + 10);
+  if (!organica)
+    return {
+      d: `M${sx} ${sy} L${ex} ${ey}`,
+      medioX: (sx + ex) / 2,
+      medioY: (sy + ey) / 2,
+    };
+  const vx = ex - sx;
+  const vy = ey - sy;
+  const longitud = Math.hypot(vx, vy) || 1;
+  const nx = -vy / longitud;
+  const ny = vx / longitud;
+  const clave = `${a.id}:${b.id}`;
+  const lado = [...clave].reduce((suma, letra) => suma + letra.charCodeAt(0), 0) % 2 ? 1 : -1;
+  const curva = Math.min(52, Math.max(12, longitud * 0.12)) * lado;
+  const x1c = sx + vx / 3 + nx * curva;
+  const y1c = sy + vy / 3 + ny * curva;
+  const x2c = sx + (2 * vx) / 3 + nx * curva;
+  const y2c = sy + (2 * vy) / 3 + ny * curva;
+  const f = (valor) => valor.toFixed(1);
+  return {
+    d: `M${f(sx)} ${f(sy)} C${f(x1c)} ${f(y1c)} ${f(x2c)} ${f(y2c)} ${f(ex)} ${f(ey)}`,
+    medioX: (sx + ex) / 2 + nx * curva * 0.75,
+    medioY: (sy + ey) / 2 + ny * curva * 0.75,
+  };
 }
 
 function estrella(r) {
@@ -123,6 +147,8 @@ export function crearMapa(
   let sel = null;
   let destacar = null;
   let resaltar = true;
+  let pulsoSeleccion = false;
+  const organica = Boolean(raiz.closest(".constelacion-sec"));
   // El encuadre deja margen a los lados: ahí flotan la meta y la ficha de la habilidad.
   const INICIO = { x: -270, y: -90, w: W + 540, h: H + 150 };
   let vb = { ...INICIO };
@@ -314,6 +340,8 @@ export function crearMapa(
   });
 
   function dibujar() {
+    const animarSeleccion = pulsoSeleccion && !quieto.matches;
+    pulsoSeleccion = false;
     const estados = Object.fromEntries(
       HABILIDADES.map((x) => [x.id, estadoDe(x)]),
     );
@@ -346,24 +374,23 @@ export function crearMapa(
     for (const b of HABILIDADES) {
       for (const r of b.requiere) {
         const a = porId[r];
-        const [x1, y1, x2, y2] = arista(a, b);
+        const curva = arista(a, b, organica);
         const puente = b.puente?.[r];
+        const enfocada = enfoque && enfoque.has(a.id) && enfoque.has(b.id);
         const clase = [
           "arista",
           puente && "puente",
           b.proximamente && "tenue",
-          enfoque &&
-            (enfoque.has(a.id) && enfoque.has(b.id) ? "resaltada" : "atenuada"),
+          enfoque && (enfocada ? "resaltada" : "atenuada"),
+          animarSeleccion && enfocada && "pulso-seleccion",
         ]
           .filter(Boolean)
           .join(" ");
         aristas.push(
-          s("line", {
+          s("path", {
             class: clase,
-            x1,
-            y1,
-            x2,
-            y2,
+            d: curva.d,
+            fill: "none",
             "marker-end": "url(#flecha)",
           }),
         );
@@ -371,8 +398,8 @@ export function crearMapa(
           etiquetas.push(
             s("text", {
               class: `etq-puente${enfoque && !(enfoque.has(a.id) && enfoque.has(b.id)) ? " atenuada" : ""}`,
-              x: x1 + 10,
-              y: (y1 + y2) / 2 + 4,
+              x: curva.medioX + 10,
+              y: curva.medioY + 4,
               text: puente,
             }),
           );
@@ -385,6 +412,7 @@ export function crearMapa(
         "nodo",
         `e-${e}`,
         x.id === sel && "sel",
+        animarSeleccion && x.id === sel && "pulso-seleccion",
         pre.has(x.id) && "pre",
         enfoque && !enfoque.has(x.id) && "atenuada",
         x.id === destacar && "recien",
@@ -401,7 +429,7 @@ export function crearMapa(
           "data-id": x.id,
           "aria-pressed": String(x.id === sel),
           "aria-label": `${x.nombre}: ${nombreEstado(e)}${pre.has(x.id) ? ", requisito de la selección" : ""}`,
-          onclick: () => seleccionar(x.id),
+          onclick: () => seleccionar(x.id, { animar: true }),
           onkeydown: (ev) => {
             if (ev.key === "Enter" || ev.key === " ") {
               ev.preventDefault();
@@ -507,9 +535,13 @@ export function crearMapa(
   }
 
   // Al abrir el mapa se selecciona la meta sin atenuar el resto; un clic sí enfoca sus requisitos.
-  function seleccionar(id, { avisar = true, resaltar: r = true } = {}) {
+  function seleccionar(
+    id,
+    { avisar = true, resaltar: r = true, animar = false } = {},
+  ) {
     sel = id;
     resaltar = r;
+    pulsoSeleccion = animar;
     dibujar();
     if (avisar && id) alSeleccionar?.(porId[id]);
   }
