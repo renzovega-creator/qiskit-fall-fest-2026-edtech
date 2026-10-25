@@ -65,6 +65,6 @@
 - Consumes: cambios revisados en `main` y el flujo de publicación existente.
 - Produces: versión desplegada con el mapa actualizado; `main` mantiene el código fuente y los documentos de diseño/plan.
 
-- [ ] **Step 1: Generar la salida de Pages** usando el script existente a partir de `main` y revisar los archivos producidos del mapa.
-- [ ] **Step 2: Integrar en Git** el diseño, el plan y los cambios de la interfaz en `main`; publicar únicamente la salida generada en `gh-pages`.
-- [ ] **Step 3: Confirmar el resultado** con el estado de ambas ramas, el resultado del flujo de publicación y una solicitud HTTP de la página actualizada.
+- [x] **Step 1: Generar la salida de Pages** usando el script existente a partir de `main` y revisar los archivos producidos del mapa.
+- [x] **Step 2: Integrar en Git** el diseño, el plan y los cambios de la interfaz en `main`; publicar únicamente la salida generada en `gh-pages`.
+- [x] **Step 3: Confirmar el resultado** con el estado de ambas ramas, el resultado del flujo de publicación y una solicitud HTTP de la página actualizada.
