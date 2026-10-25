@@ -65,7 +65,7 @@ section { margin:34px 0 0; }
 .mapa[data-vista="lista"] .mapa-lienzo, .mapa[data-vista="lista"] .zooms, .mapa[data-vista="mapa"] .mapa-lista { display:none; }
 .mapa-lienzo { border-radius:14px; overflow:hidden;
                background:radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--acc2) 7%, var(--stage)), var(--stage) 70%); }
-svg.constelacion { display:block; width:100%; height:auto; aspect-ratio:900 / 680; touch-action:none; cursor:grab; user-select:none; }
+svg.constelacion { display:block; width:100%; height:auto; aspect-ratio:900 / 680; touch-action:pan-y; cursor:grab; user-select:none; }
 svg.constelacion:active { cursor:grabbing; }
 .cielo circle { fill:var(--muted); opacity:.35; }
 .banda rect { fill:var(--box-bg); stroke:var(--line); stroke-dasharray:3 6; }

@@ -19,6 +19,20 @@ import { codigo, ejecutar, phi } from "./qiskit.js";
 
 const P25 = 0.25; // P(1) de la moneda de «Cazar el ruido»: sin²(π/6)
 const media = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
+function textoConMath(texto) {
+  const fragmento = document.createDocumentFragment();
+  const patron = /\$([^$]+)\$/g;
+  let desde = 0;
+  for (const m of texto.matchAll(patron)) {
+    fragmento.append(document.createTextNode(texto.slice(desde, m.index)));
+    const formula = document.createElement("span");
+    formula.innerHTML = window.katex.renderToString(m[1], { throwOnError: false });
+    fragmento.append(formula);
+    desde = m.index + m[0].length;
+  }
+  fragmento.append(document.createTextNode(texto.slice(desde)));
+  return fragmento;
+}
 const desv = (xs) => {
   const m = media(xs);
   return Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / (xs.length - 1));
@@ -234,9 +248,9 @@ const m1 = {
     const esperado = 200 * res.p1;
     const dentro = Math.abs(res.p1 - v.objetivo) <= 0.02;
     return [
-      pred == null ? null : `Predijiste ${pred} unos; salieron ${res.unos}.`,
-      `La regla de Born da P(1) = sin²(θ/2) = ${fmt(res.p1, 3)}: se esperaban ${fmt(esperado, 0)} ± ${fmt(sig, 0)} unos (un error típico, √(N·p·(1−p))).`,
-      `La frecuencia observada (${fmt(res.unos / 200, 3)}) no es la probabilidad: con otra semilla saldría otro número cerca de ${fmt(esperado, 0)}.`,
+      pred == null ? null : `Predijiste ${pred} ${pred === 1 ? "uno" : "unos"}; salieron ${res.unos}.`,
+      `La regla de Born da $P(1)=\\sin^2(\\theta/2)=${fmt(res.p1, 3)}$: se esperaban $${fmt(esperado, 0)}\\pm${fmt(sig, 0)}$ unos (un error típico, $\\sqrt{N\\,p(1-p)}$).`,
+      `La frecuencia observada, $\\hat p=${fmt(res.unos / 200, 3)}$, no es la probabilidad: con otra semilla saldría otro número cerca de ${fmt(esperado, 0)}.`,
       dentro
         ? `Tu moneda da ${pct(res.p1, 1)} y el objetivo es ${pct(v.objetivo)}: está dentro del margen. Pulsa «Comprobar el reto».`
         : `Tu moneda da ${pct(res.p1, 1)} y el objetivo es ${pct(v.objetivo)}: todavía fuera del margen de ± 2 puntos.`,
@@ -1191,7 +1205,11 @@ export function abrirMision(
           spec
             .feedback(ctx)
             .filter(Boolean)
-            .map((t) => h("li", { text: t })),
+            .map((t) => {
+              const li = h("li");
+              li.append(textoConMath(t));
+              return li;
+            }),
         ),
       );
       resultadoReto.replaceChildren();

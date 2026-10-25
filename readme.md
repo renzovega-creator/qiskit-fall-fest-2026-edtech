@@ -49,7 +49,8 @@ subtítulos.
 ### 3. Practica con las misiones
 
 Abre **Practica** para ver el mapa de habilidades: arrástralo para moverte,
-acércate con la rueda o con − y +, o cambia a la vista **Lista**. Haz clic en
+acércate con **Mayús + rueda** o con − y +, o cambia a la vista **Lista**.
+En móvil, puedes pellizcar para acercar; el desplazamiento vertical de la página sigue funcionando. Haz clic en
 una habilidad para ver su ficha y su misión.
 
 ![Mapa de habilidades a pantalla completa, con la ficha de «Regla de Born» abierta y sus conexiones resaltadas](docs/img/mapa.png)
@@ -120,3 +121,20 @@ Cómo correr la web en tu equipo, editar las lecciones y publicarla:
 
 QuantumShot usa el motor de lecciones de
 [qiskit-guides](https://github.com/PedroRojasF/qiskit-guides-compartido).
+
+## GitHub Pages y Cloudflare Workers
+
+GitHub Pages publica la web estática: lecciones, animaciones y actividades que
+se ejecutan en el navegador; el progreso se guarda en ese navegador. Por sí
+solo, no ofrece cuentas ni permite ejecutar o corregir código con Qiskit en el
+servidor.
+
+Para esas funciones se necesita un backend. El Cloudflare Worker del proyecto
+atiende las cuentas y el progreso sincronizado, y recibe los ejercicios para
+que un contenedor aislado los ejecute con Qiskit. El Worker también puede servir
+los archivos de la web, manteniendo la página y el backend en el mismo origen.
+
+La publicación en Pages y el despliegue completo del Worker se explican en
+[Desarrollo](docs/desarrollo.md) y [Desplegar tu propia copia](docs/deploy.md).
+Conectar Pages a un Worker separado requiere adaptar las rutas y la
+configuración de origen; no basta con cambiar una URL.
