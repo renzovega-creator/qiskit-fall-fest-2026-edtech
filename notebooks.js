@@ -4,7 +4,7 @@ window.notebookHelp = (parent) => {
   p.className = "mhow";
   p.append("Cómo ejecutar los cuadernos: clona el ");
   const a = document.createElement("a");
-  a.href = "https://github.com/PedroRojasF/qiskit-guides";
+  a.href = "https://github.com/renzovega-creator/qiskit-fall-fest-2026-edtech";
   a.target = "_blank";
   a.rel = "noopener";
   a.textContent = "repositorio";

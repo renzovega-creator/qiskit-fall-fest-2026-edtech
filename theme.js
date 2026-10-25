@@ -27,7 +27,9 @@
     savedPal = read(PAL);
   root.dataset.theme =
     savedMode === "light" || savedMode === "dark" ? savedMode : "light";
-  root.dataset.paleta = Object.hasOwn(PALETAS, savedPal) ? savedPal : "catppuccin";
+  root.dataset.paleta = Object.hasOwn(PALETAS, savedPal)
+    ? savedPal
+    : "catppuccin";
 
   const modeLabel = () => (root.dataset.theme === "light" ? "☾" : "☀");
   const modeTitle = () =>

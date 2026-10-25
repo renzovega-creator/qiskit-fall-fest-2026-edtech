@@ -217,7 +217,12 @@ export function crearMapa(
     const w = Math.min(Math.max(base.w * f, 320), INICIO.w * 1.4);
     const k = w / base.w;
     irA(
-      { x: cx - (cx - base.x) * k, y: cy - (cy - base.y) * k, w, h: base.h * k },
+      {
+        x: cx - (cx - base.x) * k,
+        y: cy - (cy - base.y) * k,
+        w,
+        h: base.h * k,
+      },
       suave,
     );
   }
@@ -430,7 +435,14 @@ export function crearMapa(
         // Las flechas puente bajan de la fila clásica a la cuántica: ámbar arriba, cian abajo.
         s(
           "linearGradient",
-          { id: "g-puente", gradientUnits: "userSpaceOnUse", x1: 0, y1: 170, x2: 0, y2: 330 },
+          {
+            id: "g-puente",
+            gradientUnits: "userSpaceOnUse",
+            x1: 0,
+            y1: 170,
+            x2: 0,
+            y2: 330,
+          },
           s("stop", { offset: "0%", class: "g-clasico" }),
           s("stop", { offset: "100%", class: "g-cuantico" }),
         ),
