@@ -148,7 +148,8 @@ export function crearMapa(
   let destacar = null;
   let resaltar = true;
   let pulsoSeleccion = false;
-  const organica = Boolean(raiz.closest(".constelacion-sec"));
+  const seccion = raiz.closest(".constelacion-sec");
+  const organica = Boolean(seccion);
   // El encuadre deja margen a los lados: ahí flotan la meta y la ficha de la habilidad.
   const INICIO = { x: -270, y: -90, w: W + 540, h: H + 150 };
   let vb = { ...INICIO };
@@ -258,6 +259,10 @@ export function crearMapa(
   function cambiarVista(v) {
     vista = v;
     raiz.dataset.vista = v;
+    if (seccion) {
+      seccion.dataset.vista = v;
+      document.body.dataset.mapaVista = v;
+    }
     for (const b of barra.querySelectorAll("[data-vista]"))
       b.setAttribute("aria-pressed", String(b.dataset.vista === v));
   }
