@@ -213,53 +213,48 @@ function vistaMapa(raiz, { destacar } = {}) {
   const abiertasSinHacer = MISIONES.filter(
     (m) => desbloqueada(st, m) && !superada(st, m.id),
   );
+  const siguiente = meta
+    ? [
+        h("p", {
+          class: "kicker",
+          text: st.evidencias.length ? "Tu próxima meta" : "Empieza aquí",
+        }),
+        h("h2", { text: meta.mision.titulo }),
+        h("p", { class: "lead", text: meta.mision.diseno.objetivo }),
+        h(
+          "p",
+          { class: "abre" },
+          h("b", { text: "Te permitirá: " }),
+          meta.abre.length
+            ? `desbloquear ${meta.abre.map((x) => `«${x.titulo}»`).join(" y ")}.`
+            : meta.mision.diseno.desbloquea,
+        ),
+        h("a", {
+          class: "primario boton grande",
+          href: `#mision=${meta.mision.id}`,
+          text: `${st.misiones[meta.mision.id]?.inicio ? "Continuar" : "Empezar"} · ${meta.mision.minutos} min →`,
+        }),
+        abiertasSinHacer.length > 1
+          ? h("p", {
+              class: "nota",
+              text: `Tienes ${abiertasSinHacer.length} misiones abiertas: elige la que más te llame.`,
+            })
+          : null,
+      ]
+    : [
+        h("p", { class: "kicker", text: "Ruta completada" }),
+        h("p", {
+          class: "lead",
+          text: "Puedes repetir las misiones con otras configuraciones, compartir tu portafolio o esperar al nivel 3 (gradientes ↔ parameter-shift).",
+        }),
+        h("a", {
+          class: "primario boton grande",
+          href: "#portafolio",
+          text: "Ver mi portafolio →",
+        }),
+      ];
 
   raiz.replaceChildren(
-    h(
-      "section",
-      { class: "meta" },
-      meta
-        ? [
-            h("p", {
-              class: "kicker",
-              text: st.evidencias.length ? "Tu próxima meta" : "Empieza aquí",
-            }),
-            h("h1", { text: meta.mision.titulo }),
-            h("p", { class: "lead", text: meta.mision.diseno.objetivo }),
-            h(
-              "p",
-              { class: "abre" },
-              h("b", { text: "Te permitirá: " }),
-              meta.abre.length
-                ? `desbloquear ${meta.abre.map((x) => `«${x.titulo}»`).join(" y ")}.`
-                : meta.mision.diseno.desbloquea,
-            ),
-            h("a", {
-              class: "primario boton grande",
-              href: `#mision=${meta.mision.id}`,
-              text: `${st.misiones[meta.mision.id]?.inicio ? "Continuar" : "Empezar"} · ${meta.mision.minutos} min →`,
-            }),
-            abiertasSinHacer.length > 1
-              ? h("p", {
-                  class: "nota",
-                  text: `Tienes ${abiertasSinHacer.length} misiones abiertas: elige la que más te llame.`,
-                })
-              : null,
-          ]
-        : [
-            h("p", { class: "kicker", text: "Ruta completada" }),
-            h("h1", { text: "Superaste la ruta Del ML al QML" }),
-            h("p", {
-              class: "lead",
-              text: "Puedes repetir las misiones con otras configuraciones, compartir tu portafolio o esperar al nivel 3 (gradientes ↔ parameter-shift).",
-            }),
-            h("a", {
-              class: "primario boton grande",
-              href: "#portafolio",
-              text: "Ver mi portafolio →",
-            }),
-          ],
-    ),
     h(
       "section",
       { class: "constelacion-sec" },
@@ -272,7 +267,24 @@ function vistaMapa(raiz, { destacar } = {}) {
           text: "Cada estrella es una habilidad. Las flechas marcan requisitos; las de trazo largo, puentes entre una idea clásica y su par cuántico.",
         }),
       ),
+      h("p", { class: "mapa-etiqueta", text: "Red de habilidades · QuantumShot" }),
+      h(
+        "section",
+        { class: "meta mapa-meta" },
+        h("h1", { text: "Tu conocimiento, en conexión." }),
+        h("p", { class: "lead", text: "Estadística · Machine learning · Cuántica" }),
+        h("div", { class: "meta-siguiente" }, siguiente),
+      ),
       h("div", { class: "mapa-y-detalle" }, caja, detalle),
+      h("button", {
+        type: "button",
+        class: "mapa-bajar",
+        "aria-label": "Bajar a las misiones",
+        text: "↓",
+        onclick: () => document.querySelector(".misiones-sec")?.scrollIntoView({
+          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        }),
+      }),
     ),
     h(
       "section",
@@ -309,7 +321,8 @@ function vistaMapa(raiz, { destacar } = {}) {
   const inicial = destacar ?? meta?.mision.demuestra[0] ?? "t-kshots";
   mapa.actualizar({ destacar });
   mapa.seleccionar(inicial, { resaltar: false });
-  detalle.classList.remove("abierto");
+  if (matchMedia("(max-width:700px), (max-aspect-ratio:1 / 1)").matches)
+    detalle.classList.remove("abierto");
 }
 
 // ---------- rutas ----------

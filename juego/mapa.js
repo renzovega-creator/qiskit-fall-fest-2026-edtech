@@ -13,6 +13,17 @@ const BANDAS = {
   puentes: [520, 668],
 };
 
+const POSICIONES_RED = {
+  "c-prob": { x: 130, y: 330 },
+  "c-mc": { x: 310, y: 190 },
+  "c-rbf": { x: 760, y: 220 },
+  "q-born": { x: 520, y: 370 },
+  "q-shots": { x: 310, y: 540 },
+  "q-kernel": { x: 790, y: 440 },
+  "t-kshots": { x: 565, y: 665 },
+  "g-grad": { x: 895, y: 600 },
+};
+
 const porId = Object.fromEntries(HABILIDADES.map((x) => [x.id, x]));
 
 function ancestros(id, acc = new Set()) {
@@ -130,6 +141,74 @@ function fondo() {
   ]);
 }
 
+function redAmbiente(limites) {
+  let semilla = 37;
+  const azar = () => ((semilla = (semilla * 48271) % 2147483647) - 1) / 2147483646;
+  const gauss = () => {
+    const radio = Math.sqrt(-2 * Math.log(Math.max(azar(), 1e-9)));
+    return radio * Math.cos(2 * Math.PI * azar());
+  };
+  const grupos = [
+    { x: 0.12, y: 0.36 },
+    { x: 0.36, y: 0.28 },
+    { x: 0.57, y: 0.48 },
+    { x: 0.76, y: 0.36 },
+    { x: 0.39, y: 0.78 },
+  ];
+  const puntos = Array.from({ length: 150 }, (_, i) => {
+    const grupo = Math.floor(i / 30);
+    const centro = grupos[grupo];
+    return {
+      grupo,
+      x: limites.x + Math.max(0.015, Math.min(0.985, centro.x + gauss() * 0.105)) * limites.w,
+      y: limites.y + Math.max(0.035, Math.min(0.965, centro.y + gauss() * 0.13)) * limites.h,
+    };
+  });
+  const enlaces = [];
+  const usados = new Set();
+  const unir = (i, j) => {
+    const llave = `${Math.min(i, j)}:${Math.max(i, j)}`;
+    if (usados.has(llave)) return;
+    usados.add(llave);
+    const a = puntos[i];
+    const b = puntos[j];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const largo = Math.hypot(dx, dy) || 1;
+    const curva = (azar() < 0.5 ? -1 : 1) * Math.min(34, largo * 0.2);
+    const cx = (a.x + b.x) / 2 - (dy / largo) * curva;
+    const cy = (a.y + b.y) / 2 + (dx / largo) * curva;
+    enlaces.push(s("path", {
+      class: "malla-enlace",
+      d: `M${a.x.toFixed(1)} ${a.y.toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`,
+    }));
+  };
+  for (let i = 0; i < puntos.length; i++) {
+    const cercanos = puntos
+      .map((punto, j) => ({ j, d: Math.hypot(punto.x - puntos[i].x, punto.y - puntos[i].y) }))
+      .filter(({ j, d }) => j !== i && puntos[j].grupo === puntos[i].grupo && d < 170)
+      .sort((a, b) => a.d - b.d)
+      .slice(0, 3);
+    for (const { j } of cercanos) unir(i, j);
+    if (i % 8 === 0) {
+      const puente = puntos
+        .map((punto, j) => ({ j, d: Math.hypot(punto.x - puntos[i].x, punto.y - puntos[i].y) }))
+        .filter(({ j }) => j !== i && puntos[j].grupo !== puntos[i].grupo)
+        .sort((a, b) => a.d - b.d)[0];
+      if (puente) unir(i, puente.j);
+    }
+  }
+  return s("g", { class: "red-ambiente", "aria-hidden": "true" }, [
+    ...enlaces,
+    ...puntos.map((punto, i) => s("circle", {
+      class: `malla-nodo ${i % 4 === 0 ? "destacado" : ""}`,
+      cx: punto.x,
+      cy: punto.y,
+      r: i % 4 === 0 ? 2.2 : 1.35,
+    })),
+  ]);
+}
+
 const zoomBtn = (t, etiqueta, fn) =>
   h("button", {
     type: "button",
@@ -150,10 +229,27 @@ export function crearMapa(
   let pulsoSeleccion = false;
   const seccion = raiz.closest(".constelacion-sec");
   const organica = Boolean(seccion);
-  // El encuadre deja margen a los lados: ahí flotan la meta y la ficha de la habilidad.
-  const INICIO = { x: -270, y: -90, w: W + 540, h: H + 150 };
+  const aspecto = seccion?.clientWidth && seccion?.clientHeight
+    ? seccion.clientWidth / seccion.clientHeight
+    : 1190 / 980;
+  const altoRed = 980;
+  const anchoRed = Math.max(980, altoRed * aspecto);
+  const escalaX = anchoRed / 1190;
+  const centroX = 503;
+  // El encuadre sigue la proporción del panel y evita el espacio vacío del SVG apaisado.
+  const INICIO = organica
+    ? { x: centroX - anchoRed / 2, y: -126, w: anchoRed, h: altoRed }
+    : { x: -270, y: -90, w: W + 540, h: H + 150 };
   let vb = { ...INICIO };
-  const movil = matchMedia("(max-width: 700px)").matches;
+  const posiciones = Object.fromEntries(
+    HABILIDADES.map((x) => {
+      const base = organica ? POSICIONES_RED[x.id] : x;
+      return [x.id, { ...base, x: centroX + (base.x - centroX) * (organica ? escalaX : 1), id: x.id }];
+    }),
+  );
+  const fondoSvg = fondo();
+  const malla = organica ? redAmbiente(INICIO) : null;
+  const movil = matchMedia("(max-width: 700px), (max-aspect-ratio: 1 / 1)").matches;
   let vista = movil ? "lista" : "mapa";
 
   const botonVista = (v, t) =>
@@ -178,7 +274,7 @@ export function crearMapa(
       { class: "zooms" },
       zoomBtn("−", "Alejar", () => zoom(1.25)),
       zoomBtn("+", "Acercar", () => zoom(0.8)),
-      zoomBtn("⤢", "Volver a encuadrar", () => encuadrar()),
+      zoomBtn("Centrar", "Volver a encuadrar", () => encuadrar()),
     ),
   );
   const svg = s("svg", {
@@ -327,12 +423,13 @@ export function crearMapa(
     const actual = e.target.closest?.(".nodo");
     if (!dir || !actual) return;
     e.preventDefault();
-    const a = porId[actual.dataset.id];
+    const a = posiciones[actual.dataset.id];
     let mejor = null;
     let dmin = Infinity;
     for (const b of HABILIDADES) {
-      const dx = b.x - a.x;
-      const dy = b.y - a.y;
+      const posicion = posiciones[b.id];
+      const dx = posicion.x - a.x;
+      const dy = posicion.y - a.y;
       const avance = dx * dir[0] + dy * dir[1];
       if (avance <= 0) continue;
       const d = avance + 2 * Math.abs(dx * dir[1] - dy * dir[0]);
@@ -358,7 +455,7 @@ export function crearMapa(
     const foco = document.activeElement?.closest?.(".nodo")?.dataset.id;
 
     // Cada grupo es una nebulosa: una elipse difusa con el nombre de la constelación.
-    const bandas = GRUPOS.map((g) => {
+    const bandas = organica ? [] : GRUPOS.map((g) => {
       const [y0, y1] = BANDAS[g.id];
       return s(
         "g",
@@ -378,8 +475,9 @@ export function crearMapa(
     const etiquetas = [];
     for (const b of HABILIDADES) {
       for (const r of b.requiere) {
-        const a = porId[r];
-        const curva = arista(a, b, organica);
+        const a = posiciones[r];
+        const destino = posiciones[b.id];
+        const curva = arista(a, destino, organica);
         const puente = b.puente?.[r];
         const enfocada = enfoque && enfoque.has(a.id) && enfoque.has(b.id);
         const clase = [
@@ -413,6 +511,8 @@ export function crearMapa(
 
     const nodos = HABILIDADES.map((x) => {
       const e = estados[x.id];
+      const posicion = posiciones[x.id];
+      const etiquetaAncho = x.corto.length * 10 + 26;
       const clase = [
         "nodo",
         `e-${e}`,
@@ -428,7 +528,7 @@ export function crearMapa(
         "g",
         {
           class: clase,
-          transform: `translate(${x.x} ${x.y})`,
+          transform: `translate(${posicion.x} ${posicion.y})`,
           tabindex: "0",
           role: "button",
           "data-id": x.id,
@@ -444,8 +544,15 @@ export function crearMapa(
         },
         s("circle", { class: "blanco", r: R + 16 }),
         forma(e),
-        s("text", { class: "nombre", y: R + 22, text: x.corto }),
-        s("text", { class: "estado", y: R + 38, text: nombreEstado(e) }),
+        organica
+          ? [
+              s("rect", { class: "etiqueta-nodo", x: R + 12, y: -20, width: etiquetaAncho, height: 40, rx: 10 }),
+              s("text", { class: "nombre", x: R + 24, y: 6, "text-anchor": "start", text: x.corto }),
+            ]
+          : [
+              s("text", { class: "nombre", y: R + 22, text: x.corto }),
+              s("text", { class: "estado", y: R + 38, text: nombreEstado(e) }),
+            ],
       );
     });
 
@@ -453,6 +560,13 @@ export function crearMapa(
       s(
         "defs",
         null,
+        s(
+          "linearGradient",
+          { id: "g-malla", gradientUnits: "userSpaceOnUse", x1: INICIO.x, y1: 0, x2: INICIO.x + INICIO.w, y2: 0 },
+          s("stop", { offset: "0%", class: "g-violeta" }),
+          s("stop", { offset: "52%", class: "g-cian" }),
+          s("stop", { offset: "100%", class: "g-ambar" }),
+        ),
         s(
           "marker",
           {
@@ -489,7 +603,8 @@ export function crearMapa(
           ),
         ),
       ),
-      fondo(),
+      fondoSvg,
+      ...(malla ? [malla] : []),
       ...bandas,
       ...aristas,
       ...etiquetas,
