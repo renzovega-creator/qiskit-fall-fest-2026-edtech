@@ -15,8 +15,10 @@ Abre <http://localhost:8810/juego.html>. Los experimentos llaman a `POST /run`,
 así que la página necesita `serve.py`. En Windows, `serve.py` ejecuta el modo
 `run` sin `qgcheck`, porque `qgcheck` usa `fork`; la corrección de los
 ejercicios de las lecciones (`check`) requiere Linux o macOS. GitHub Pages no
-ejecuta `POST /run`: allí se puede recorrer el mapa y abrir el perfil de
-ejemplo, que muestra resultados precomputados.
+ejecuta `POST /run`: las misiones consultan resultados precomputados de Qiskit
+para cada valor de los controles. Se puede completar la ruta, desbloquear el
+mapa y crear un portafolio marcado como demostración. Repetir una configuración
+muestra el mismo resultado; el editor de código requiere la versión local.
 
 ## Archivos
 

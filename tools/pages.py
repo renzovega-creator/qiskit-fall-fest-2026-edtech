@@ -10,15 +10,19 @@ SITE = ROOT / "site"
 NOTICE = (
     '<p role="note" style="padding:12px 16px;border:1px solid var(--line);'
     'border-radius:8px;background:var(--bg2);color:var(--ink);font:14px/1.5 var(--sans)">'
-    "<strong>Demo estática en GitHub Pages.</strong> El perfil de ejemplo muestra resultados "
-    "precalculados de Qiskit. El editor no envía ni ejecuta código; para probarlo, usa la "
-    "versión local. "
+    "<strong>Demo interactiva con datos de ejemplo.</strong> Puedes ajustar las misiones, "
+    "completar retos y crear un portafolio de demostración con resultados precomputados de Qiskit. "
+    "El editor de Python requiere la versión local para ejecutar código. "
     '<a href="juego.html#ejemplo" style="color:var(--acc);font-weight:600">'
-    "Ver resultados de ejemplo →</a></p>"
+    "Ver un perfil de ejemplo →</a> · "
+    '<a href="juego.html#mision=m1" style="color:var(--acc);font-weight:600">'
+    "Probar la primera misión →</a></p>"
 )
 
 
 def build(destination: Path) -> None:
+    if not (SITE / "demo-resultados.json").is_file():
+        raise SystemExit("Faltan los datos de demostración: ejecuta uv run python tools/demo.py.")
     destination = destination.resolve()
     if destination.exists() and any(destination.iterdir()):
         raise SystemExit("La carpeta de salida debe estar vacía.")

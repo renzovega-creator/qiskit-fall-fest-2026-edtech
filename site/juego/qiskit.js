@@ -5,6 +5,7 @@
 // El código de cada experimento es Python legible: se muestra en la misión y se guarda en la
 // evidencia para que cualquiera pueda reproducirlo.
 import { LUNAS, RETO_KERNEL } from "./datos.js";
+import { DEMO_MODE, resultadoMision } from "../demo.js";
 
 export const BACKEND = "Simulador · StatevectorSampler de Qiskit";
 const EXERCISE = "q1-montecarlo/estimar-p";
@@ -108,6 +109,10 @@ export async function ejecutar(code) {
 }
 
 const py = (xs) => JSON.stringify(xs).replaceAll(",", ", ");
+
+export async function medirMision(id, params) {
+  return DEMO_MODE ? resultadoMision(id, params) : ejecutar(codigo[id](params));
+}
 
 export const codigo = {
   m1: ({ theta, shots, seed }) => `import json

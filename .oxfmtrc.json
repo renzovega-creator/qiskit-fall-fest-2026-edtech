@@ -5,6 +5,7 @@
   "ignorePatterns": [
     "site/lessons/**",
     "site/course.json",
+    "site/demo-resultados.json",
     "site/editor.js",
     "site/vendor/**",
     "content/**",

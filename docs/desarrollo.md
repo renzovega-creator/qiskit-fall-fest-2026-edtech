@@ -83,10 +83,18 @@ los archivos de la web. Sube su contenido a `gh-pages` y, en **Settings →
 Pages**, elige **Deploy from a branch**, la rama `gh-pages` y la carpeta
 `/ (root)`.
 
-GitHub Pages sirve una demo estática: lecciones, animaciones, actividades con
-clic, progreso local y el perfil de ejemplo (`juego.html#ejemplo`) con
-resultados precalculados de Qiskit. No ofrece cuentas ni ejecuta Python. El
-editor se puede leer, pero sus botones quedan desactivados y el código no se
-envía. Para usarlo, inicia la versión local con `tools/serve.py`. La demo
-pública no usa un Worker; consulta [Privacidad](../site/privacidad.html) para
-ver qué se guarda en cada versión.
+GitHub Pages sirve una demo interactiva: lecciones, animaciones y las cuatro
+misiones con resultados precalculados de Qiskit para los valores de sus
+controles. Los retos se pueden completar y el progreso se guarda en el
+navegador; las evidencias se marcan como demostración incluso al compartirlas.
+El perfil de ejemplo (`juego.html#ejemplo`) muestra un portafolio lleno sin
+jugar antes. No ofrece cuentas ni ejecuta Python. El editor se puede leer, pero
+sus botones quedan desactivados y el código no se envía. Para usarlo, inicia la
+versión local con `tools/serve.py`. La demo pública no usa un Worker; consulta
+[Privacidad](../site/privacidad.html) para ver qué se guarda en cada versión.
+
+Los 475 resultados están en `site/demo-resultados.json`. Para regenerarlos con
+el código Qiskit de las misiones y los retos diarios, ejecuta
+`uv run python tools/demo.py` antes de preparar Pages. El generador usa semillas
+fijas: al repetir una configuración, la demo muestra el mismo resultado. El
+recorrido breve para presentar está en [Demo pública](demo.md).

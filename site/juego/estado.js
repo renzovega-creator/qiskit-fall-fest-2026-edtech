@@ -141,7 +141,16 @@ export function datosPublicos(st) {
     insignias: Object.keys(st.insignias),
     evidencias: st.evidencias
       .filter((e) => e.publica)
-      .map(({ m, v, at, h, pred, p, r }) => ({ m, v, at, h, pred, p, r })),
+      .map(({ m, v, at, h, pred, p, r, demo }) => ({
+        m,
+        v,
+        at,
+        h,
+        pred,
+        p,
+        r,
+        demo,
+      })),
   };
 }
 
@@ -171,6 +180,7 @@ export function validarPublico(d) {
       .slice(0, 20)
       .map((e) => ({
         m: e.m,
+        demo: e.demo === true,
         v: e.v,
         at: str(e.at, 10),
         h: Number.isInteger(e.h) ? e.h : 0,

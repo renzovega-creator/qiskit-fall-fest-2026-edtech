@@ -135,12 +135,15 @@ Windows, **Ejecutar** funciona; la corrección automática por casos del editor
 requiere Linux o macOS. El servidor local escucha solo en `127.0.0.1`.
 
 [GitHub Pages](https://renzovega-creator.github.io/qiskit-fall-fest-2026-edtech/)
-es el recorrido público para explorar las lecciones, actividades de navegador,
-el mapa y el perfil de ejemplo. No ejecuta código Python ni tiene cuentas: el
-perfil de ejemplo muestra resultados de Qiskit ya calculados, no mediciones en
-vivo. El editor se puede leer, pero sus botones están desactivados y el código
-no se envía. Para el pitch, las diapositivas muestran la demo local; Pages queda
-como recorrido público para después.
+permite recorrer las lecciones y completar las cuatro misiones con resultados
+precomputados de Qiskit. Cada valor de los controles tiene su resultado de
+ejemplo; repetirlo devuelve el mismo dato. Los retos desbloquean el mapa y
+crean evidencias marcadas como demostración, también al compartirlas.
+No ejecuta Python ni tiene cuentas. El editor se puede leer y modificar, pero
+sus botones de ejecución están desactivados y el código no se envía.
+
+El [perfil de ejemplo](https://renzovega-creator.github.io/qiskit-fall-fest-2026-edtech/juego.html#ejemplo)
+muestra el portafolio lleno sin completar antes las misiones.
 
 Para preparar la versión local y publicar una copia estática, sigue
 [Desarrollo](docs/desarrollo.md). La documentación del Worker se conserva como

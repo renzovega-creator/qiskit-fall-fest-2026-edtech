@@ -163,6 +163,8 @@
 })();
 </script>
 <script type="module">
+import { DEMO_MODE, resultadoDiario } from "./demo.js";
+import { RETOS } from "./retos.js";
 import { HABILIDADES } from "./juego/datos.js";
 import { cargar, estadoHabilidad, proximaMeta } from "./juego/estado.js";
 const $ = s => document.querySelector(s);
@@ -283,29 +285,6 @@ function renderNivel(course, doneSet) {
   $('#racha').textContent = vigente && r.n ? `${r.n} ${r.n === 1 ? 'día seguido' : 'días seguidos'} de repaso` : 'repasa hoy para empezar tu racha';
 }
 // ---------- reto del día: el mismo para todos en una fecha; predices y Qiskit mide con POST /run ----------
-const SHOTS = (theta, shots) => `import numpy as np
-from qiskit import QuantumCircuit
-from qiskit.primitives import StatevectorSampler
-qc = QuantumCircuit(1)
-qc.ry(${theta}, 0)
-qc.measure_all()
-res = StatevectorSampler(seed=SEMILLA).run([qc], shots=${shots}).result()
-print(res[0].data.meas.get_counts().get("1", 0))`;
-const RETOS = [
-  { de: 'q1-montecarlo', p: 'Aplicas $R_Y(\\pi/2)$ a $|0\\rangle$ y mides **400 shots**. ¿Cuántos `1` saldrán?', code: SHOTS('np.pi / 2', 400), tol: 20,
-    why: '$P(1)=\\sin^2(\\pi/4)=1/2$: se esperan 200, con un error típico de $\\sqrt{400\\cdot\\tfrac12\\cdot\\tfrac12}=10$.' },
-  { de: 'q1-montecarlo', p: 'Aplicas $R_Y(2\\pi/3)$ y mides **200 shots**. ¿Cuántos `1` saldrán?', code: SHOTS('2 * np.pi / 3', 200), tol: 12,
-    why: '$P(1)=\\sin^2(\\pi/3)=3/4$: se esperan 150, con un error típico de $\\sqrt{200\\cdot\\tfrac34\\cdot\\tfrac14}\\approx 6$.' },
-  { de: 'q1-montecarlo', p: 'Aplicas $R_Y(\\pi/3)$ y mides **1000 shots**. ¿Cuántos `1` saldrán?', code: SHOTS('np.pi / 3', 1000), tol: 27,
-    why: '$P(1)=\\sin^2(\\pi/6)=1/4$: se esperan 250, con un error típico de $\\sqrt{1000\\cdot\\tfrac14\\cdot\\tfrac34}\\approx 14$.' },
-  { de: 'q2-kernel', p: 'Kernel cuántico con `zz_feature_map(2, reps=1)`: ¿cuánto vale $k(x,x\')$ para $x=[0.2,\\,0.7]$ y $x\'=[0.9,\\,0.1]$? (dos decimales)', tol: 0.1,
-    code: `from qiskit.circuit.library import zz_feature_map
-from qiskit.quantum_info import Statevector
-m = zz_feature_map(2, reps=1)
-e = lambda x: Statevector(m.assign_parameters(x))
-print(round(abs(e([0.9, 0.1]).inner(e([0.2, 0.7]))) ** 2, 4))`,
-    why: 'Los puntos están lejos, así que el solapamiento es bajo; el RBF con $\\gamma=0.5$ daría 0.65 para el mismo par.' },
-];
 // ---------- guía: un solo siguiente paso ----------
 // Según el progreso, un capítulo es «ahora» (el paso que toca), «abierto» o «después» (plegado, con
 // la razón). La barra inferior repite el paso que toca cuando el inicio ya no se ve.
@@ -371,26 +350,33 @@ async function renderReto(course, doneSet) {
   box.innerHTML = `<div class="rq"><div class="from">Hoy · ${new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' })}</div><div class="p">${rich(reto.p)}</div>
     <form class="reto-form"><label for="reto-prediccion">Tu predicción</label><div class="num"><input id="reto-prediccion" type="number" min="0" step="1" inputmode="numeric" autocomplete="off" required><button type="submit">Predecir y medir</button></div><div class="fb" role="status" aria-live="polite"></div></form></div>`;
   const form = box.querySelector('.reto-form'), inp = form.querySelector('input'), btn = form.querySelector('button'), fb = form.querySelector('.fb');
+  inp.step = reto.id === 'kernel-zz' ? '0.01' : '1';
+  inp.inputMode = reto.id === 'kernel-zz' ? 'decimal' : 'numeric';
+  if (DEMO_MODE) { btn.textContent = 'Predecir y ver ejemplo'; $('#rtnote').textContent = 'Demo con resultados precomputados de Qiskit'; }
   const mostrar = (pred, med) => {
     const ok = Math.abs(pred - med) <= reto.tol;
-    fb.innerHTML = `${ok ? '✓' : '✗'} Predijiste <b>${pred}</b>; Qiskit midió <b>${med}</b>. ${ok ? 'Dentro del margen.' : `Fuera del margen (±${reto.tol}).`}<br>${rich(reto.why)}<br><span class="mono">vuelve mañana por otro reto</span>`;
+    fb.innerHTML = `${ok ? '✓' : '✗'} Predijiste <b>${pred}</b>; ${DEMO_MODE ? "Resultado precomputado de Qiskit" : "Qiskit midió"} <b>${med}</b>. ${ok ? 'Dentro del margen.' : `Fuera del margen (±${reto.tol}).`}<br>${rich(reto.why)}<br><span class="mono">vuelve mañana por otro reto</span>`;
     inp.value = pred; inp.disabled = btn.disabled = true;
   };
-  if (st.dia === hoy()) return mostrar(st.pred, st.med);
+  if (st.dia === hoy() && !!st.demo === DEMO_MODE) return mostrar(st.pred, st.med);
   const go = async (e) => {
     e.preventDefault();
     if (btn.disabled || !form.reportValidity()) return;
     const pred = inp.valueAsNumber;
-    btn.disabled = true; fb.textContent = 'Midiendo con Qiskit…';
+    btn.disabled = true; fb.textContent = DEMO_MODE ? 'Cargando resultado precomputado…' : 'Midiendo con Qiskit…';
     try {
-      const res = await (await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exercise: 'q1-montecarlo/estimar-p', mode: 'run', code: reto.code.replace('SEMILLA', String(dia)) }) })).json();
-      const med = Number((res.stdout || '').trim());
-      if (res.error || !isFinite(med)) throw new Error(res.error || 'sin salida');
-      LS.set('qiskit:reto', { dia: hoy(), pred, med });
+      let med;
+      if (DEMO_MODE) med = await resultadoDiario(reto.id);
+      else {
+        const res = await (await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ exercise: 'q1-montecarlo/estimar-p', mode: 'run', code: reto.code.replace('SEMILLA', String(dia)) }) })).json();
+        med = Number((res.stdout || '').trim());
+        if (res.error || !isFinite(med)) throw new Error(res.error || 'sin salida');
+      }
+      LS.set('qiskit:reto', { dia: hoy(), pred, med, demo: DEMO_MODE });
       sumarRacha(); renderNivel(course, doneSet);
       mostrar(pred, med);
-    } catch (e) { btn.disabled = false; fb.textContent = 'No se pudo medir: abre el curso con tools/serve.py para ejecutar Qiskit.'; }
+    } catch (e) { btn.disabled = false; fb.textContent = DEMO_MODE ? 'No se pudo cargar el resultado de ejemplo. Recarga la página para volver a intentarlo.' : 'No se pudo medir: abre el curso con tools/serve.py para ejecutar Qiskit.'; }
   };
   form.addEventListener('submit', go);
 }
