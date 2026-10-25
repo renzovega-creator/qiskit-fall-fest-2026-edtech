@@ -1,0 +1,18 @@
+.error-skip { position:absolute; left:-9999px; top:8px; z-index:50; padding:8px 12px; border-radius:8px; background:var(--acc); color:var(--acc-ink); }
+.error-skip:focus { left:8px; }
+.error404 { min-height: min(70svh, 680px); display:grid; place-items:center; padding:clamp(48px, 9vh, 96px) 0; }
+.error404-card { width:min(720px, 100%); padding:clamp(24px, 6vw, 48px); border:1px solid var(--line); border-radius:20px; background:var(--card); text-align:center; }
+.error404-code { margin:0 0 14px; color:var(--acc); font:600 12px var(--mono); letter-spacing:.14em; text-transform:uppercase; }
+.error404 h1 { max-width:14ch; margin:0 auto 16px; font-size:clamp(32px, 6vw, 52px); line-height:1.05; letter-spacing:-.035em; text-wrap:balance; }
+.error404-card > p:not(.error404-code) { max-width:56ch; margin:0 auto 12px; color:var(--muted); }
+.error404-note { margin-top:20px !important; padding:14px 16px; border:1px solid var(--line); border-radius:12px; background:var(--bg2); }
+.error404-note strong { color:var(--ink); }
+.error404-actions { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:24px; }
+.error404-actions a { justify-content:center; min-height:46px; }
+@media (max-width: 520px) {
+  .error404 { min-height:60svh; padding:36px 0; }
+  .error404-card { padding:24px 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .error404-actions a { transition:none; }
+}
