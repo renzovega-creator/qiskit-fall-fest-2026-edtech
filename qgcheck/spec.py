@@ -1,4 +1,4 @@
-"""Localiza un ejercicio en exercises/ y lee de check.py los casos y lo que build.py publica.
+"""Localiza un ejercicio en cursos/<curso>/exercises/ y lee de check.py los casos y lo que build.py publica.
 
 exercises/<lección>/<ejercicio>/ guarda starter.py (lo que ve el alumno), solution.py (la
 referencia) y check.py (los casos). Solo starter.py y los nombres de los casos visibles llegan
@@ -19,11 +19,10 @@ ID = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*/[a-z0-9]+(-[a-z0-9]+)*")
 
 
 def exercises_dir() -> Path:
-    """QG_EXERCISES manda; si no, QG_CURSO=<nombre> usa cursos/<nombre>/exercises."""
+    """QG_EXERCISES manda; si no, cursos/<QG_CURSO>/exercises, con el curso «qml» por defecto."""
     if os.environ.get("QG_EXERCISES"):
         return Path(os.environ["QG_EXERCISES"])
-    curso = os.environ.get("QG_CURSO")
-    return ROOT / "cursos" / curso / "exercises" if curso else ROOT / "exercises"
+    return ROOT / "cursos" / os.environ.get("QG_CURSO", "qml") / "exercises"
 
 
 def folder(exercise_id: str) -> Path:

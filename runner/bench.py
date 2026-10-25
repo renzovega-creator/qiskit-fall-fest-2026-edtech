@@ -19,18 +19,18 @@ from typing import Any
 
 import local
 
-EXERCISES = local.ROOT / "exercises"
+EXERCISES = local.ROOT / "cursos" / "qml" / "exercises"
 WORKLOADS = {
     "run: print": {"code": "print('hola')"},
-    "check: ghz (qiskit)": {
+    "check: estimar-p (sampler)": {
         "mode": "check",
-        "exercise": "p1-quickstart/ghz",
-        "code": (EXERCISES / "p1-quickstart/ghz/solution.py").read_text(),
+        "exercise": "q1-montecarlo/estimar-p",
+        "code": (EXERCISES / "q1-montecarlo/estimar-p/solution.py").read_text(),
     },
-    "check: hasta-uno (aer)": {
+    "check: kernel-fidelidad (statevector)": {
         "mode": "check",
-        "exercise": "p2-control-clasico/hasta-uno",
-        "code": (EXERCISES / "p2-control-clasico/hasta-uno/solution.py").read_text(),
+        "exercise": "q2-kernel/kernel-fidelidad",
+        "code": (EXERCISES / "q2-kernel/kernel-fidelidad/solution.py").read_text(),
     },
 }
 

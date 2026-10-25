@@ -99,6 +99,9 @@ LESSONS = [
                     Code(
                         CLASICO,
                         id="c",
+                        # Necesita scikit-learn y Qiskit Machine Learning, que no son dependencias del
+                        # proyecto: verify.py no lo ejecuta. Las cifras salen de numeros.py.
+                        norun=True,
                         size=19,
                         notes={
                             6: "Dos medias lunas entrelazadas: 60 puntos con ruido que ninguna recta separa.",
@@ -169,6 +172,9 @@ LESSONS = [
                     Code(
                         CUANTICO,
                         id="c",
+                        # Necesita scikit-learn y Qiskit Machine Learning, que no son dependencias del
+                        # proyecto: verify.py no lo ejecuta. Las cifras salen de numeros.py.
+                        norun=True,
                         size=20,
                         notes={
                             5: "El feature map del paso anterior: 2 qubits, uno por coordenada, y una sola repetición.",

@@ -89,6 +89,7 @@
      "src": "from sklearn.datasets import make_moons\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import MinMaxScaler\nfrom sklearn.svm import SVC\n\nX, y = make_moons(n_samples=60, noise=0.15, random_state=0)\nX = MinMaxScaler((0, 1)).fit_transform(X)\nXtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.25, random_state=0)\n\nsvm = SVC(kernel=\"rbf\").fit(Xtr, ytr)\nprint(svm.score(Xte, yte))",
      "lang": "python",
      "id": "c",
+     "norun": true,
      "size": 19,
      "notes": {
       "6": "Dos medias lunas entrelazadas: 60 puntos con ruido que ninguna recta separa.",
@@ -603,6 +604,7 @@
      "src": "from qiskit.circuit.library import zz_feature_map\nfrom qiskit_machine_learning.algorithms import QSVC\nfrom qiskit_machine_learning.kernels import FidelityStatevectorKernel\n\nmapa = zz_feature_map(2, reps=1)              # x → |φ(x)⟩, 2 qubits\nkernel = FidelityStatevectorKernel(feature_map=mapa)\n\nqsvc = QSVC(quantum_kernel=kernel).fit(Xtr, ytr)\nprint(qsvc.score(Xte, yte))",
      "lang": "python",
      "id": "c",
+     "norun": true,
      "size": 20,
      "notes": {
       "5": "El feature map del paso anterior: 2 qubits, uno por coordenada, y una sola repetición.",

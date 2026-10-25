@@ -28,7 +28,7 @@ RUN --mount=from=uv,source=/uv,target=/usr/local/bin/uv \
 
 COPY runner/ /app/
 COPY qgcheck/ /app/qgcheck/
-COPY exercises/ /app/exercises/
+COPY cursos/qml/exercises/ /app/cursos/qml/exercises/
 RUN python -m compileall -q /app/qgcheck
 
 # Nada es escribible por el alumno salvo su directorio de trabajo en /scratch.

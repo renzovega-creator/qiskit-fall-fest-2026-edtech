@@ -1,11 +1,8 @@
 """Genera site/lessons/<id>/lesson.json y site/course.json a partir de plan.py y de los módulos parte*.py.
 
-    python lessons_src/build.py              # escribe los JSON y comprueba la cobertura de las guías
+    python lessons_src/build.py              # escribe los JSON
     python lessons_src/build.py --check      # no escribe: falla si los JSON de site/ no coinciden con lo que se generaría
     python lessons_src/build.py --tts        # además genera la narración (necesita uv, red y ffprobe)
-
-La cobertura se comprueba contra .cache/qiskit-docs.
-tools/fetch_docs.py descarga esa caché.
 
 La numeración de secciones (1.1, 1.2, …) sale del orden de plan.PARTS; la primera parte de la
 etiqueta de cada paso se sustituye por esa sección. Cada lección del plan debe tener su módulo, y
@@ -24,10 +21,10 @@ from typing import Any
 
 HERE = Path(__file__).parent
 ROOT = HERE.parent
-# QG_CURSO=<nombre> construye otro curso con el mismo motor: plan.py, parte*.py y exercises/
-# salen de cursos/<nombre>/ y no se comprueba la cobertura de las guías de IBM.
-CURSO = os.environ.get("QG_CURSO")
-SRC = ROOT / "cursos" / CURSO if CURSO else HERE
+# El curso sale de cursos/<nombre>/ (plan.py, parte*.py y exercises/). Por defecto es «qml»;
+# QG_CURSO=<nombre> construye otro curso con el mismo motor.
+CURSO = os.environ.get("QG_CURSO", "qml")
+SRC = ROOT / "cursos" / CURSO
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(SRC))
@@ -37,7 +34,6 @@ from qgcheck import spec  # noqa: E402
 
 SITE = ROOT / "site"
 GUIDE = "https://quantum.cloud.ibm.com/docs/en/guides/"
-TOC = ROOT / ".cache" / "qiskit-docs" / "docs" / "guides" / "_toc.json"
 
 
 def load_lessons() -> dict[str, dict[str, Any]]:
@@ -48,36 +44,6 @@ def load_lessons() -> dict[str, dict[str, Any]]:
                 raise SystemExit(f"lección duplicada: {les['id']}")
             found[les["id"]] = les
     return found
-
-
-def toc_pages() -> list[str]:
-    if not TOC.exists():
-        raise SystemExit(f"falta {TOC.relative_to(ROOT)}: ejecuta python tools/fetch_docs.py")
-    toc = json.loads(TOC.read_text(encoding="utf-8"))
-    out: list[str] = []
-
-    def walk(n: dict[str, Any]) -> None:
-        for c in n.get("children", []):
-            u = c.get("url", "")
-            if u == "/docs/guides":
-                out.append("index")
-            elif u.startswith("/docs/guides/"):
-                out.append(u.rsplit("/", 1)[1])
-            walk(c)
-
-    walk(toc)
-    return list(dict.fromkeys(out))
-
-
-def coverage() -> None:
-    planned = [g for p in PARTS for _, _, gs in p["lessons"] for g in gs]
-    dup = {g for g in planned if planned.count(g) > 1}
-    missing = [g for g in toc_pages() if g not in planned]
-    extra = [g for g in planned if g not in toc_pages()]
-    if dup or missing or extra:
-        raise SystemExit(
-            f"cobertura: repetidas {sorted(dup)}, sin lección {missing}, inexistentes {extra}"
-        )
 
 
 ERRORS: list[str] = []
@@ -156,8 +122,6 @@ def check(lesson: dict[str, Any]) -> None:
 
 
 def main() -> None:
-    if not CURSO:
-        coverage()
     lessons = load_lessons()
     planned = {lid for part in PARTS for lid, _, _ in part["lessons"]}
     if planned != set(lessons):
@@ -253,7 +217,6 @@ def main() -> None:
     total = sum(len(p["lessons"]) for p in PARTS)
     print(
         f"{len(ordered)} de {total} lecciones escritas, {sum(len(les['beats']) for les in ordered)} pasos"
-        + ("" if CURSO else f"; cobertura de las {len(toc_pages())} guías: completa")
     )
     if "--tts" in sys.argv:
         for les in ordered:

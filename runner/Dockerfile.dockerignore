@@ -4,9 +4,9 @@
 !uv.lock
 !runner/*.py
 !qgcheck
-!exercises
+!cursos/qml/exercises
 **/__pycache__
-exercises/**/solution.py
-exercises/**/starter.py
+cursos/qml/exercises/**/solution.py
+cursos/qml/exercises/**/starter.py
 runner/bench.py
 runner/local.py
