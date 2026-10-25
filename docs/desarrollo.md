@@ -82,8 +82,8 @@ los archivos de la web. Sube su contenido a `gh-pages` y, en **Settings →
 Pages**, elige **Deploy from a branch**, la rama `gh-pages` y la carpeta
 `/ (root)`.
 
-GitHub Pages sirve la versión de lectura: lecciones, animaciones, actividades
-con clic y progreso local. El aviso superior enlaza a la [demo interactiva en
-Cloudflare Workers](https://qiskit-guides.empirical.workers.dev/), que ejecuta
-Qiskit, comprueba el código y admite cuentas en el mismo origen que la web. En
-desarrollo local, esas funciones usan `tools/serve.py`.
+GitHub Pages sirve una demo estática: lecciones, animaciones, actividades con
+clic, progreso local y el perfil de ejemplo (`juego.html#ejemplo`) con resultados
+precomputados de Qiskit. No ejecuta código nuevo ni ofrece cuentas.
+Para ejecutar ejercicios en desarrollo local, usa `tools/serve.py`; para una
+demo pública con ejecución de código y cuentas hace falta el Worker.

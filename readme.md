@@ -125,9 +125,10 @@ QuantumShot usa el motor de lecciones de
 ## GitHub Pages y Cloudflare Workers
 
 GitHub Pages publica la web estática: lecciones, animaciones y actividades que
-se ejecutan en el navegador; el progreso se guarda en ese navegador. Por sí
-solo, no ofrece cuentas ni permite ejecutar o corregir código con Qiskit en el
-servidor.
+se ejecutan en el navegador; el progreso se guarda en ese navegador. El perfil
+de ejemplo (`juego.html#ejemplo`) muestra resultados precomputados de Qiskit,
+suficientes para una demo sin backend. Pages no ofrece cuentas ni ejecuta código
+nuevo; las mediciones de ese perfil no se vuelven a correr al abrirlo.
 
 Para esas funciones se necesita un backend. El Cloudflare Worker del proyecto
 atiende las cuentas y el progreso sincronizado, y recibe los ejercicios para

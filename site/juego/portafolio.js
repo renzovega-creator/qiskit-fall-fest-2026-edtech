@@ -523,7 +523,7 @@ export function vistaPublica(raiz, datos) {
       datos.demo
         ? h("p", {
             class: "aviso demo",
-            text: "Perfil de demostración: datos de ejemplo, no de una persona real.",
+            text: "Perfil de demostración: resultados precomputados de Qiskit; no son de una persona real ni se ejecutan aquí.",
           })
         : null,
       h("p", {

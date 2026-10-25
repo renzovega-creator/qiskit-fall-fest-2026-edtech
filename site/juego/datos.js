@@ -307,7 +307,7 @@ export const RETO_KERNEL = {
   claseB: [0.92, 0.25],
 };
 
-// Perfil de ejemplo para enseñar la vista pública sin progreso propio. No es un usuario real.
+// Perfil de ejemplo con resultados precomputados de Qiskit. No es un usuario real.
 export const DEMO = {
   demo: true,
   perfil: {
@@ -324,7 +324,7 @@ export const DEMO = {
       at: "2026-10-20",
       h: 0,
       pred: 50,
-      p: { theta: 60, shots: 200, seed: 3 },
+      p: { theta: 60, shots: 200, seed: 7 },
       r: { p1: 0.25, unos: 52 },
     },
     {
@@ -334,7 +334,7 @@ export const DEMO = {
       h: 1,
       pred: 400,
       p: { shots: 500, reps: 30, seed: 100 },
-      r: { sigmaTeo: 0.0194, sigmaObs: 0.0201, media: 0.2513 },
+      r: { sigmaTeo: 0.0194, sigmaObs: 0.0179, media: 0.252 },
     },
     {
       m: "t1",
