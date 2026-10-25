@@ -81,10 +81,15 @@ body[data-ruta="mapa"] .constelacion-sec > .meta h1 { max-width:none; margin:0 0
 body[data-ruta="mapa"] .constelacion-sec > .meta > .lead { max-width:48ch; margin:0; font-size:clamp(17px, 1.55vw, 24px); color:var(--map-soft); }
 .mapa-etiqueta { position:absolute; z-index:15; top:68px; right:26px; margin:0; color:var(--map-muted); font-size:15px; letter-spacing:.01em; }
 .meta-siguiente { display:none; }
-@media (min-width:701px) and (max-width:900px) {
-  body[data-ruta="mapa"] .constelacion-sec > .meta { top:76px; left:28px; width:min(440px, calc(100% - 56px)); }
-  body[data-ruta="mapa"] .constelacion-sec > .meta h1 { font-size:clamp(36px, 4vw, 48px); }
-  .constelacion-sec .detalle { width:min(460px, calc(100% - 56px)); padding:28px 30px; }
+@media (min-width:701px) and (max-width:1100px) {
+  body[data-ruta="mapa"] .constelacion-sec > .meta { top:76px; left:28px; width:min(420px, calc(100% - 56px)); }
+  body[data-ruta="mapa"] .constelacion-sec > .meta h1 { font-size:clamp(34px, 3.8vw, 42px); }
+  body[data-ruta="mapa"] .constelacion-sec > .meta > .lead { max-width:38ch; font-size:16px; }
+}
+@media (min-width:701px) and (max-width:800px) {
+  body[data-ruta="mapa"] .constelacion-sec > .meta { width:min(340px, calc(100% - 56px)); }
+  body[data-ruta="mapa"] .constelacion-sec > .meta h1 { font-size:clamp(32px, 4.2vw, 34px); }
+  body[data-ruta="mapa"] .constelacion-sec > .meta > .lead { font-size:15px; }
 }
 
 /* Controles flotantes */
@@ -266,3 +271,15 @@ body[data-ruta="mapa"] .constelacion-sec[data-vista="lista"] > .meta > .lead { m
 }
 
 .g-clasico { stop-color:var(--clasico); } .g-cuantico { stop-color:var(--cuantico); }
+
+/* En tablet, reduce la ficha y la meta para que el título y el detalle no se tapen. */
+@media (min-width:701px) and (max-width:1100px) {
+  .constelacion-sec .detalle { width:min(400px, calc(100% - 56px)); padding:26px 28px; }
+  .constelacion-sec .detalle h2 { font-size:32px; }
+  .constelacion-sec .detalle .primario { min-height:56px; font-size:16px; }
+}
+@media (min-width:701px) and (max-width:800px) {
+  .constelacion-sec .detalle { width:min(360px, calc(100% - 56px)); padding:20px 22px; }
+  .constelacion-sec .detalle h2 { font-size:28px; }
+  .constelacion-sec .detalle .primario { min-height:52px; }
+}
