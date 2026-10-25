@@ -162,7 +162,7 @@ export async function start(options: Options = {}): Promise<Harness> {
         directory: path.join(import.meta.dirname, "../../../site"),
         binding: "ASSETS",
         assetConfig: { not_found_handling: "404-page" },
-        run_worker_first: WORKER_FIRST,
+        run_worker_first: [...WORKER_FIRST, "/clock", "/other-learner"],
         routerConfig: {
           has_user_worker: true,
         },
