@@ -3,6 +3,7 @@
 python tests/pages_demo_test.py
 """
 
+import argparse
 import json
 import re
 import sys
@@ -24,13 +25,17 @@ class Handler(SimpleHTTPRequestHandler):
         pass
 
 
-def main() -> None:
+def main(public_url: str | None = None) -> None:
     with tempfile.TemporaryDirectory(prefix="qg-pages-demo-") as temp:
         root = Path(temp)
         build(root / "quantumshot")
         server = ThreadingHTTPServer(("127.0.0.1", 0), partial(Handler, directory=str(root)))
         threading.Thread(target=server.serve_forever, daemon=True).start()
-        base = f"http://127.0.0.1:{server.server_port}/quantumshot"
+        base = (
+            public_url.rstrip("/")
+            if public_url
+            else f"http://127.0.0.1:{server.server_port}/quantumshot"
+        )
         try:
             with sync_playwright() as pw:
                 browser = pw.chromium.launch()
@@ -171,4 +176,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--url", help="Comprueba también el recorrido en una publicación de Pages.")
+    main(parser.parse_args().url)
